@@ -46,18 +46,19 @@ all: $(TARGET)
 
 version.o: .FORCE
 
-$(TARGET): $(OBJS)
+$(TARGET): $(OBJS) | $(BIN_DIR)
 	$(LD) $(LDFLAGS) $^ -o $@
 
 bsp/dp32g030/%.h: hardware/dp32g030/%.def
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(BSP_HEADERS) $(OBJ_DIR)
+	mkdir -p $(@D)
 	$(CC) $(CFLAGS) $(INC) -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.S | $(OBJ_DIR)
 	$(AS) $(ASFLAGS) $< -o $@
 
-$(BIN_DIR) $(OBJ_DIR):
+$(BIN_DIR) $(OBJ_DIR) $(BIN_DIR):
 	mkdir -p $@
 
 .FORCE:
