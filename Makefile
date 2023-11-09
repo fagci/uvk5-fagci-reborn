@@ -6,9 +6,12 @@ TARGET = $(BIN_DIR)/firmware
 
 SRC := $(wildcard $(SRC_DIR)/driver/*.c)
 SRC := $(SRC) $(wildcard $(SRC_DIR)/helper/*.c)
+SRC := $(SRC) $(wildcard $(SRC_DIR)/external/printf/*.c)
+SRC := $(SRC) $(wildcard $(SRC_DIR)/ui/*.c)
 SRC := $(SRC) $(wildcard $(SRC_DIR)/*.c)
 
 OBJS := $(OBJ_DIR)/start.o
+OBJS := $(OBJ_DIR)/init.o
 OBJS := $(OBJS) $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 BSP_DEFINITIONS := $(wildcard hardware/*/*.def)
@@ -31,8 +34,8 @@ LDFLAGS = -mcpu=cortex-m0 -nostartfiles -Wl,-T,firmware.ld
 
 INC =
 INC += -I ./src
-INC += -I ./external/CMSIS_5/CMSIS/Core/Include/
-INC += -I ./external/CMSIS_5/Device/ARM/ARMCM0/Include
+INC += -I ./src/external/CMSIS_5/CMSIS/Core/Include/
+INC += -I ./src/external/CMSIS_5/Device/ARM/ARMCM0/Include
 
 DEPS = $(OBJS:.o=.d)
 

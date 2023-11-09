@@ -14,29 +14,15 @@
  *     limitations under the License.
  */
 
-#ifndef BATTERY_H
-#define BATTERY_H
+#ifndef UI_INPUTBOX_H
+#define UI_INPUTBOX_H
 
-#include <stdbool.h>
 #include <stdint.h>
 
-extern uint16_t gBatteryCalibration[6];
-extern uint16_t gBatteryCurrentVoltage;
-extern uint16_t gBatteryCurrent;
-extern uint16_t gBatteryVoltages[4];
-extern uint16_t gBatteryVoltageAverage;
+extern char gInputBox[8];
+extern uint8_t gInputBoxIndex;
 
-extern uint8_t gBatteryDisplayLevel;
-
-extern bool gChargingWithTypeC;
-extern bool gLowBattery;
-extern bool gLowBatteryBlink;
-
-extern volatile uint16_t gBatterySave;
-
-extern uint16_t gBatteryCheckCounter;
-
-void BATTERY_GetReadings(bool bDisplayBatteryLevel);
-void BATTERY_UpdateBatteryInfo();
+void INPUTBOX_Append(char Digit);
 
 #endif
+

@@ -35,7 +35,6 @@
 #include "driver/st7565.h"
 #include "helper/battery.h"
 #include "misc.h"
-#include "settings.h"
 #if defined(ENABLE_OVERLAY)
 #include "sram-overlay.h"
 #endif

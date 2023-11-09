@@ -18,14 +18,13 @@
 #include "audio.h"
 #include "helper/battery.h"
 #include "misc.h"
-#include "settings.h"
 
 #define TASKS_MAX 16
 
-typedef struct Task {
+typedef struct {
   void (*handler)(void);
   uint16_t interval;
-  uint16_t counter;
+  uint16_t t;
   bool continuous;
 } Task;
 
@@ -43,14 +42,15 @@ bool TaskAdd(void *handler, uint16_t interval, bool continuous) {
 }
 
 void TaskRemove(void *handler) {
-  for (uint8_t i = 0; i < TASKS_MAX; ++i) {
+  uint8_t i;
+  for (i = 0; i < tasksCount; ++i) {
     if (tasks[i].handler == handler) {
       tasks[i].handler = NULL;
       tasksCount--;
       break;
     }
   }
-  for (uint8_t i = 0; i < TASKS_MAX - 1; ++i) {
+  for (; i < tasksCount; ++i) {
     if (tasks[i].handler == NULL && tasks[i + 1].handler != NULL) {
       tasks[i] = tasks[i + 1];
     }
@@ -62,9 +62,13 @@ void SystickHandler(void);
 void SystickHandler(void) {
   for (uint8_t i = 0; i < 8; ++i) {
     Task *task = &tasks[i];
-    if (task->handler && ++task->counter >= task->interval) {
-      task->handler();
-      task->counter = 0;
+    if (task->handler && ++task->t >= task->interval) {
+      if (task->continuous) {
+        task->handler();
+        task->t = 0;
+      } else {
+        TaskRemove(task->handler);
+      }
     }
   }
 }

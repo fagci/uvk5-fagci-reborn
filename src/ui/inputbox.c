@@ -14,14 +14,19 @@
  *     limitations under the License.
  */
 
-#ifndef DRIVER_BACKLIGHT_H
-#define DRIVER_BACKLIGHT_H
+#include <string.h>
+#include "inputbox.h"
 
-#include <stdint.h>
+char gInputBox[8];
+uint8_t gInputBoxIndex;
 
-extern uint8_t gBacklightCountdown;
-
-void BACKLIGHT_TurnOn(void);
-
-#endif
+void INPUTBOX_Append(char Digit)
+{
+	if (gInputBoxIndex == 0) {
+		memset(gInputBox, 10, sizeof(gInputBox));
+	} else if (gInputBoxIndex >= sizeof(gInputBox)) {
+		return;
+	}
+	gInputBox[gInputBoxIndex++] = Digit;
+}
 

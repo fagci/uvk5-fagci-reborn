@@ -27,7 +27,6 @@
 #include "driver/system.h"
 #include "driver/systick.h"
 #include "misc.h"
-#include "settings.h"
 BEEP_Type_t gBeepToPlay;
 
 void AUDIO_PlayBeep(BEEP_Type_t Beep) {
