@@ -15,9 +15,9 @@
  */
 
 #include "ARMCM0.h"
-#include "bsp/dp32g030/spi.h"
-#include "bsp/dp32g030/syscon.h"
-#include "bsp/dp32g030/irq.h"
+#include "inc/dp32g030/spi.h"
+#include "inc/dp32g030/syscon.h"
+#include "inc/dp32g030/irq.h"
 #include "driver/spi.h"
 
 void SPI0_Init(void)

@@ -15,8 +15,8 @@
  */
 
 #include "driver/st7565.h"
-#include "bsp/dp32g030/gpio.h"
-#include "bsp/dp32g030/spi.h"
+#include "inc/dp32g030/gpio.h"
+#include "inc/dp32g030/spi.h"
 #include "driver/gpio.h"
 #include "driver/spi.h"
 #include "driver/system.h"

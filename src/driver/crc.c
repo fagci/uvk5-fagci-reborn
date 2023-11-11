@@ -14,7 +14,7 @@
  *     limitations under the License.
  */
 
-#include "../bsp/dp32g030/crc.h"
+#include "../inc/dp32g030/crc.h"
 #include "../driver/crc.h"
 
 void CRC_Init(void)

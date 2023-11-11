@@ -21,6 +21,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define VHF_UHF_BOUND 28000000
+
 enum BK4819_AF_Type_t {
   BK4819_AF_MUTE = 0U,
   BK4819_AF_OPEN = 1U,
@@ -76,6 +78,7 @@ void BK4819_SetupSquelch(uint8_t SquelchOpenRSSIThresh,
                          uint8_t SquelchCloseNoiseThresh,
                          uint8_t SquelchCloseGlitchThresh,
                          uint8_t SquelchOpenGlitchThresh);
+void BK4819_Squelch(uint8_t sql, uint32_t f);
 
 void BK4819_SetAF(BK4819_AF_Type_t AF);
 void BK4819_RX_TurnOn(void);

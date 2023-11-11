@@ -19,7 +19,7 @@
 #include "../helper/measurements.h"
 #include "../misc.h"
 
-uint16_t gBatteryCalibration[6]= {520, 689, 724, 760, 771, 2300};
+uint16_t gBatteryCalibration[6] = {1316, 1804, 1908, 1959, 2024, 2300};
 uint16_t gBatteryCurrentVoltage;
 uint16_t gBatteryCurrent;
 uint16_t gBatteryVoltages[4];

@@ -14,8 +14,8 @@
  *     limitations under the License.
  */
 
-#include "bsp/dp32g030/gpio.h"
-#include "bsp/dp32g030/portcon.h"
+#include "inc/dp32g030/gpio.h"
+#include "inc/dp32g030/portcon.h"
 #include "driver/gpio.h"
 #include "driver/i2c.h"
 #include "driver/systick.h"

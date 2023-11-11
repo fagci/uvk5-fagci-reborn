@@ -21,7 +21,8 @@ void UI_Battery(uint8_t Level) {
     }
   }
 
-  if (Level > 5) {
+  // coz x2 earlier
+  if (Level > 10) {
     gStatusLine[WORK_START + 1] &= 0b11110111;
     gStatusLine[WORK_START + 2] &= 0b11110111;
     gStatusLine[WORK_START + 3] &= 0b11110111;

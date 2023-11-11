@@ -16,7 +16,7 @@
  */
 
 #include "keyboard.h"
-#include "../bsp/dp32g030/gpio.h"
+#include "../inc/dp32g030/gpio.h"
 #include "../misc.h"
 #include "gpio.h"
 #include "i2c.h"

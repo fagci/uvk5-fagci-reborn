@@ -15,9 +15,9 @@
  */
 
 #include <stdbool.h>
-#include "bsp/dp32g030/dma.h"
-#include "bsp/dp32g030/syscon.h"
-#include "bsp/dp32g030/uart.h"
+#include "inc/dp32g030/dma.h"
+#include "inc/dp32g030/syscon.h"
+#include "inc/dp32g030/uart.h"
 #include "driver/uart.h"
 
 static bool UART_IsLogEnabled;

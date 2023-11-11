@@ -4,18 +4,18 @@ BIN_DIR := bin
 
 TARGET = $(BIN_DIR)/firmware
 
-SRC := $(wildcard $(SRC_DIR)/driver/*.c)
-SRC := $(SRC) $(wildcard $(SRC_DIR)/helper/*.c)
-SRC := $(SRC) $(wildcard $(SRC_DIR)/external/printf/*.c)
-SRC := $(SRC) $(wildcard $(SRC_DIR)/ui/*.c)
-SRC := $(SRC) $(wildcard $(SRC_DIR)/*.c)
+SRC = $(wildcard $(SRC_DIR)/driver/*.c)
+SRC += $(wildcard $(SRC_DIR)/helper/*.c)
+SRC += $(wildcard $(SRC_DIR)/ui/*.c)
+SRC += $(wildcard $(SRC_DIR)/*.c)
 
-OBJS := $(OBJ_DIR)/start.o
-OBJS := $(OBJ_DIR)/init.o
-OBJS := $(OBJS) $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+OBJS = $(OBJ_DIR)/start.o
+OBJS += $(OBJ_DIR)/init.o
+OBJS += $(OBJ_DIR)/external/printf/printf.o
+OBJS += $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 BSP_DEFINITIONS := $(wildcard hardware/*/*.def)
-BSP_HEADERS := $(patsubst hardware/%,bsp/%,$(BSP_DEFINITIONS))
+BSP_HEADERS := $(patsubst hardware/%,inc/%,$(BSP_DEFINITIONS))
 BSP_HEADERS := $(patsubst %.def,%.h,$(BSP_HEADERS))
 
 AS = arm-none-eabi-gcc
@@ -52,7 +52,7 @@ version.o: .FORCE
 $(TARGET): $(OBJS) | $(BIN_DIR)
 	$(LD) $(LDFLAGS) $^ -o $@
 
-bsp/dp32g030/%.h: hardware/dp32g030/%.def
+inc/dp32g030/%.h: hardware/dp32g030/%.def
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(BSP_HEADERS) $(OBJ_DIR)
 	mkdir -p $(@D)

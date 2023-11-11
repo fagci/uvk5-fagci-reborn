@@ -20,16 +20,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-enum BEEP_Type_t {
-  BEEP_NONE = 0U,
-  BEEP_1KHZ_60MS_OPTIONAL = 1U,
-  BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL = 2U,
-  BEEP_440HZ_500MS = 3U,
-  BEEP_500HZ_60MS_DOUBLE_BEEP = 4U,
-  BEEP_TEST = 5U,
-};
+void AUDIO_ToggleSpeaker(bool on);
 
-typedef enum BEEP_Type_t BEEP_Type_t;
-extern BEEP_Type_t gBeepToPlay;
+// Do not use when receiving (IDK why yet)
+void AUDIO_PlayTone(uint32_t frequency, uint16_t duration);
 
 #endif

@@ -245,9 +245,6 @@ HandlerReset:
 	mov	sp, r0
 	bl	DATA_Init
 	bl	BSS_Init
-#if defined(ENABLE_OVERLAY)
-	bl	BOARD_FLASH_Init
-#endif
 	bl	Main
 	b 	.
 

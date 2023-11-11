@@ -15,7 +15,6 @@
  */
 
 #include "scheduler.h"
-#include "audio.h"
 #include "helper/battery.h"
 #include "misc.h"
 

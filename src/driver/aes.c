@@ -16,7 +16,7 @@
 
 #include <stdbool.h>
 
-#include "../bsp/dp32g030/aes.h"
+#include "../inc/dp32g030/aes.h"
 #include "../driver/aes.h"
 
 static void AES_Setup_ENC_CBC(bool IsDecrypt, const void *pKey, const void *pIv)

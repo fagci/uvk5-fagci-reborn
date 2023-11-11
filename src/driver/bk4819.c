@@ -15,13 +15,14 @@
  */
 
 #include "bk4819.h"
-#include "../bsp/dp32g030/gpio.h"
-#include "../bsp/dp32g030/portcon.h"
 #include "../driver/gpio.h"
 #include "../driver/system.h"
 #include "../driver/systick.h"
 #include "../driver/uart.h"
+#include "../inc/dp32g030/gpio.h"
+#include "../inc/dp32g030/portcon.h"
 #include "../misc.h"
+#include "bk4819-regs.h"
 
 static const uint16_t FSK_RogerTable[7] = {
     0xF1A2, 0x7446, 0x61A4, 0x6544, 0x4E8A, 0xE044, 0xEA84,
@@ -33,6 +34,26 @@ bool gRxIdleMode;
 
 const uint8_t DTMF_COEFFS[] = {111, 107, 103, 98, 80,  71,  58,  44,
                                65,  55,  37,  23, 228, 203, 181, 159};
+
+const uint8_t SQ[2][6][16] = {
+    {
+        {10, 62, 66, 74, 75, 92, 95, 98, 170, 252, 255, 255, 255, 255, 255,
+         255},
+        {5, 60, 64, 72, 70, 89, 92, 95, 166, 250, 255, 255, 255, 255, 255, 255},
+        {250, 56, 54, 48, 45, 32, 29, 20, 25, 20, 255, 255, 255, 255, 255, 255},
+        {240, 61, 58, 52, 48, 35, 32, 23, 30, 30, 255, 255, 255, 255, 255, 255},
+        {250, 150, 140, 120, 20, 3, 3, 2, 50, 50, 255, 255, 255, 255, 255, 255},
+    },
+    {
+        {240, 135, 135, 116, 17, 5, 5, 4, 45, 45, 255, 255, 255, 255, 255, 255},
+        {50, 78, 88, 94, 110, 114, 117, 119, 200, 252, 255, 255, 255, 255, 255,
+         255},
+        {40, 76, 86, 92, 106, 110, 113, 115, 195, 250, 255, 255, 255, 255, 255,
+         255},
+        {65, 49, 44, 42, 40, 33, 30, 22, 23, 22, 255, 255, 255, 255, 255, 255},
+        {70, 59, 54, 46, 45, 37, 34, 25, 27, 25, 255, 255, 255, 255, 255, 255},
+        {90, 150, 140, 120, 10, 8, 7, 6, 32, 32, 255, 255, 255, 255, 255, 255},
+    }};
 
 void BK4819_Init(void) {
   GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCN);
@@ -330,6 +351,12 @@ void BK4819_SetupSquelch(uint8_t SquelchOpenRSSIThresh,
   BK4819_RX_TurnOn();
 }
 
+void BK4819_Squelch(uint8_t sql, uint32_t f) {
+  uint8_t band = f > VHF_UHF_BOUND ? 1 : 0;
+  BK4819_SetupSquelch(SQ[band][sql][0], SQ[band][sql][1], SQ[band][sql][2],
+                      SQ[band][sql][3], SQ[band][sql][4], SQ[band][sql][5]);
+}
+
 void BK4819_SetAF(BK4819_AF_Type_t AF) {
   // AF Output Inverse Mode = Inverse
   // Undocumented bits 0x2040
@@ -386,7 +413,7 @@ void BK4819_RX_TurnOn(void) {
 }
 
 void BK4819_SelectFilter(uint32_t Frequency) {
-  if (Frequency < 28000000) {
+  if (Frequency < VHF_UHF_BOUND) {
     BK4819_ToggleGpioOut(BK4819_GPIO4_PIN32_VHF_LNA, true);
     BK4819_ToggleGpioOut(BK4819_GPIO3_PIN31_UHF_LNA, false);
   } else if (Frequency == 0xFFFFFFFF) {
@@ -676,23 +703,10 @@ void BK4819_TransmitTone(bool bLocalLoopback, uint32_t Frequency) {
 }
 
 void BK4819_GenTail(uint8_t Tail) {
-  switch (Tail) {
-  case 0: // CTC134
-    BK4819_WriteRegister(BK4819_REG_52, 0x828F);
-    break;
-  case 1: // CTC120
-    BK4819_WriteRegister(BK4819_REG_52, 0xA28F);
-    break;
-  case 2: // CTC180
-    BK4819_WriteRegister(BK4819_REG_52, 0xC28F);
-    break;
-  case 3: // CTC240
-    BK4819_WriteRegister(BK4819_REG_52, 0xE28F);
-    break;
-  case 4: // CTC55
-    BK4819_WriteRegister(BK4819_REG_07, 0x046f);
-    break;
-  }
+  const uint16_t TAILS[] = {
+      0x828F, 0xA28F, 0xC28F, 0xE28F, 0x046f,
+  };
+  BK4819_WriteRegister(BK4819_REG_52, TAILS[Tail]);
 }
 
 void BK4819_EnableCDCSS(void) {
@@ -783,9 +797,7 @@ uint8_t BK4819_GetCTCType(void) {
 #if defined(ENABLE_AIRCOPY)
 void BK4819_SendFSKData(uint16_t *pData) {
   uint8_t i;
-  uint8_t Timeout;
-
-  Timeout = 200;
+  uint8_t Timeout = 200;
 
   SYSTEM_DelayMs(20);
 
@@ -912,15 +924,15 @@ void BK4819_ToggleAFBit(bool on) {
   uint16_t reg = BK4819_ReadRegister(BK4819_REG_47);
   reg &= ~(1 << 8);
   if (on)
-    reg |= on << 8;
+    reg |= 1 << 8;
   BK4819_WriteRegister(BK4819_REG_47, reg);
 }
 
 void BK4819_ToggleAFDAC(bool on) {
   uint32_t Reg = BK4819_ReadRegister(BK4819_REG_30);
-  Reg &= ~(1 << 9);
+  Reg &= ~BK4819_REG_30_ENABLE_AF_DAC;
   if (on)
-    Reg |= (1 << 9);
+    Reg |= BK4819_REG_30_ENABLE_AF_DAC;
   BK4819_WriteRegister(BK4819_REG_30, Reg);
 }
 
@@ -938,5 +950,5 @@ void BK4819_TuneTo(uint32_t f, bool precise) {
 }
 
 void BK4819_SetToneFrequency(uint16_t f) {
-  BK4819_WriteRegister(0x71, (f * 103U) / 10U);
+  BK4819_WriteRegister(BK4819_REG_71, (f * 103U) / 10U);
 }

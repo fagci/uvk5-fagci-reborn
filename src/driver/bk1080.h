@@ -17,9 +17,9 @@
 #ifndef DRIVER_BK1080_H
 #define DRIVER_BK1080_H
 
+#include "bk1080-regs.h"
 #include <stdbool.h>
 #include <stdint.h>
-#include "driver/bk1080-regs.h"
 
 extern uint16_t BK1080_BaseFrequency;
 extern uint16_t BK1080_FrequencyDeviation;
@@ -32,4 +32,3 @@ void BK1080_SetFrequency(uint16_t Frequency);
 void BK1080_GetFrequencyDeviation(uint16_t Frequency);
 
 #endif
-

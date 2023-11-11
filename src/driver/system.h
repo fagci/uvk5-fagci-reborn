@@ -21,6 +21,6 @@
 
 void SYSTEM_DelayMs(uint32_t Delay);
 void SYSTEM_ConfigureClocks(void);
+void SYSTEM_ConfigureSysCon(void);
 
 #endif
-

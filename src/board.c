@@ -16,17 +16,13 @@
  */
 
 #include <string.h>
-#if defined(ENABLE_FMRADIO)
-#endif
 #include "board.h"
-#include "bsp/dp32g030/gpio.h"
-#include "bsp/dp32g030/portcon.h"
-#include "bsp/dp32g030/saradc.h"
-#include "bsp/dp32g030/syscon.h"
+#include "inc/dp32g030/gpio.h"
+#include "inc/dp32g030/portcon.h"
+#include "inc/dp32g030/saradc.h"
+#include "inc/dp32g030/syscon.h"
 #include "driver/adc.h"
-#if defined(ENABLE_FMRADIO)
 #include "driver/bk1080.h"
-#endif
 #include "driver/bk4819.h"
 #include "driver/crc.h"
 #include "driver/eeprom.h"
@@ -35,21 +31,6 @@
 #include "driver/st7565.h"
 #include "helper/battery.h"
 #include "misc.h"
-#if defined(ENABLE_OVERLAY)
-#include "sram-overlay.h"
-#endif
-
-#if defined(ENABLE_OVERLAY)
-void BOARD_FLASH_Init(void)
-{
-	FLASH_Init(FLASH_READ_MODE_1_CYCLE);
-	FLASH_ConfigureTrimValues();
-	SYSTEM_ConfigureClocks();
-	overlay_FLASH_MainClock = 48000000;
-	overlay_FLASH_ClockMultiplier = 48;
-	FLASH_Init(FLASH_READ_MODE_2_CYCLE);
-}
-#endif
 
 void BOARD_GPIO_Init(void)
 {
@@ -194,15 +175,8 @@ void BOARD_PORTCON_Init(void)
 		| PORTCON_PORTB_SEL1_B9_BITS_GPIOB9
 		// SPI0 MOSI, wasn't cleared in previous step / relying on default value!
 		| PORTCON_PORTB_SEL1_B10_BITS_SPI0_MOSI
-#if defined(ENABLE_SWD)
-		// SWD IO
-		| PORTCON_PORTB_SEL1_B11_BITS_SWDIO
-		// SWD CLK
-		| PORTCON_PORTB_SEL1_B14_BITS_SWCLK
-#else
 		// ST7565
 		| PORTCON_PORTB_SEL1_B11_BITS_GPIOB11
-#endif
 		;
 
 	// PORT C pin selection
@@ -324,10 +298,8 @@ void BOARD_PORTCON_Init(void)
 		| PORTCON_PORTB_IE_B9_MASK
 		// SPI0 MOSI
 		| PORTCON_PORTB_IE_B10_MASK
-#if !defined(ENABLE_SWD)
 		// ST7565
 		| PORTCON_PORTB_IE_B11_MASK
-#endif
 		// BK1080
 		| PORTCON_PORTB_IE_B15_MASK
 		);
@@ -493,10 +465,6 @@ void BOARD_Init(void)
 	BOARD_GPIO_Init();
 	BOARD_ADC_Init();
 	ST7565_Init();
-#if defined(ENABLE_FMRADIO)
 	BK1080_Init(0, false);
-#endif
-#if defined(ENABLE_AIRCOPY) || defined(ENABLE_UART)
-	CRC_Init();
-#endif
+    BK4819_Init();
 }
