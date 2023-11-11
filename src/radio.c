@@ -4,6 +4,24 @@
 #include "driver/system.h"
 #include "inc/dp32g030/gpio.h"
 
+const uint16_t StepFrequencyTable[12] = {
+    1,   10,  50,  100,
+
+    250, 500, 625, 833, 1000, 1250, 2500, 10000,
+};
+
+const uint32_t upConverterValues[] = {0, 5000000, 12500000};
+
+const char *modulationTypeOptions[5] = {" FM", " AM", "SSB", "BYP", "RAW"};
+const char *vfoStateNames[] = {
+    "NORMAL", "BUSY", "BAT LOW", "DISABLE", "TIMEOUT", "ALARM", "VOL HIGH",
+};
+const char *powerNames[] = {"LOW", "MID", "HIGH"};
+const char *bwNames[3] = {"  25k", "12.5k", "6.25k"};
+const char *deviationNames[] = {"", "+", "-"};
+
+UpconverterTypes upconverterType = UPCONVERTER_OFF;
+
 void RADIO_SetupRegisters() {
   uint32_t Frequency = 0;
 
@@ -36,5 +54,9 @@ void RADIO_SetupRegisters() {
                                           BK4819_REG_3F_SQUELCH_LOST);
   BK4819_WriteRegister(0x40, (BK4819_ReadRegister(0x40) & ~(0b11111111111)) |
                                  0b10110101010);
-  BK4819_SetAGC(0);
 }
+
+uint32_t GetScreenF(uint32_t f) {
+  return f - upConverterValues[upconverterType];
+}
+uint32_t GetTuneF(uint32_t f) { return f + upConverterValues[upconverterType]; }

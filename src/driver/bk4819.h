@@ -22,16 +22,29 @@
 #include <stdint.h>
 
 #define VHF_UHF_BOUND 28000000
+#define F_MIN 0
+#define F_MAX 130000000
 
 enum BK4819_AF_Type_t {
-  BK4819_AF_MUTE = 0U,
-  BK4819_AF_OPEN = 1U,
-  BK4819_AF_ALAM = 2U,
-  BK4819_AF_BEEP = 3U,
-  BK4819_AF_CTCO = 6U,
-  BK4819_AF_AM = 7U,
-  BK4819_AF_FSKO = 8U,
+  BK4819_AF_MUTE,
+  BK4819_AF_FM,
+  BK4819_AF_ALAM,
+  BK4819_AF_BEEP,
+  BK4819_AF_RAW,
+  BK4819_AF_USB,
+  BK4819_AF_CTCO,
+  BK4819_AF_AM,
+  BK4819_AF_FSKO,
+  BK4819_AF_BYPASS,
 };
+
+typedef enum {
+  MOD_FM,
+  MOD_AM,
+  MOD_USB,
+  MOD_BYP,
+  MOD_RAW,
+} ModulationType;
 
 typedef enum BK4819_AF_Type_t BK4819_AF_Type_t;
 
@@ -50,7 +63,7 @@ enum BK4819_CssScanResult_t {
 };
 
 typedef enum BK4819_CssScanResult_t BK4819_CssScanResult_t;
-extern const uint16_t listenBWRegValues[3];
+extern const uint16_t BWRegValues[3];
 
 extern bool gRxIdleMode;
 
@@ -154,5 +167,6 @@ uint16_t BK4819_GetRegValue(RegisterSpec s);
 void BK4819_SetRegValue(RegisterSpec s, uint16_t v);
 void BK4819_TuneTo(uint32_t f, bool precise);
 void BK4819_SetToneFrequency(uint16_t f);
+void BK4819_SetModulation(ModulationType type);
 
 #endif

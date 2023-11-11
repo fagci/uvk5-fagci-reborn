@@ -55,6 +55,8 @@ const uint8_t SQ[2][6][16] = {
         {90, 150, 140, 120, 10, 8, 7, 6, 32, 32, 255, 255, 255, 255, 255, 255},
     }};
 
+const uint16_t BWRegValues[3] = {0x3028, 0x4048, 0x0018};
+
 void BK4819_Init(void) {
   GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCN);
   GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
@@ -80,6 +82,25 @@ void BK4819_Init(void) {
   BK4819_WriteRegister(BK4819_REG_3F, 0);
 }
 
+void BK4819_WriteU8(uint8_t Data) {
+  uint8_t i;
+
+  GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
+  for (i = 0; i < 8; i++) {
+    if ((Data & 0x80U) == 0) {
+      GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
+    } else {
+      GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
+    }
+    SYSTICK_DelayUs(1);
+    GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
+    SYSTICK_DelayUs(1);
+    Data <<= 1;
+    GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
+    SYSTICK_DelayUs(1);
+  }
+}
+
 static uint16_t BK4819_ReadU16(void) {
   uint8_t i;
   uint16_t Value;
@@ -103,6 +124,23 @@ static uint16_t BK4819_ReadU16(void) {
   GPIOC->DIR = (GPIOC->DIR & ~GPIO_DIR_2_MASK) | GPIO_DIR_2_BITS_OUTPUT;
 
   return Value;
+}
+
+void BK4819_WriteU16(uint16_t Data) {
+  GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
+  for (uint8_t i = 0; i < 16; i++) {
+    if ((Data & 0x8000U) == 0U) {
+      GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
+    } else {
+      GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
+    }
+    SYSTICK_DelayUs(1);
+    GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
+    Data <<= 1;
+    SYSTICK_DelayUs(1);
+    GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
+    SYSTICK_DelayUs(1);
+  }
 }
 
 uint16_t BK4819_ReadRegister(BK4819_REGISTER_t Register) {
@@ -140,44 +178,6 @@ void BK4819_WriteRegister(BK4819_REGISTER_t Register, uint16_t Data) {
   GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
 }
 
-void BK4819_WriteU8(uint8_t Data) {
-  uint8_t i;
-
-  GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
-  for (i = 0; i < 8; i++) {
-    if ((Data & 0x80U) == 0) {
-      GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
-    } else {
-      GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
-    }
-    SYSTICK_DelayUs(1);
-    GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
-    SYSTICK_DelayUs(1);
-    Data <<= 1;
-    GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
-    SYSTICK_DelayUs(1);
-  }
-}
-
-void BK4819_WriteU16(uint16_t Data) {
-  uint8_t i;
-
-  GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
-  for (i = 0; i < 16; i++) {
-    if ((Data & 0x8000U) == 0U) {
-      GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
-    } else {
-      GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
-    }
-    SYSTICK_DelayUs(1);
-    GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
-    Data <<= 1;
-    SYSTICK_DelayUs(1);
-    GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
-    SYSTICK_DelayUs(1);
-  }
-}
-
 void BK4819_SetAGC(uint8_t Value) {
   if (Value == 0) {
     BK4819_WriteRegister(BK4819_REG_13, 0x03BE);
@@ -188,8 +188,6 @@ void BK4819_SetAGC(uint8_t Value) {
     BK4819_WriteRegister(BK4819_REG_49, 0x2A38);
     BK4819_WriteRegister(BK4819_REG_7B, 0x8420);
   } else if (Value == 1) {
-    uint8_t i;
-
     BK4819_WriteRegister(BK4819_REG_13, 0x03BE);
     BK4819_WriteRegister(BK4819_REG_12, 0x037C);
     BK4819_WriteRegister(BK4819_REG_11, 0x027B);
@@ -199,12 +197,9 @@ void BK4819_SetAGC(uint8_t Value) {
     BK4819_WriteRegister(BK4819_REG_7B, 0x318C);
     BK4819_WriteRegister(BK4819_REG_7C, 0x595E);
     BK4819_WriteRegister(BK4819_REG_20, 0x8DEF);
-    for (i = 0; i < 8; i++) {
+    for (uint8_t i = 0; i < 8; i++) {
       BK4819_WriteRegister(0x06, (i & 7) << 13 | 0x4A << 7 | 0x36);
     }
-    /* for (i = 0; i < 8; i++) {
-      BK4819_WriteRegister(BK4819_REG_06, ((i << 13) | 0x2500U) + 0x36U);
-    } */
   }
 }
 
@@ -295,14 +290,8 @@ void BK4819_EnableVox(uint16_t VoxEnableThreshold,
   BK4819_WriteRegister(BK4819_REG_31, REG_31_Value | 4); // bit 2 - VOX Enable
 }
 
-const uint16_t listenBWRegValues[3] = {
-    0x3028,             // 25
-    0x4048,             // 12.5
-    0b0000000000011000, // was 0x205C, // 6.25
-};
-
 void BK4819_SetFilterBandwidth(BK4819_FilterBandwidth_t Bandwidth) {
-  BK4819_WriteRegister(BK4819_REG_43, listenBWRegValues[Bandwidth]);
+  BK4819_WriteRegister(BK4819_REG_43, BWRegValues[Bandwidth]);
 }
 
 void BK4819_SetupPowerAmplifier(uint16_t Bias, uint32_t Frequency) {
@@ -311,7 +300,7 @@ void BK4819_SetupPowerAmplifier(uint16_t Bias, uint32_t Frequency) {
   if (Bias > 255) {
     Bias = 255;
   }
-  if (Frequency < 28000000) {
+  if (Frequency < VHF_UHF_BOUND) {
     // Gain 1 = 1
     // Gain 2 = 0
     Gain = 0x08U;
@@ -325,7 +314,7 @@ void BK4819_SetupPowerAmplifier(uint16_t Bias, uint32_t Frequency) {
 }
 
 void BK4819_SetFrequency(uint32_t Frequency) {
-  BK4819_WriteRegister(BK4819_REG_38, (Frequency >> 0) & 0xFFFF);
+  BK4819_WriteRegister(BK4819_REG_38, Frequency & 0xFFFF);
   BK4819_WriteRegister(BK4819_REG_39, (Frequency >> 16) & 0xFFFF);
 }
 
@@ -373,14 +362,15 @@ void BK4819_SetRegValue(RegisterSpec s, uint16_t v) {
   BK4819_WriteRegister(s.num, reg | (v << s.offset));
 }
 
-/* void BK4819_SetModulation(ModulationType type) {
-  const uint8_t modTypeReg47Values[] = {1, 7, 5, 9, 4};
-
+void BK4819_SetModulation(ModulationType type) {
+  const uint8_t modTypeReg47Values[] = {BK4819_AF_FM, BK4819_AF_AM,
+                                        BK4819_AF_USB, BK4819_AF_BYPASS,
+                                        BK4819_AF_RAW};
   BK4819_SetAF(modTypeReg47Values[type]);
   BK4819_SetRegValue(afDacGainRegSpec, 0xF);
   BK4819_WriteRegister(0x3D, type == MOD_USB ? 0 : 0x2AAB);
   BK4819_SetRegValue(afcDisableRegSpec, type != MOD_FM);
-} */
+}
 
 void BK4819_RX_TurnOn(void) {
   // DSP Voltage Setting = 1

@@ -14,17 +14,23 @@
  *     limitations under the License.
  */
 
-#include "driver/st7565.h"
-#include "inc/dp32g030/gpio.h"
-#include "inc/dp32g030/spi.h"
-#include "driver/gpio.h"
-#include "driver/spi.h"
-#include "driver/system.h"
-#include "misc.h"
+#include "st7565.h"
+#include "../inc/dp32g030/gpio.h"
+#include "../inc/dp32g030/spi.h"
+#include "../misc.h"
+#include "gpio.h"
+#include "spi.h"
+#include "system.h"
 #include <stdint.h>
+
+#define NEED_WAIT_FIFO                                                         \
+  ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) != SPI_FIFOST_TFF_BITS_NOT_FULL)
 
 uint8_t gStatusLine[128];
 uint8_t gFrameBuffer[7][128];
+
+bool gRedrawStatus = true;
+bool gRedrawScreen = true;
 
 void ST7565_DrawLine(uint8_t Column, uint8_t Line, uint16_t Size,
                      const uint8_t *pBitmap, bool bIsClearMode) {
@@ -34,19 +40,17 @@ void ST7565_DrawLine(uint8_t Column, uint8_t Line, uint16_t Size,
   ST7565_SelectColumnAndLine(Column + 4U, Line);
   GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
 
-  if (!bIsClearMode) {
+  if (bIsClearMode) {
     for (i = 0; i < Size; i++) {
-      while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) !=
-             SPI_FIFOST_TFF_BITS_NOT_FULL) {
-      }
-      SPI0->WDR = pBitmap[i];
+      while (NEED_WAIT_FIFO)
+        continue;
+      SPI0->WDR = 0;
     }
   } else {
     for (i = 0; i < Size; i++) {
-      while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) !=
-             SPI_FIFOST_TFF_BITS_NOT_FULL) {
-      }
-      SPI0->WDR = 0;
+      while (NEED_WAIT_FIFO)
+        continue;
+      SPI0->WDR = pBitmap[i];
     }
   }
 
@@ -65,15 +69,14 @@ void ST7565_BlitFullScreen(void) {
     ST7565_SelectColumnAndLine(4U, Line + 1U);
     GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
     for (Column = 0; Column < ARRAY_SIZE(gFrameBuffer[0]); Column++) {
-      while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) !=
-             SPI_FIFOST_TFF_BITS_NOT_FULL) {
-      }
+      while (NEED_WAIT_FIFO)
+        continue;
       SPI0->WDR = gFrameBuffer[Line][Column];
     }
     SPI_WaitForUndocumentedTxFifoStatusBit();
   }
 
-  //SYSTEM_DelayMs(20);
+  // SYSTEM_DelayMs(20);
   SPI_ToggleMasterMode(&SPI0->CR, true);
 }
 
@@ -86,9 +89,8 @@ void ST7565_BlitStatusLine(void) {
   GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
 
   for (i = 0; i < ARRAY_SIZE(gStatusLine); i++) {
-    while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) !=
-           SPI_FIFOST_TFF_BITS_NOT_FULL) {
-    }
+    while (NEED_WAIT_FIFO)
+      continue;
     SPI0->WDR = gStatusLine[i];
   }
   SPI_WaitForUndocumentedTxFifoStatusBit();
@@ -103,9 +105,8 @@ void ST7565_FillScreen(uint8_t Value) {
     ST7565_SelectColumnAndLine(0, i);
     GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
     for (j = 0; j < 132; j++) {
-      while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) !=
-             SPI_FIFOST_TFF_BITS_NOT_FULL) {
-      }
+      while (NEED_WAIT_FIFO)
+        continue;
       SPI0->WDR = Value;
     }
     SPI_WaitForUndocumentedTxFifoStatusBit();
@@ -154,21 +155,33 @@ void ST7565_Configure_GPIO_B11(void) {
 
 void ST7565_SelectColumnAndLine(uint8_t Column, uint8_t Line) {
   GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
-  while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) != SPI_FIFOST_TFF_BITS_NOT_FULL) {
-  }
+  while (NEED_WAIT_FIFO)
+    continue;
   SPI0->WDR = Line + 0xB0;
-  while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) != SPI_FIFOST_TFF_BITS_NOT_FULL) {
-  }
+  while (NEED_WAIT_FIFO)
+    continue;
   SPI0->WDR = ((Column >> 4) & 0x0F) | 0x10;
-  while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) != SPI_FIFOST_TFF_BITS_NOT_FULL) {
-  }
+  while (NEED_WAIT_FIFO)
+    continue;
   SPI0->WDR = ((Column >> 0) & 0x0F);
   SPI_WaitForUndocumentedTxFifoStatusBit();
 }
 
 void ST7565_WriteByte(uint8_t Value) {
   GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
-  while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) != SPI_FIFOST_TFF_BITS_NOT_FULL) {
-  }
+  while (NEED_WAIT_FIFO)
+    continue;
   SPI0->WDR = Value;
+}
+
+void ST7565_Render() {
+  if (gRedrawStatus) {
+    ST7565_BlitStatusLine();
+    gRedrawStatus = false;
+  }
+
+  if (gRedrawScreen) {
+    ST7565_BlitFullScreen();
+    gRedrawScreen = false;
+  }
 }

@@ -20,6 +20,7 @@
 #include "../misc.h"
 #include "gpio.h"
 #include "i2c.h"
+#include "system.h"
 #include "systick.h"
 
 KEY_Code_t gKeyReading0 = KEY_INVALID;
@@ -27,7 +28,7 @@ KEY_Code_t gKeyReading1 = KEY_INVALID;
 uint16_t gDebounceCounter;
 bool gWasFKeyPressed;
 
-static const struct {
+typedef const struct {
   // Using a 16 bit pre-calculated shift and invert is cheaper
   // than using 8 bit and doing shift and invert in code.
   uint16_t set_to_zero_mask;
@@ -39,7 +40,9 @@ static const struct {
     uint8_t key : 5; // Key 23 is highest
     uint8_t pin : 3; // Pin 6 is highest
   } pins[4];
-} keyboard[5] = {
+} Keyboard;
+
+Keyboard keyboard[5] = {
     /* Zero row  */
     {// Set to zero to handle special case of nothing pulled down.
      .set_to_zero_mask = 0xffff,
@@ -140,4 +143,72 @@ KEY_Code_t KEYBOARD_Poll(void) {
   GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_KEYBOARD_7);
 
   return Key;
+}
+
+bool gKeyBeingHeld;
+bool gPttIsPressed;
+bool gPttWasReleased;
+uint8_t gPttDebounceCounter;
+
+#define KEY_HOLD_TIME 50
+
+void KEYBOARD_CheckKeys(void onKey(KEY_Code_t, bool, bool)) {
+  KEY_Code_t Key;
+
+  if (gPttIsPressed) {
+    if (GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT)) {
+      SYSTEM_DelayMs(20);
+      if (GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT)) {
+        onKey(KEY_PTT, false, false);
+        gPttIsPressed = false;
+        if (gKeyReading1 != KEY_INVALID) {
+          gPttWasReleased = true;
+        }
+      }
+    }
+  } else {
+    if (!GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT)) {
+      gPttDebounceCounter = gPttDebounceCounter + 1;
+      if (gPttDebounceCounter > 4) {
+        gPttIsPressed = true;
+        onKey(KEY_PTT, true, false);
+      }
+    } else {
+      gPttDebounceCounter = 0;
+    }
+  }
+  Key = KEYBOARD_Poll();
+  if (gKeyReading0 != Key) {
+    if (gKeyReading0 != KEY_INVALID && Key != KEY_INVALID) {
+      onKey(gKeyReading1, false, gKeyBeingHeld);
+    }
+    gKeyReading0 = Key;
+    gDebounceCounter = 0;
+    return;
+  }
+  gDebounceCounter++;
+  if (gDebounceCounter == 2) {
+    if (Key == KEY_INVALID) {
+      if (gKeyReading1 != KEY_INVALID) {
+        onKey(gKeyReading1, false, gKeyBeingHeld);
+        gKeyReading1 = KEY_INVALID;
+      }
+    } else {
+      gKeyReading1 = Key;
+      onKey(Key, true, false);
+    }
+    gKeyBeingHeld = false;
+  } else if (gDebounceCounter == KEY_HOLD_TIME) {
+    gKeyBeingHeld = true;
+    onKey(Key, true, true);
+  } else if (gDebounceCounter > KEY_HOLD_TIME) {
+    gKeyBeingHeld = true;
+    if ((gDebounceCounter & 15) == 0) {
+      onKey(Key, true, true);
+    }
+    if (gDebounceCounter != 0xFFFF) {
+      return;
+    }
+    gDebounceCounter = KEY_HOLD_TIME;
+  }
 }

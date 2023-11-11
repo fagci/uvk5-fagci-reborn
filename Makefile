@@ -7,6 +7,7 @@ TARGET = $(BIN_DIR)/firmware
 SRC = $(wildcard $(SRC_DIR)/driver/*.c)
 SRC += $(wildcard $(SRC_DIR)/helper/*.c)
 SRC += $(wildcard $(SRC_DIR)/ui/*.c)
+SRC += $(wildcard $(SRC_DIR)/apps/*.c)
 SRC += $(wildcard $(SRC_DIR)/*.c)
 
 OBJS = $(OBJ_DIR)/start.o

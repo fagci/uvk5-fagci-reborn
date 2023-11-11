@@ -21,7 +21,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-enum KEY_Code_t {
+typedef enum {
 	KEY_0 = 0,
 	KEY_1 = 1,
 	KEY_2 = 2,
@@ -42,16 +42,14 @@ enum KEY_Code_t {
 	KEY_SIDE2 = 22,
 	KEY_SIDE1 = 23,
 	KEY_INVALID = 255,
-};
-
-typedef enum KEY_Code_t KEY_Code_t;
+} KEY_Code_t;
 
 extern KEY_Code_t gKeyReading0;
 extern KEY_Code_t gKeyReading1;
 extern uint16_t gDebounceCounter;
-extern bool gWasFKeyPressed;
 
 KEY_Code_t KEYBOARD_Poll(void);
+void KEYBOARD_CheckKeys(void onKey(KEY_Code_t, bool, bool));
 
 #endif
 
