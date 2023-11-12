@@ -67,6 +67,7 @@ void SystickHandler(void) {
         task->handler();
         task->t = 0;
       } else {
+        task->handler();
         TaskRemove(task->handler);
       }
     }

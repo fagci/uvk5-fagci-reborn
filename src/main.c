@@ -31,10 +31,6 @@ Task *backlightTask;
 // create Task
 // wait it to complete
 
-void Delay() {
-  for (uint16_t i = 0; i < 20000; i++)
-    continue;
-}
 void onKey(KEY_Code_t k, bool p, bool h) {
   if (k != KEY_INVALID) {
     BACKLIGHT_On();
@@ -58,6 +54,7 @@ void Main(void) {
 
   BK4819_TuneTo(f, true);
   BK4819_Squelch(3, f);
+  BK4819_SetAGC(0);
 
   BACKLIGHT_SetDuration(5);
   BACKLIGHT_On();
@@ -67,7 +64,6 @@ void Main(void) {
 
   APPS_run(APP_TEST);
   TaskAdd("A Upd", APPS_update, 1, true);
-  TaskAdd("Delay", Delay, 1000, true);
   TaskAdd("A Rendr", APPS_render, 33, true);
   TaskAdd("A Keys", CheckKeys, 10, true);
 

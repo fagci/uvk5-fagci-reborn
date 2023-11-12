@@ -17,8 +17,10 @@
 #ifndef UI_UI_H
 #define UI_UI_H
 
+#include "../external/printf/printf.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
 void UI_GenerateChannelString(char *pString, uint8_t Channel);
 void UI_GenerateChannelStringEx(char *pString, bool bShowPrefix,

@@ -960,3 +960,12 @@ bool BK4819_IsSquelchOpen() {
   }
   return isSquelchOpen;
 }
+
+void BK4819_ResetRSSI() {
+  uint32_t Reg = BK4819_ReadRegister(BK4819_REG_30);
+  Reg &= ~1;
+  BK4819_WriteRegister(BK4819_REG_30, Reg);
+  Reg |= 1;
+  BK4819_WriteRegister(BK4819_REG_30, Reg);
+}
+

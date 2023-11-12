@@ -1,16 +1,26 @@
 #include "apps.h"
 #include "../scheduler.h"
+#include "../ui/components.h"
 #include "spectrum.h"
 
 AppType_t currentApp = APP_SPECTRUM;
 
-void TInit() {}
+uint16_t rssi = 0;
+uint16_t taskSpawnInterval = 10;
+
+void GetRssiTask() { rssi = BK4819_GetRSSI(); }
+void UpdateRSSI() {
+  BK4819_ResetRSSI();
+  rssi = 0;
+  TaskAdd("GetRssi", GetRssiTask, taskSpawnInterval, false);
+}
+
+void TInit() { TaskAdd("RSSI upd", UpdateRSSI, 500, true); }
 void TUpdate() { gRedrawScreen = true; }
 void TRender() {
-  memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
   char String[8];
-  /* sprintf(String, "%u", var);
-  UI_PrintStringSmallest(String, 0, 0, false, true); */
+
+  memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
 
   for (uint8_t i = 0; i < TASKS_MAX; i++) {
     if (tasks[i].handler) {
@@ -18,13 +28,23 @@ void TRender() {
       UI_PrintStringSmallest(String, i / 8 * 64, i % 8 * 6, false, true);
     }
   }
-#include "../driver/backlight.h"
-  sprintf(String, "%u %u %u", countdown, duration, state);
-  UI_PrintStringSmallest(String, 0, 48, false, true);
+  sprintf(String, "SPWN:%u", taskSpawnInterval);
+  UI_PrintStringSmallest(String, 92, 0, false, true);
+
+  UI_RSSIBar(rssi, 6);
 }
 void TKey(KEY_Code_t k, bool p, bool h) {
   gRedrawScreen = true;
-  // SYSTEM_DelayMs(1000);
+  if (k != KEY_INVALID && p && !h) {
+    if (k == KEY_UP) {
+      taskSpawnInterval++;
+      return;
+    }
+    if (k == KEY_DOWN) {
+      taskSpawnInterval--;
+      return;
+    }
+  }
 }
 
 const App apps[5] = {

@@ -1,5 +1,7 @@
 #include "components.h"
 #include "../driver/st7565.h"
+#include "../helper/measurements.h"
+#include "helper.h"
 
 void UI_Battery(uint8_t Level) {
   const uint8_t START = 115;
@@ -38,4 +40,33 @@ void UI_Battery(uint8_t Level) {
     gStatusLine[WORK_START + 7] &= 0b11111101;
     gStatusLine[WORK_START + 8] &= 0b11111101;
   }
+}
+
+void UI_RSSIBar(int16_t rssi, uint8_t line) {
+  char String[16];
+
+  const uint8_t BAR_LEFT_MARGIN = 24;
+  const uint8_t POS_Y = line * 8 + 1;
+
+  int dBm = Rssi2DBm(rssi);
+  uint8_t s = DBm2S(dBm);
+  uint8_t *ln = gFrameBuffer[line];
+
+  memset(ln, 0, 128);
+
+  for (int i = BAR_LEFT_MARGIN, sv = 1; i < BAR_LEFT_MARGIN + s * 4;
+       i += 4, sv++) {
+    ln[i] = ln[i + 2] = 0b00111110;
+    ln[i + 1] = sv > 9 ? 0b00100010 : 0b00111110;
+  }
+
+  sprintf(String, "%d", dBm);
+  UI_PrintStringSmallest(String, 110, POS_Y, false, true);
+  if (s < 10) {
+    sprintf(String, "S%u", s);
+  } else {
+    sprintf(String, "S9+%u0", s - 9);
+  }
+  UI_PrintStringSmallest(String, 3, POS_Y, false, true);
+  ST7565_BlitFullScreen();
 }

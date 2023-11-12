@@ -16,13 +16,10 @@
 
 #include "helper.h"
 #include "../driver/st7565.h"
-#include "../external/printf/printf.h"
 #include "../font.h"
 #include "../misc.h"
 #include "../radio.h"
 #include "inputbox.h"
-#include <stdint.h>
-#include <string.h>
 
 void UI_GenerateChannelString(char *pString, uint8_t Channel) {
   uint8_t i;
