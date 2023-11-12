@@ -19,6 +19,7 @@ Task *TaskAdd(const char *name, void *handler, uint16_t interval,
               bool continuous);
 void TaskRemove(void *handler);
 void TaskTouch(void *handler);
+void TasksUpdate(void);
 
 extern Task tasks[TASKS_MAX];
 

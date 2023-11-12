@@ -17,6 +17,7 @@
 #include "../inc/dp32g030/gpio.h"
 #include "../misc.h"
 #include "../radio.h"
+#include "../scheduler.h"
 #include "../ui/components.h"
 #include "../ui/helper.h"
 #include <stdbool.h>
@@ -63,7 +64,7 @@ typedef struct SpectrumSettings {
   bool backlightState;
   BK4819_FilterBandwidth_t listenBw;
   ModulationType modulationType;
-  uint16_t delayUS;
+  uint8_t delayMS;
 } SpectrumSettings;
 
 typedef struct KeyboardState {
@@ -78,7 +79,7 @@ typedef struct ScanInfo {
   uint32_t f, fPeak;
   uint16_t scanStep;
   uint8_t measurementsCount;
-  uint8_t rssiT;
+  bool rssiSemaphore;
 } ScanInfo;
 
 typedef struct PeakInfo {

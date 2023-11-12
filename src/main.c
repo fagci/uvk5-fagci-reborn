@@ -25,8 +25,6 @@
 
 void _putchar(char c) {}
 
-Task *backlightTask;
-
 // Delay to wait for rssi:
 // create Task
 // wait it to complete
@@ -54,20 +52,19 @@ void Main(void) {
 
   BK4819_TuneTo(f, true);
   BK4819_Squelch(3, f);
-  BK4819_SetAGC(0);
 
-  BACKLIGHT_SetDuration(5);
+  BACKLIGHT_SetDuration(15);
   BACKLIGHT_On();
 
-  backlightTask = TaskAdd("BL", BACKLIGHT_Update, 1000, true);
+  TaskAdd("BL", BACKLIGHT_Update, 1000, true);
   TaskAdd("BAT", BATTERY_UpdateBatteryInfo, 5000, true);
 
-  APPS_run(APP_TEST);
+  APPS_run(APP_SPECTRUM);
   TaskAdd("A Upd", APPS_update, 1, true);
   TaskAdd("A Rendr", APPS_render, 33, true);
   TaskAdd("A Keys", CheckKeys, 10, true);
 
   while (1) {
-    SYSTEM_DelayMs(1);
+    TasksUpdate();
   }
 }

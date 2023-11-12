@@ -8,14 +8,7 @@ AppType_t currentApp = APP_SPECTRUM;
 uint16_t rssi = 0;
 uint16_t taskSpawnInterval = 10;
 
-void GetRssiTask() { rssi = BK4819_GetRSSI(); }
-void UpdateRSSI() {
-  BK4819_ResetRSSI();
-  rssi = 0;
-  TaskAdd("GetRssi", GetRssiTask, taskSpawnInterval, false);
-}
-
-void TInit() { TaskAdd("RSSI upd", UpdateRSSI, 500, true); }
+void TInit() {}
 void TUpdate() { gRedrawScreen = true; }
 void TRender() {
   char String[8];

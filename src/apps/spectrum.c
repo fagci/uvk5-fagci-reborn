@@ -50,7 +50,7 @@ SpectrumSettings settings = {
     .backlightState = true,
     .listenBw = BK4819_FILTER_BW_WIDE,
     .modulationType = MOD_FM,
-    .delayUS = 1200,
+    .delayMS = 3,
 };
 
 uint32_t fMeasure = 0;
@@ -230,11 +230,15 @@ uint16_t GetBWRegValueForScan() { return 0b0000000110111100; }
 
 uint16_t GetBWRegValueForListen() { return BWRegValues[settings.listenBw]; }
 
-uint16_t GetRssi() {
-  if (currentState == SPECTRUM) {
-    // SYSTICK_DelayUs(settings.delayUS);
-  }
-  return BK4819_GetRSSI();
+void GetRssiTask() {
+  scanInfo.rssiSemaphore = false;
+  rssiHistory[scanInfo.i] = scanInfo.rssi = BK4819_GetRSSI();
+}
+
+void GetRssi() {
+  scanInfo.rssiSemaphore = true;
+  BK4819_ResetRSSI();
+  TaskAdd("Get RSSI", GetRssiTask, settings.delayMS, false);
 }
 
 static void ToggleAudio(bool on) {
@@ -407,7 +411,7 @@ static void Measure() {
     return;
   }
 #endif
-  rssiHistory[scanInfo.i] = scanInfo.rssi = GetRssi();
+  GetRssi();
 }
 
 // Update things by keypress
@@ -604,7 +608,7 @@ static void DrawStatus() {
         UI_PrintStringSmallest(p->name, 0, 0, true, true);
       }
 
-      sprintf(String, "D: %u us", settings.delayUS);
+      sprintf(String, "D: %ums", settings.delayMS);
       UI_PrintStringSmallest(String, 64, 0, true, true);
     }
 #ifdef ENABLE_ALL_REGISTERS
@@ -734,14 +738,14 @@ static void OnKeyDown(uint8_t key) {
   case KEY_3:
     if (0)
       SelectNearestPreset(true);
-    settings.delayUS += 100;
+    settings.delayMS++;
     // SYSTEM_DelayMs(100);
     redrawStatus = true;
     break;
   case KEY_9:
     if (0)
       SelectNearestPreset(false);
-    settings.delayUS -= 100;
+    settings.delayMS--;
     // SYSTEM_DelayMs(100);
     redrawStatus = true;
     break;
@@ -1204,14 +1208,13 @@ static void NextScanStep() {
 }
 
 static void UpdateScan() {
-  /* if (scanInfo.rssiT) {
-    scanInfo.rssiT--;
-  } */
+  if (scanInfo.rssiSemaphore) {
+    return;
+  }
   Scan();
 
   if (scanInfo.i < scanInfo.measurementsCount) {
     NextScanStep();
-    // scanInfo.rssiT = 3;
     return;
   }
 

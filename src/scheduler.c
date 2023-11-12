@@ -57,19 +57,27 @@ void TaskTouch(void *handler) {
   }
 }
 
+void TasksUpdate(void) {
+  for (uint8_t i = 0; i < tasksCount; ++i) {
+    Task *task = &tasks[i];
+    if (task->handler && task->t >= task->interval) {
+      task->handler();
+      if (task->continuous) {
+        task->t = 0;
+      } else {
+        TaskRemove(task->handler);
+      }
+    }
+  }
+}
+
 void SystickHandler(void);
 
 void SystickHandler(void) {
   for (uint8_t i = 0; i < tasksCount; ++i) {
     Task *task = &tasks[i];
-    if (task->handler && ++task->t >= task->interval) {
-      if (task->continuous) {
-        task->handler();
-        task->t = 0;
-      } else {
-        task->handler();
-        TaskRemove(task->handler);
-      }
+    if (task->handler && task->t < task->interval) {
+      ++task->t;
     }
   }
 }
