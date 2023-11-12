@@ -239,6 +239,7 @@ void GetRssi() {
   scanInfo.rssiSemaphore = true;
   BK4819_ResetRSSI();
   TaskAdd("Get RSSI", GetRssiTask, settings.delayMS, false);
+  TaskSetPriority(GetRssiTask, 0);
 }
 
 static void ToggleAudio(bool on) {
@@ -1234,7 +1235,8 @@ static void UpdateScan() {
 }
 uint16_t screenRedrawT = 0;
 static void UpdateStill() {
-  Measure();
+  // Measure();
+  rssiHistory[scanInfo.i] = scanInfo.rssi = BK4819_GetRSSI();
 
   peak.rssi = scanInfo.rssi;
   AutoTriggerLevel();

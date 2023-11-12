@@ -25,11 +25,7 @@
 
 void _putchar(char c) {}
 
-// Delay to wait for rssi:
-// create Task
-// wait it to complete
-
-void onKey(KEY_Code_t k, bool p, bool h) {
+static void onKey(KEY_Code_t k, bool p, bool h) {
   if (k != KEY_INVALID) {
     BACKLIGHT_On();
     TaskTouch(BACKLIGHT_Update);
@@ -37,7 +33,7 @@ void onKey(KEY_Code_t k, bool p, bool h) {
   APPS_key(k, p, h);
 }
 
-void CheckKeys() { KEYBOARD_CheckKeys(onKey); }
+static void CheckKeys() { KEYBOARD_CheckKeys(onKey); }
 
 void Main(void) {
   SYSTEM_ConfigureSysCon();

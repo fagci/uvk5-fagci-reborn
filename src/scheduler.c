@@ -26,7 +26,7 @@ Task *TaskAdd(const char *name, void *handler, uint16_t interval,
   if (tasksCount == TASKS_MAX) {
     return NULL;
   }
-  Task newTask = (Task){name, handler, interval, 0, continuous};
+  Task newTask = (Task){name, handler, interval, 0, continuous, 128};
   tasks[tasksCount++] = newTask;
   return &tasks[tasksCount - 1];
 }
@@ -57,7 +57,31 @@ void TaskTouch(void *handler) {
   }
 }
 
+void TaskSetPriority(void *handler, uint8_t priority) {
+  for (uint8_t i = 0; i < tasksCount; ++i) {
+    if (tasks[i].handler == handler) {
+      tasks[i].priority = priority;
+      return;
+    }
+  }
+}
+
 void TasksUpdate(void) {
+  bool prioritized = false;
+  for (uint8_t i = 0; i < tasksCount; ++i) {
+    Task *task = &tasks[i];
+    if (task->handler && task->t >= task->interval && task->priority == 0) {
+      task->handler();
+      prioritized = true;
+      if (task->continuous) {
+        task->t = 0;
+      } else {
+        TaskRemove(task->handler);
+      }
+    }
+  }
+  if (prioritized)
+    return;
   for (uint8_t i = 0; i < tasksCount; ++i) {
     Task *task = &tasks[i];
     if (task->handler && task->t >= task->interval) {
