@@ -231,19 +231,19 @@ uint16_t GetBWRegValueForScan() { return 0b0000000110111100; }
 uint16_t GetBWRegValueForListen() { return BWRegValues[settings.listenBw]; }
 
 // Needed to cleanup RSSI if we're hurry (< 10ms)
-/* static void ResetRSSI() {
+static void ResetRSSI() {
   uint32_t Reg = BK4819_ReadRegister(BK4819_REG_30);
   Reg &= ~1;
   BK4819_WriteRegister(BK4819_REG_30, Reg);
   Reg |= 1;
   BK4819_WriteRegister(BK4819_REG_30, Reg);
-} */
+}
 
 uint16_t GetRssi() {
-  /* if (currentState == SPECTRUM) {
-    ResetRSSI();
-    SYSTICK_DelayUs(settings.delayUS);
-  } */
+  if (currentState == SPECTRUM) {
+    if(0)ResetRSSI();
+    // SYSTICK_DelayUs(settings.delayUS);
+  }
   return BK4819_GetRSSI();
 }
 
@@ -1167,7 +1167,7 @@ static void Render() {
 void SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   if (preventKeypress)
     return;
-  if (!bKeyPressed)
+  if (!bKeyPressed || bKeyHeld)
     return;
   /* kbd.prev = kbd.current;
   kbd.current = Key;
@@ -1214,10 +1214,14 @@ static void NextScanStep() {
 }
 
 static void UpdateScan() {
+  /* if (scanInfo.rssiT) {
+    scanInfo.rssiT--;
+  } */
   Scan();
 
   if (scanInfo.i < scanInfo.measurementsCount) {
     NextScanStep();
+    // scanInfo.rssiT = 3;
     return;
   }
 
@@ -1342,6 +1346,7 @@ void SPECTRUM_init() {
 
   initialFreq = 43400000;
   currentFreq = initialFreq;
+
   settings.scanStepIndex = STEP_25_0kHz;
   settings.listenBw = BK4819_FILTER_BW_WIDE;
   settings.modulationType = MOD_FM;

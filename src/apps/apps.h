@@ -4,6 +4,7 @@
 #include "../driver/keyboard.h"
 
 typedef enum {
+  APP_TEST,
   APP_SPECTRUM,
   APP_SCANLIST,
   APP_AB_SCANNER,

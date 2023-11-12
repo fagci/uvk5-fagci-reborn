@@ -942,3 +942,21 @@ void BK4819_TuneTo(uint32_t f, bool precise) {
 void BK4819_SetToneFrequency(uint16_t f) {
   BK4819_WriteRegister(BK4819_REG_71, (f * 103U) / 10U);
 }
+
+bool BK4819_IsSquelchOpen() {
+  bool isSquelchOpen = false;
+  while (BK4819_ReadRegister(BK4819_REG_0C) & 1U) {
+    BK4819_WriteRegister(BK4819_REG_02, 0);
+
+    uint16_t Mask = BK4819_ReadRegister(BK4819_REG_02);
+
+    if (Mask & BK4819_REG_02_SQUELCH_LOST) {
+      isSquelchOpen = true;
+    }
+
+    if (Mask & BK4819_REG_02_SQUELCH_FOUND) {
+      isSquelchOpen = false;
+    }
+  }
+  return isSquelchOpen;
+}

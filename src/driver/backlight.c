@@ -1,8 +1,9 @@
 #include "backlight.h"
 #include "../inc/dp32g030/gpio.h"
+#include "audio.h"
 #include "gpio.h"
 
-uint8_t duration = 15;
+uint8_t duration = 2;
 uint8_t countdown;
 bool state = false;
 
@@ -23,12 +24,16 @@ void BACKLIGHT_On() {
   BACKLIGHT_Toggle(true);
 }
 
-void BACKLIGHT_SetDuration(uint8_t durationSec) { duration = durationSec; }
+void BACKLIGHT_SetDuration(uint8_t durationSec) {
+  duration = durationSec;
+  countdown = durationSec;
+}
 
 void BACKLIGHT_Update() {
   if (countdown == 0 || countdown == 255) {
     return;
   }
+  AUDIO_PlayTone(800, 50);
 
   if (countdown == 1) {
     BACKLIGHT_Toggle(false);

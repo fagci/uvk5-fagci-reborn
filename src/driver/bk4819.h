@@ -168,5 +168,6 @@ void BK4819_SetRegValue(RegisterSpec s, uint16_t v);
 void BK4819_TuneTo(uint32_t f, bool precise);
 void BK4819_SetToneFrequency(uint16_t f);
 void BK4819_SetModulation(ModulationType type);
+bool BK4819_IsSquelchOpen();
 
 #endif

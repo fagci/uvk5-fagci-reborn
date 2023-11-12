@@ -78,7 +78,7 @@ typedef struct ScanInfo {
   uint32_t f, fPeak;
   uint16_t scanStep;
   uint8_t measurementsCount;
-  bool gotRssi;
+  uint8_t rssiT;
 } ScanInfo;
 
 typedef struct PeakInfo {
@@ -150,7 +150,7 @@ static const FreqPreset freqPresets[] = {
      BK4819_FILTER_BW_NARROW},
     {"River2", 33601250, 33651250, STEPS_64, STEP_12_5kHz, MOD_FM,
      BK4819_FILTER_BW_NARROW},
-    {"LPD", 43307500, 43477500, STEPS_128, STEP_25_0kHz, MOD_FM,
+    {"LPD", 43307500, 43477500, STEPS_32, STEP_25_0kHz, MOD_FM,
      BK4819_FILTER_BW_WIDE},
     {"PMR", 44600625, 44620000, STEPS_32, STEP_6_25kHz, MOD_FM,
      BK4819_FILTER_BW_NARROW},

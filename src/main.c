@@ -25,7 +25,25 @@
 
 void _putchar(char c) {}
 
-void CheckKeys() { KEYBOARD_CheckKeys(APPS_key); }
+Task *backlightTask;
+
+// Delay to wait for rssi:
+// create Task
+// wait it to complete
+
+void Delay() {
+  for (uint16_t i = 0; i < 20000; i++)
+    continue;
+}
+void onKey(KEY_Code_t k, bool p, bool h) {
+  if (k != KEY_INVALID) {
+    BACKLIGHT_On();
+    TaskTouch(BACKLIGHT_Update);
+  }
+  APPS_key(k, p, h);
+}
+
+void CheckKeys() { KEYBOARD_CheckKeys(onKey); }
 
 void Main(void) {
   SYSTEM_ConfigureSysCon();
@@ -41,18 +59,19 @@ void Main(void) {
   BK4819_TuneTo(f, true);
   BK4819_Squelch(3, f);
 
+  BACKLIGHT_SetDuration(5);
   BACKLIGHT_On();
 
-  TaskAdd(BACKLIGHT_Update, 1000, true);
-  TaskAdd(BATTERY_UpdateBatteryInfo, 5000, true);
+  backlightTask = TaskAdd("BL", BACKLIGHT_Update, 1000, true);
+  TaskAdd("BAT", BATTERY_UpdateBatteryInfo, 5000, true);
 
-  TaskAdd(APPS_update, 1, true);
-  TaskAdd(APPS_render, 1, true);
-  TaskAdd(CheckKeys, 1, true);
-
-  APPS_run(APP_SPECTRUM);
+  APPS_run(APP_TEST);
+  TaskAdd("A Upd", APPS_update, 1, true);
+  TaskAdd("Delay", Delay, 1000, true);
+  TaskAdd("A Rendr", APPS_render, 33, true);
+  TaskAdd("A Keys", CheckKeys, 10, true);
 
   while (1) {
-    SYSTEM_DelayMs(100);
+    SYSTEM_DelayMs(1);
   }
 }

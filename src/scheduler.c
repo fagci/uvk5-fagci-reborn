@@ -18,26 +18,17 @@
 #include "helper/battery.h"
 #include "misc.h"
 
-#define TASKS_MAX 16
-
-typedef struct {
-  void (*handler)(void);
-  uint16_t interval;
-  uint16_t t;
-  bool continuous;
-} Task;
-
 Task tasks[TASKS_MAX];
 uint8_t tasksCount = 0;
 
-bool TaskAdd(void *handler, uint16_t interval, bool continuous) {
+Task *TaskAdd(const char *name, void *handler, uint16_t interval,
+              bool continuous) {
   if (tasksCount == TASKS_MAX) {
-    return false;
+    return NULL;
   }
-  uint8_t freeIndex = tasksCount > 0 ? tasksCount : 0;
-  tasks[freeIndex] = (Task){handler, interval, 0, continuous};
-  tasksCount++;
-  return true;
+  Task newTask = (Task){name, handler, interval, 0, continuous};
+  tasks[tasksCount++] = newTask;
+  return &tasks[tasksCount - 1];
 }
 
 void TaskRemove(void *handler) {
@@ -52,6 +43,16 @@ void TaskRemove(void *handler) {
   for (; i < tasksCount; ++i) {
     if (tasks[i].handler == NULL && tasks[i + 1].handler != NULL) {
       tasks[i] = tasks[i + 1];
+      tasks[i + 1].handler = NULL;
+    }
+  }
+}
+
+void TaskTouch(void *handler) {
+  for (uint8_t i = 0; i < tasksCount; ++i) {
+    if (tasks[i].handler == handler) {
+      tasks[i].t = 0;
+      return;
     }
   }
 }
@@ -59,7 +60,7 @@ void TaskRemove(void *handler) {
 void SystickHandler(void);
 
 void SystickHandler(void) {
-  for (uint8_t i = 0; i < 8; ++i) {
+  for (uint8_t i = 0; i < tasksCount; ++i) {
     Task *task = &tasks[i];
     if (task->handler && ++task->t >= task->interval) {
       if (task->continuous) {

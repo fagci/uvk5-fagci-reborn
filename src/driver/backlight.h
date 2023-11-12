@@ -8,5 +8,8 @@ void BACKLIGHT_Toggle(bool on);
 void BACKLIGHT_On();
 void BACKLIGHT_Update();
 void BACKLIGHT_SetDuration(uint8_t durationSec);
+extern uint8_t duration;
+extern uint8_t countdown;
+extern bool state;
 
 #endif /* end of include guard: BACKLIGHT_H */
