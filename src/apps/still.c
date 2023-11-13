@@ -3,11 +3,13 @@
 #include "../driver/bk4819.h"
 #include "../driver/st7565.h"
 #include "../radio.h"
+#include "apps.h"
 
 uint8_t menuState = 0;
 uint16_t screenRedrawT = 0;
 uint16_t listenT = 0;
 bool monitorMode = false;
+const uint8_t modulationTypeTuneSteps[] = {100, 50, 10};
 
 static const RegisterSpec registerSpecs[] = {
     {},
@@ -136,8 +138,7 @@ void STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     UpdateRssiTriggerLevel(false);
     break;
   case KEY_5:
-    FreqInput();
-    SetState(FREQ_INPUT);
+    APPS_run(APP_FINPUT);
     break;
   case KEY_0:
     ToggleModulation();

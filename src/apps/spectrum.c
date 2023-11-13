@@ -23,7 +23,6 @@ const uint16_t RSSI_MAX_VALUE = 65535;
 static uint32_t initialFreq;
 static char String[32];
 
-bool isInitialized = false;
 bool monitorMode = false;
 bool redrawStatus = true;
 bool redrawScreen = false;
@@ -35,9 +34,6 @@ bool isTransmitting = false;
 
 PeakInfo peak;
 ScanInfo scanInfo;
-
-const char *bwOptions[] = {"  25k", "12.5k", "6.25k"};
-const uint8_t modulationTypeTuneSteps[] = {100, 50, 10};
 
 SpectrumSettings settings = {
     .stepsCount = STEPS_64,
@@ -289,9 +285,7 @@ static void RelaunchScan() {
   ResetPeak();
   lastStepsCount = 0;
   ToggleRX(false);
-#ifdef SPECTRUM_AUTOMATIC_SQUELCH
   settings.rssiTriggerLevel = RSSI_MAX_VALUE;
-#endif
   scanInfo.rssiMin = RSSI_MAX_VALUE;
   preventKeypress = true;
   redrawStatus = true;
@@ -421,40 +415,12 @@ static void UpdateFreqChangeStep(bool inc) {
   } else if (!inc && settings.frequencyChangeStep > 10000) {
     settings.frequencyChangeStep -= diff;
   }
-  // SYSTEM_DelayMs(100);
-  redrawScreen = true;
-}
-
-static void ToggleModulation() {
-  if (settings.modulationType == MOD_RAW) {
-    settings.modulationType = MOD_FM;
-  } else {
-    ++settings.modulationType;
-  }
-  BK4819_SetModulation(settings.modulationType);
-  redrawScreen = true;
-}
-
-static void ToggleListeningBW() {
-  if (settings.listenBw == BK4819_FILTER_BW_NARROWER) {
-    settings.listenBw = BK4819_FILTER_BW_WIDE;
-  } else {
-    ++settings.listenBw;
-  }
-
-#ifdef ENABLE_ALL_REGISTERS
-  BK4819_WriteRegister(0x43, GetBWRegValueForListen());
-#endif
   redrawScreen = true;
 }
 
 static void ToggleBacklight() {
   settings.backlightState = !settings.backlightState;
-  if (settings.backlightState) {
-    GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
-  } else {
-    GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
-  }
+  BACKLIGHT_Toggle(settings.backlightState);
 }
 
 static void ToggleStepsCount() {
@@ -527,7 +493,7 @@ static void DrawStatus() {
 static void DrawF(uint32_t f) {
   UI_PrintStringSmallest(modulationTypeOptions[settings.modulationType], 116, 2,
                          false, true);
-  UI_PrintStringSmallest(bwOptions[settings.listenBw], 108, 8, false, true);
+  UI_PrintStringSmallest(bwNames[settings.listenBw], 108, 8, false, true);
 
 #ifdef ENABLE_ALL_REGISTERS
   if (currentState == SPECTRUM) {
@@ -626,12 +592,6 @@ static void DrawArrow(uint8_t x) {
       gFrameBuffer[5][v] |= (0b01111000 << a) & 0b01111000;
     }
   }
-}
-
-static void DeInitSpectrum() {
-  SetF(initialFreq, true);
-  ToggleRX(false);
-  isInitialized = false;
 }
 
 static void OnKeyDown(uint8_t key) {
@@ -755,7 +715,6 @@ static void OnKeyDown(uint8_t key) {
       break;
     }
 #endif
-    DeInitSpectrum();
     break;
   default:
     break;
@@ -929,6 +888,4 @@ void SPECTRUM_init() {
   RelaunchScan();
 
   memset(rssiHistory, 0, 128);
-
-  isInitialized = true;
 }
