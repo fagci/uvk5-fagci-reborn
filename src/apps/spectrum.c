@@ -23,14 +23,13 @@ const uint16_t RSSI_MAX_VALUE = 65535;
 static uint32_t initialFreq;
 static char String[32];
 
-bool monitorMode = false;
-bool redrawStatus = true;
-bool redrawScreen = false;
-bool newScanStart = true;
-bool preventKeypress = true;
+static bool monitorMode = false;
+static bool redrawStatus = true;
+static bool redrawScreen = false;
+static bool newScanStart = true;
+static bool preventKeypress = true;
 
-bool isListening = false;
-bool isTransmitting = false;
+static bool isTransmitting = false;
 
 PeakInfo peak;
 ScanInfo scanInfo;
@@ -46,16 +45,11 @@ SpectrumSettings settings = {
     .delayMS = 3,
 };
 
-uint32_t fMeasure = 0;
-uint32_t fTx = 0;
-uint32_t currentFreq;
-uint16_t rssiHistory[128] = {0};
-bool blacklist[128] = {false};
-
-static uint16_t registersBackup[128];
-static const uint8_t registersToBackup[] = {
-    0x13, 0x30, 0x31, 0x37, 0x3D, 0x40, 0x43, 0x47, 0x48, 0x7D, 0x7E,
-};
+static uint32_t fMeasure = 0;
+// static uint32_t fTx = 0;
+static uint32_t currentFreq;
+static uint16_t rssiHistory[128] = {0};
+static bool blacklist[128] = {false};
 
 static MovingAverage mov = {{128}, {}, 255, 128, 0, 0};
 static const uint8_t MOV_N = ARRAY_SIZE(mov.buf);
@@ -64,10 +58,10 @@ static const uint8_t MOV_N = ARRAY_SIZE(mov.buf);
 uint8_t hiddenMenuState = 0;
 #endif
 
-uint16_t listenT = 0;
+static uint16_t listenT = 0;
 
-bool isMovingInitialized = false;
-uint8_t lastStepsCount = 0;
+// static bool isMovingInitialized = false;
+static uint8_t lastStepsCount = 0;
 
 VfoState_t txAllowState;
 
@@ -173,7 +167,7 @@ static void TuneToPeak() {
 
 uint16_t GetBWRegValueForScan() { return 0b0000000110111100; }
 
-uint16_t GetBWRegValueForListen() { return BWRegValues[settings.listenBw]; }
+uint16_t GetBWRegValueForListen() { return BWRegValues[gCurrentVfo.bw]; }
 
 void GetRssiTask() {
   scanInfo.rssiSemaphore = false;
@@ -347,10 +341,10 @@ static void UpdateRssiTriggerLevel(bool inc) {
 static void ApplyPreset(FreqPreset p) {
   currentFreq = GetTuneF(p.fStart);
   settings.scanStepIndex = p.stepSizeIndex;
-  settings.listenBw = p.listenBW;
-  settings.modulationType = p.modulationType;
+  gCurrentVfo.bw = p.listenBW;
+  gCurrentVfo.modulation = p.modulationType;
   settings.stepsCount = p.stepsCountIndex;
-  BK4819_SetModulation(settings.modulationType);
+  BK4819_SetModulation(gCurrentVfo.modulation);
   RelaunchScan();
   ResetBlacklist();
   redrawScreen = true;
@@ -491,29 +485,12 @@ static void DrawStatus() {
 }
 
 static void DrawF(uint32_t f) {
-  UI_PrintStringSmallest(modulationTypeOptions[settings.modulationType], 116, 2,
+  UI_PrintStringSmallest(modulationTypeOptions[gCurrentVfo.modulation], 116, 2,
                          false, true);
-  UI_PrintStringSmallest(bwNames[settings.listenBw], 108, 8, false, true);
-
-#ifdef ENABLE_ALL_REGISTERS
-  if (currentState == SPECTRUM) {
-    sprintf(String, "R%03u S%03u A%03u", scanInfo.rssi,
-            BK4819_GetRegValue((RegisterSpec){"snr_out", 0x61, 8, 0xFF, 1}),
-            BK4819_GetRegValue((RegisterSpec){"agc_rssi", 0x62, 8, 0xFF, 1}));
-    UI_PrintStringSmallest(String, 36, 8, false, true);
-  }
-#endif
+  UI_PrintStringSmallest(bwNames[gCurrentVfo.bw], 108, 8, false, true);
 
   sprintf(String, "%u.%05u", f / 100000, f % 100000);
 
-  /* if (currentState == STILL && kbd.current == KEY_PTT) {
-    if (txAllowState) {
-      sprintf(String, vfoStateNames[txAllowState]);
-    } else if (isTransmitting) {
-      f = GetOffsetedF(gCurrentVfo, f);
-      sprintf(String, "TX %u.%05u", f / 100000, f % 100000);
-    }
-  } */
   UI_PrintStringSmall(String, 8, 127, 0);
 }
 
@@ -685,10 +662,10 @@ static void OnKeyDown(uint8_t key) {
     APPS_run(APP_FINPUT);
     break;
   case KEY_0:
-    ToggleModulation();
+    RADIO_ToggleModulation();
     break;
   case KEY_6:
-    ToggleListeningBW();
+    RADIO_ToggleListeningBW();
     break;
   case KEY_4:
     ToggleStepsCount();
@@ -798,7 +775,7 @@ static void UpdateScan() {
 }
 
 static void UpdateListening() {
-  if (!isListening) {
+  if (!gIsListening) {
     ToggleRX(true);
   }
   if (listenT) {
@@ -838,7 +815,7 @@ void SPECTRUM_update() {
   }
   if (isTransmitting) {
     UpdateTransmitting();
-  } else if (isListening) {
+  } else if (gIsListening) {
     UpdateListening();
   } else {
     UpdateScan();
@@ -873,8 +850,8 @@ void SPECTRUM_init() {
   currentFreq = initialFreq;
 
   settings.scanStepIndex = STEP_25_0kHz;
-  settings.listenBw = BK4819_FILTER_BW_WIDE;
-  settings.modulationType = MOD_FM;
+  gCurrentVfo.bw = BK4819_FILTER_BW_WIDE;
+  gCurrentVfo.modulation = MOD_FM;
 
   AutomaticPresetChoose(currentFreq);
 
@@ -883,7 +860,7 @@ void SPECTRUM_init() {
   newScanStart = true;
 
   ToggleRX(true), ToggleRX(false); // hack to prevent noise when squelch off
-  BK4819_SetModulation(settings.modulationType);
+  BK4819_SetModulation(gCurrentVfo.modulation);
 
   RelaunchScan();
 

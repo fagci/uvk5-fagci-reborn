@@ -79,7 +79,7 @@ void RADIO_ToggleRX(bool on) {
   BK4819_ToggleAFBit(on);
 }
 
-void ToggleModulation() {
+void RADIO_ToggleModulation() {
   if (gCurrentVfo.modulation == MOD_RAW) {
     gCurrentVfo.modulation = MOD_FM;
   } else {
@@ -88,7 +88,7 @@ void ToggleModulation() {
   BK4819_SetModulation(gCurrentVfo.modulation);
 }
 
-void ToggleListeningBW() {
+void RADIO_ToggleListeningBW() {
   if (gCurrentVfo.bw == BK4819_FILTER_BW_NARROWER) {
     gCurrentVfo.bw = BK4819_FILTER_BW_WIDE;
   } else {
@@ -96,4 +96,9 @@ void ToggleListeningBW() {
   }
 
   BK4819_SetFilterBandwidth(gCurrentVfo.bw);
+}
+
+void RADIO_TuneTo(uint32_t f, bool precise) {
+  gCurrentVfo.f = f;
+  BK4819_TuneTo(f, precise);
 }

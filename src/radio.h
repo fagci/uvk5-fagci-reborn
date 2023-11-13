@@ -2,6 +2,7 @@
 #define RADIO_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef struct {
   uint32_t f : 32;
@@ -62,5 +63,8 @@ void RADIO_SetupRegisters();
 uint32_t GetScreenF(uint32_t f);
 uint32_t GetTuneF(uint32_t f);
 void RADIO_ToggleRX(bool on);
+void RADIO_ToggleModulation();
+void RADIO_ToggleListeningBW();
+void RADIO_TuneTo(uint32_t f, bool precise);
 
 #endif /* end of include guard: RADIO_H */

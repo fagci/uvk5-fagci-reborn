@@ -2,14 +2,21 @@
 #include "../driver/audio.h"
 #include "../driver/bk4819.h"
 #include "../driver/st7565.h"
+#include "../helper/measurements.h"
+#include "../misc.h"
 #include "../radio.h"
+#include "../ui/helper.h"
 #include "apps.h"
 
-uint8_t menuState = 0;
-uint16_t screenRedrawT = 0;
-uint16_t listenT = 0;
-bool monitorMode = false;
-const uint8_t modulationTypeTuneSteps[] = {100, 50, 10};
+static uint8_t menuState = 0;
+static uint16_t screenRedrawT = 0;
+static uint16_t listenT = 0;
+static bool monitorMode = false;
+static const uint8_t modulationTypeTuneSteps[] = {100, 50, 10};
+static uint16_t rssiTriggerLevel = 0;
+
+static uint16_t rssi = 0;
+static char String[16];
 
 static const RegisterSpec registerSpecs[] = {
     {},
@@ -24,6 +31,32 @@ static const RegisterSpec registerSpecs[] = {
     {"MIC", 0x7D, 0, 0xF, 1},
 };
 
+static void DrawF(uint32_t f) {
+  UI_PrintStringSmallest(modulationTypeOptions[gCurrentVfo.modulation], 116, 2,
+                         false, true);
+  UI_PrintStringSmallest(bwNames[gCurrentVfo.bw], 108, 8, false, true);
+
+  sprintf(String, "%u.%05u", f / 100000, f % 100000);
+
+  /* if (currentState == STILL && kbd.current == KEY_PTT) {
+    if (txAllowState) {
+      sprintf(String, vfoStateNames[txAllowState]);
+    } else if (isTransmitting) {
+      f = GetOffsetedF(gCurrentVfo, f);
+      sprintf(String, "TX %u.%05u", f / 100000, f % 100000);
+    }
+  } */
+  UI_PrintStringSmall(String, 8, 127, 0);
+}
+
+static void UpdateRssiTriggerLevel(bool inc) {
+  if (inc)
+    rssiTriggerLevel += 2;
+  else
+    rssiTriggerLevel -= 2;
+  gRedrawScreen = true;
+}
+
 static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   uint16_t v = BK4819_GetRegValue(s);
 
@@ -37,10 +70,19 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   gRedrawScreen = true;
 }
 
-static void UpdateListening() {
-  if (!gIsListening) {
-    RADIO_ToggleRX(true);
+static void UpdateCurrentFreqStill(bool inc) {
+  uint8_t offset = modulationTypeTuneSteps[gCurrentVfo.modulation];
+  uint32_t f = gCurrentVfo.f;
+  if (inc && f < F_MAX) {
+    f += offset;
+  } else if (!inc && f > F_MIN) {
+    f -= offset;
   }
+  RADIO_TuneTo(f, false);
+  gRedrawScreen = true;
+}
+
+static void UpdateListening() {
   if (listenT) {
     listenT--;
     return;
@@ -48,9 +90,9 @@ static void UpdateListening() {
 
   gRedrawScreen = true;
 
-  uint16_t rssi = BK4819_GetRSSI();
+  rssi = BK4819_GetRSSI();
 
-  if (rssi >= settings.rssiTriggerLevel || monitorMode) {
+  if (rssi >= rssiTriggerLevel || monitorMode) {
     listenT = 10;
     return;
   }
@@ -58,27 +100,19 @@ static void UpdateListening() {
   RADIO_ToggleRX(false);
 }
 
-static void UpdateCurrentFreqStill(bool inc) {
-  uint8_t offset = modulationTypeTuneSteps[settings.modulationType];
-  uint32_t f = fMeasure;
-  if (inc && f < F_MAX) {
-    f += offset;
-  } else if (!inc && f > F_MIN) {
-    f -= offset;
-  }
-  SetF(f, false);
-  gRedrawScreen = true;
-}
-
 void STILL_update() {
-  uint16_t rssi = BK4819_GetRSSI();
+  if (gIsListening) {
+    UpdateListening();
+    return;
+  }
+  rssi = BK4819_GetRSSI();
 
   if (++screenRedrawT >= 1000) {
     screenRedrawT = 0;
     gRedrawScreen = true;
   }
 
-  RADIO_ToggleRX(rssi >= settings.rssiTriggerLevel || monitorMode);
+  RADIO_ToggleRX(rssi >= rssiTriggerLevel || monitorMode);
 }
 
 void STILL_init() {}
@@ -141,17 +175,17 @@ void STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     APPS_run(APP_FINPUT);
     break;
   case KEY_0:
-    ToggleModulation();
+    RADIO_ToggleModulation();
     break;
   case KEY_6:
-    ToggleListeningBW();
+    RADIO_ToggleListeningBW();
     break;
   case KEY_SIDE1:
     monitorMode = !monitorMode;
-    redrawScreen = true;
+    gRedrawScreen = true;
     break;
   case KEY_SIDE2:
-    ToggleBacklight();
+    // ToggleBacklight();
     break;
   case KEY_PTT:
     // start transmit
@@ -164,7 +198,7 @@ void STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     } else {
       txAllowState = VFO_STATE_TX_DISABLE;
     } */
-    redrawScreen = true;
+    gRedrawScreen = true;
     break;
   case KEY_MENU:
     if (menuState == ARRAY_SIZE(registerSpecs) - 1) {
@@ -173,33 +207,32 @@ void STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       menuState++;
     }
     // SYSTEM_DelayMs(100);
-    redrawScreen = true;
+    gRedrawScreen = true;
     break;
   case KEY_EXIT:
     if (menuState) {
       menuState = 0;
-      redrawScreen = true;
+      gRedrawScreen = true;
       break;
     }
 #ifdef ENABLE_ALL_REGISTERS
     if (hiddenMenuState) {
       hiddenMenuState = 0;
-      redrawScreen = true;
+      gRedrawScreen = true;
       break;
     }
 #endif
-    SetState(SPECTRUM);
+    APPS_run(APP_SPECTRUM);
     monitorMode = false;
-    RelaunchScan();
     break;
   default:
     break;
   }
-  redrawStatus = true;
+  gRedrawStatus = true;
 }
 
 void STILL_render() {
-  DrawF(GetScreenF(fMeasure));
+  DrawF(GetScreenF(gCurrentVfo.f));
 
   const uint8_t METER_PAD_LEFT = 3;
   uint8_t *ln = gFrameBuffer[2];
@@ -208,14 +241,14 @@ void STILL_render() {
     ln[i + METER_PAD_LEFT] = i % 10 ? 0b01000000 : 0b11000000;
   }
 
-  uint8_t rssiX = Rssi2PX(scanInfo.rssi, 0, 121);
+  uint8_t rssiX = Rssi2PX(rssi, 0, 121);
   for (uint8_t i = 0; i < rssiX; ++i) {
     if (i % 5 && i / 5 < rssiX / 5) {
       ln[i + METER_PAD_LEFT] |= 0b00011100;
     }
   }
 
-  int dbm = Rssi2DBm(scanInfo.rssi);
+  int dbm = Rssi2DBm(rssi);
   uint8_t s = DBm2S(dbm);
   if (s < 10) {
     sprintf(String, "S%u", s);
@@ -226,17 +259,17 @@ void STILL_render() {
   sprintf(String, "%d dBm", dbm);
   UI_PrintStringSmallest(String, 32, 10, false, true);
 
-  if (isTransmitting) {
+  /* if (isTransmitting) {
     uint8_t afDB = BK4819_ReadRegister(0x6F) & 0b1111111;
     uint8_t afPX = ConvertDomain(afDB, 26, 194, 0, 121);
     for (uint8_t i = 0; i < afPX; ++i) {
       gFrameBuffer[3][i + METER_PAD_LEFT] |= 0b00000011;
     }
-  }
+  } */
 
   if (!monitorMode) {
-    uint8_t rssiTriggerX = Rssi2PX(settings.rssiTriggerLevel, METER_PAD_LEFT,
-                                   121 + METER_PAD_LEFT);
+    uint8_t rssiTriggerX =
+        Rssi2PX(rssiTriggerLevel, METER_PAD_LEFT, 121 + METER_PAD_LEFT);
     ln[rssiTriggerX - 1] |= 0b01000001;
     ln[rssiTriggerX] = 0b01111111;
     ln[rssiTriggerX + 1] |= 0b01000001;
