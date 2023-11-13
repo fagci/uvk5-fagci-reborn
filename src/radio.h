@@ -3,6 +3,27 @@
 
 #include <stdint.h>
 
+typedef struct {
+  uint32_t f : 32;
+  uint32_t offset : 32;
+  uint8_t codeRx : 8;
+  uint8_t codeTx : 8;
+  uint8_t codeTypeRx : 4;
+  uint8_t codeTypeTx : 4;
+  uint8_t offsetDir : 4;
+  uint8_t modulation : 4;
+  uint8_t fReverse : 1;
+  uint8_t bw : 1;
+  uint8_t power : 2;
+  uint8_t busyChannelLock : 4;
+  uint8_t dtmfDecoding : 1;
+  uint8_t dtmfPttIdTxMode : 7;
+  uint8_t step : 8;
+  uint8_t scramblerType : 8;
+} VFO;
+
+extern VFO gCurrentVfo;
+
 typedef enum {
   STEP_0_01kHz,
   STEP_0_1kHz,
@@ -25,6 +46,10 @@ typedef enum {
   UPCONVERTER_125M,
 } UpconverterTypes;
 
+extern VFO gCurrentVfo;
+extern UpconverterTypes upconverterType;
+extern bool gIsListening;
+
 extern const uint16_t StepFrequencyTable[12];
 
 extern const char *modulationTypeOptions[5];
@@ -36,5 +61,6 @@ extern const char *deviationNames[];
 void RADIO_SetupRegisters();
 uint32_t GetScreenF(uint32_t f);
 uint32_t GetTuneF(uint32_t f);
+void RADIO_ToggleRX(bool on);
 
 #endif /* end of include guard: RADIO_H */

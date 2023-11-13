@@ -79,7 +79,7 @@ void Main(void) {
   TaskAdd("BL", BACKLIGHT_Update, 1000, true);
   TaskAdd("BAT", UpdateBattery, 1000, true);
 
-  APPS_run(APP_SPECTRUM);
+  APPS_run(APP_FINPUT);
   TaskAdd("Update", Update, 1, true);
   TaskAdd("Render", Render, 33, true);
   TaskAdd("Keys", Keys, 10, true);

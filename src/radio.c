@@ -1,8 +1,13 @@
 #include "radio.h"
+#include "driver/audio.h"
 #include "driver/bk4819.h"
 #include "driver/gpio.h"
 #include "driver/system.h"
 #include "inc/dp32g030/gpio.h"
+
+VFO gCurrentVfo;
+UpconverterTypes upconverterType = UPCONVERTER_OFF;
+bool gIsListening = false;
 
 const uint16_t StepFrequencyTable[12] = {
     1,   10,  50,  100,
@@ -19,8 +24,6 @@ const char *vfoStateNames[] = {
 const char *powerNames[] = {"LOW", "MID", "HIGH"};
 const char *bwNames[3] = {"  25k", "12.5k", "6.25k"};
 const char *deviationNames[] = {"", "+", "-"};
-
-UpconverterTypes upconverterType = UPCONVERTER_OFF;
 
 void RADIO_SetupRegisters() {
   uint32_t Frequency = 0;
@@ -60,3 +63,18 @@ uint32_t GetScreenF(uint32_t f) {
   return f - upConverterValues[upconverterType];
 }
 uint32_t GetTuneF(uint32_t f) { return f + upConverterValues[upconverterType]; }
+
+void RADIO_ToggleRX(bool on) {
+  if (gIsListening == on) {
+    return;
+  }
+
+  gIsListening = on;
+
+  BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN, on);
+  BK4819_RX_TurnOn();
+
+  AUDIO_ToggleSpeaker(on);
+  BK4819_ToggleAFDAC(on);
+  BK4819_ToggleAFBit(on);
+}

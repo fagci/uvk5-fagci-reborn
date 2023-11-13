@@ -6,6 +6,8 @@
 typedef enum {
   APP_TEST,
   APP_SPECTRUM,
+  APP_STILL,
+  APP_FINPUT,
   APP_SCANLIST,
   APP_AB_SCANNER,
 } AppType_t;
