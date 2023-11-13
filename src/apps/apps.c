@@ -4,7 +4,7 @@
 #include "still.h"
 #include "test.h"
 
-AppType_t currentApp = APP_TEST;
+AppType_t gCurrentApp = APP_TEST;
 
 const App apps[5] = {
     {"Test", TEST_Init, TEST_Update, TEST_Render, TEST_Key},
@@ -17,26 +17,26 @@ const App apps[5] = {
 };
 
 void APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
-  if (apps[currentApp].key) {
-    apps[currentApp].key(Key, bKeyPressed, bKeyHeld);
+  if (apps[gCurrentApp].key) {
+    apps[gCurrentApp].key(Key, bKeyPressed, bKeyHeld);
   }
 }
-void APPS_init(void) {
-  if (apps[currentApp].init) {
-    apps[currentApp].init();
+void APPS_init(AppType_t app) {
+  if (apps[app].init) {
+    apps[app].init();
   }
 }
 void APPS_update(void) {
-  if (apps[currentApp].update) {
-    apps[currentApp].update();
+  if (apps[gCurrentApp].update) {
+    apps[gCurrentApp].update();
   }
 }
 void APPS_render(void) {
-  if (apps[currentApp].render) {
-    apps[currentApp].render();
+  if (apps[gCurrentApp].render) {
+    apps[gCurrentApp].render();
   }
 }
 void APPS_run(AppType_t app) {
-  currentApp = app;
-  APPS_init();
+  APPS_init(app);
+  gCurrentApp = app;
 }

@@ -21,9 +21,10 @@ typedef struct App {
 } App;
 
 extern const App apps[5];
+extern AppType_t gCurrentApp;
 
 void APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
-void APPS_init(void);
+void APPS_init(AppType_t app);
 void APPS_update(void);
 void APPS_render(void);
 void APPS_run(AppType_t app);

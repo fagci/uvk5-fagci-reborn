@@ -118,6 +118,9 @@ void STILL_update() {
 void STILL_init() {}
 
 void STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  if (!bKeyPressed) {
+    return;
+  }
   switch (key) {
 #ifdef ENABLE_ALL_REGISTERS
   case KEY_2:
@@ -232,6 +235,7 @@ void STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void STILL_render() {
+  memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
   DrawF(GetScreenF(gCurrentVfo.f));
 
   const uint8_t METER_PAD_LEFT = 3;

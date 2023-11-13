@@ -1,26 +1,27 @@
 #include "finput.h"
+#include "../driver/bk4819.h"
 #include "../driver/st7565.h"
 #include "../radio.h"
 #include "../ui/helper.h"
+#include "apps.h"
 #include <string.h>
 
-KEY_Code_t freqInputArr[10];
-uint8_t freqInputDotIndex = 0;
-
-const uint8_t FREQ_INPUT_LENGTH = 10;
-char freqInputString[] = "----------"; // XXXX.XXXXX
-uint8_t freqInputIndex = 0;
-uint32_t tempFreq;
-
-uint32_t gInputFreq = 0;
+static KEY_Code_t freqInputArr[10];
+static uint8_t freqInputDotIndex = 0;
+static const uint8_t FREQ_INPUT_LENGTH = 10;
+static char freqInputString[] = "----------"; // XXXX.XXXXX
+static uint8_t freqInputIndex = 0;
+static uint32_t tempFreq;
+static uint32_t gInputFreq = 0;
+static AppType_t previousApp;
 
 static void ResetFreqInput() {
   tempFreq = 0;
-  memset(freqInputString, '-', 10);
+  memset(freqInputString, '-', FREQ_INPUT_LENGTH);
 }
 
 static void input(KEY_Code_t key) {
-  if (key != KEY_EXIT && freqInputIndex >= 10) {
+  if (key != KEY_EXIT && freqInputIndex >= FREQ_INPUT_LENGTH) {
     return;
   }
   if (key == KEY_STAR) {
@@ -69,6 +70,7 @@ static void input(KEY_Code_t key) {
 }
 
 void FINPUT_init() {
+  previousApp = gCurrentApp;
   freqInputIndex = 0;
   freqInputDotIndex = 0;
   gInputFreq = 0;
@@ -76,6 +78,9 @@ void FINPUT_init() {
 }
 
 void FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  if (!bKeyPressed || bKeyHeld) {
+    return;
+  }
   switch (key) {
   case KEY_0:
   case KEY_1:
@@ -93,7 +98,7 @@ void FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     break;
   case KEY_EXIT:
     if (freqInputIndex == 0) {
-      // SetState(previousState);
+      APPS_run(previousApp);
       break;
     }
     input(key);
@@ -101,14 +106,18 @@ void FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     break;
   case KEY_MENU:
     tempFreq = GetTuneF(tempFreq);
-    if (tempFreq < 1500000 || tempFreq > 134000000) {
-      break;
+    if (tempFreq >= F_MIN && tempFreq <= F_MAX) {
+      gCurrentVfo.f = tempFreq;
     }
-    gInputFreq = tempFreq;
+    APPS_run(previousApp);
     break;
   default:
     break;
   }
 }
 
-void FINPUT_render() { UI_PrintString(freqInputString, 2, 127, 0, 8, true); }
+void FINPUT_render() {
+  memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+  UI_PrintString(freqInputString, 2, 127, 0, 8, true);
+  UI_PrintStringSmallest(apps[previousApp].name, 0, 32, false, true);
+}

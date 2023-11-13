@@ -69,7 +69,7 @@ void Main(void) {
 
   uint32_t f = 43400000;
 
-  BK4819_TuneTo(f, true);
+  RADIO_TuneTo(f, true);
   BK4819_Squelch(3, f);
 
   BACKLIGHT_SetDuration(15);
@@ -79,7 +79,7 @@ void Main(void) {
   TaskAdd("BL", BACKLIGHT_Update, 1000, true);
   TaskAdd("BAT", UpdateBattery, 1000, true);
 
-  APPS_run(APP_FINPUT);
+  APPS_run(APP_STILL);
   TaskAdd("Update", Update, 1, true);
   TaskAdd("Render", Render, 33, true);
   TaskAdd("Keys", Keys, 10, true);
