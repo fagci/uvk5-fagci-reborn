@@ -19,47 +19,34 @@
 #include "../helper/measurements.h"
 #include "../misc.h"
 
-uint16_t gBatteryCalibration[6] = {1316, 1804, 1908, 1959, 2024, 2300};
 uint16_t gBatteryCurrentVoltage;
-uint16_t gBatteryCurrent;
-uint16_t gBatteryVoltages[4];
-uint16_t gBatteryVoltageAverage;
-
+uint16_t gBatteryVoltage;
 uint8_t gBatteryDisplayLevel;
-
 bool gChargingWithTypeC;
-bool gLowBattery;
-bool gLowBatteryBlink;
 
-volatile uint16_t gBatterySave;
-
-uint16_t gBatteryCheckCounter;
+const uint16_t BATTERY_CALIBRATION[6] = {1309, 1805, 1905, 1960, 2023, 2300};
+uint16_t currentValues;
+uint16_t voltages[4];
 
 void BATTERY_UpdateBatteryInfo() {
-  BOARD_ADC_GetBatteryInfo(&gBatteryCurrentVoltage, &gBatteryCurrent);
+  BOARD_ADC_GetBatteryInfo(&gBatteryCurrentVoltage, &currentValues);
   for (uint8_t i = 0; i < 4; i++) {
-    BOARD_ADC_GetBatteryInfo(&gBatteryVoltages[i], &gBatteryCurrent);
+    BOARD_ADC_GetBatteryInfo(&voltages[i], &currentValues);
   }
   BATTERY_GetReadings(false);
 }
 
 void BATTERY_GetReadings(bool bDisplayBatteryLevel) {
-  uint16_t Voltage = Mid(gBatteryVoltages, ARRAY_SIZE(gBatteryVoltages));
+  uint16_t Voltage = Mid(voltages, ARRAY_SIZE(voltages));
 
   gBatteryDisplayLevel = 0;
-  for (int8_t i = ARRAY_SIZE(gBatteryCalibration) - 1; i >= 0; --i) {
-    if (Voltage > gBatteryCalibration[i]) {
+  for (int8_t i = ARRAY_SIZE(BATTERY_CALIBRATION) - 1; i >= 0; --i) {
+    if (Voltage > BATTERY_CALIBRATION[i]) {
       gBatteryDisplayLevel = i + 1;
       break;
     }
   }
 
-  gBatteryVoltageAverage = (Voltage * 760) / gBatteryCalibration[3];
-  gChargingWithTypeC = gBatteryCurrent >= 501;
-
-  if (gBatteryDisplayLevel < 2) {
-    gLowBattery = true;
-  } else {
-    gLowBattery = false;
-  }
+  gBatteryVoltage = (Voltage * 760) / BATTERY_CALIBRATION[3];
+  gChargingWithTypeC = currentValues >= 501;
 }

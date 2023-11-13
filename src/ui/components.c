@@ -9,17 +9,17 @@ void UI_Battery(uint8_t Level) {
   const uint8_t WORK_WIDTH = 10;
   const uint8_t WORK_END = WORK_START + WORK_WIDTH;
 
-  gStatusLine[START] |= 0b000001110;
-  gStatusLine[START + 1] |= 0b000011111;
-  gStatusLine[WORK_END] |= 0b000011111;
+  gStatusLine[START] = 0b000001110;
+  gStatusLine[START + 1] = 0b000011111;
+  gStatusLine[WORK_END] = 0b000011111;
 
   Level <<= 1;
 
   for (uint8_t i = 1; i <= WORK_WIDTH; ++i) {
     if (Level >= i) {
-      gStatusLine[WORK_END - i] |= 0b000011111;
+      gStatusLine[WORK_END - i] = 0b000011111;
     } else {
-      gStatusLine[WORK_END - i] |= 0b000010001;
+      gStatusLine[WORK_END - i] = 0b000010001;
     }
   }
 

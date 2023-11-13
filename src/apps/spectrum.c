@@ -1044,7 +1044,7 @@ static void RenderFreqInput() {
 }
 
 static void RenderStatus() {
-  memset(gStatusLine, 0, sizeof(gStatusLine));
+  memset(gStatusLine, 0, LCD_WIDTH - 13);
   DrawStatus();
 }
 
