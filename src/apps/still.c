@@ -115,7 +115,9 @@ void STILL_update() {
   RADIO_ToggleRX(rssi >= rssiTriggerLevel || monitorMode);
 }
 
-void STILL_init() {}
+void STILL_init() {
+
+}
 
 void STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed) {

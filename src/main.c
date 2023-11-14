@@ -27,6 +27,14 @@ static void onKey(KEY_Code_t k, bool p, bool h) {
     BACKLIGHT_On();
     TaskTouch(BACKLIGHT_Update);
   }
+  if (k == KEY_MENU) {
+    if (!p && !h) {
+      // show vfo menu?
+    } else if (p && h) {
+      APPS_run(APP_MAINMENU);
+      return;
+    }
+  }
   APPS_key(k, p, h);
 }
 
@@ -79,7 +87,7 @@ void Main(void) {
   TaskAdd("BL", BACKLIGHT_Update, 1000, true);
   TaskAdd("BAT", UpdateBattery, 1000, true);
 
-  APPS_run(APP_STILL);
+  APPS_run(APP_TEST);
   TaskAdd("Update", Update, 1, true);
   TaskAdd("Render", Render, 33, true);
   TaskAdd("Keys", Keys, 10, true);

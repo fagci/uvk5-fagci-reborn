@@ -1,5 +1,6 @@
 #include "apps.h"
 #include "finput.h"
+#include "mainmenu.h"
 #include "spectrum.h"
 #include "still.h"
 #include "test.h"
@@ -11,6 +12,7 @@ const App apps[5] = {
     {"Spectrum", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render, SPECTRUM_key},
     {"Still", STILL_init, STILL_update, STILL_render, STILL_key},
     {"FInput", FINPUT_init, NULL, FINPUT_render, FINPUT_key},
+    {"MainMenu", MAINMENU_init, NULL, MAINMENU_render, MAINMENU_key},
     /* {"Scanlist", NULL, SCANLIST_update, SCANLIST_render, SCANLIST_key},
     {"A to B scanner", ABSCANNER_init, ABSCANNER_update, ABSCANNER_render,
      ABSCANNER_key}, */

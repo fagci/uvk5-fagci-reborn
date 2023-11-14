@@ -6,7 +6,7 @@
 #include "inc/dp32g030/gpio.h"
 
 VFO gCurrentVfo;
-UpconverterTypes upconverterType = UPCONVERTER_OFF;
+UpconverterTypes gUpconverterType = UPCONVERTER_OFF;
 bool gIsListening = false;
 
 const uint16_t StepFrequencyTable[12] = {
@@ -15,7 +15,8 @@ const uint16_t StepFrequencyTable[12] = {
     250, 500, 625, 833, 1000, 1250, 2500, 10000,
 };
 
-const uint32_t upConverterValues[] = {0, 5000000, 12500000};
+const uint32_t upConverterValues[3] = {0, 5000000, 12500000};
+const char *upConverterFreqNames[3] = {"None", "50M", "125M"};
 
 const char *modulationTypeOptions[5] = {" FM", " AM", "SSB", "BYP", "RAW"};
 const char *vfoStateNames[] = {
@@ -60,9 +61,11 @@ void RADIO_SetupRegisters() {
 }
 
 uint32_t GetScreenF(uint32_t f) {
-  return f - upConverterValues[upconverterType];
+  return f - upConverterValues[gUpconverterType];
 }
-uint32_t GetTuneF(uint32_t f) { return f + upConverterValues[upconverterType]; }
+uint32_t GetTuneF(uint32_t f) {
+  return f + upConverterValues[gUpconverterType];
+}
 
 void RADIO_ToggleRX(bool on) {
   if (gIsListening == on) {

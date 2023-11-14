@@ -8,7 +8,9 @@ uint16_t rssi = 0;
 uint16_t taskSpawnInterval = 10;
 
 void TEST_Init() {}
+
 void TEST_Update() { gRedrawScreen = true; }
+
 void TEST_Render() {
   char String[8];
 
@@ -25,6 +27,7 @@ void TEST_Render() {
 
   UI_RSSIBar(rssi, 6);
 }
+
 void TEST_Key(KEY_Code_t k, bool p, bool h) {
   gRedrawScreen = true;
   if (k != KEY_INVALID && p && !h) {

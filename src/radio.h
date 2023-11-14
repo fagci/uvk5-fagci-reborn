@@ -1,8 +1,8 @@
 #ifndef RADIO_H
 #define RADIO_H
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef struct {
   uint32_t f : 32;
@@ -48,7 +48,8 @@ typedef enum {
 } UpconverterTypes;
 
 extern VFO gCurrentVfo;
-extern UpconverterTypes upconverterType;
+extern UpconverterTypes gUpconverterType;
+extern const char *upConverterFreqNames[3];
 extern bool gIsListening;
 
 extern const uint16_t StepFrequencyTable[12];
