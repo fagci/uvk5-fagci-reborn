@@ -21,53 +21,6 @@
 #include "../radio.h"
 #include "inputbox.h"
 
-void UI_GenerateChannelString(char *pString, uint8_t Channel) {
-  uint8_t i;
-
-  if (gInputBoxIndex == 0) {
-    sprintf(pString, "CH-%02d", Channel + 1);
-    return;
-  }
-
-  pString[0] = 'C';
-  pString[1] = 'H';
-  pString[2] = '-';
-
-  for (i = 0; i < 2; i++) {
-    if (gInputBox[i] == 10) {
-      pString[i + 3] = '-';
-    } else {
-      pString[i + 3] = gInputBox[i] + '0';
-    }
-  }
-}
-
-void UI_GenerateChannelStringEx(char *pString, bool bShowPrefix,
-                                uint8_t ChannelNumber) {
-  if (gInputBoxIndex) {
-    uint8_t i;
-
-    for (i = 0; i < 3; i++) {
-      if (gInputBox[i] == 10) {
-        pString[i] = '-';
-      } else {
-        pString[i] = gInputBox[i] + '0';
-      }
-    }
-    return;
-  }
-
-  if (bShowPrefix) {
-    sprintf(pString, "CH-%03d", ChannelNumber + 1);
-  } else {
-    if (ChannelNumber == 0xFF) {
-      strcpy(pString, "NULL");
-    } else {
-      sprintf(pString, "%03d", ChannelNumber + 1);
-    }
-  }
-}
-
 void UI_PrintString(const char *pString, uint8_t Start, uint8_t End,
                     uint8_t Line, uint8_t Width, bool bCentered) {
   uint32_t i, Length;

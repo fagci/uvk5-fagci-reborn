@@ -70,6 +70,7 @@ static void input(KEY_Code_t key) {
 }
 
 void FINPUT_init() {
+  memset(gStatusLine, 0, sizeof(gStatusLine));
   previousApp = gCurrentApp;
   freqInputIndex = 0;
   freqInputDotIndex = 0;

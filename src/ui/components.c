@@ -70,3 +70,19 @@ void UI_RSSIBar(int16_t rssi, uint8_t line) {
   UI_PrintStringSmallest(String, 3, POS_Y, false, true);
   ST7565_BlitFullScreen();
 }
+
+void UI_F(uint32_t f, uint8_t line) {
+  char String[8];
+
+  uint8_t i;
+
+  for (i = 0; i < 9; i++) {
+    uint32_t Result = f / 10U;
+
+    String[8 - i] = f - (Result * 10U);
+    f = Result;
+  }
+
+  UI_DisplayFrequency(String, 19, line, false, false);
+  UI_DisplaySmallDigits(2, String + 7, 113, line + 1);
+}

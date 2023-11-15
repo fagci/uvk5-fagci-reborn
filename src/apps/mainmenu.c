@@ -7,6 +7,7 @@
 #include "apps.h"
 
 typedef enum {
+  M_NONE,
   M_UPCONVERTER,
   M_SPECTRUM,
   M_STILL,
@@ -34,7 +35,7 @@ static const uint8_t LINES_TO_SHOW = 6;
 
 static AppType_t previousApp;
 
-static Menu menuIndex = 0;
+static uint8_t menuIndex = 0;
 static uint8_t subMenuIndex = 0;
 static bool isSubMenu = false;
 
@@ -49,7 +50,8 @@ static const MenuItem menu[] = {
 };
 
 void accept() {
-  switch (menuIndex) {
+  const MenuItem *item = &menu[menuIndex];
+  switch (item->type) {
   case M_UPCONVERTER: {
     uint32_t f = GetScreenF(gCurrentVfo.fRX);
     gUpconverterType = subMenuIndex;
@@ -59,6 +61,16 @@ void accept() {
   default:
     break;
   }
+}
+
+static const char *getValue(Menu type) {
+  switch (type) {
+  case M_UPCONVERTER:
+    return upConverterFreqNames[gUpconverterType];
+  default:
+    break;
+  }
+  return "";
 }
 
 static void ShowItem(uint8_t line, const char *name, bool isCurrent) {
@@ -143,12 +155,13 @@ void showSubmenu(Menu menu) {
 
 void MAINMENU_render() {
   memset(gStatusLine, 0, sizeof(gStatusLine));
+  const MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {
-    const MenuItem *item = &menu[menuIndex];
     showSubmenu(item->type);
     UI_PrintStringSmallest(item->name, 0, 0, true, true);
   } else {
     showMenu(menu, ARRAY_SIZE(menu), menuIndex);
+    UI_PrintStringSmall(getValue(item->type), 1, 126, 6);
   }
 }
 

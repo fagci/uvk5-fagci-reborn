@@ -14,6 +14,7 @@
 #include "radio.h"
 #include "scheduler.h"
 #include "ui/components.h"
+#include "ui/helper.h"
 #include <stdbool.h>
 #include <string.h>
 
@@ -67,11 +68,37 @@ static void Render() {
 static void Keys() { KEYBOARD_CheckKeys(onKey); }
 
 // TODO:
-// - universal huge freq input
 // - menu hold in still mode
 
-void TX() {
-    // DEV = 300 for SSB
+// static void TX() {
+// DEV = 300 for SSB
+// }
+
+static void AddTasks() {
+  TaskAdd("BL", BACKLIGHT_Update, 1000, true);
+  TaskAdd("BAT", UpdateBattery, 1000, true);
+
+  APPS_run(APP_SPECTRUM);
+  TaskAdd("Update", Update, 1, true);
+  TaskAdd("Render", Render, 33, true);
+  TaskAdd("Keys", Keys, 10, true);
+}
+
+static uint8_t introIndex = 0;
+static void Intro() {
+  char pb[] = "-\\|/";
+  char String[2];
+  sprintf(String, "%c", pb[introIndex & 3]);
+  memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+  UI_PrintString("OSFW", 4, 4, 0, 8, false);
+  UI_PrintString("reb0rn", 16, 16, 2, 8, false);
+  UI_PrintString(String, 72, 72, 2, 8, false);
+  UI_PrintStringSmallest("by fagci", 96, 46, false, true);
+  ST7565_BlitFullScreen();
+  if (introIndex++ > 20) {
+    AddTasks();
+    TaskRemove(Intro);
+  }
 }
 
 void Main(void) {
@@ -92,13 +119,7 @@ void Main(void) {
   BACKLIGHT_On();
   UpdateBattery();
 
-  TaskAdd("BL", BACKLIGHT_Update, 1000, true);
-  TaskAdd("BAT", UpdateBattery, 1000, true);
-
-  APPS_run(APP_FINPUT);
-  TaskAdd("Update", Update, 1, true);
-  TaskAdd("Render", Render, 33, true);
-  TaskAdd("Keys", Keys, 10, true);
+  TaskAdd("Intro", Intro, 15, true);
 
   while (1) {
     TasksUpdate();

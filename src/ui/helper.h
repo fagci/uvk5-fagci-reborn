@@ -22,9 +22,6 @@
 #include <stdint.h>
 #include <string.h>
 
-void UI_GenerateChannelString(char *pString, uint8_t Channel);
-void UI_GenerateChannelStringEx(char *pString, bool bShowPrefix,
-                                uint8_t ChannelNumber);
 void UI_PrintString(const char *pString, uint8_t Start, uint8_t End,
                     uint8_t Line, uint8_t Width, bool bCentered);
 void UI_PrintStringSmall(const char *pString, uint8_t Start, uint8_t End,
