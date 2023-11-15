@@ -58,13 +58,10 @@ typedef enum StepsCount {
 
 typedef struct SpectrumSettings {
   StepsCount stepsCount;
-  Step scanStepIndex;
   uint32_t frequencyChangeStep;
   uint16_t rssiTriggerLevel;
 
   bool backlightState;
-  BK4819_FilterBandwidth_t listenBw;
-  ModulationType modulationType;
   uint8_t delayMS;
 } SpectrumSettings;
 

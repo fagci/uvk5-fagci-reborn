@@ -72,7 +72,7 @@ void UI_RSSIBar(int16_t rssi, uint8_t line) {
 }
 
 void UI_F(uint32_t f, uint8_t line) {
-  char String[8];
+  char String[16];
 
   uint8_t i;
 

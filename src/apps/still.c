@@ -12,7 +12,6 @@ static uint8_t menuState = 0;
 static uint16_t screenRedrawT = 0;
 static uint16_t listenT = 0;
 static bool monitorMode = false;
-static const uint8_t modulationTypeTuneSteps[] = {100, 50, 10};
 static uint16_t rssiTriggerLevel = 0;
 
 static uint16_t rssi = 0;
@@ -71,7 +70,7 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
 }
 
 static void UpdateCurrentFreqStill(bool inc) {
-  uint8_t offset = modulationTypeTuneSteps[gCurrentVfo.modulation];
+  uint16_t offset = StepFrequencyTable[gCurrentVfo.step];
   uint32_t f = gCurrentVfo.fRX;
   if (inc && f < F_MAX) {
     f += offset;

@@ -95,15 +95,15 @@ static void Intro() {
   UI_PrintString(String, 72, 72, 2, 8, false);
   UI_PrintStringSmallest("by fagci", 96, 46, false, true);
   ST7565_BlitFullScreen();
-  if (introIndex++ > 20) {
+  if (introIndex++ > 50) {
     AddTasks();
     TaskRemove(Intro);
   }
 }
 
 void Main(void) {
-  SYSTEM_ConfigureSysCon();
   SYSTICK_Init();
+  SYSTEM_ConfigureSysCon();
 
   BOARD_Init();
 
@@ -112,16 +112,20 @@ void Main(void) {
 
   uint32_t f = 43400000;
 
+  gCurrentVfo.bw = BK4819_FILTER_BW_WIDE;
+  gCurrentVfo.step = STEP_25_0kHz;
+
   RADIO_TuneTo(f, true);
   BK4819_Squelch(3, f);
+  BK4819_SetModulation(MOD_FM);
 
   BACKLIGHT_SetDuration(15);
   BACKLIGHT_On();
   UpdateBattery();
 
-  TaskAdd("Intro", Intro, 15, true);
+  TaskAdd("Intro", Intro, 20, true);
 
-  while (1) {
+  while (true) {
     TasksUpdate();
   }
 }

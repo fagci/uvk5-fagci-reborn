@@ -5,14 +5,14 @@
 #include "still.h"
 #include "test.h"
 
-AppType_t gCurrentApp = APP_TEST;
+AppType_t gCurrentApp = APP_SPECTRUM;
 
 const App apps[5] = {
     {"Test", TEST_Init, TEST_Update, TEST_Render, TEST_Key},
     {"Spectrum", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render, SPECTRUM_key},
     {"Still", STILL_init, STILL_update, STILL_render, STILL_key},
-    {"FInput", FINPUT_init, NULL, FINPUT_render, FINPUT_key},
-    {"MainMenu", MAINMENU_init, NULL, MAINMENU_render, MAINMENU_key},
+    {"Frequency input", FINPUT_init, NULL, FINPUT_render, FINPUT_key},
+    {"Main menu", MAINMENU_init, NULL, MAINMENU_render, MAINMENU_key},
     /* {"Scanlist", NULL, SCANLIST_update, SCANLIST_render, SCANLIST_key},
     {"A to B scanner", ABSCANNER_init, ABSCANNER_update, ABSCANNER_render,
      ABSCANNER_key}, */
@@ -24,6 +24,8 @@ void APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   }
 }
 void APPS_init(AppType_t app) {
+  memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+  UI_PrintStringSmallest(apps[gCurrentApp].name, 0, 0, true, true);
   if (apps[app].init) {
     apps[app].init();
   }

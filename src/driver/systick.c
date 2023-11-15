@@ -18,12 +18,11 @@
 #include "ARMCM0.h"
 #include "misc.h"
 
-// 0x20000324
-static uint32_t gTickMultiplier;
+static uint32_t tickMultiplier;
 
 void SYSTICK_Init(void) {
   SysTick_Config(48000);
-  gTickMultiplier = 48;
+  tickMultiplier = 48;
 }
 
 void SYSTICK_DelayUs(uint32_t Delay) {
@@ -47,5 +46,5 @@ void SYSTICK_DelayUs(uint32_t Delay) {
     }
     i += Delta + Previous;
     Previous = Current;
-  } while (i < Delay * gTickMultiplier);
+  } while (i < Delay * tickMultiplier);
 }

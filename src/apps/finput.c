@@ -116,7 +116,7 @@ void FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_MENU:
     tempFreq = GetTuneF(tempFreq);
     if (tempFreq >= F_MIN && tempFreq <= F_MAX) {
-      gCurrentVfo.fRX = tempFreq;
+      RADIO_TuneTo(tempFreq, true);
     }
     FINPUT_deinit();
     break;
@@ -128,8 +128,6 @@ void FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 void FINPUT_render() {
   char String[16];
   memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
-
-  UI_PrintStringSmallest("Frequency input", 0, 0, true, true);
 
   const uint8_t X = 19;
   const uint8_t Y = 0;

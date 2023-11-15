@@ -4,7 +4,7 @@
 #include "../driver/keyboard.h"
 
 typedef enum {
-  APP_TEST,
+  APP_TASK_MANAGER,
   APP_SPECTRUM,
   APP_STILL,
   APP_FINPUT,

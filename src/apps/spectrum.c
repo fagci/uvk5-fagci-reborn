@@ -20,7 +20,6 @@
 
 const uint16_t RSSI_MAX_VALUE = 65535;
 
-static uint32_t initialFreq;
 static char String[32];
 
 static bool monitorMode = false;
@@ -36,17 +35,12 @@ ScanInfo scanInfo;
 
 SpectrumSettings settings = {
     .stepsCount = STEPS_64,
-    .scanStepIndex = STEP_25_0kHz,
     .frequencyChangeStep = 80000,
     .rssiTriggerLevel = 150,
     .backlightState = true,
-    .listenBw = BK4819_FILTER_BW_WIDE,
-    .modulationType = MOD_FM,
     .delayMS = 3,
 };
 
-static uint32_t fMeasure = 0;
-// static uint32_t fTx = 0;
 static uint32_t currentFreq;
 static uint16_t rssiHistory[128] = {0};
 static bool blacklist[128] = {false};
@@ -60,7 +54,6 @@ uint8_t hiddenMenuState = 0;
 
 static uint16_t listenT = 0;
 
-// static bool isMovingInitialized = false;
 static uint8_t lastStepsCount = 0;
 
 VfoState_t txAllowState;
@@ -77,9 +70,6 @@ KEY_Code_t GetKey() {
 
 // Radio functions
 
-static void SetF(uint32_t f, bool precise) {
-  BK4819_TuneTo(fMeasure = f, precise);
-}
 // static void SetTxF(uint32_t f) { BK4819_TuneTo(fTx = f, true); }
 
 // Spectrum related
@@ -91,9 +81,9 @@ static void ResetPeak() {
   peak.rssi = 0;
 }
 
-bool IsCenterMode() { return settings.scanStepIndex < STEP_1_0kHz; }
+bool IsCenterMode() { return gCurrentVfo.step < STEP_1_0kHz; }
 uint8_t GetStepsCount() { return 128 >> settings.stepsCount; }
-uint16_t GetScanStep() { return StepFrequencyTable[settings.scanStepIndex]; }
+uint16_t GetScanStep() { return StepFrequencyTable[gCurrentVfo.step]; }
 uint32_t GetBW() { return GetStepsCount() * GetScanStep(); }
 uint32_t GetFStart() {
   return IsCenterMode() ? currentFreq - (GetBW() >> 1) : currentFreq;
@@ -162,7 +152,7 @@ static void TuneToPeak() {
   scanInfo.f = peak.f;
   scanInfo.rssi = peak.rssi;
   scanInfo.i = peak.i;
-  SetF(scanInfo.f, true);
+  BK4819_TuneTo(scanInfo.f, true);
 }
 
 uint16_t GetBWRegValueForScan() { return 0b0000000110111100; }
@@ -340,7 +330,7 @@ static void UpdateRssiTriggerLevel(bool inc) {
 
 static void ApplyPreset(FreqPreset p) {
   currentFreq = GetTuneF(p.fStart);
-  settings.scanStepIndex = p.stepSizeIndex;
+  gCurrentVfo.step = p.stepSizeIndex;
   gCurrentVfo.bw = p.listenBW;
   gCurrentVfo.modulation = p.modulationType;
   settings.stepsCount = p.stepsCountIndex;
@@ -376,10 +366,10 @@ static void SelectNearestPreset(bool inc) {
 }
 
 static void UpdateScanStep(bool inc) {
-  if (inc && settings.scanStepIndex < STEP_100_0kHz) {
-    ++settings.scanStepIndex;
-  } else if (!inc && settings.scanStepIndex > 0) {
-    --settings.scanStepIndex;
+  if (inc && gCurrentVfo.step < STEP_100_0kHz) {
+    ++gCurrentVfo.step;
+  } else if (!inc && gCurrentVfo.step > 0) {
+    --gCurrentVfo.step;
   } else {
     return;
   }
@@ -737,7 +727,7 @@ static void Scan() {
   if (blacklist[scanInfo.i]) {
     return;
   }
-  SetF(scanInfo.f, true);
+  BK4819_TuneTo(scanInfo.f, true);
   Measure();
   UpdateScanInfo();
 }
@@ -835,7 +825,7 @@ void SPECTRUM_render() {
   }
 }
 
-static void AutomaticPresetChoose(uint32_t f) {
+/* static void AutomaticPresetChoose(uint32_t f) {
   f = GetScreenF(f);
   for (uint8_t i = 0; i < ARRAY_SIZE(freqPresets); ++i) {
     const FreqPreset *p = &freqPresets[i];
@@ -843,24 +833,18 @@ static void AutomaticPresetChoose(uint32_t f) {
       ApplyPreset(*p);
     }
   }
-}
+} */
 
 void SPECTRUM_init() {
-  initialFreq = 43400000;
-  currentFreq = initialFreq;
+  currentFreq = gCurrentVfo.fRX;
 
-  settings.scanStepIndex = STEP_25_0kHz;
-  gCurrentVfo.bw = BK4819_FILTER_BW_WIDE;
-  gCurrentVfo.modulation = MOD_FM;
-
-  AutomaticPresetChoose(currentFreq);
+  // AutomaticPresetChoose(currentFreq);
 
   redrawStatus = true;
   redrawScreen = true;
   newScanStart = true;
 
   ToggleRX(true), ToggleRX(false); // hack to prevent noise when squelch off
-  BK4819_SetModulation(gCurrentVfo.modulation);
 
   RelaunchScan();
 
