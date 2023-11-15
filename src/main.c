@@ -66,6 +66,14 @@ static void Render() {
 
 static void Keys() { KEYBOARD_CheckKeys(onKey); }
 
+// TODO:
+// - universal huge freq input
+// - menu hold in still mode
+
+void TX() {
+    // DEV = 300 for SSB
+}
+
 void Main(void) {
   SYSTEM_ConfigureSysCon();
   SYSTICK_Init();
