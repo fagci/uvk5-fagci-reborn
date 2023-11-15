@@ -8,21 +8,20 @@
 #include "apps.h"
 #include <string.h>
 
-static KEY_Code_t freqInputArr[10];
-static uint8_t freqInputDotIndex = 0;
-static const uint8_t FREQ_INPUT_LENGTH = 10;
-static char freqInputString[] = "----------"; // XXXX.XXXXX
-static uint8_t freqInputIndex = 0;
-static uint32_t tempFreq;
-static uint32_t gInputFreq = 0;
 static AppType_t previousApp;
-static bool dotBlink = true;
-static bool wasAutoDot = false;
 
-static void ResetFreqInput() {
-  tempFreq = 0;
-  memset(freqInputString, '-', FREQ_INPUT_LENGTH);
-}
+static const uint8_t FREQ_INPUT_LENGTH = 10;
+
+static KEY_Code_t freqInputArr[10];
+
+static uint8_t freqInputDotIndex = 0;
+static uint8_t freqInputIndex = 0;
+
+static uint32_t tempFreq;
+
+static bool dotBlink = true;
+
+static void ResetFreqInput() { tempFreq = 0; }
 
 static void dotBlinkFn() {
   if (!freqInputDotIndex) {
@@ -42,7 +41,7 @@ static void input(KEY_Code_t key) {
     freqInputDotIndex = freqInputIndex;
   }
   if (key == KEY_EXIT) {
-    if (freqInputArr[freqInputIndex] == KEY_STAR) {
+    if (freqInputIndex && freqInputArr[freqInputIndex - 1] == KEY_STAR) {
       freqInputDotIndex = 0;
     }
     freqInputIndex--;
@@ -54,16 +53,6 @@ static void input(KEY_Code_t key) {
 
   uint8_t dotIndex =
       freqInputDotIndex == 0 ? freqInputIndex : freqInputDotIndex;
-
-  KEY_Code_t digitKey;
-  for (uint8_t i = 0; i < 10; ++i) {
-    if (i < freqInputIndex) {
-      digitKey = freqInputArr[i];
-      freqInputString[i] = digitKey <= KEY_9 ? '0' + digitKey : '.';
-    } else {
-      freqInputString[i] = '-';
-    }
-  }
 
   uint32_t base = 100000; // 1MHz in BK units
   for (int i = dotIndex - 1; i >= 0; --i) {
@@ -84,9 +73,13 @@ void FINPUT_init() {
   previousApp = gCurrentApp;
   freqInputIndex = 0;
   freqInputDotIndex = 0;
-  gInputFreq = 0;
   ResetFreqInput();
   TaskAdd("Dot blink", dotBlinkFn, 250, true);
+}
+
+void FINPUT_deinit() {
+  TaskRemove(dotBlinkFn);
+  APPS_run(previousApp);
 }
 
 void FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
@@ -108,13 +101,12 @@ void FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     input(key);
     if (tempFreq > 13000000) {
       input(KEY_STAR);
-      wasAutoDot = true;
     }
     gRedrawScreen = true;
     break;
   case KEY_EXIT:
     if (freqInputIndex == 0) {
-      APPS_run(previousApp);
+      FINPUT_deinit();
       break;
     }
     input(key);
@@ -123,9 +115,9 @@ void FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_MENU:
     tempFreq = GetTuneF(tempFreq);
     if (tempFreq >= F_MIN && tempFreq <= F_MAX) {
-      gCurrentVfo.f = tempFreq;
+      gCurrentVfo.fRX = tempFreq;
     }
-    APPS_run(previousApp);
+    FINPUT_deinit();
     break;
   default:
     break;
@@ -135,8 +127,8 @@ void FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 void FINPUT_render() {
   char String[16];
   memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
-  /* UI_PrintString(freqInputString, 2, 127, 0, 8, true);
-  UI_PrintStringSmallest(apps[previousApp].name, 0, 32, false, true); */
+
+  UI_PrintStringSmallest("Frequency input", 0, 0, true, true);
 
   const uint8_t X = 19;
   const uint8_t Y = 0;
@@ -147,9 +139,6 @@ void FINPUT_render() {
   uint8_t *pFb0 = gFrameBuffer[Y] + X;
   uint8_t *pFb1 = pFb0 + 128;
   uint8_t i = 0;
-
-  sprintf(String, "DOT: %u", dotIndex);
-  UI_PrintStringSmallest(String, 0, 0, false, true);
 
   // MHz
   while (i < 4) {
@@ -168,18 +157,15 @@ void FINPUT_render() {
   // decimal point
   if (freqInputDotIndex || (!freqInputDotIndex && dotBlink)) {
     *pFb1 = 0x60;
-    pFb0++;
     pFb1++;
     *pFb1 = 0x60;
-    pFb0++;
     pFb1++;
     *pFb1 = 0x60;
-    pFb0++;
     pFb1++;
   } else {
-    pFb0 += 3;
     pFb1 += 3;
   }
+  pFb0 += 3;
 
   // kHz
   if (freqInputDotIndex) {
@@ -197,8 +183,8 @@ void FINPUT_render() {
   if (freqInputDotIndex) {
     uint8_t hz = freqInputIndex - freqInputDotIndex;
     if (hz > 3) {
-      String[0] = hz > 4 ? freqInputArr[freqInputDotIndex + 4] : 0;
-      String[1] = hz > 5 ? freqInputArr[freqInputDotIndex + 5] : 0;
+      String[0] = hz > 4 ? freqInputArr[freqInputDotIndex + 4] : 11;
+      String[1] = hz > 5 ? freqInputArr[freqInputDotIndex + 5] : 11;
       UI_DisplaySmallDigits(2, String, 113, 1);
     }
   }

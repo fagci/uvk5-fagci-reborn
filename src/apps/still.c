@@ -42,7 +42,7 @@ static void DrawF(uint32_t f) {
     if (txAllowState) {
       sprintf(String, vfoStateNames[txAllowState]);
     } else if (isTransmitting) {
-      f = GetOffsetedF(gCurrentVfo, f);
+      f = gCurrentVfo.fTX;
       sprintf(String, "TX %u.%05u", f / 100000, f % 100000);
     }
   } */
@@ -72,7 +72,7 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
 
 static void UpdateCurrentFreqStill(bool inc) {
   uint8_t offset = modulationTypeTuneSteps[gCurrentVfo.modulation];
-  uint32_t f = gCurrentVfo.f;
+  uint32_t f = gCurrentVfo.fRX;
   if (inc && f < F_MAX) {
     f += offset;
   } else if (!inc && f > F_MIN) {
@@ -115,9 +115,7 @@ void STILL_update() {
   RADIO_ToggleRX(rssi >= rssiTriggerLevel || monitorMode);
 }
 
-void STILL_init() {
-
-}
+void STILL_init() {}
 
 void STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed) {
@@ -238,7 +236,7 @@ void STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
 void STILL_render() {
   memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
-  DrawF(GetScreenF(gCurrentVfo.f));
+  DrawF(GetScreenF(gCurrentVfo.fRX));
 
   const uint8_t METER_PAD_LEFT = 3;
   uint8_t *ln = gFrameBuffer[2];

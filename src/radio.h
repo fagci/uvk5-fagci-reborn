@@ -5,22 +5,18 @@
 #include <stdint.h>
 
 typedef struct {
-  uint32_t f : 32;
-  uint32_t offset : 32;
+  uint32_t fRX : 32;
+  uint32_t fTX : 32;
+  char name[16];
+  uint8_t memoryBanks : 8;
+  uint8_t step : 8;
+  uint8_t modulation : 4;
+  uint8_t bw : 2;
+  uint8_t power : 2;
   uint8_t codeRx : 8;
   uint8_t codeTx : 8;
   uint8_t codeTypeRx : 4;
   uint8_t codeTypeTx : 4;
-  uint8_t offsetDir : 4;
-  uint8_t modulation : 4;
-  uint8_t fReverse : 1;
-  uint8_t bw : 1;
-  uint8_t power : 2;
-  uint8_t busyChannelLock : 4;
-  uint8_t dtmfDecoding : 1;
-  uint8_t dtmfPttIdTxMode : 7;
-  uint8_t step : 8;
-  uint8_t scramblerType : 8;
 } VFO;
 
 extern VFO gCurrentVfo;

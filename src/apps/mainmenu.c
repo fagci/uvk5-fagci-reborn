@@ -51,7 +51,7 @@ static const MenuItem menu[] = {
 void accept() {
   switch (menuIndex) {
   case M_UPCONVERTER: {
-    uint32_t f = GetScreenF(gCurrentVfo.f);
+    uint32_t f = GetScreenF(gCurrentVfo.fRX);
     gUpconverterType = subMenuIndex;
     RADIO_TuneTo(GetTuneF(f), true);
     isSubMenu = false;
@@ -142,15 +142,14 @@ void showSubmenu(Menu menu) {
 }
 
 void MAINMENU_render() {
-  char String[16];
+  memset(gStatusLine, 0, sizeof(gStatusLine));
   if (isSubMenu) {
     const MenuItem *item = &menu[menuIndex];
     showSubmenu(item->type);
+    UI_PrintStringSmallest(item->name, 0, 0, true, true);
   } else {
     showMenu(menu, ARRAY_SIZE(menu), menuIndex);
   }
-  sprintf(String, "UC: %u", gUpconverterType);
-  UI_PrintStringSmallest(String, 0, 6 * 8, false, true);
 }
 
 void MAINMENU_init() {
@@ -202,6 +201,7 @@ void MAINMENU_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     } else {
       isSubMenu = true;
     }
+    gRedrawStatus = true;
     gRedrawScreen = true;
     break;
   case KEY_EXIT:
@@ -211,6 +211,7 @@ void MAINMENU_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       APPS_run(previousApp);
     }
     gRedrawScreen = true;
+    gRedrawStatus = true;
     break;
   default:
     break;
