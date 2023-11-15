@@ -12,6 +12,7 @@ typedef enum {
   M_SPECTRUM,
   M_STILL,
   M_TASK_MANAGER,
+  M_RESET,
 } Menu;
 
 typedef enum {
@@ -45,6 +46,7 @@ static const MenuItem menu[] = {
     {"Spectrum", M_SPECTRUM},
     {"Still", M_STILL},
     {"Task manager", M_TASK_MANAGER},
+    {"EEPROM reset", M_RESET},
     {"Test 4"},
     {"Test 5"},
     {"Test 6"},
@@ -209,6 +211,9 @@ void MAINMENU_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       break;
     case M_TASK_MANAGER:
       APPS_run(APP_TASK_MANAGER);
+      break;
+    case M_RESET:
+      APPS_run(APP_RESET);
       break;
     default:
       break;
