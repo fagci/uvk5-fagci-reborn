@@ -1,7 +1,9 @@
 #include "finput.h"
 #include "../driver/bk4819.h"
 #include "../driver/st7565.h"
+#include "../font.h"
 #include "../radio.h"
+#include "../scheduler.h"
 #include "../ui/helper.h"
 #include "apps.h"
 #include <string.h>
@@ -14,10 +16,19 @@ static uint8_t freqInputIndex = 0;
 static uint32_t tempFreq;
 static uint32_t gInputFreq = 0;
 static AppType_t previousApp;
+static bool dotBlink = true;
+static bool wasAutoDot = false;
 
 static void ResetFreqInput() {
   tempFreq = 0;
   memset(freqInputString, '-', FREQ_INPUT_LENGTH);
+}
+
+static void dotBlinkFn() {
+  if (!freqInputDotIndex) {
+    dotBlink = !dotBlink;
+    gRedrawScreen = true;
+  }
 }
 
 static void input(KEY_Code_t key) {
@@ -75,6 +86,7 @@ void FINPUT_init() {
   freqInputDotIndex = 0;
   gInputFreq = 0;
   ResetFreqInput();
+  TaskAdd("Dot blink", dotBlinkFn, 250, true);
 }
 
 void FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
@@ -94,6 +106,10 @@ void FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_9:
   case KEY_STAR:
     input(key);
+    if (tempFreq > 13000000) {
+      input(KEY_STAR);
+      wasAutoDot = true;
+    }
     gRedrawScreen = true;
     break;
   case KEY_EXIT:
@@ -117,7 +133,73 @@ void FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void FINPUT_render() {
+  char String[16];
   memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
-  UI_PrintString(freqInputString, 2, 127, 0, 8, true);
-  UI_PrintStringSmallest(apps[previousApp].name, 0, 32, false, true);
+  /* UI_PrintString(freqInputString, 2, 127, 0, 8, true);
+  UI_PrintStringSmallest(apps[previousApp].name, 0, 32, false, true); */
+
+  const uint8_t X = 19;
+  const uint8_t Y = 0;
+  uint8_t dotIndex =
+      freqInputDotIndex == 0 ? freqInputIndex : freqInputDotIndex;
+
+  const unsigned int charWidth = 13;
+  uint8_t *pFb0 = gFrameBuffer[Y] + X;
+  uint8_t *pFb1 = pFb0 + 128;
+  uint8_t i = 0;
+
+  sprintf(String, "DOT: %u", dotIndex);
+  UI_PrintStringSmallest(String, 0, 0, false, true);
+
+  // MHz
+  while (i < 4) {
+    if (i >= 4 - dotIndex) {
+      const unsigned int Digit = freqInputArr[i - (4 - dotIndex)];
+      if (Digit < 10) {
+        memmove(pFb0, gFontBigDigits[Digit], charWidth);
+        memmove(pFb1, gFontBigDigits[Digit] + charWidth, charWidth);
+      }
+    }
+    i++;
+    pFb0 += charWidth;
+    pFb1 += charWidth;
+  }
+
+  // decimal point
+  if (freqInputDotIndex || (!freqInputDotIndex && dotBlink)) {
+    *pFb1 = 0x60;
+    pFb0++;
+    pFb1++;
+    *pFb1 = 0x60;
+    pFb0++;
+    pFb1++;
+    *pFb1 = 0x60;
+    pFb0++;
+    pFb1++;
+  } else {
+    pFb0 += 3;
+    pFb1 += 3;
+  }
+
+  // kHz
+  if (freqInputDotIndex) {
+    i = dotIndex + 1;
+    while (i < freqInputIndex && i < dotIndex + 4) {
+      const uint8_t Digit = freqInputArr[i];
+      memmove(pFb0, gFontBigDigits[Digit], charWidth);
+      memmove(pFb1, gFontBigDigits[Digit] + charWidth, charWidth);
+      i++;
+      pFb0 += charWidth;
+      pFb1 += charWidth;
+    }
+  }
+
+  if (freqInputDotIndex) {
+    uint8_t hz = freqInputIndex - freqInputDotIndex;
+    if (hz > 3) {
+      String[0] = hz > 4 ? freqInputArr[freqInputDotIndex + 4] : 0;
+      String[1] = hz > 5 ? freqInputArr[freqInputDotIndex + 5] : 0;
+      UI_DisplaySmallDigits(2, String, 113, 1);
+    }
+  }
 }

@@ -150,7 +150,7 @@ bool gPttIsPressed;
 bool gPttWasReleased;
 uint8_t gPttDebounceCounter;
 
-#define KEY_HOLD_TIME 100
+#define KEY_HOLD_TIME 50
 
 void KEYBOARD_CheckKeys(void onKey(KEY_Code_t, bool, bool)) {
   KEY_Code_t Key;
