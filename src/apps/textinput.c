@@ -2,6 +2,7 @@
 #include "../driver/st7565.h"
 #include "../scheduler.h"
 #include "../ui/helper.h"
+#include <string.h>
 
 static char *letters[9] = {
     "",
@@ -33,22 +34,42 @@ static char *symbols[9] = {
     ".,!?:;",   // 2
     "()[]<>{}", // 3
     "#@&$%",    // 4
-    "+-*/=^~`",   // 5
+    "+-*/=^~`", // 5
     "\"'",      // 6
     "",         // 7
     "",         // 8
     ""          // 9
 };
 
-static char **currentLetters = lettersCapital;
+static char **currentSet = lettersCapital;
 static const char *currentRow;
 static char inputField[16] = {0};
 static uint8_t inputIndex = 0;
 static bool coursorBlink = true;
 
+static const uint8_t MAX_LEN = 15;
+
 static void blink() {
   coursorBlink = !coursorBlink;
   gRedrawScreen = true;
+}
+
+static void insert(char c) {
+  if (inputField[inputIndex] != '\0') {
+    memmove(inputField + inputIndex + 1, inputField + inputIndex,
+            16 - inputIndex);
+  }
+  inputField[inputIndex++] = c;
+}
+static void backspace() {
+  if (inputField[inputIndex] != '\0') {
+    inputIndex--;
+    memmove(inputField + inputIndex, inputField + inputIndex + 1,
+            16 - inputIndex);
+
+  } else {
+    inputField[--inputIndex] = '\0';
+  }
 }
 
 void TEXTINPUT_init() { TaskAdd("Coursor blink", blink, 250, true); }
@@ -67,63 +88,73 @@ void TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_7:
   case KEY_8:
   case KEY_9:
-    if (currentLetters == numbers) {
-      inputField[inputIndex++] = key - KEY_0 + '0';
+    if (currentSet == numbers) {
+      if (strlen(inputField) < MAX_LEN) {
+        insert(key - KEY_0 + '0');
+      }
       gRedrawScreen = true;
       break;
     }
     if (currentRow) {
       if (key - KEY_1 < strlen(currentRow)) {
-        inputField[inputIndex++] = currentRow[key - KEY_1];
+        if (strlen(inputField) < MAX_LEN) {
+          insert(currentRow[key - KEY_1]);
+        }
         currentRow = NULL;
       }
       gRedrawScreen = true;
       break;
     }
     if (key == KEY_1) {
-      inputField[inputIndex++] = ' ';
+      if (strlen(inputField) < MAX_LEN) {
+        insert(' ');
+      }
     } else {
-      currentRow = currentLetters[key - KEY_1];
+      currentRow = currentSet[key - KEY_1];
     }
     gRedrawScreen = true;
     break;
   case KEY_0:
-    if (currentLetters == numbers) {
-      inputField[inputIndex++] = key - KEY_0 + '0';
+    if (currentSet == numbers) {
+      insert(key - KEY_0 + '0');
       gRedrawScreen = true;
       break;
     }
     if (!currentRow) {
-      if (currentLetters == numbers) {
-        currentLetters = symbols;
-      } else {
-        currentLetters = numbers;
-      }
+      currentSet = currentSet == numbers ? symbols : numbers;
       gRedrawScreen = true;
       break;
     }
     break;
   case KEY_STAR:
-    if (currentLetters != symbols) {
-      currentLetters = symbols;
+    if (currentSet != symbols) {
+      currentSet = symbols;
       gRedrawScreen = true;
       break;
     }
     break;
   case KEY_F:
-    if (currentLetters == lettersCapital) {
-      currentLetters = letters;
-    } else {
-      currentLetters = lettersCapital;
-    }
+    currentSet = currentSet == lettersCapital ? letters : lettersCapital;
     gRedrawScreen = true;
+    break;
+  case KEY_UP:
+    if (inputIndex < 14 && inputField[inputIndex] != '\0') {
+      inputIndex++;
+      gRedrawScreen = true;
+    }
+    break;
+  case KEY_DOWN:
+    if (inputIndex > 0) {
+      inputIndex--;
+      gRedrawScreen = true;
+    }
     break;
   case KEY_EXIT:
     if (currentRow) {
       currentRow = NULL;
     } else {
       if (inputIndex) {
-        inputField[--inputIndex] = '\0';
+        backspace();
       } else {
         TaskRemove(blink);
       }
@@ -152,7 +183,7 @@ void TEXTINPUT_render() {
   }
 
   if (coursorBlink) {
-    gFrameBuffer[1][8 + (inputIndex * (CHAR_W + 1)) + 1] = 127;
+    gFrameBuffer[1][8 + (inputIndex * (CHAR_W + 1)) - 1] = 127;
   }
 
   for (uint8_t y = 0; y < 3; y++) {
@@ -173,7 +204,7 @@ void TEXTINPUT_render() {
           UI_PrintStringSmall(String, xPos + 10, xPos + 10, line);
         }
       } else {
-        strncpy(String, currentLetters[idx], 4);
+        strncpy(String, currentSet[idx], 4);
         String[4] = '\0';
         UI_PrintStringSmall(String, xPos + 10, xPos + 10, line);
       }
