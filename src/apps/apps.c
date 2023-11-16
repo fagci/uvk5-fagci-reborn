@@ -5,16 +5,19 @@
 #include "spectrum.h"
 #include "still.h"
 #include "test.h"
+#include "textinput.h"
 
 AppType_t gCurrentApp = APP_SPECTRUM;
 
-const App apps[6] = {
+const App apps[7] = {
     {"Test", TEST_Init, TEST_Update, TEST_Render, TEST_Key},
     {"Spectrum", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render, SPECTRUM_key},
     {"Still", STILL_init, STILL_update, STILL_render, STILL_key},
     {"Frequency input", FINPUT_init, NULL, FINPUT_render, FINPUT_key},
     {"Main menu", MAINMENU_init, NULL, MAINMENU_render, MAINMENU_key},
     {"Reset", RESET_Init, RESET_Update, RESET_Render, RESET_Key},
+    {"Text input", TEXTINPUT_init, TEXTINPUT_update, TEXTINPUT_render,
+     TEXTINPUT_key},
     /* {"Scanlist", NULL, SCANLIST_update, SCANLIST_render, SCANLIST_key},
     {"A to B scanner", ABSCANNER_init, ABSCANNER_update, ABSCANNER_render,
      ABSCANNER_key}, */
