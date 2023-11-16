@@ -34,6 +34,9 @@ void APPS_init(AppType_t app) {
   if (apps[app].init) {
     apps[app].init();
   }
+  APPS_render();
+  gRedrawStatus = true;
+  gRedrawScreen = true;
 }
 void APPS_update(void) {
   if (apps[gCurrentApp].update) {
