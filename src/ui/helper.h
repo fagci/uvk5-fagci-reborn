@@ -23,7 +23,7 @@
 #include <string.h>
 
 void UI_PrintString(const char *pString, uint8_t Start, uint8_t End,
-                    uint8_t Line, uint8_t Width, bool bCentered);
+                    uint8_t Line);
 void UI_PrintStringSmall(const char *pString, uint8_t Start, uint8_t End,
                          uint8_t Line);
 void UI_PrintStringSmallBold(const char *pString, uint8_t Start, uint8_t End,

@@ -90,9 +90,9 @@ static void Intro() {
   char String[2];
   sprintf(String, "%c", pb[introIndex & 3]);
   memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
-  UI_PrintString("OSFW", 4, 4, 0, 8, false);
-  UI_PrintString("reb0rn", 16, 16, 2, 8, false);
-  UI_PrintString(String, 72, 72, 2, 8, false);
+  UI_PrintString("OSFW", 4, 4, 0);
+  UI_PrintString("reb0rn", 16, 16, 2);
+  UI_PrintString(String, 72, 72, 2);
   UI_PrintStringSmallest("by fagci", 96, 46, false, true);
   ST7565_BlitFullScreen();
   if (introIndex++ > 50) {

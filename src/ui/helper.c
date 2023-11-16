@@ -22,31 +22,30 @@
 #include "inputbox.h"
 
 void UI_PrintString(const char *pString, uint8_t Start, uint8_t End,
-                    uint8_t Line, uint8_t Width, bool bCentered) {
-  uint32_t i, Length;
-
-  Length = strlen(pString);
-  if (bCentered) {
+                    uint8_t Line) {
+  const uint8_t Width = 8;
+  const size_t Length = strlen(pString);
+  if (End > Start) {
     Start += (((End - Start) - (Length * Width)) + 1) / 2;
   }
-  for (i = 0; i < Length; i++) {
+  for (size_t i = 0; i < Length; i++) {
     if (pString[i] >= ' ') {
-      uint8_t Index = pString[i] - ' ';
-      uint8_t offset = (i * Width) + Start;
-      memcpy(gFrameBuffer[Line + 0] + offset, &gFontBig[Index][0], 8);
+      const uint8_t Index = pString[i] - ' ';
+      const uint8_t offset = (i * Width) + Start;
+      memcpy(gFrameBuffer[Line] + offset, &gFontBig[Index][0], 8);
       memcpy(gFrameBuffer[Line + 1] + offset, &gFontBig[Index][8], 8);
     }
   }
 }
 
-void UI_PrintStringSmall(const char *pString, uint8_t Start, uint8_t End,
-                         uint8_t Line) {
+static void printString(const uint8_t font[95][6], const char *pString,
+                        uint8_t Start, uint8_t End, uint8_t Line) {
   const size_t Length = strlen(pString);
   size_t i;
 
-  if (End > Start)
+  if (End > Start) {
     Start += (((End - Start) - (Length * 8)) + 1) / 2;
-
+  }
   const unsigned int char_width = ARRAY_SIZE(gFontSmall[0]);
   const unsigned int char_spacing = char_width + 1;
   uint8_t *pFb = gFrameBuffer[Line] + Start;
@@ -54,29 +53,19 @@ void UI_PrintStringSmall(const char *pString, uint8_t Start, uint8_t End,
     if (pString[i] >= 32) {
       const unsigned int Index = (unsigned int)pString[i] - 32;
       if (Index < ARRAY_SIZE(gFontSmall))
-        memmove(pFb + (i * char_spacing), &gFontSmall[Index], char_width);
+        memmove(pFb + (i * char_spacing), &font[Index], char_width);
     }
   }
 }
 
+void UI_PrintStringSmall(const char *pString, uint8_t Start, uint8_t End,
+                         uint8_t Line) {
+  printString(gFontSmall, pString, Start, End, Line);
+}
+
 void UI_PrintStringSmallBold(const char *pString, uint8_t Start, uint8_t End,
                              uint8_t Line) {
-  const size_t Length = strlen(pString);
-  size_t i;
-
-  if (End > Start)
-    Start += (((End - Start) - (Length * 8)) + 1) / 2;
-
-  const unsigned int char_width = ARRAY_SIZE(gFontSmallBold[0]);
-  const unsigned int char_spacing = char_width + 1;
-  uint8_t *pFb = gFrameBuffer[Line] + Start;
-  for (i = 0; i < Length; i++) {
-    if (pString[i] >= 32) {
-      const unsigned int Index = (unsigned int)pString[i] - 32;
-      if (Index < ARRAY_SIZE(gFontSmallBold))
-        memmove(pFb + (i * char_spacing), &gFontSmallBold[Index], char_width);
-    }
-  }
+  printString(gFontSmallBold, pString, Start, End, Line);
 }
 
 void UI_DisplayFrequency(const char *pDigits, uint8_t X, uint8_t Y,
@@ -180,27 +169,6 @@ void UI_PrintStringSmallest(const char *pString, uint8_t x, uint8_t y,
     x += 4;
   }
 }
-
-/* void UI_ClearAppScreen() {
-  for (uint8_t line = 4; line < 7; line++) {
-    memset(gFrameBuffer[line], 0, LCD_WIDTH);
-  }
-}
-
-void UI_DrawScanListFlag(uint8_t *pLine, uint8_t attrs) {
-  if (attrs & MR_CH_SCANLIST1) {
-    pLine[117] ^= 0b100010;
-    pLine[118] ^= 0b111110;
-    pLine[119] ^= 0b100010;
-  }
-  if (attrs & MR_CH_SCANLIST2) {
-    pLine[122] ^= 0b100010;
-    pLine[123] ^= 0b111110;
-    pLine[124] ^= 0b100010;
-    pLine[125] ^= 0b111110;
-    pLine[126] ^= 0b100010;
-  }
-} */
 
 bool UI_NoChannelName(char *channelName) {
   return channelName[0] < 32 || channelName[0] > 127;
