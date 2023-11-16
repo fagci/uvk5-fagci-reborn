@@ -30,14 +30,14 @@ static char *lettersCapital[9] = {
 static char *numbers[10] = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0"};
 static char *symbols[9] = {
     "",
-    "-_",     // 2
-    "()",     // 3
-    "[]",     // 4
-    "<>",     // 5
-    "{}",     // 6
-    "*#@!?&", // 7
-    "/\\|",   // 8
-    "$"       // 9
+    "-_/\\|",    // 2
+    "()[]<>{}",  // 3
+    "*#@&$%\"'", // 4
+    ":,.!?",     // 5
+    "",          // 6
+    "",          // 7
+    "",          // 8
+    ""           // 9
 };
 
 static char **currentLetters = lettersCapital;
@@ -104,7 +104,7 @@ void TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     }
     break;
   case KEY_STAR:
-    if (currentLetters != numbers && currentLetters != symbols) {
+    if (currentLetters != symbols) {
       currentLetters = symbols;
       gRedrawScreen = true;
       break;
@@ -135,7 +135,7 @@ void TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   }
 }
 void TEXTINPUT_render() {
-  char String[16];
+  char String[8];
 
   memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
 
@@ -145,14 +145,14 @@ void TEXTINPUT_render() {
 
   UI_PrintStringSmall(inputField, 8, 8, 1);
 
-  const uint8_t CW = 6;
+  const uint8_t CHAR_W = 6;
   uint8_t rowStrlen = 0;
   if (currentRow) {
     rowStrlen = strlen(currentRow);
   }
 
   if (coursorBlink) {
-    gFrameBuffer[1][8 + (inputIndex * (CW + 1)) + 1] = 127;
+    gFrameBuffer[1][8 + (inputIndex * (CHAR_W + 1)) + 1] = 127;
   }
 
   for (uint8_t y = 0; y < 3; y++) {
@@ -163,7 +163,7 @@ void TEXTINPUT_render() {
 
       sprintf(String, "%u", idx + 1);
       UI_PrintStringSmall(String, xPos, xPos, line);
-      for (uint8_t j = 0; j < CW + 2; ++j) {
+      for (uint8_t j = 0; j < CHAR_W + 2; ++j) {
         gFrameBuffer[line][xPos + j - 1] ^= 0xFF;
       }
 
@@ -174,6 +174,7 @@ void TEXTINPUT_render() {
         }
       } else {
         strncpy(String, currentLetters[idx], 4);
+        String[4] = '\0';
         UI_PrintStringSmall(String, xPos + 10, xPos + 10, line);
       }
     }

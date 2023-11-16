@@ -87,7 +87,7 @@ static void AddTasks() {
 static uint8_t introIndex = 0;
 static void Intro() {
   char pb[] = "-\\|/";
-  char String[2];
+  char String[2] = {0};
   sprintf(String, "%c", pb[introIndex & 3]);
   memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
   UI_PrintString("OSFW", 4, 4, 0);
