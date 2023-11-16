@@ -7,6 +7,7 @@
 #include "test.h"
 #include "textinput.h"
 
+AppType_t gPreviousApp = APP_SPECTRUM;
 AppType_t gCurrentApp = APP_SPECTRUM;
 
 const App apps[7] = {
@@ -49,6 +50,9 @@ void APPS_render(void) {
   }
 }
 void APPS_run(AppType_t app) {
+  if (gPreviousApp != app) {
+    gPreviousApp = gCurrentApp;
+  }
   APPS_init(app);
   gCurrentApp = app;
 }

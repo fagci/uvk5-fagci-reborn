@@ -8,8 +8,6 @@
 #include "apps.h"
 #include <string.h>
 
-static AppType_t previousApp;
-
 static const uint8_t FREQ_INPUT_LENGTH = 10;
 
 static KEY_Code_t freqInputArr[10];
@@ -71,7 +69,6 @@ static void input(KEY_Code_t key) {
 
 void FINPUT_init() {
   memset(gStatusLine, 0, sizeof(gStatusLine));
-  previousApp = gCurrentApp;
   freqInputIndex = 0;
   freqInputDotIndex = 0;
   ResetFreqInput();
@@ -80,7 +77,7 @@ void FINPUT_init() {
 
 void FINPUT_deinit() {
   TaskRemove(dotBlinkFn);
-  APPS_run(previousApp);
+  APPS_run(gPreviousApp);
 }
 
 void FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {

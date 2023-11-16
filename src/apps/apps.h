@@ -24,6 +24,7 @@ typedef struct App {
 } App;
 
 extern const App apps[7];
+extern AppType_t gPreviousApp;
 extern AppType_t gCurrentApp;
 
 void APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);

@@ -2,6 +2,7 @@
 #include "../driver/st7565.h"
 #include "../scheduler.h"
 #include "../ui/helper.h"
+#include "apps.h"
 #include <string.h>
 
 static char *letters[9] = {

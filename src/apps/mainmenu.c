@@ -35,8 +35,6 @@ typedef struct MenuItem {
 
 static const uint8_t LINES_TO_SHOW = 6;
 
-static AppType_t previousApp;
-
 static uint8_t menuIndex = 0;
 static uint8_t subMenuIndex = 0;
 static bool isSubMenu = false;
@@ -169,10 +167,6 @@ void MAINMENU_render() {
 }
 
 void MAINMENU_init() {
-  // to not override with self
-  if (gCurrentApp != APP_MAINMENU) {
-    previousApp = gCurrentApp;
-  }
   isSubMenu = false;
 }
 void MAINMENU_update() {}
@@ -230,7 +224,7 @@ void MAINMENU_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     if (isSubMenu) {
       isSubMenu = false;
     } else {
-      APPS_run(previousApp);
+      APPS_run(gPreviousApp);
     }
     gRedrawScreen = true;
     gRedrawStatus = true;
