@@ -16,11 +16,11 @@ typedef struct {
   uint8_t priority;
 } Task;
 
-Task *TaskAdd(const char *name, void *handler, uint16_t interval,
+Task *TaskAdd(const char *name, void (*handler)(void), uint16_t interval,
               bool continuous);
-void TaskSetPriority(void *handler, uint8_t priority);
-void TaskRemove(void *handler);
-void TaskTouch(void *handler);
+void TaskSetPriority(void (*handler)(void), uint8_t priority);
+void TaskRemove(void (*handler)(void));
+void TaskTouch(void (*handler)(void));
 void TasksUpdate(void);
 
 extern Task tasks[TASKS_MAX];

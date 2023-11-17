@@ -21,7 +21,7 @@
 Task tasks[TASKS_MAX];
 uint8_t tasksCount = 0;
 
-Task *TaskAdd(const char *name, void *handler, uint16_t interval,
+Task *TaskAdd(const char *name, void (*handler)(void), uint16_t interval,
               bool continuous) {
   if (tasksCount == TASKS_MAX) {
     return NULL;
@@ -31,7 +31,7 @@ Task *TaskAdd(const char *name, void *handler, uint16_t interval,
   return &tasks[tasksCount - 1];
 }
 
-void TaskRemove(void *handler) {
+void TaskRemove(void (*handler)(void)) {
   uint8_t i;
   for (i = 0; i < tasksCount; ++i) {
     if (tasks[i].handler == handler) {
@@ -48,7 +48,7 @@ void TaskRemove(void *handler) {
   }
 }
 
-void TaskTouch(void *handler) {
+void TaskTouch(void (*handler)(void)) {
   for (uint8_t i = 0; i < tasksCount; ++i) {
     if (tasks[i].handler == handler) {
       tasks[i].t = 0;
@@ -57,7 +57,7 @@ void TaskTouch(void *handler) {
   }
 }
 
-void TaskSetPriority(void *handler, uint8_t priority) {
+void TaskSetPriority(void (*handler)(void), uint8_t priority) {
   for (uint8_t i = 0; i < tasksCount; ++i) {
     if (tasks[i].handler == handler) {
       tasks[i].priority = priority;

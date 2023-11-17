@@ -25,6 +25,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#define MOV_N 4
+
 static const uint8_t DrawingEndY = 40;
 
 static const uint8_t gStepSettingToIndex[] = {
@@ -89,7 +91,7 @@ typedef struct PeakInfo {
 
 typedef struct MovingAverage {
   uint16_t mean[128];
-  uint16_t buf[4][128];
+  uint16_t buf[MOV_N][128];
   uint16_t min, mid, max;
   uint16_t t;
 } MovingAverage;

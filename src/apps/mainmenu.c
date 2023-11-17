@@ -3,6 +3,7 @@
 #include "../helper/measurements.h"
 #include "../misc.h"
 #include "../radio.h"
+#include "../ui/components.h"
 #include "../ui/helper.h"
 #include "apps.h"
 
@@ -22,18 +23,10 @@ typedef enum {
   MT_RUN,
 } MenuItemType;
 
-typedef struct MenuItem {
-  const char *name;
-  Menu type;
-  uint8_t size;
-} MenuItem;
-
 #define ITEMS(value)                                                           \
   items = value;                                                               \
   size = ARRAY_SIZE(value);                                                    \
   type = MT_ITEMS;
-
-static const uint8_t LINES_TO_SHOW = 6;
 
 static uint8_t menuIndex = 0;
 static uint8_t subMenuIndex = 0;
@@ -74,64 +67,6 @@ static const char *getValue(Menu type) {
   return "";
 }
 
-static void ShowItem(uint8_t line, const char *name, bool isCurrent) {
-  if (isCurrent) {
-    gFrameBuffer[line][0] = 0b01111111;
-    gFrameBuffer[line][1] = 0b00111110;
-    gFrameBuffer[line][2] = 0b00011100;
-    gFrameBuffer[line][3] = 0b00001000;
-    UI_PrintStringSmallBold(name, 6, 6, line);
-  } else {
-    UI_PrintStringSmall(name, 6, 6, line);
-  }
-}
-
-static void DrawScrollBar(const uint8_t size, const uint8_t currentIndex,
-                          const uint8_t linesCount) {
-  uint8_t i;
-  const uint8_t scrollbarPosY =
-      ConvertDomain(currentIndex, 0, size, 0, linesCount * 8 + 5);
-
-  for (i = 0; i < linesCount; i++) {
-    gFrameBuffer[i][126] = 0xFF;
-  }
-
-  for (i = 0; i < 3; i++) {
-    PutPixel(127, scrollbarPosY + i, true);
-    PutPixel(125, scrollbarPosY + i, true);
-  }
-}
-
-void showMenu(const MenuItem *items, uint8_t size, uint8_t currentIndex) {
-
-  const uint8_t maxItems = size < LINES_TO_SHOW ? size : LINES_TO_SHOW;
-  const uint8_t offset = Clamp(currentIndex - 2, 0, size - maxItems);
-
-  memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
-
-  for (uint8_t i = 0; i < maxItems; ++i) {
-    uint8_t itemIndex = i + offset;
-    const MenuItem *item = &items[itemIndex];
-    ShowItem(i, item->name, currentIndex == itemIndex);
-  }
-
-  DrawScrollBar(size, currentIndex, LINES_TO_SHOW);
-}
-
-void showItems(const char **items, uint8_t size, uint8_t currentIndex) {
-  const uint8_t maxItems = size < LINES_TO_SHOW ? size : LINES_TO_SHOW;
-  const uint8_t offset = Clamp(currentIndex - 2, 0, size - maxItems);
-
-  memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
-
-  for (uint8_t i = 0; i < maxItems; ++i) {
-    uint8_t itemIndex = i + offset;
-    ShowItem(i, items[itemIndex], currentIndex == itemIndex);
-  }
-
-  DrawScrollBar(size, currentIndex, LINES_TO_SHOW);
-}
-
 void showSubmenu(Menu menu) {
   const char **items;
   uint8_t size;
@@ -147,7 +82,7 @@ void showSubmenu(Menu menu) {
 
   switch (type) {
   case MT_ITEMS:
-    showItems(items, size, subMenuIndex);
+    UI_ShowItems(items, size, subMenuIndex);
     break;
   default:
     break;
@@ -161,14 +96,12 @@ void MAINMENU_render() {
     showSubmenu(item->type);
     UI_PrintStringSmallest(item->name, 0, 0, true, true);
   } else {
-    showMenu(menu, ARRAY_SIZE(menu), menuIndex);
+    UI_ShowMenu(menu, ARRAY_SIZE(menu), menuIndex);
     UI_PrintStringSmall(getValue(item->type), 1, 126, 6);
   }
 }
 
-void MAINMENU_init() {
-  isSubMenu = false;
-}
+void MAINMENU_init() { isSubMenu = false; }
 void MAINMENU_update() {}
 void MAINMENU_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed || bKeyHeld) {

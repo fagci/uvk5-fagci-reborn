@@ -5,6 +5,7 @@
 #include "../helper/measurements.h"
 #include "../misc.h"
 #include "../radio.h"
+#include "../ui/components.h"
 #include "../ui/helper.h"
 #include "apps.h"
 
@@ -19,10 +20,10 @@ static char String[16];
 
 static const RegisterSpec registerSpecs[] = {
     {},
-    {"LNAs", 0x13, 8, 0b11, 1},
-    {"LNA", 0x13, 5, 0b111, 1},
-    {"PGA", 0x13, 0, 0b111, 1},
-    {"MIX", 0x13, 3, 0b11, 1},
+    {"LNAs", BK4819_REG_13, 8, 0b11, 1},
+    {"LNA", BK4819_REG_13, 5, 0b111, 1},
+    {"PGA", BK4819_REG_13, 0, 0b111, 1},
+    {"MIX", BK4819_REG_13, 3, 0b11, 1},
 
     {"IF", 0x3D, 0, 0xFFFF, 100},
     {"DEV", 0x40, 0, 0xFFF, 10},
@@ -30,31 +31,13 @@ static const RegisterSpec registerSpecs[] = {
     {"MIC", 0x7D, 0, 0xF, 1},
 };
 
-static void DrawF(uint32_t f) {
-  UI_PrintStringSmallest(modulationTypeOptions[gCurrentVfo.modulation], 116, 2,
-                         false, true);
-  UI_PrintStringSmallest(bwNames[gCurrentVfo.bw], 108, 8, false, true);
-
-  sprintf(String, "%u.%05u", f / 100000, f % 100000);
-
-  /* if (currentState == STILL && kbd.current == KEY_PTT) {
-    if (txAllowState) {
-      sprintf(String, vfoStateNames[txAllowState]);
-    } else if (isTransmitting) {
-      f = gCurrentVfo.fTX;
-      sprintf(String, "TX %u.%05u", f / 100000, f % 100000);
-    }
-  } */
-  UI_PrintStringSmall(String, 8, 127, 0);
-}
-
-static void UpdateRssiTriggerLevel(bool inc) {
+/* static void UpdateRssiTriggerLevel(bool inc) {
   if (inc)
     rssiTriggerLevel += 2;
   else
     rssiTriggerLevel -= 2;
   gRedrawScreen = true;
-}
+} */
 
 static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   uint16_t v = BK4819_GetRegValue(s);
@@ -70,14 +53,12 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
 }
 
 static void UpdateCurrentFreqStill(bool inc) {
-  uint16_t offset = StepFrequencyTable[gCurrentVfo.step];
-  uint32_t f = gCurrentVfo.fRX;
-  if (inc && f < F_MAX) {
-    f += offset;
-  } else if (!inc && f > F_MIN) {
-    f -= offset;
+  const uint16_t offset = StepFrequencyTable[gCurrentVfo.step];
+  if (inc && gCurrentVfo.fRX < F_MAX) {
+    RADIO_TuneTo(gCurrentVfo.fRX + offset, false);
+  } else if (!inc && gCurrentVfo.fRX > F_MIN) {
+    RADIO_TuneTo(gCurrentVfo.fRX - offset, false);
   }
-  RADIO_TuneTo(f, false);
   gRedrawScreen = true;
 }
 
@@ -92,7 +73,7 @@ static void UpdateListening() {
   rssi = BK4819_GetRSSI();
 
   if (rssi >= rssiTriggerLevel || monitorMode) {
-    listenT = 10;
+    listenT = 100;
     return;
   }
 
@@ -168,10 +149,11 @@ void STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     UpdateCurrentFreqStill(false);
     break;
   case KEY_STAR:
-    UpdateRssiTriggerLevel(true);
+    // UpdateRssiTriggerLevel(true);
     break;
   case KEY_F:
-    UpdateRssiTriggerLevel(false);
+    // UpdateRssiTriggerLevel(false);
+    APPS_run(APP_VFO_CFG);
     break;
   case KEY_5:
     APPS_run(APP_FINPUT);
@@ -233,50 +215,37 @@ void STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   gRedrawStatus = true;
 }
 
+static void DrawRegs() {
+  const uint8_t PAD_LEFT = 4;
+  const uint8_t CELL_WIDTH = 30;
+  uint8_t row = 3;
+
+  for (uint8_t i = 0, idx = 1; idx < ARRAY_SIZE(registerSpecs); ++i, ++idx) {
+    if (idx == 5) {
+      row += 2;
+      i = 0;
+    }
+    const uint8_t offset = PAD_LEFT + i * CELL_WIDTH;
+    if (menuState == idx) {
+      for (int j = 0; j < CELL_WIDTH; ++j) {
+        gFrameBuffer[row][j + offset] = 0xFF;
+        gFrameBuffer[row + 1][j + offset] = 0xFF;
+      }
+    }
+    RegisterSpec rs = registerSpecs[idx];
+    sprintf(String, "%s", rs.name);
+    UI_PrintStringSmallest(String, offset + 2, row * 8 + 2, false,
+                           menuState != idx);
+    sprintf(String, "%u", BK4819_GetRegValue(rs));
+    UI_PrintStringSmallest(String, offset + 2, (row + 1) * 8 + 1, false,
+                           menuState != idx);
+  }
+}
+
 void STILL_render() {
   memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
-  DrawF(GetScreenF(gCurrentVfo.fRX));
-
-  const uint8_t METER_PAD_LEFT = 3;
-  uint8_t *ln = gFrameBuffer[2];
-
-  for (uint8_t i = 0; i < 121; i++) {
-    ln[i + METER_PAD_LEFT] = i % 10 ? 0b01000000 : 0b11000000;
-  }
-
-  uint8_t rssiX = Rssi2PX(rssi, 0, 121);
-  for (uint8_t i = 0; i < rssiX; ++i) {
-    if (i % 5 && i / 5 < rssiX / 5) {
-      ln[i + METER_PAD_LEFT] |= 0b00011100;
-    }
-  }
-
-  int dbm = Rssi2DBm(rssi);
-  uint8_t s = DBm2S(dbm);
-  if (s < 10) {
-    sprintf(String, "S%u", s);
-  } else {
-    sprintf(String, "S9+%u0", s - 9);
-  }
-  UI_PrintStringSmallest(String, 4, 10, false, true);
-  sprintf(String, "%d dBm", dbm);
-  UI_PrintStringSmallest(String, 32, 10, false, true);
-
-  /* if (isTransmitting) {
-    uint8_t afDB = BK4819_ReadRegister(0x6F) & 0b1111111;
-    uint8_t afPX = ConvertDomain(afDB, 26, 194, 0, 121);
-    for (uint8_t i = 0; i < afPX; ++i) {
-      gFrameBuffer[3][i + METER_PAD_LEFT] |= 0b00000011;
-    }
-  } */
-
-  if (!monitorMode) {
-    uint8_t rssiTriggerX =
-        Rssi2PX(rssiTriggerLevel, METER_PAD_LEFT, 121 + METER_PAD_LEFT);
-    ln[rssiTriggerX - 1] |= 0b01000001;
-    ln[rssiTriggerX] = 0b01111111;
-    ln[rssiTriggerX + 1] |= 0b01000001;
-  }
+  UI_FSmall(GetScreenF(gCurrentVfo.fRX));
+  UI_RSSIBar(rssi, 2);
 
 #ifdef ENABLE_ALL_REGISTERS
   if (hiddenMenuState) {
@@ -291,30 +260,7 @@ void STILL_render() {
     }
   } else {
 #endif
-    const uint8_t PAD_LEFT = 4;
-    const uint8_t CELL_WIDTH = 30;
-    uint8_t row = 3;
-
-    for (int i = 0, idx = 1; idx < ARRAY_SIZE(registerSpecs); ++i, ++idx) {
-      if (idx == 5) {
-        row += 2;
-        i = 0;
-      }
-      const uint8_t offset = PAD_LEFT + i * CELL_WIDTH;
-      if (menuState == idx) {
-        for (int j = 0; j < CELL_WIDTH; ++j) {
-          gFrameBuffer[row][j + offset] = 0xFF;
-          gFrameBuffer[row + 1][j + offset] = 0xFF;
-        }
-      }
-      RegisterSpec rs = registerSpecs[idx];
-      sprintf(String, "%s", rs.name);
-      UI_PrintStringSmallest(String, offset + 2, row * 8 + 2, false,
-                             menuState != idx);
-      sprintf(String, "%u", BK4819_GetRegValue(rs));
-      UI_PrintStringSmallest(String, offset + 2, (row + 1) * 8 + 1, false,
-                             menuState != idx);
-    }
+    DrawRegs();
 #ifdef ENABLE_ALL_REGISTERS
   }
 #endif

@@ -46,7 +46,7 @@ static uint16_t rssiHistory[128] = {0};
 static bool blacklist[128] = {false};
 
 static MovingAverage mov = {{128}, {}, 255, 128, 0, 0};
-static const uint8_t MOV_N = ARRAY_SIZE(mov.buf);
+
 
 #ifdef ENABLE_ALL_REGISTERS
 uint8_t hiddenMenuState = 0;
@@ -474,16 +474,6 @@ static void DrawStatus() {
 #endif
 }
 
-static void DrawF(uint32_t f) {
-  UI_PrintStringSmallest(modulationTypeOptions[gCurrentVfo.modulation], 116, 2,
-                         false, true);
-  UI_PrintStringSmallest(bwNames[gCurrentVfo.bw], 108, 8, false, true);
-
-  sprintf(String, "%u.%05u", f / 100000, f % 100000);
-
-  UI_PrintStringSmall(String, 8, 127, 0);
-}
-
 static void DrawNums() {
   sprintf(String, "%ux", GetStepsCount());
   UI_PrintStringSmallest(String, 0, 2, false, true);
@@ -704,7 +694,7 @@ static void RenderSpectrum() {
   DrawArrow(peak.i << settings.stepsCount);
   DrawSpectrum();
   DrawRssiTriggerLevel();
-  DrawF(GetScreenF(peak.f));
+  UI_FSmall(GetScreenF(peak.f));
   DrawNums();
 }
 

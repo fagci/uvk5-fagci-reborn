@@ -1,7 +1,10 @@
 #include "components.h"
 #include "../driver/st7565.h"
 #include "../helper/measurements.h"
+#include "../radio.h"
 #include "helper.h"
+
+static const uint8_t MENU_LINES_TO_SHOW = 6;
 
 void UI_Battery(uint8_t Level) {
   const uint8_t START = 115;
@@ -54,10 +57,10 @@ void UI_RSSIBar(int16_t rssi, uint8_t line) {
 
   memset(ln, 0, 128);
 
-  for (int i = BAR_LEFT_MARGIN, sv = 1; i < BAR_LEFT_MARGIN + s * 4;
-       i += 4, sv++) {
-    ln[i] = ln[i + 2] = 0b00111110;
-    ln[i + 1] = sv > 9 ? 0b00100010 : 0b00111110;
+  for (int i = BAR_LEFT_MARGIN, sv = 1; i < BAR_LEFT_MARGIN + s * 5;
+       i += 5, sv++) {
+    ln[i] = ln[i + 3] = 0b00111110;
+    ln[i + 1] = ln[i + 2] = sv > 9 ? 0b00100010 : 0b00111110;
   }
 
   sprintf(String, "%d", dBm);
@@ -85,4 +88,75 @@ void UI_F(uint32_t f, uint8_t line) {
 
   UI_DisplayFrequency(String, 19, line, false, false);
   UI_DisplaySmallDigits(2, String + 7, 113, line + 1);
+}
+
+void UI_FSmall(uint32_t f) {
+  char String[16];
+  UI_PrintStringSmallest(modulationTypeOptions[gCurrentVfo.modulation], 116, 2,
+                         false, true);
+  UI_PrintStringSmallest(bwNames[gCurrentVfo.bw], 108, 8, false, true);
+
+  sprintf(String, "%u.%05u", f / 100000, f % 100000);
+
+  UI_PrintStringSmall(String, 8, 127, 0);
+}
+
+void UI_DrawScrollBar(const uint8_t size, const uint8_t currentIndex,
+                      const uint8_t linesCount) {
+  uint8_t i;
+  const uint8_t scrollbarPosY =
+      ConvertDomain(currentIndex, 0, size, 0, linesCount * 8 + 5);
+
+  for (i = 0; i < linesCount; i++) {
+    gFrameBuffer[i][126] = 0xFF;
+  }
+
+  for (i = 0; i < 3; i++) {
+    PutPixel(127, scrollbarPosY + i, true);
+    PutPixel(125, scrollbarPosY + i, true);
+  }
+}
+
+static void UI_ShowMenuItem(uint8_t line, const char *name, bool isCurrent) {
+  if (isCurrent) {
+    gFrameBuffer[line][0] = 0b01111111;
+    gFrameBuffer[line][1] = 0b00111110;
+    gFrameBuffer[line][2] = 0b00011100;
+    gFrameBuffer[line][3] = 0b00001000;
+    UI_PrintStringSmallBold(name, 6, 6, line);
+  } else {
+    UI_PrintStringSmall(name, 6, 6, line);
+  }
+}
+
+void UI_ShowMenu(const MenuItem *items, uint8_t size, uint8_t currentIndex) {
+
+  const uint8_t maxItems =
+      size < MENU_LINES_TO_SHOW ? size : MENU_LINES_TO_SHOW;
+  const uint8_t offset = Clamp(currentIndex - 2, 0, size - maxItems);
+
+  memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+
+  for (uint8_t i = 0; i < maxItems; ++i) {
+    uint8_t itemIndex = i + offset;
+    const MenuItem *item = &items[itemIndex];
+    UI_ShowMenuItem(i, item->name, currentIndex == itemIndex);
+  }
+
+  UI_DrawScrollBar(size, currentIndex, MENU_LINES_TO_SHOW);
+}
+
+void UI_ShowItems(const char **items, uint8_t size, uint8_t currentIndex) {
+  const uint8_t maxItems =
+      size < MENU_LINES_TO_SHOW ? size : MENU_LINES_TO_SHOW;
+  const uint8_t offset = Clamp(currentIndex - 2, 0, size - maxItems);
+
+  memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+
+  for (uint8_t i = 0; i < maxItems; ++i) {
+    uint8_t itemIndex = i + offset;
+    UI_ShowMenuItem(i, items[itemIndex], currentIndex == itemIndex);
+  }
+
+  UI_DrawScrollBar(size, currentIndex, MENU_LINES_TO_SHOW);
 }

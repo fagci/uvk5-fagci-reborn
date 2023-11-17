@@ -6,11 +6,12 @@
 #include "still.h"
 #include "test.h"
 #include "textinput.h"
+#include "vfocfg.h"
 
 AppType_t gPreviousApp = APP_SPECTRUM;
 AppType_t gCurrentApp = APP_SPECTRUM;
 
-const App apps[7] = {
+const App apps[8] = {
     {"Test", TEST_Init, TEST_Update, TEST_Render, TEST_Key},
     {"Spectrum", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render, SPECTRUM_key},
     {"Still", STILL_init, STILL_update, STILL_render, STILL_key},
@@ -19,9 +20,11 @@ const App apps[7] = {
     {"Reset", RESET_Init, RESET_Update, RESET_Render, RESET_Key},
     {"Text input", TEXTINPUT_init, TEXTINPUT_update, TEXTINPUT_render,
      TEXTINPUT_key},
-    /* {"Scanlist", NULL, SCANLIST_update, SCANLIST_render, SCANLIST_key},
-    {"A to B scanner", ABSCANNER_init, ABSCANNER_update, ABSCANNER_render,
+    {"VFO config", VFOCFG_init, VFOCFG_update, VFOCFG_render, VFOCFG_key},
+    // {"Scanlist", NULL, SCANLIST_update, SCANLIST_render, SCANLIST_key},
+    /* {"A to B scanner", ABSCANNER_init, ABSCANNER_update, ABSCANNER_render,
      ABSCANNER_key}, */
+
 };
 
 void APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
