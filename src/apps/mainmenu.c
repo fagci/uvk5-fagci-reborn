@@ -16,13 +16,6 @@ typedef enum {
   M_RESET,
 } Menu;
 
-typedef enum {
-  MT_ITEMS,
-  MT_RANGE,
-  MT_INPUT,
-  MT_RUN,
-} MenuItemType;
-
 #define ITEMS(value)                                                           \
   items = value;                                                               \
   size = ARRAY_SIZE(value);                                                    \
@@ -43,7 +36,7 @@ static const MenuItem menu[] = {
     {"Test 6"},
 };
 
-void accept() {
+static void accept() {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_UPCONVERTER: {
@@ -67,7 +60,7 @@ static const char *getValue(Menu type) {
   return "";
 }
 
-void showSubmenu(Menu menu) {
+static void showSubmenu(Menu menu) {
   const char **items;
   uint8_t size;
   MenuItemType type;

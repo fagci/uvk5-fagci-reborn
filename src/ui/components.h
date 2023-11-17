@@ -9,6 +9,13 @@ typedef struct MenuItem {
   uint8_t size;
 } MenuItem;
 
+typedef enum {
+  MT_ITEMS,
+  MT_RANGE,
+  MT_INPUT,
+  MT_RUN,
+} MenuItemType;
+
 void UI_Battery(uint8_t Level);
 void UI_RSSIBar(int16_t rssi, uint8_t line);
 void UI_F(uint32_t f, uint8_t line);

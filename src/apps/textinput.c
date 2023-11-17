@@ -5,6 +5,8 @@
 #include "apps.h"
 #include <string.h>
 
+char *gTextinputText;
+
 static char *letters[9] = {
     "",
     "abc",  // 2
@@ -161,6 +163,10 @@ void TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       }
     }
     gRedrawScreen = true;
+    break;
+  case KEY_MENU:
+    strncpy(gTextinputText, inputField, 16);
+    APPS_run(gPreviousApp);
     break;
   default:
     break;
