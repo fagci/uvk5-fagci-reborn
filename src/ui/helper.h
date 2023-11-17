@@ -39,6 +39,6 @@ void UI_PrintStringSmallest(const char *pString, uint8_t x, uint8_t y,
                             bool statusbar, bool fill);
 /* void UI_ClearAppScreen();
 void UI_DrawScanListFlag(uint8_t *pLine, uint8_t attrs); */
-bool UI_NoChannelName(char *channelName);
+bool UI_NoChannelName(const char *channelName);
 
 #endif

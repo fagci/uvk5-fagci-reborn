@@ -152,7 +152,7 @@ void UI_PrintStringSmallest(const char *pString, uint8_t x, uint8_t y,
   uint8_t pixels;
   const uint8_t *p = (const uint8_t *)pString;
 
-  while ((c = *p++) && c != '\0') {
+  while ((c = *p++)) {
     c -= 0x20;
     for (uint8_t i = 0; i < 3; ++i) {
       pixels = gFont3x5[c][i];
@@ -170,6 +170,6 @@ void UI_PrintStringSmallest(const char *pString, uint8_t x, uint8_t y,
   }
 }
 
-bool UI_NoChannelName(char *channelName) {
+bool UI_NoChannelName(const char *channelName) {
   return channelName[0] < 32 || channelName[0] > 127;
 }
