@@ -2,6 +2,7 @@
 #include "../driver/eeprom.h"
 #include "../driver/st7565.h"
 #include "../driver/system.h"
+#include "../helper/measurements.h"
 #include "../ui/helper.h"
 #include "ARMCM0.h"
 #include <string.h>
@@ -30,6 +31,9 @@ void RESET_Render() {
   memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
   sprintf(String, "%u%", bytesErased * 100 / BYTES_TOTAL);
   UI_PrintStringSmall(String, 0, 0, 2);
+
+  memset(gFrameBuffer[3], 0b00111100,
+         ConvertDomain(bytesErased, 0, 8196, 0, LCD_WIDTH));
 }
 
 void RESET_Key(KEY_Code_t k, bool p, bool h) {}

@@ -18,7 +18,9 @@ typedef enum {
 } Menu;
 
 #define ITEMS(value)                                                           \
-  items = value;                                                               \
+  for (uint8_t i = 0; i < ARRAY_SIZE(value); ++i) {                            \
+    strncpy(items[i], value[i], 15);                                           \
+  }                                                                            \
   size = ARRAY_SIZE(value);                                                    \
   type = MT_ITEMS;
 
@@ -68,12 +70,7 @@ static void showSubmenu(Menu menu) {
 
   switch (menu) {
   case M_UPCONVERTER:
-    // ITEMS(upConverterFreqNames);
-    for (uint8_t i = 0; i < ARRAY_SIZE(upConverterFreqNames); ++i) {
-      strncpy(items[i], upConverterFreqNames[i], 15);
-    }
-    size = ARRAY_SIZE(upConverterFreqNames);
-    type = MT_ITEMS;
+    ITEMS(upConverterFreqNames);
     break;
   default:
     break;

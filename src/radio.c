@@ -105,3 +105,7 @@ void RADIO_TuneTo(uint32_t f, bool precise) {
   gCurrentVfo.fRX = f;
   BK4819_TuneTo(f, precise);
 }
+
+void RADIO_SaveCurrentVFO() {
+
+}

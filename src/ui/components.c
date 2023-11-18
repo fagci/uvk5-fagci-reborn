@@ -95,9 +95,12 @@ void UI_FSmall(uint32_t f) {
                          false, true);
   UI_PrintStringSmallest(bwNames[gCurrentVfo.bw], 108, 8, false, true);
 
-  sprintf(String, "%u.%05u", f / 100000, f % 100000);
-
-  UI_PrintStringSmall(String, 8, 127, 0);
+  if (UI_NoChannelName(gCurrentVfo.name)) {
+    sprintf(String, "%u.%05u", f / 100000, f % 100000);
+    UI_PrintStringSmall(String, 8, 127, 0);
+  } else {
+    UI_PrintStringSmall(gCurrentVfo.name, 8, 127, 0);
+  }
 }
 
 void UI_DrawScrollBar(const uint16_t size, const uint16_t currentIndex,

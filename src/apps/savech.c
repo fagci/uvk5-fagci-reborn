@@ -15,19 +15,17 @@ static uint16_t readIndex = 0;
 
 void SAVECH_init() { gotChannelNames = false; }
 void SAVECH_update() {
-  if (gotChannelNames) {
-    // do nothing
-  } else {
-    VFO ch;
-    EEPROM_ReadBuffer(VFO_SIZE * readIndex, &ch, VFO_SIZE);
-    if (UI_NoChannelName(ch.name)) {
+  if (!gotChannelNames) {
+    EEPROM_ReadBuffer(VFO_SIZE * readIndex + 8 + CHANNELS_OFFSET,
+                      channelNames[readIndex], 15);
+    if (UI_NoChannelName(channelNames[readIndex])) {
       sprintf(channelNames[readIndex], "CH-%03u", readIndex + 1);
-    } else {
-      strncpy(channelNames[readIndex], ch.name, 15);
-      channelNames[readIndex][15] = '\0';
     }
-    gRedrawScreen = true;
+    if ((readIndex & 7) == 0) {
+      gRedrawScreen = true;
+    }
     if (++readIndex >= CHANNELS_COUNT) {
+      gRedrawScreen = true;
       gotChannelNames = true;
     }
   }
@@ -49,7 +47,8 @@ void SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     break;
   case KEY_MENU:
     strncpy(channelNames[currentChannelIndex], gCurrentVfo.name, 15);
-    EEPROM_WriteBuffer(VFO_SIZE * currentChannelIndex, &gCurrentVfo, VFO_SIZE);
+    EEPROM_WriteBuffer(VFO_SIZE * currentChannelIndex + CHANNELS_OFFSET,
+                       &gCurrentVfo, VFO_SIZE);
     gRedrawScreen = true;
     break;
   case KEY_EXIT:
@@ -60,9 +59,12 @@ void SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void SAVECH_render() {
+  char String[16];
   memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
   if (gotChannelNames) {
     UI_ShowItems(channelNames, CHANNELS_COUNT, currentChannelIndex);
+    sprintf(String, "%u", currentChannelIndex + 1);
+    UI_PrintStringSmall(String, 0, 0, 6);
   } else {
     char pb[] = "-\\|/";
     char String[2] = {0};

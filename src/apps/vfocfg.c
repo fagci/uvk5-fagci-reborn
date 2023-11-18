@@ -28,20 +28,27 @@ static uint8_t subMenuIndex = 0;
 static bool isSubMenu = false;
 
 MenuItem menu[] = {
-    {"RX freq", M_F_RX}, {"TX freq", M_F_TX},          {"Name", M_NAME},
-    {"Step", M_STEP},    {"Modulation", M_MODULATION}, {"BW", M_BW},
+    {"RX freq", M_F_RX},
+    {"TX freq", M_F_TX},
+    {"Name", M_NAME},
+    {"Step", M_STEP, ARRAY_SIZE(StepFrequencyTable)},
+    {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions)},
+    {"BW", M_BW, ARRAY_SIZE(bwNames)},
     {"Save", M_SAVE},
 };
 
 static void accept() {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
-  /* case M_UPCONVERTER: {
-    uint32_t f = GetScreenF(gCurrentVfo.fRX);
-    gUpconverterType = subMenuIndex;
-    RADIO_TuneTo(GetTuneF(f), true);
-    isSubMenu = false;
-  }; break; */
+  case M_BW:
+    gCurrentVfo.bw = subMenuIndex;
+    break;
+  case M_MODULATION:
+    gCurrentVfo.modulation = subMenuIndex;
+    break;
+  case M_STEP:
+    gCurrentVfo.step = subMenuIndex;
+    break;
   default:
     break;
   }
@@ -60,33 +67,58 @@ static const char *getValue(Menu type) {
     return Output;
   case M_NAME:
     return gCurrentVfo.name;
+  case M_BW:
+    return bwNames[gCurrentVfo.bw];
+  case M_MODULATION:
+    return modulationTypeOptions[gCurrentVfo.modulation];
+  case M_STEP:
+    sprintf(Output, "%d.%02dKHz", StepFrequencyTable[gCurrentVfo.step] / 100,
+            StepFrequencyTable[gCurrentVfo.step] % 100);
+    return Output;
   default:
     break;
   }
   return "";
 }
 
-/* static void showSubmenu(Menu menu) {
-  const char **items;
+#define ITEMS(value)                                                           \
+  for (uint8_t i = 0; i < ARRAY_SIZE(value); ++i) {                            \
+    strncpy(items[i], value[i], 15);                                           \
+  }                                                                            \
+  size = ARRAY_SIZE(value);                                                    \
+  type = MT_ITEMS;
+
+static void showModulationOptions() {
+  char items[5][16] = {0};
+  for (uint8_t i = 0; i < ARRAY_SIZE(modulationTypeOptions); ++i) {
+    strncpy(items[i], modulationTypeOptions[i], 15);
+  }
+  UI_ShowItems(items, ARRAY_SIZE(modulationTypeOptions), subMenuIndex);
+}
+
+static void showSubmenu(Menu menu) {
+  /* char(*items)[16] = {0};
   uint8_t size;
-  MenuItemType type;
+  MenuItemType type; */
 
   switch (menu) {
-  case M_UPCONVERTER:
-    ITEMS(upConverterFreqNames);
+  case M_MODULATION:
+    // ITEMS(modulationTypeOptions);
+    showModulationOptions();
+    return;
     break;
   default:
     break;
   }
 
-  switch (type) {
+  /* switch (type) {
   case MT_ITEMS:
     UI_ShowItems(items, size, subMenuIndex);
     break;
   default:
     break;
-  }
-} */
+  } */
+}
 
 void VFOCFG_init() {}
 void VFOCFG_update() {}
@@ -129,6 +161,7 @@ void VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     }
     if (isSubMenu) {
       accept();
+      isSubMenu = false;
     } else {
       isSubMenu = true;
     }
@@ -152,7 +185,7 @@ void VFOCFG_render() {
   memset(gStatusLine, 0, sizeof(gStatusLine));
   const MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {
-    // showSubmenu(item->type);
+    showSubmenu(item->type);
     UI_PrintStringSmallest(item->name, 0, 0, true, true);
   } else {
     UI_ShowMenu(menu, ARRAY_SIZE(menu), menuIndex);
