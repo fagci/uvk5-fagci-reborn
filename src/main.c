@@ -118,6 +118,7 @@ void Main(void) {
   gCurrentVfo.step = STEP_25_0kHz;
   gCurrentVfo.modulation = MOD_FM;
 
+  // EEPROM_WriteBuffer(0 + 8, gCurrentVfo.name, 16);
   // EEPROM_WriteBuffer(currentVfoOffset, &gCurrentVfo);
   // EEPROM_ReadBuffer(currentVfoOffset, &gCurrentVfo, VFO_SIZE);
 

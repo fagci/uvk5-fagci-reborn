@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 #define CHANNELS_COUNT 400
-#define VFO_SIZE 30
+#define VFO_SIZE sizeof(gCurrentVfo)
 
 typedef struct {
   uint32_t fRX : 32;       // 4
