@@ -55,7 +55,7 @@ void UI_RSSIBar(int16_t rssi, uint8_t line) {
   uint8_t s = DBm2S(dBm);
   uint8_t *ln = gFrameBuffer[line];
 
-  memset(ln, 0, 128);
+  memset(ln, 0, LCD_WIDTH);
 
   for (int i = BAR_LEFT_MARGIN, sv = 1; i < BAR_LEFT_MARGIN + s * 5;
        i += 5, sv++) {
@@ -71,7 +71,6 @@ void UI_RSSIBar(int16_t rssi, uint8_t line) {
     sprintf(String, "S9+%u0", s - 9);
   }
   UI_PrintStringSmallest(String, 3, POS_Y, false, true);
-  ST7565_BlitFullScreen();
 }
 
 void UI_F(uint32_t f, uint8_t line) {
@@ -117,7 +116,7 @@ void UI_DrawScrollBar(const uint8_t size, const uint8_t currentIndex,
   }
 }
 
-static void UI_ShowMenuItem(uint8_t line, const char *name, bool isCurrent) {
+void UI_ShowMenuItem(uint8_t line, const char *name, bool isCurrent) {
   if (isCurrent) {
     gFrameBuffer[line][0] = 0b01111111;
     gFrameBuffer[line][1] = 0b00111110;
@@ -146,7 +145,7 @@ void UI_ShowMenu(const MenuItem *items, uint8_t size, uint8_t currentIndex) {
   UI_DrawScrollBar(size, currentIndex, MENU_LINES_TO_SHOW);
 }
 
-void UI_ShowItems(const char **items, uint8_t size, uint8_t currentIndex) {
+void UI_ShowItems(char (*items)[16], uint16_t size, uint16_t currentIndex) {
   const uint8_t maxItems =
       size < MENU_LINES_TO_SHOW ? size : MENU_LINES_TO_SHOW;
   const uint8_t offset = Clamp(currentIndex - 2, 0, size - maxItems);

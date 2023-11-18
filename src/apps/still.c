@@ -31,14 +31,6 @@ static const RegisterSpec registerSpecs[] = {
     {"MIC", 0x7D, 0, 0xF, 1},
 };
 
-/* static void UpdateRssiTriggerLevel(bool inc) {
-  if (inc)
-    rssiTriggerLevel += 2;
-  else
-    rssiTriggerLevel -= 2;
-  gRedrawScreen = true;
-} */
-
 static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   uint16_t v = BK4819_GetRegValue(s);
 
@@ -148,11 +140,7 @@ void STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 #endif
     UpdateCurrentFreqStill(false);
     break;
-  case KEY_STAR:
-    // UpdateRssiTriggerLevel(true);
-    break;
   case KEY_F:
-    // UpdateRssiTriggerLevel(false);
     APPS_run(APP_VFO_CFG);
     break;
   case KEY_5:
@@ -171,26 +159,12 @@ void STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_SIDE2:
     // ToggleBacklight();
     break;
-  case KEY_PTT:
-    // start transmit
-    /* UpdateBatteryInfo();
-    if (gBatteryDisplayLevel == 6) {
-      txAllowState = VFO_STATE_VOL_HIGH;
-    } else if (IsTXAllowed(GetOffsetedF(gCurrentVfo, fMeasure))) {
-      txAllowState = VFO_STATE_NORMAL;
-      // ToggleTX(true);
-    } else {
-      txAllowState = VFO_STATE_TX_DISABLE;
-    } */
-    gRedrawScreen = true;
-    break;
   case KEY_MENU:
     if (menuState == ARRAY_SIZE(registerSpecs) - 1) {
       menuState = 1;
     } else {
       menuState++;
     }
-    // SYSTEM_DelayMs(100);
     gRedrawScreen = true;
     break;
   case KEY_EXIT:
@@ -199,13 +173,6 @@ void STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       gRedrawScreen = true;
       break;
     }
-#ifdef ENABLE_ALL_REGISTERS
-    if (hiddenMenuState) {
-      hiddenMenuState = 0;
-      gRedrawScreen = true;
-      break;
-    }
-#endif
     APPS_run(APP_SPECTRUM);
     monitorMode = false;
     break;
@@ -221,6 +188,7 @@ static void DrawRegs() {
   uint8_t row = 3;
 
   for (uint8_t i = 0, idx = 1; idx < ARRAY_SIZE(registerSpecs); ++i, ++idx) {
+    RegisterSpec rs = registerSpecs[idx];
     if (idx == 5) {
       row += 2;
       i = 0;
@@ -232,7 +200,6 @@ static void DrawRegs() {
         gFrameBuffer[row + 1][j + offset] = 0xFF;
       }
     }
-    RegisterSpec rs = registerSpecs[idx];
     sprintf(String, "%s", rs.name);
     UI_PrintStringSmallest(String, offset + 2, row * 8 + 2, false,
                            menuState != idx);
@@ -246,22 +213,5 @@ void STILL_render() {
   memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
   UI_FSmall(GetScreenF(gCurrentVfo.fRX));
   UI_RSSIBar(rssi, 2);
-
-#ifdef ENABLE_ALL_REGISTERS
-  if (hiddenMenuState) {
-    uint8_t hiddenMenuLen = ARRAY_SIZE(hiddenRegisterSpecs);
-    uint8_t offset = Clamp(hiddenMenuState - 2, 1, hiddenMenuLen - 5);
-    for (int i = 0; i < 5; ++i) {
-      RegisterSpec rs = hiddenRegisterSpecs[i + offset];
-      bool isCurrent = hiddenMenuState == i + offset;
-      sprintf(String, "%s%x %s: %u", isCurrent ? ">" : " ", rs.num, rs.name,
-              BK4819_GetRegValue(rs));
-      UI_PrintStringSmallest(String, 0, i * 6 + 26, false, true);
-    }
-  } else {
-#endif
-    DrawRegs();
-#ifdef ENABLE_ALL_REGISTERS
-  }
-#endif
+  DrawRegs();
 }

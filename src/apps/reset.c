@@ -8,13 +8,15 @@
 
 static const uint16_t BYTES_TOTAL = 0x2000;
 
-static uint16_t bytesErased;
+static uint16_t bytesErased = 0;
+static uint8_t buf[8];
 
-void RESET_Init() { bytesErased = 0; }
+void RESET_Init() {
+  bytesErased = 0;
+  memset(buf, 0xFF, sizeof(buf));
+}
 
 void RESET_Update() {
-  uint8_t buf[8];
-  memset(buf, 0xFF, sizeof(buf));
   EEPROM_WriteBuffer(bytesErased, buf);
   bytesErased += 8;
   if (bytesErased >= BYTES_TOTAL) {

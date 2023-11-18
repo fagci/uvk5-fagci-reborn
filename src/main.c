@@ -78,7 +78,7 @@ static void AddTasks() {
   TaskAdd("BL", BACKLIGHT_Update, 1000, true);
   TaskAdd("BAT", UpdateBattery, 1000, true);
 
-  APPS_run(APP_TEXTINPUT);
+  APPS_run(APP_STILL);
   TaskAdd("Update", Update, 1, true);
   TaskAdd("Render", Render, 33, true);
   TaskAdd("Keys", Keys, 10, true);

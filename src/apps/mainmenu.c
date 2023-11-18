@@ -6,6 +6,7 @@
 #include "../ui/components.h"
 #include "../ui/helper.h"
 #include "apps.h"
+#include <string.h>
 
 typedef enum {
   M_NONE,
@@ -61,13 +62,18 @@ static const char *getValue(Menu type) {
 }
 
 static void showSubmenu(Menu menu) {
-  const char **items;
+  char(*items)[16] = {0};
   uint8_t size;
   MenuItemType type;
 
   switch (menu) {
   case M_UPCONVERTER:
-    ITEMS(upConverterFreqNames);
+    // ITEMS(upConverterFreqNames);
+    for (uint8_t i = 0; i < ARRAY_SIZE(upConverterFreqNames); ++i) {
+      strncpy(items[i], upConverterFreqNames[i], 15);
+    }
+    size = ARRAY_SIZE(upConverterFreqNames);
+    type = MT_ITEMS;
     break;
   default:
     break;

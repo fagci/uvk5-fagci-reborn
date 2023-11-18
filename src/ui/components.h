@@ -1,6 +1,7 @@
 #ifndef COMPONENTS_H
 #define COMPONENTS_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 typedef struct MenuItem {
@@ -22,7 +23,8 @@ void UI_F(uint32_t f, uint8_t line);
 void UI_FSmall(uint32_t f);
 void UI_DrawScrollBar(const uint8_t size, const uint8_t currentIndex,
                       const uint8_t linesCount);
+void UI_ShowMenuItem(uint8_t line, const char *name, bool isCurrent);
 void UI_ShowMenu(const MenuItem *items, uint8_t size, uint8_t currentIndex);
-void UI_ShowItems(const char **items, uint8_t size, uint8_t currentIndex);
+void UI_ShowItems(char (*items)[16], uint16_t size, uint16_t currentIndex);
 
 #endif /* end of include guard: COMPONENTS_H */

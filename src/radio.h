@@ -4,19 +4,22 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define CHANNELS_COUNT 400
+#define VFO_SIZE 16
+
 typedef struct {
-  uint32_t fRX : 32;
-  uint32_t fTX : 32;
-  char name[16];
-  uint8_t memoryBanks : 8;
-  uint8_t step : 8;
+  uint32_t fRX : 32; // 4
+  uint32_t fTX : 32; // 4
+  char name[16]; // 2
+  uint8_t memoryBanks : 8; // 1
+  uint8_t step : 8; // 1
   uint8_t modulation : 4;
   uint8_t bw : 2;
-  uint8_t power : 2;
-  uint8_t codeRx : 8;
-  uint8_t codeTx : 8;
+  uint8_t power : 2; // 1
+  uint8_t codeRx : 8; // 1
+  uint8_t codeTx : 8; // 1
   uint8_t codeTypeRx : 4;
-  uint8_t codeTypeTx : 4;
+  uint8_t codeTypeTx : 4; // 1
 } VFO;
 
 extern VFO gCurrentVfo;

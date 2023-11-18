@@ -12,14 +12,15 @@ typedef enum {
   M_F_TX, // uint32_t fTX : 32;
   M_NAME, // char name[16];
   // uint8_t memoryBanks : 8;
-  // uint8_t step : 8;
-  // uint8_t modulation : 4;
-  // uint8_t bw : 2;
-  // uint8_t power : 2;
-  // uint8_t codeRx : 8;
-  // uint8_t codeTx : 8;
-  // uint8_t codeTypeRx : 4;
-  // uint8_t codeTypeTx : 4;
+  M_STEP,       // uint8_t step : 8;
+  M_MODULATION, // uint8_t modulation : 4;
+  M_BW,         // uint8_t bw : 2;
+                // uint8_t power : 2;
+                // uint8_t codeRx : 8;
+                // uint8_t codeTx : 8;
+                // uint8_t codeTypeRx : 4;
+                // uint8_t codeTypeTx : 4;
+  M_SAVE,
 } Menu;
 
 static uint8_t menuIndex = 0;
@@ -27,9 +28,9 @@ static uint8_t subMenuIndex = 0;
 static bool isSubMenu = false;
 
 MenuItem menu[] = {
-    {"RX freq", M_F_RX},
-    {"TX freq", M_F_TX},
-    {"Name", M_NAME},
+    {"RX freq", M_F_RX}, {"TX freq", M_F_TX},          {"Name", M_NAME},
+    {"Step", M_STEP},    {"Modulation", M_MODULATION}, {"BW", M_BW},
+    {"Save", M_SAVE},
 };
 
 static void accept() {
@@ -46,7 +47,7 @@ static void accept() {
   }
 }
 
-char Output[16];
+static char Output[16];
 static const char *getValue(Menu type) {
   switch (type) {
   case M_F_RX:
@@ -119,6 +120,9 @@ void VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case M_NAME:
       gTextinputText = gCurrentVfo.name;
       APPS_run(APP_TEXTINPUT);
+      return;
+    case M_SAVE:
+      APPS_run(APP_SAVECH);
       return;
     default:
       break;
