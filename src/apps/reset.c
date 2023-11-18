@@ -17,7 +17,7 @@ void RESET_Init() {
 }
 
 void RESET_Update() {
-  EEPROM_WriteBuffer(bytesErased, buf);
+  EEPROM_WriteBuffer(bytesErased, buf, 8);
   bytesErased += 8;
   if (bytesErased >= BYTES_TOTAL) {
     NVIC_SystemReset();

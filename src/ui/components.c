@@ -100,11 +100,11 @@ void UI_FSmall(uint32_t f) {
   UI_PrintStringSmall(String, 8, 127, 0);
 }
 
-void UI_DrawScrollBar(const uint8_t size, const uint8_t currentIndex,
+void UI_DrawScrollBar(const uint16_t size, const uint16_t currentIndex,
                       const uint8_t linesCount) {
   uint8_t i;
   const uint8_t scrollbarPosY =
-      ConvertDomain(currentIndex, 0, size, 0, linesCount * 8 + 5);
+      ConvertDomain(currentIndex, 0, size, 0, linesCount * 8 - 3);
 
   for (i = 0; i < linesCount; i++) {
     gFrameBuffer[i][126] = 0xFF;
@@ -146,14 +146,14 @@ void UI_ShowMenu(const MenuItem *items, uint8_t size, uint8_t currentIndex) {
 }
 
 void UI_ShowItems(char (*items)[16], uint16_t size, uint16_t currentIndex) {
-  const uint8_t maxItems =
+  const uint16_t maxItems =
       size < MENU_LINES_TO_SHOW ? size : MENU_LINES_TO_SHOW;
-  const uint8_t offset = Clamp(currentIndex - 2, 0, size - maxItems);
+  const uint16_t offset = Clamp(currentIndex - 2, 0, size - maxItems);
 
   memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
 
-  for (uint8_t i = 0; i < maxItems; ++i) {
-    uint8_t itemIndex = i + offset;
+  for (uint16_t i = 0; i < maxItems; ++i) {
+    uint16_t itemIndex = i + offset;
     UI_ShowMenuItem(i, items[itemIndex], currentIndex == itemIndex);
   }
 

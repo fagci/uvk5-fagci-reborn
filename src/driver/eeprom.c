@@ -36,7 +36,7 @@ void EEPROM_ReadBuffer(uint16_t Address, void *pBuffer, uint8_t Size)
 	I2C_Stop();
 }
 
-void EEPROM_WriteBuffer(uint16_t Address, const void *pBuffer)
+void EEPROM_WriteBuffer(uint16_t Address, const void *pBuffer, uint8_t size)
 
 {
 	I2C_Start();
@@ -46,7 +46,7 @@ void EEPROM_WriteBuffer(uint16_t Address, const void *pBuffer)
 	I2C_Write((Address >> 8) & 0xFF);
 	I2C_Write((Address >> 0) & 0xFF);
 
-	I2C_WriteBuffer(pBuffer, 8);
+	I2C_WriteBuffer(pBuffer, size);
 
 	I2C_Stop();
 

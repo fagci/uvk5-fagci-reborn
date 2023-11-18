@@ -13,9 +13,7 @@ static char channelNames[CHANNELS_COUNT][16];
 static bool gotChannelNames = false;
 static uint16_t readIndex = 1;
 
-void SAVECH_init() {
-  gotChannelNames = false;
-}
+void SAVECH_init() { gotChannelNames = false; }
 void SAVECH_update() {
   if (gotChannelNames) {
     // do nothing
@@ -51,7 +49,9 @@ void SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     break;
   case KEY_MENU:
     strncpy(channelNames[currentChannelIndex], gCurrentVfo.name, 15);
-    EEPROM_WriteBuffer(VFO_SIZE * currentChannelIndex, &gCurrentVfo);
+    for (uint8_t i = 0; i < VFO_SIZE; i += 8) {
+      EEPROM_WriteBuffer(VFO_SIZE * currentChannelIndex, &gCurrentVfo + i, 8);
+    }
     gRedrawScreen = true;
     break;
   case KEY_EXIT:
