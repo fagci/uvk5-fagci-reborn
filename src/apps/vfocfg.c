@@ -42,12 +42,15 @@ static void accept() {
   switch (item->type) {
   case M_BW:
     gCurrentVfo.bw = subMenuIndex;
+    RADIO_SaveCurrentVFO();
     break;
   case M_MODULATION:
     gCurrentVfo.modulation = subMenuIndex;
+    RADIO_SaveCurrentVFO();
     break;
   case M_STEP:
     gCurrentVfo.step = subMenuIndex;
+    RADIO_SaveCurrentVFO();
     break;
   default:
     break;

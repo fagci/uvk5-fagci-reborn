@@ -110,19 +110,20 @@ void Main(void) {
   BATTERY_UpdateBatteryInfo();
   RADIO_SetupRegisters();
 
+  RADIO_LoadCurrentVFO();
 
-  gCurrentVfo.fRX = 43400000;
-  gCurrentVfo.bw = BK4819_FILTER_BW_WIDE;
-  sprintf(gCurrentVfo.name, "Test 123");
-  gCurrentVfo.step = STEP_25_0kHz;
-  gCurrentVfo.modulation = MOD_FM;
-  gCurrentVfo.codeTypeTx = 3;
+  if (gCurrentVfo.fRX < F_MIN || gCurrentVfo.fRX > F_MAX) {
+    gCurrentVfo.fRX = 43400000;
+    gCurrentVfo.bw = BK4819_FILTER_BW_WIDE;
+    gCurrentVfo.step = STEP_25_0kHz;
+    gCurrentVfo.modulation = MOD_FM;
+    gCurrentVfo.codeTypeTx = 3;
+    RADIO_SaveCurrentVFO();
+  }
 
-  RADIO_TuneTo(gCurrentVfo.fRX, true);
+  BK4819_TuneTo(gCurrentVfo.fRX, true);
   BK4819_Squelch(3, gCurrentVfo.fRX);
   BK4819_SetModulation(gCurrentVfo.modulation);
-
-  EEPROM_ReadBuffer(0, &gCurrentVfo, VFO_SIZE);
 
   BACKLIGHT_SetDuration(15);
   BACKLIGHT_On();

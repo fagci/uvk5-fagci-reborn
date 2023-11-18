@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define TASKS_MAX 16
+#define TASKS_MAX 32
 
 typedef struct {
   const char *name;

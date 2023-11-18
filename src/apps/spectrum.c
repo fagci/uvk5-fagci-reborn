@@ -47,7 +47,6 @@ static bool blacklist[128] = {false};
 
 static MovingAverage mov = {{128}, {}, 255, 128, 0, 0};
 
-
 #ifdef ENABLE_ALL_REGISTERS
 uint8_t hiddenMenuState = 0;
 #endif
@@ -366,13 +365,7 @@ static void SelectNearestPreset(bool inc) {
 }
 
 static void UpdateScanStep(bool inc) {
-  if (inc && gCurrentVfo.step < STEP_100_0kHz) {
-    ++gCurrentVfo.step;
-  } else if (!inc && gCurrentVfo.step > 0) {
-    --gCurrentVfo.step;
-  } else {
-    return;
-  }
+  RADIO_UpdateStep(inc);
   settings.frequencyChangeStep = GetBW() >> 1;
   RelaunchScan();
   ResetBlacklist();
@@ -477,8 +470,6 @@ static void DrawStatus() {
 static void DrawNums() {
   sprintf(String, "%ux", GetStepsCount());
   UI_PrintStringSmallest(String, 0, 2, false, true);
-  sprintf(String, "%u.%02uk", GetScanStep() / 100, GetScanStep() % 100);
-  UI_PrintStringSmallest(String, 0, 8, false, true);
 
   if (IsCenterMode()) {
     uint32_t cf = GetScreenF(currentFreq);

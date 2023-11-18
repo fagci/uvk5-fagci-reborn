@@ -94,6 +94,9 @@ void UI_FSmall(uint32_t f) {
   UI_PrintStringSmallest(modulationTypeOptions[gCurrentVfo.modulation], 116, 2,
                          false, true);
   UI_PrintStringSmallest(bwNames[gCurrentVfo.bw], 108, 8, false, true);
+  sprintf(String, "%u.%02uk", StepFrequencyTable[gCurrentVfo.step] / 100,
+          StepFrequencyTable[gCurrentVfo.step] % 100);
+  UI_PrintStringSmallest(String, 0, 8, false, true);
 
   if (UI_NoChannelName(gCurrentVfo.name)) {
     sprintf(String, "%u.%05u", f / 100000, f % 100000);

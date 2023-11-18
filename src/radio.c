@@ -1,9 +1,12 @@
 #include "radio.h"
 #include "driver/audio.h"
 #include "driver/bk4819.h"
+#include "driver/eeprom.h"
 #include "driver/gpio.h"
 #include "driver/system.h"
 #include "inc/dp32g030/gpio.h"
+#include "scheduler.h"
+#include "settings.h"
 
 VFO gCurrentVfo;
 UpconverterTypes gUpconverterType = UPCONVERTER_OFF;
@@ -82,6 +85,11 @@ void RADIO_ToggleRX(bool on) {
   BK4819_ToggleAFBit(on);
 }
 
+static void onVfoUpdate() {
+  TaskRemove(RADIO_SaveCurrentVFO);
+  TaskAdd("VFO save", RADIO_SaveCurrentVFO, 5000, false);
+}
+
 void RADIO_ToggleModulation() {
   if (gCurrentVfo.modulation == MOD_RAW) {
     gCurrentVfo.modulation = MOD_FM;
@@ -89,6 +97,18 @@ void RADIO_ToggleModulation() {
     ++gCurrentVfo.modulation;
   }
   BK4819_SetModulation(gCurrentVfo.modulation);
+  onVfoUpdate();
+}
+
+void RADIO_UpdateStep(bool inc) {
+  if (inc && gCurrentVfo.step < STEP_100_0kHz) {
+    ++gCurrentVfo.step;
+  } else if (!inc && gCurrentVfo.step > 0) {
+    --gCurrentVfo.step;
+  } else {
+    return;
+  }
+  onVfoUpdate();
 }
 
 void RADIO_ToggleListeningBW() {
@@ -99,13 +119,19 @@ void RADIO_ToggleListeningBW() {
   }
 
   BK4819_SetFilterBandwidth(gCurrentVfo.bw);
+  onVfoUpdate();
 }
 
 void RADIO_TuneTo(uint32_t f, bool precise) {
   gCurrentVfo.fRX = f;
   BK4819_TuneTo(f, precise);
+  onVfoUpdate();
 }
 
 void RADIO_SaveCurrentVFO() {
+  EEPROM_WriteBuffer(CURRENT_VFO_OFFSET, &gCurrentVfo, VFO_SIZE);
+}
 
+void RADIO_LoadCurrentVFO() {
+  EEPROM_ReadBuffer(CURRENT_VFO_OFFSET, &gCurrentVfo, VFO_SIZE);
 }

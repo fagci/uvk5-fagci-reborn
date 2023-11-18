@@ -48,6 +48,9 @@ uint32_t GetTuneF(uint32_t f);
 void RADIO_ToggleRX(bool on);
 void RADIO_ToggleModulation();
 void RADIO_ToggleListeningBW();
+void RADIO_UpdateStep(bool inc);
 void RADIO_TuneTo(uint32_t f, bool precise);
+void RADIO_SaveCurrentVFO();
+void RADIO_LoadCurrentVFO();
 
 #endif /* end of include guard: RADIO_H */
