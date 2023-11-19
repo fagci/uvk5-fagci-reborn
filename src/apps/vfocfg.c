@@ -125,7 +125,7 @@ static void showSubmenu(Menu menu) {
 
 void VFOCFG_init() {}
 void VFOCFG_update() {}
-void VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed || bKeyHeld) {
     return;
   }

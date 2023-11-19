@@ -80,7 +80,7 @@ void FINPUT_deinit() {
   APPS_run(gPreviousApp);
 }
 
-void FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed || bKeyHeld) {
     return;
   }

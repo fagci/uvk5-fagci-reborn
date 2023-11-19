@@ -7,7 +7,7 @@
 
 void TEXTINPUT_init();
 void TEXTINPUT_update();
-void TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
+bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
 void TEXTINPUT_render();
 
 extern char *gTextinputText;

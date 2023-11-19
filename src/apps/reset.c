@@ -36,4 +36,4 @@ void RESET_Render() {
          ConvertDomain(bytesErased, 0, 8196, 0, LCD_WIDTH));
 }
 
-void RESET_Key(KEY_Code_t k, bool p, bool h) {}
+bool RESET_key(KEY_Code_t k, bool p, bool h) {}

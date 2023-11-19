@@ -352,7 +352,7 @@ static const RegisterSpec hiddenRegisterSpecs[] = {
 };
 #endif
 
-void SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
+bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
 void SPECTRUM_init(void);
 void SPECTRUM_update(void);
 void SPECTRUM_render(void);

@@ -694,7 +694,7 @@ static void Render() {
   RenderSpectrum();
 }
 
-void SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
+bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   if (preventKeypress)
     return;
 

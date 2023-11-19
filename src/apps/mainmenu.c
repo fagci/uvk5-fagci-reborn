@@ -37,7 +37,7 @@ void MAINMENU_render() {
 
 void MAINMENU_init() {}
 void MAINMENU_update() {}
-void MAINMENU_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+bool MAINMENU_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed || bKeyHeld) {
     return;
   }

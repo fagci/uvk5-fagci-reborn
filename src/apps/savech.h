@@ -8,7 +8,7 @@
 
 void SAVECH_init();
 void SAVECH_update();
-void SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
+bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
 void SAVECH_render();
 
 #endif /* end of include guard: SAVECH_H */

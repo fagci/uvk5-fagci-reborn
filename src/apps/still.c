@@ -67,7 +67,7 @@ void STILL_init() {
   TaskAdd("Redraw still", render, 1000, true);
 }
 
-void STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed) {
     return;
   }

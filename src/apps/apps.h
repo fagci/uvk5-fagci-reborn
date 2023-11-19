@@ -30,7 +30,7 @@ extern const App apps[10];
 extern AppType_t gPreviousApp;
 extern AppType_t gCurrentApp;
 
-void APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
+bool APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
 void APPS_init(AppType_t app);
 void APPS_update(void);
 void APPS_render(void);

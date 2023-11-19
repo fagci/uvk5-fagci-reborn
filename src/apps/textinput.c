@@ -77,7 +77,7 @@ static void backspace() {
 
 void TEXTINPUT_init() { TaskAdd("Coursor blink", blink, 250, true); }
 void TEXTINPUT_update() {}
-void TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed || bKeyHeld) {
     return;
   }

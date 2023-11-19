@@ -7,7 +7,7 @@
 
 void STILL_init();
 void STILL_update();
-void STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
+bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
 void STILL_render();
 
 #endif /* end of include guard: STILL_H */

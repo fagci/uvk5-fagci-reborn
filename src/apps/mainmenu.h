@@ -7,7 +7,7 @@
 
 void MAINMENU_init();
 void MAINMENU_update();
-void MAINMENU_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
+bool MAINMENU_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
 void MAINMENU_render();
 
 #endif /* end of include guard: MAINMENU_H */

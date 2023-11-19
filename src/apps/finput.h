@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 void FINPUT_init();
-void FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
+bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
 void FINPUT_render();
 
 #endif /* end of include guard: FINPUT_H */

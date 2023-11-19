@@ -30,7 +30,7 @@ void SAVECH_update() {
     }
   }
 }
-void SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed) {
     return;
   }

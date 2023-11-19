@@ -31,7 +31,7 @@ const App apps[10] = {
 
 };
 
-void APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
+bool APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   if (apps[gCurrentApp].key) {
     apps[gCurrentApp].key(Key, bKeyPressed, bKeyHeld);
   }

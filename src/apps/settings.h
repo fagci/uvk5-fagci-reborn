@@ -7,7 +7,7 @@
 
 void SETTINGS_init();
 void SETTINGS_update();
-void SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
+bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
 void SETTINGS_render();
 
 #endif /* end of include guard: SETTINGS_H */
