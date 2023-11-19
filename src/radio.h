@@ -1,11 +1,18 @@
 #ifndef RADIO_H
 #define RADIO_H
 
-#include "settings.h"
 #include <stdbool.h>
 #include <stdint.h>
 
-extern VFO gCurrentVfo;
+#define BANDS_COUNT 32
+#define CHANNELS_COUNT 300
+
+#define BAND_SIZE 28
+#define VFO_SIZE 24
+
+#define BANDS_OFFSET 0
+#define CHANNELS_OFFSET (BANDS_OFFSET + BAND_SIZE * BANDS_COUNT)
+#define CURRENT_VFO_OFFSET (CHANNELS_OFFSET + VFO_SIZE * CHANNELS_COUNT)
 
 typedef enum {
   STEP_0_01kHz,
@@ -29,8 +36,40 @@ typedef enum {
   UPCONVERTER_125M,
 } UpconverterTypes;
 
+typedef struct {           // 24 bytes
+  uint32_t fRX : 32;       // 4
+  uint32_t fTX : 32;       // 4
+  char name[10];           // 10
+  uint8_t memoryBanks : 8; // 1
+  uint8_t step : 4;
+  uint8_t modulation : 4; // 1
+  uint8_t bw : 2;
+  uint8_t power : 2;
+  uint8_t codeTypeRx : 4; // 1
+  uint8_t codeTypeTx : 4;
+  uint8_t codeRx : 8; // 1
+  uint8_t codeTx : 8; // 1
+} VFO;
+
+typedef struct {           // 28 bytes
+  uint32_t fStart : 32;    // 4
+  uint32_t fEnd : 32;      // 4
+  uint32_t offset : 32;    // 4
+  char name[10];           // 10
+  uint8_t memoryBanks : 8; // 1
+  uint8_t step : 4;
+  uint8_t modulation : 4; // 1
+  uint8_t bw : 2;
+  uint8_t power : 2;
+  uint8_t codeTypeRx : 4; // 1
+  uint8_t codeTypeTx : 4;
+  uint8_t codeRx : 8; // 1
+  uint8_t codeTx : 8; // 1
+  uint8_t squelch : 4;
+  uint8_t squelchType : 2; // 1
+} Band;
+
 extern VFO gCurrentVfo;
-extern UpconverterTypes gUpconverterType;
 extern const char *upConverterFreqNames[3];
 extern bool gIsListening;
 

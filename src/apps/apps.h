@@ -13,6 +13,7 @@ typedef enum {
   APP_TEXTINPUT,
   APP_VFO_CFG,
   APP_SAVECH,
+  APP_SETTINGS,
   // APP_SCANLIST,
   // APP_AB_SCANNER,
 } AppType_t;
@@ -25,7 +26,7 @@ typedef struct App {
   void (*key)(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
 } App;
 
-extern const App apps[9];
+extern const App apps[10];
 extern AppType_t gPreviousApp;
 extern AppType_t gCurrentApp;
 

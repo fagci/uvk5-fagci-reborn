@@ -173,3 +173,7 @@ void UI_PrintStringSmallest(const char *pString, uint8_t x, uint8_t y,
 bool UI_NoChannelName(const char *channelName) {
   return channelName[0] < 32 || channelName[0] > 127;
 }
+
+void UI_ClearStatus() { memset(gFrameBuffer, 0, sizeof(gFrameBuffer)); }
+
+void UI_ClearScreen() { memset(gFrameBuffer, 0, sizeof(gFrameBuffer)); }

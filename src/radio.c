@@ -6,7 +6,6 @@
 #include "driver/system.h"
 #include "inc/dp32g030/gpio.h"
 #include "scheduler.h"
-#include "settings.h"
 
 VFO gCurrentVfo;
 UpconverterTypes gUpconverterType = UPCONVERTER_OFF;

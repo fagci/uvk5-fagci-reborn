@@ -13,6 +13,7 @@
 #include "helper/battery.h"
 #include "radio.h"
 #include "scheduler.h"
+#include "settings.h"
 #include "ui/components.h"
 #include "ui/helper.h"
 #include <stdbool.h>
@@ -30,9 +31,10 @@ static void onKey(KEY_Code_t k, bool p, bool h) {
   }
   if (k == KEY_MENU) {
     if (!p && !h) {
-      // show vfo menu?
-    } else if (p && h) {
       APPS_run(APP_MAINMENU);
+      return;
+    } else if (p && h) {
+      APPS_run(APP_SETTINGS);
       return;
     }
   }
@@ -106,6 +108,8 @@ void Main(void) {
   SYSTEM_ConfigureSysCon();
 
   BOARD_Init();
+
+  SETTINGS_Load();
 
   BATTERY_UpdateBatteryInfo();
   RADIO_SetupRegisters();
