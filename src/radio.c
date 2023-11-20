@@ -77,7 +77,6 @@ void RADIO_ToggleRX(bool on) {
   gIsListening = on;
 
   BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN, on);
-  BK4819_RX_TurnOn();
 
   AUDIO_ToggleSpeaker(on);
   BK4819_ToggleAFDAC(on);

@@ -45,7 +45,7 @@ const App apps[APPS_COUNT] = {
     {"None"},
     {"Test", TEST_Init, TEST_Update, TEST_Render, TEST_key},
     {"Spectrum", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render, SPECTRUM_key},
-    {"Still", STILL_init, STILL_update, STILL_render, STILL_key, STILL_deinit},
+    {"Still", STILL_init, NULL, STILL_render, STILL_key, STILL_deinit},
     {"Frequency input", FINPUT_init, NULL, FINPUT_render, FINPUT_key},
     {"Main menu", MAINMENU_init, NULL, MAINMENU_render, MAINMENU_key},
     {"Reset", RESET_Init, RESET_Update, RESET_Render, RESET_key},

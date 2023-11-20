@@ -6,7 +6,6 @@
 #include <stdint.h>
 
 void STILL_init();
-void STILL_update();
 bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
 void STILL_render();
 void STILL_deinit();

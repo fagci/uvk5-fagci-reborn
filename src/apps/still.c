@@ -52,8 +52,6 @@ static void UpdateCurrentFreqStill(bool inc) {
   gRedrawScreen = true;
 }
 
-void STILL_update() {}
-
 static void update() {
   rssi = BK4819_GetRSSI();
   RADIO_ToggleRX(monitorMode || BK4819_IsSquelchOpen());
