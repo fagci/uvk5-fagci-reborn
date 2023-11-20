@@ -77,7 +77,7 @@ void FINPUT_init() {
 
 void FINPUT_deinit() {
   TaskRemove(dotBlinkFn);
-  APPS_run(gPreviousApp);
+  APPS_exit();
 }
 
 bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {

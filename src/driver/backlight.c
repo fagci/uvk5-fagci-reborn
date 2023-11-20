@@ -2,6 +2,7 @@
 #include "../inc/dp32g030/gpio.h"
 #include "../inc/dp32g030/portcon.h"
 #include "../inc/dp32g030/pwmplus.h"
+#include "../settings.h"
 #include "gpio.h"
 
 uint8_t duration = 2;
@@ -40,7 +41,7 @@ void BACKLIGHT_Toggle(bool on) {
   state = on;
   if (on) {
     // GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
-    BACKLIGHT_SetBrightness(4);
+    BACKLIGHT_SetBrightness(gSettings.brightness);
   } else {
     // GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
     BACKLIGHT_SetBrightness(0);

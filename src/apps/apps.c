@@ -12,13 +12,40 @@
 #include "textinput.h"
 #include "vfocfg.h"
 
-AppType_t gPreviousApp = APP_SPECTRUM;
-AppType_t gCurrentApp = APP_SPECTRUM;
+#define APPS_STACK_SIZE 8
 
-const App apps[10] = {
+AppType_t gCurrentApp = APP_NONE;
+
+static AppType_t appsStack[APPS_STACK_SIZE] = {0};
+static int8_t stackIndex = -1;
+
+static bool pushApp(AppType_t app) {
+  if (stackIndex < APPS_STACK_SIZE) {
+    appsStack[++stackIndex] = app;
+    return true;
+  }
+  return false;
+}
+
+static AppType_t popApp() {
+  if (stackIndex > 0) {
+    return appsStack[stackIndex--]; // Do not care about existing value
+  }
+  return appsStack[stackIndex];
+}
+
+static AppType_t peek() {
+  if (stackIndex >= 0) {
+    return appsStack[stackIndex];
+  }
+  return APP_NONE;
+}
+
+const App apps[APPS_COUNT] = {
+    {"None"},
     {"Test", TEST_Init, TEST_Update, TEST_Render, TEST_key},
     {"Spectrum", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render, SPECTRUM_key},
-    {"Still", STILL_init, STILL_update, STILL_render, STILL_key},
+    {"Still", STILL_init, STILL_update, STILL_render, STILL_key, STILL_deinit},
     {"Frequency input", FINPUT_init, NULL, FINPUT_render, FINPUT_key},
     {"Main menu", MAINMENU_init, NULL, MAINMENU_render, MAINMENU_key},
     {"Reset", RESET_Init, RESET_Update, RESET_Render, RESET_key},
@@ -40,8 +67,15 @@ bool APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 void APPS_init(AppType_t app) {
+  char String[16] = "";
+  gCurrentApp = app;
   UI_ClearScreen();
-  UI_PrintStringSmallest(apps[gCurrentApp].name, 0, 0, true, true);
+  UI_ClearStatus();
+  for (uint8_t i = 0; i <= stackIndex; i++) {
+    sprintf(String, "%s>%u", String, appsStack[i]);
+  }
+  UI_PrintStringSmallest(String, 0, 0, true, true);
+  // UI_PrintStringSmallest(apps[gCurrentApp].name, 0, 0, true, true);
   if (apps[app].init) {
     apps[app].init();
   }
@@ -59,10 +93,25 @@ void APPS_render(void) {
     apps[gCurrentApp].render();
   }
 }
-void APPS_run(AppType_t app) {
-  if (gPreviousApp != app) {
-    gPreviousApp = gCurrentApp;
+void APPS_deinit(void) {
+  if (apps[gCurrentApp].deinit) {
+    apps[gCurrentApp].deinit();
   }
-  APPS_init(app);
-  gCurrentApp = app;
+}
+void APPS_run(AppType_t app) {
+  if (appsStack[stackIndex] == app) {
+    return;
+  }
+  if (pushApp(app)) {
+    APPS_deinit();
+    APPS_init(app);
+  }
+}
+void APPS_exit() {
+  if (stackIndex == 0) {
+    return;
+  }
+  APPS_deinit();
+  popApp();
+  APPS_init(peek());
 }

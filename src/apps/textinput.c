@@ -166,7 +166,7 @@ bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_MENU:
     strncpy(gTextinputText, inputField, 16);
-    APPS_run(gPreviousApp);
+    APPS_exit();
     return true;
   default:
     break;

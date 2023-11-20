@@ -25,9 +25,10 @@ typedef struct {
   uint8_t ste : 1;
   uint8_t repeaterSte : 1;
   uint8_t dtmfdecode : 1; // 1
+  uint8_t brightness : 4;
 } Settings;
 
-#define SETTINGS_SIZE 6
+#define SETTINGS_SIZE 7
 #define SETTINGS_OFFSET 8120
 
 extern Settings gSettings;

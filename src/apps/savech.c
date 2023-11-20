@@ -52,7 +52,7 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     gRedrawScreen = true;
     return true;
   case KEY_EXIT:
-    APPS_run(gPreviousApp);
+    APPS_exit();
     return true;
   default:
     break;

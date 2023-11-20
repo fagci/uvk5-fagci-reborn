@@ -33,12 +33,13 @@ static void onKey(KEY_Code_t k, bool p, bool h) {
     gRedrawScreen = true;
     return;
   }
-  if (k == KEY_MENU && p) {
-    if (h) {
+  if (k == KEY_MENU && gCurrentApp != APP_SETTINGS &&
+      gCurrentApp != APP_MAINMENU) {
+    if (h && p) {
       APPS_run(APP_SETTINGS);
       return;
     }
-    if (!h) {
+    if (!h && p) {
       APPS_run(APP_MAINMENU);
       return;
     }
@@ -87,7 +88,7 @@ static void AddTasks() {
   TaskAdd("BL", BACKLIGHT_Update, 1000, true);
   TaskAdd("BAT", UpdateBattery, 1000, true);
 
-  APPS_run(APP_SPECTRUM);
+  APPS_run(APP_STILL);
   TaskAdd("Update", Update, 1, true);
   TaskAdd("Render", Render, 33, true);
   TaskAdd("Keys", Keys, 10, true);

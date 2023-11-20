@@ -62,9 +62,14 @@ static void update() {
 static void render() { gRedrawScreen = true; }
 
 void STILL_init() {
-  BK4819_Squelch(4, gCurrentVfo.fRX);
+  BK4819_Squelch(3, gCurrentVfo.fRX);
   TaskAdd("Update still", update, 10, true);
   TaskAdd("Redraw still", render, 1000, true);
+}
+
+void STILL_deinit() {
+  TaskRemove(update);
+  TaskRemove(render);
 }
 
 bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
@@ -162,7 +167,7 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       gRedrawScreen = true;
       return true;
     }
-    APPS_run(APP_SPECTRUM);
+    APPS_exit();
     monitorMode = false;
     return true;
   default:

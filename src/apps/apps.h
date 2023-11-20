@@ -3,7 +3,10 @@
 
 #include "../driver/keyboard.h"
 
+#define APPS_COUNT 11
+
 typedef enum {
+  APP_NONE,
   APP_TASK_MANAGER,
   APP_SPECTRUM,
   APP_STILL,
@@ -24,9 +27,10 @@ typedef struct App {
   void (*update)(void);
   void (*render)(void);
   bool (*key)(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
+  void (*deinit)(void);
 } App;
 
-extern const App apps[10];
+extern const App apps[APPS_COUNT];
 extern AppType_t gPreviousApp;
 extern AppType_t gCurrentApp;
 
@@ -35,5 +39,6 @@ void APPS_init(AppType_t app);
 void APPS_update(void);
 void APPS_render(void);
 void APPS_run(AppType_t app);
+void APPS_exit(void);
 
 #endif /* end of include guard: APPS_H */

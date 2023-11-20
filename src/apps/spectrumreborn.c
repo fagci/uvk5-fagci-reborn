@@ -30,6 +30,7 @@ static void step() {
   gettingRssi = true;
   BK4819_TuneTo(gCurrentVfo.fRX, true);
   TaskAdd("Get RSSI", writeRssi, msmTime, false);
+  TaskSetPriority(writeRssi, 0);
 }
 
 static void startNewScan() {

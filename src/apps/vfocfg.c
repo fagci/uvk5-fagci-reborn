@@ -175,7 +175,7 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     if (isSubMenu) {
       isSubMenu = false;
     } else {
-      APPS_run(gPreviousApp);
+      APPS_exit();
     }
     gRedrawScreen = true;
     gRedrawStatus = true;

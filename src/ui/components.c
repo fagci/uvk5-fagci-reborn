@@ -165,3 +165,20 @@ void UI_ShowItems(char (*items)[16], uint16_t size, uint16_t currentIndex) {
 
   UI_DrawScrollBar(size, currentIndex, MENU_LINES_TO_SHOW);
 }
+
+void UI_ShowRangeItems(uint16_t size, uint16_t currentIndex) {
+  char String[8];
+  const uint16_t maxItems =
+      size < MENU_LINES_TO_SHOW ? size : MENU_LINES_TO_SHOW;
+  const uint16_t offset = Clamp(currentIndex - 2, 0, size - maxItems);
+
+  memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+
+  for (uint16_t i = 0; i < maxItems; ++i) {
+    uint16_t itemIndex = i + offset;
+    sprintf(String, "%u", itemIndex);
+    UI_ShowMenuItem(i, String, currentIndex == itemIndex);
+  }
+
+  UI_DrawScrollBar(size, currentIndex, MENU_LINES_TO_SHOW);
+}

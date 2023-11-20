@@ -26,5 +26,6 @@ void UI_DrawScrollBar(const uint16_t size, const uint16_t currentIndex,
 void UI_ShowMenuItem(uint8_t line, const char *name, bool isCurrent);
 void UI_ShowMenu(const MenuItem *items, uint8_t size, uint8_t currentIndex);
 void UI_ShowItems(char (*items)[16], uint16_t size, uint16_t currentIndex);
+void UI_ShowRangeItems(uint16_t size, uint16_t currentIndex);
 
 #endif /* end of include guard: COMPONENTS_H */

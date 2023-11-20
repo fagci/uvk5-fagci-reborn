@@ -943,8 +943,8 @@ void BK4819_SetToneFrequency(uint16_t f) {
   BK4819_WriteRegister(BK4819_REG_71, (f * 103U) / 10U);
 }
 
+static bool isSquelchOpen = false;
 bool BK4819_IsSquelchOpen() {
-  bool isSquelchOpen = false;
   while (BK4819_ReadRegister(BK4819_REG_0C) & 1U) {
     BK4819_WriteRegister(BK4819_REG_02, 0);
 
@@ -968,4 +968,3 @@ void BK4819_ResetRSSI() {
   Reg |= 1;
   BK4819_WriteRegister(BK4819_REG_30, Reg);
 }
-

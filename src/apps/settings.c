@@ -1,4 +1,5 @@
 #include "settings.h"
+#include "../driver/backlight.h"
 #include "../driver/st7565.h"
 #include "../misc.h"
 #include "../radio.h"
@@ -10,6 +11,7 @@
 typedef enum {
   M_NONE,
   M_UPCONVERTER,
+  M_BRIGHTNESS,
   M_RESET,
 } Menu;
 
@@ -26,6 +28,7 @@ static bool isSubMenu = false;
 
 static const MenuItem menu[] = {
     {"Upconverter", M_UPCONVERTER, 3},
+    {"Brightness", M_BRIGHTNESS, 10},
     {"EEPROM reset", M_RESET},
 };
 
@@ -37,15 +40,23 @@ static void accept() {
     gSettings.upconverter = subMenuIndex;
     RADIO_TuneTo(GetTuneF(f), true);
     SETTINGS_Save();
-    isSubMenu = false;
   }; break;
+  case M_BRIGHTNESS:
+    gSettings.brightness = subMenuIndex;
+    SETTINGS_Save();
+    break;
   default:
     break;
   }
 }
 
+char Output[16];
+
 static const char *getValue(Menu type) {
   switch (type) {
+  case M_BRIGHTNESS:
+    sprintf(Output, "%u", gSettings.brightness);
+    return Output;
   case M_UPCONVERTER:
     return upConverterFreqNames[gSettings.upconverter];
   default:
@@ -62,12 +73,42 @@ static void subUpconverter() {
   UI_ShowItems(items, ARRAY_SIZE(upConverterFreqNames), subMenuIndex);
 }
 
-static void showSubmenu(Menu menu) {
-  switch (menu) {
+static void showSubmenu(Menu menuType) {
+  const MenuItem *item = &menu[menuIndex];
+  switch (menuType) {
   case M_UPCONVERTER:
     subUpconverter();
     break;
+  case M_BRIGHTNESS:
+    UI_ShowRangeItems(item->size, subMenuIndex);
+    break;
   default:
+    break;
+  }
+}
+
+static void onSubChange() {
+  const MenuItem *item = &menu[menuIndex];
+  switch (item->type) {
+  case M_BRIGHTNESS:
+    BACKLIGHT_SetBrightness(subMenuIndex);
+    break;
+  default:
+    break;
+  }
+}
+
+static void setInitialSubmenuIndex() {
+  const MenuItem *item = &menu[menuIndex];
+  switch (item->type) {
+  case M_BRIGHTNESS:
+    subMenuIndex = gSettings.brightness;
+    break;
+  case M_UPCONVERTER:
+    subMenuIndex = gSettings.upconverter;
+    break;
+  default:
+    subMenuIndex = 0;
     break;
   }
 }
@@ -75,7 +116,6 @@ static void showSubmenu(Menu menu) {
 void SETTINGS_init() {}
 void SETTINGS_update() {}
 bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-
   if (!bKeyPressed || bKeyHeld) {
     return false;
   }
@@ -86,6 +126,7 @@ bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_UP:
     if (isSubMenu) {
       subMenuIndex = subMenuIndex == 0 ? SUBMENU_SIZE - 1 : subMenuIndex - 1;
+      onSubChange();
     } else {
       menuIndex = menuIndex == 0 ? MENU_SIZE - 1 : menuIndex - 1;
     }
@@ -94,6 +135,7 @@ bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_DOWN:
     if (isSubMenu) {
       subMenuIndex = subMenuIndex == SUBMENU_SIZE - 1 ? 0 : subMenuIndex + 1;
+      onSubChange();
     } else {
       menuIndex = menuIndex == MENU_SIZE - 1 ? 0 : menuIndex + 1;
     }
@@ -106,12 +148,14 @@ bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       APPS_run(APP_RESET);
       return true;
     default:
-      return true;
+      break;
     }
     if (isSubMenu) {
       accept();
+      isSubMenu = false;
     } else {
       isSubMenu = true;
+      setInitialSubmenuIndex();
     }
     gRedrawStatus = true;
     gRedrawScreen = true;
@@ -119,11 +163,11 @@ bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_EXIT:
     if (isSubMenu) {
       isSubMenu = false;
+      gRedrawScreen = true;
+      gRedrawStatus = true;
     } else {
-      APPS_run(gPreviousApp);
+      APPS_exit();
     }
-    gRedrawScreen = true;
-    gRedrawStatus = true;
     return true;
   default:
     break;
@@ -132,6 +176,7 @@ bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 }
 void SETTINGS_render() {
   UI_ClearScreen();
+  UI_ClearStatus();
   const MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {
     showSubmenu(item->type);

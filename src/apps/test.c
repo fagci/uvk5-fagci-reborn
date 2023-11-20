@@ -3,6 +3,7 @@
 #include "../scheduler.h"
 #include "../ui/components.h"
 #include "../ui/helper.h"
+#include "apps.h"
 
 void TEST_Init() {}
 
@@ -21,4 +22,16 @@ void TEST_Render() {
   }
 }
 
-bool TEST_key(KEY_Code_t k, bool p, bool h) { return false; }
+bool TEST_key(KEY_Code_t k, bool p, bool h) {
+  if (!p) {
+    return false;
+  }
+  switch (k) {
+  case KEY_EXIT:
+    APPS_exit();
+    return true;
+  default:
+    break;
+  }
+  return false;
+}

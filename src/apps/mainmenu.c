@@ -56,12 +56,15 @@ bool MAINMENU_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     // RUN APPS HERE
     switch (item->type) {
     case M_SPECTRUM:
+      APPS_exit();
       APPS_run(APP_SPECTRUM);
       return true;
     case M_STILL:
+      APPS_exit();
       APPS_run(APP_STILL);
       return true;
     case M_TASK_MANAGER:
+      APPS_exit();
       APPS_run(APP_TASK_MANAGER);
       return true;
     default:
@@ -71,7 +74,7 @@ bool MAINMENU_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     gRedrawScreen = true;
     return true;
   case KEY_EXIT:
-    APPS_run(gPreviousApp);
+    APPS_exit();
     gRedrawScreen = true;
     gRedrawStatus = true;
     return true;
