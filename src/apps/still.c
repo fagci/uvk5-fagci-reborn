@@ -45,10 +45,13 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
 static void UpdateCurrentFreqStill(bool inc) {
   const uint16_t offset = StepFrequencyTable[gCurrentVfo.step];
   if (inc && gCurrentVfo.fRX < F_MAX) {
-    RADIO_TuneTo(gCurrentVfo.fRX + offset, false);
+    gCurrentVfo.fRX += offset;
   } else if (!inc && gCurrentVfo.fRX > F_MIN) {
-    RADIO_TuneTo(gCurrentVfo.fRX - offset, false);
+    gCurrentVfo.fRX -= offset;
+  } else {
+    return;
   }
+  RADIO_TuneTo(gCurrentVfo.fRX, false);
   gRedrawScreen = true;
 }
 

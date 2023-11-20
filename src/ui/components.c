@@ -98,6 +98,10 @@ void UI_FSmall(uint32_t f) {
           StepFrequencyTable[gCurrentVfo.step] % 100);
   UI_PrintStringSmallest(String, 0, 8, false, true);
 
+  sprintf(String, "%u.%05u", gCurrentVfo.fRX / 100000,
+          gCurrentVfo.fRX % 100000);
+  UI_PrintStringSmallest(String, 32, 8, false, true);
+
   if (UI_NoChannelName(gCurrentVfo.name)) {
     sprintf(String, "%u.%05u", f / 100000, f % 100000);
     UI_PrintStringSmall(String, 8, 127, 0);

@@ -62,11 +62,12 @@ void RADIO_SetupRegisters() {
                                  0b10110101010);
 }
 
+#include "settings.h"
 uint32_t GetScreenF(uint32_t f) {
-  return f - upConverterValues[gUpconverterType];
+  return f - upConverterValues[gSettings.upconverter];
 }
 uint32_t GetTuneF(uint32_t f) {
-  return f + upConverterValues[gUpconverterType];
+  return f + upConverterValues[gSettings.upconverter];
 }
 
 void RADIO_ToggleRX(bool on) {
@@ -77,6 +78,7 @@ void RADIO_ToggleRX(bool on) {
   gIsListening = on;
 
   BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN, on);
+  BK4819_RX_TurnOn(); // broke squelch
 
   AUDIO_ToggleSpeaker(on);
   BK4819_ToggleAFDAC(on);
