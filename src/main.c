@@ -67,6 +67,9 @@ static void UpdateBattery() {
 static void Update() { APPS_update(); }
 
 static void Render() {
+  if (!gRedrawStatus && !gRedrawScreen) {
+    return;
+  }
   APPS_render();
   ST7565_Render();
 }

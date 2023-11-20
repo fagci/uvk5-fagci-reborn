@@ -19,17 +19,17 @@ static uint32_t fStart, fEnd;
 static bool gettingRssi = false;
 
 static void resetRssiHistory() { memset(rssiHistory, 0, HISTORY_SIZE); }
-static void measure() {
+static void writeRssi() {
   rssiHistory[i++] = BK4819_GetRSSI();
   gCurrentVfo.fRX += StepFrequencyTable[gCurrentVfo.step];
   gettingRssi = false;
   BK4819_TuneTo(gCurrentVfo.fRX, true);
 }
 
-static void getRssi() {
+static void step() {
   gettingRssi = true;
   BK4819_TuneTo(gCurrentVfo.fRX, true);
-  TaskAdd("Get RSSI", measure, msmTime, false);
+  TaskAdd("Get RSSI", writeRssi, msmTime, false);
 }
 
 static void startNewScan() {
@@ -42,7 +42,7 @@ static void startNewScan() {
 
   resetRssiHistory();
 
-  getRssi();
+  step();
 }
 
 bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
@@ -50,8 +50,8 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void SPECTRUM_init(void) {
+  BK4819_WriteRegister(0x43, 0b0000000110111100);
   currentFreq = gCurrentVfo.fRX;
-  gettingRssi = true;
   startNewScan();
 }
 
@@ -76,7 +76,7 @@ void SPECTRUM_update(void) {
     return;
   }
   if (!gettingRssi) {
-    getRssi();
+    step();
   }
 }
 
