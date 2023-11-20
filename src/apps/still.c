@@ -202,6 +202,6 @@ static void DrawRegs() {
 void STILL_render() {
   UI_ClearScreen();
   UI_FSmall(GetScreenF(gCurrentVfo.fRX));
-  UI_RSSIBar(rssi, 2);
+  UI_RSSIBar(rssi, gCurrentVfo.fRX, 2);
   DrawRegs();
 }

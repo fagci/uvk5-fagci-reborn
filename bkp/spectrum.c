@@ -28,8 +28,6 @@ static bool redrawScreen = false;
 static bool newScanStart = true;
 static bool preventKeypress = true;
 
-static bool isTransmitting = false;
-
 PeakInfo peak;
 ScanInfo scanInfo;
 
@@ -47,13 +45,11 @@ static bool blacklist[128] = {false};
 
 static MovingAverage mov = {{128}, {}, 255, 128, 0, 0};
 
-#ifdef ENABLE_ALL_REGISTERS
-uint8_t hiddenMenuState = 0;
-#endif
-
 static uint16_t listenT = 0;
 
 static uint8_t lastStepsCount = 0;
+
+static bool waitForNextStep = false;
 
 // Spectrum related
 
@@ -142,9 +138,23 @@ uint16_t GetBWRegValueForScan() { return 0b0000000110111100; }
 
 uint16_t GetBWRegValueForListen() { return BWRegValues[gCurrentVfo.bw]; }
 
+static void UpdateScanInfo() {
+  if (scanInfo.rssi > scanInfo.rssiMax) {
+    scanInfo.rssiMax = scanInfo.rssi;
+    scanInfo.fPeak = scanInfo.f;
+    scanInfo.iPeak = scanInfo.i;
+  }
+
+  if (scanInfo.rssi < scanInfo.rssiMin) {
+    scanInfo.rssiMin = scanInfo.rssi;
+  }
+}
+
 void GetRssiTask() {
-  scanInfo.rssiSemaphore = false;
   rssiHistory[scanInfo.i] = scanInfo.rssi = BK4819_GetRSSI();
+  UpdateScanInfo();
+  scanInfo.rssiSemaphore = false;
+  waitForNextStep = true;
 }
 
 void GetRssi() {
@@ -175,6 +185,7 @@ static void ResetScanStats() {
   scanInfo.rssiMax = 0;
   scanInfo.iPeak = 0;
   scanInfo.fPeak = 0;
+  memset(rssiHistory, 0, 128);
 }
 
 static void InitScan() {
@@ -199,18 +210,6 @@ static void RelaunchScan() {
   redrawStatus = true;
 }
 
-static void UpdateScanInfo() {
-  if (scanInfo.rssi > scanInfo.rssiMax) {
-    scanInfo.rssiMax = scanInfo.rssi;
-    scanInfo.fPeak = scanInfo.f;
-    scanInfo.iPeak = scanInfo.i;
-  }
-
-  if (scanInfo.rssi < scanInfo.rssiMin) {
-    scanInfo.rssiMin = scanInfo.rssi;
-  }
-}
-
 static void AutoTriggerLevel() {
   if (settings.rssiTriggerLevel == RSSI_MAX_VALUE) {
     settings.rssiTriggerLevel = Clamp(scanInfo.rssiMax + 4, 0, RSSI_MAX_VALUE);
@@ -231,14 +230,9 @@ static void UpdatePeakInfo() {
 }
 
 static void Measure() {
-  // rm harmonics using blacklist for now
-#ifndef ENABLE_ALL_REGISTERS
-  if (scanInfo.f % 1300000 == 0) {
-    blacklist[scanInfo.i] = true;
-    return;
+  if (!rssiHistory[scanInfo.i]) {
+    GetRssi();
   }
-#endif
-  GetRssi();
 }
 
 // Update things by keypress
@@ -299,7 +293,6 @@ static void ToggleStepsCount() {
   redrawScreen = true;
 }
 
-#ifndef ENABLE_ALL_REGISTERS
 static void Blacklist() {
   blacklist[peak.i] = true;
   ResetPeak();
@@ -307,7 +300,6 @@ static void Blacklist() {
   newScanStart = true;
   redrawScreen = true;
 }
-#endif
 
 // Draw things
 
@@ -329,19 +321,8 @@ static void DrawSpectrum() {
 }
 
 static void DrawStatus() {
-#ifdef ENABLE_ALL_REGISTERS
-  if (hiddenMenuState) {
-    RegisterSpec s = hiddenRegisterSpecs[hiddenMenuState];
-    sprintf(String, "%x %s: %u", s.num, s.name, BK4819_GetRegValue(s));
-    UI_PrintStringSmallest(String, 0, 0, true, true);
-  } else {
-#endif
-
-    sprintf(String, "D: %ums", settings.delayMS);
-    UI_PrintStringSmallest(String, 64, 0, true, true);
-#ifdef ENABLE_ALL_REGISTERS
-  }
-#endif
+  sprintf(String, "D: %ums", settings.delayMS);
+  UI_PrintStringSmallest(String, 64, 0, true, true);
 }
 
 static void DrawNums() {
@@ -458,64 +439,19 @@ bool SPECTRUM_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     UpdateScanStep(false);
     return true;
   case KEY_2:
-#ifdef ENABLE_ALL_REGISTERS
-    if (hiddenMenuState) {
-      if (hiddenMenuState <= 1) {
-        hiddenMenuState = ARRAY_SIZE(hiddenRegisterSpecs) - 1;
-      } else {
-        hiddenMenuState--;
-      }
-      redrawStatus = true;
-      return true;
-    }
-#endif
     UpdateFreqChangeStep(true);
     return true;
   case KEY_8:
-#ifdef ENABLE_ALL_REGISTERS
-    if (hiddenMenuState) {
-      if (hiddenMenuState == ARRAY_SIZE(hiddenRegisterSpecs) - 1) {
-        hiddenMenuState = 1;
-      } else {
-        hiddenMenuState++;
-      }
-      redrawStatus = true;
-      return true;
-    }
-#endif
     UpdateFreqChangeStep(false);
     return true;
   case KEY_UP:
-#ifdef ENABLE_ALL_REGISTERS
-    if (hiddenMenuState) {
-      UpdateRegMenuValue(hiddenRegisterSpecs[hiddenMenuState], true);
-      redrawStatus = true;
-      return true;
-    }
-#endif
     UpdateCurrentFreq(true);
     return true;
   case KEY_DOWN:
-#ifdef ENABLE_ALL_REGISTERS
-    if (hiddenMenuState) {
-      UpdateRegMenuValue(hiddenRegisterSpecs[hiddenMenuState], false);
-      redrawStatus = true;
-      return true;
-    }
-#endif
     UpdateCurrentFreq(false);
     return true;
   case KEY_SIDE1:
-#ifdef ENABLE_ALL_REGISTERS
-    if (settings.rssiTriggerLevel != RSSI_MAX_VALUE - 1) {
-      settings.rssiTriggerLevel = RSSI_MAX_VALUE - 1;
-    } else {
-      settings.rssiTriggerLevel = RSSI_MAX_VALUE;
-    }
-    redrawScreen = true;
-#else
     Blacklist();
-#endif
     return true;
   case KEY_STAR:
     UpdateRssiTriggerLevel(true);
@@ -543,21 +479,6 @@ bool SPECTRUM_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     TuneToPeak();
     settings.rssiTriggerLevel = 120;
     return true;
-  case KEY_MENU:
-#ifdef ENABLE_ALL_REGISTERS
-    hiddenMenuState = 1;
-    redrawStatus = true;
-#endif
-    return true;
-  case KEY_EXIT:
-#ifdef ENABLE_ALL_REGISTERS
-    if (hiddenMenuState) {
-      hiddenMenuState = 0;
-      redrawStatus = true;
-      return true;
-    }
-#endif
-    return true;
   default:
     break;
   }
@@ -568,22 +489,22 @@ static void Scan() {
   if (blacklist[scanInfo.i]) {
     return;
   }
-  BK4819_TuneTo(scanInfo.f, true);
   Measure();
-  UpdateScanInfo();
 }
 
 static void NextScanStep() {
   ++peak.t;
   ++scanInfo.i;
   scanInfo.f += scanInfo.scanStep;
+  BK4819_TuneTo(scanInfo.f, true);
 }
 
 static void UpdateScan() {
+  Scan();
   if (scanInfo.rssiSemaphore) {
     return;
   }
-  Scan();
+  waitForNextStep = false;
 
   if (scanInfo.i < scanInfo.measurementsCount) {
     NextScanStep();
@@ -606,9 +527,6 @@ static void UpdateScan() {
 }
 
 static void UpdateListening() {
-  if (!gIsListening) {
-    ToggleRX(true);
-  }
   if (listenT) {
     listenT--;
     return;
@@ -616,13 +534,9 @@ static void UpdateListening() {
 
   redrawScreen = true;
 
-#ifndef ENABLE_ALL_REGISTERS
   BK4819_WriteRegister(0x43, GetBWRegValueForScan());
-#endif
   Measure();
-#ifndef ENABLE_ALL_REGISTERS
   BK4819_WriteRegister(0x43, GetBWRegValueForListen());
-#endif
 
   peak.rssi = scanInfo.rssi;
 
@@ -637,16 +551,25 @@ static void UpdateListening() {
   newScanStart = true;
 }
 
-static void UpdateTransmitting() {}
+/*
+
+Scan:
+
+TaskAdd GetRssi
+// pass update scan cycles while no rssi
+GetRssi called, got rssi
+
+*/
 
 void SPECTRUM_update() {
   if (newScanStart) {
     InitScan();
     newScanStart = false;
   }
-  if (isTransmitting) {
-    UpdateTransmitting();
-  } else if (gIsListening) {
+  if (scanInfo.rssiSemaphore) {
+    return;
+  }
+  if (gIsListening) {
     UpdateListening();
   } else {
     UpdateScan();

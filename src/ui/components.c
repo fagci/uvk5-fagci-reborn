@@ -45,14 +45,14 @@ void UI_Battery(uint8_t Level) {
   }
 }
 
-void UI_RSSIBar(int16_t rssi, uint8_t line) {
+void UI_RSSIBar(int16_t rssi, uint32_t f, uint8_t line) {
   char String[16];
 
   const uint8_t BAR_LEFT_MARGIN = 24;
   const uint8_t POS_Y = line * 8 + 1;
 
   int dBm = Rssi2DBm(rssi);
-  uint8_t s = DBm2S(dBm);
+  uint8_t s = DBm2S(dBm, f >= 3000000);
   uint8_t *ln = gFrameBuffer[line];
 
   memset(ln, 0, LCD_WIDTH);

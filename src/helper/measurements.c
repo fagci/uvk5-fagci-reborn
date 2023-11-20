@@ -27,11 +27,11 @@ int ConvertDomain(int aValue, int aMin, int aMax, int bMin, int bMax) {
   return ((aValue - aMin) * bRange + aRange / 2) / aRange + bMin;
 }
 
-uint8_t DBm2S(int dbm) {
+uint8_t DBm2S(int dbm, bool isVHF) {
   uint8_t i = 0;
   dbm *= -1;
-  for (i = 0; i < ARRAY_SIZE(rssi2sVHF); i++) {
-    if (dbm >= rssi2sVHF[i]) {
+  for (i = 0; i < 15; i++) {
+    if (dbm >= rssi2s[isVHF][i]) {
       return i;
     }
   }
