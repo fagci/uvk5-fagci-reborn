@@ -127,7 +127,7 @@ void VFOCFG_init() {}
 void VFOCFG_update() {}
 bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed || bKeyHeld) {
-    return;
+    return false;
   }
   const MenuItem *item = &menu[menuIndex];
   const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
@@ -140,7 +140,7 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       menuIndex = menuIndex == 0 ? MENU_SIZE - 1 : menuIndex - 1;
     }
     gRedrawScreen = true;
-    break;
+    return true;
   case KEY_DOWN:
     if (isSubMenu) {
       subMenuIndex = subMenuIndex == SUBMENU_SIZE - 1 ? 0 : subMenuIndex + 1;
@@ -148,19 +148,19 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       menuIndex = menuIndex == MENU_SIZE - 1 ? 0 : menuIndex + 1;
     }
     gRedrawScreen = true;
-    break;
+    return true;
   case KEY_MENU:
     // RUN APPS HERE
     switch (item->type) {
     case M_NAME:
       gTextinputText = gCurrentVfo.name;
       APPS_run(APP_TEXTINPUT);
-      return;
+      return false;
     case M_SAVE:
       APPS_run(APP_SAVECH);
-      return;
+      return false;
     default:
-      break;
+      return true;
     }
     if (isSubMenu) {
       accept();
@@ -170,7 +170,7 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     }
     gRedrawStatus = true;
     gRedrawScreen = true;
-    break;
+    return true;
   case KEY_EXIT:
     if (isSubMenu) {
       isSubMenu = false;
@@ -179,13 +179,14 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     }
     gRedrawScreen = true;
     gRedrawStatus = true;
-    break;
+    return true;
   default:
     break;
   }
+  return false;
 }
 void VFOCFG_render() {
-  memset(gStatusLine, 0, sizeof(gStatusLine));
+  UI_ClearScreen();
   const MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {
     showSubmenu(item->type);

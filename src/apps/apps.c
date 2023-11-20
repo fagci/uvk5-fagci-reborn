@@ -14,12 +14,12 @@ AppType_t gPreviousApp = APP_SPECTRUM;
 AppType_t gCurrentApp = APP_SPECTRUM;
 
 const App apps[10] = {
-    {"Test", TEST_Init, TEST_Update, TEST_Render, TEST_Key},
+    {"Test", TEST_Init, TEST_Update, TEST_Render, TEST_key},
     {"Spectrum", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render, SPECTRUM_key},
     {"Still", STILL_init, STILL_update, STILL_render, STILL_key},
     {"Frequency input", FINPUT_init, NULL, FINPUT_render, FINPUT_key},
     {"Main menu", MAINMENU_init, NULL, MAINMENU_render, MAINMENU_key},
-    {"Reset", RESET_Init, RESET_Update, RESET_Render, RESET_Key},
+    {"Reset", RESET_Init, RESET_Update, RESET_Render, RESET_key},
     {"Text input", TEXTINPUT_init, TEXTINPUT_update, TEXTINPUT_render,
      TEXTINPUT_key},
     {"VFO config", VFOCFG_init, VFOCFG_update, VFOCFG_render, VFOCFG_key},
@@ -33,11 +33,12 @@ const App apps[10] = {
 
 bool APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   if (apps[gCurrentApp].key) {
-    apps[gCurrentApp].key(Key, bKeyPressed, bKeyHeld);
+    return apps[gCurrentApp].key(Key, bKeyPressed, bKeyHeld);
   }
+  return false;
 }
 void APPS_init(AppType_t app) {
-  memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+  UI_ClearScreen();
   UI_PrintStringSmallest(apps[gCurrentApp].name, 0, 0, true, true);
   if (apps[app].init) {
     apps[app].init();

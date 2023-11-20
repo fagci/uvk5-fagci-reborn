@@ -79,7 +79,7 @@ void TEXTINPUT_init() { TaskAdd("Coursor blink", blink, 250, true); }
 void TEXTINPUT_update() {}
 bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed || bKeyHeld) {
-    return;
+    return false;
   }
   switch (key) {
   case KEY_1:
@@ -96,7 +96,7 @@ bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         insert(key - KEY_0 + '0');
       }
       gRedrawScreen = true;
-      break;
+      return true;
     }
     if (currentRow) {
       if (key - KEY_1 < strlen(currentRow)) {
@@ -106,7 +106,7 @@ bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         currentRow = NULL;
       }
       gRedrawScreen = true;
-      break;
+      return true;
     }
     if (key == KEY_1) {
       if (strlen(inputField) < MAX_LEN) {
@@ -116,42 +116,42 @@ bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       currentRow = currentSet[key - KEY_1];
     }
     gRedrawScreen = true;
-    break;
+    return true;
   case KEY_0:
     if (currentSet == numbers) {
       insert(key - KEY_0 + '0');
       gRedrawScreen = true;
-      break;
+      return true;
     }
     if (!currentRow) {
       currentSet = currentSet == numbers ? symbols : numbers;
       gRedrawScreen = true;
-      break;
+      return true;
     }
-    break;
+    return true;
   case KEY_STAR:
     if (currentSet != symbols) {
       currentSet = symbols;
       gRedrawScreen = true;
-      break;
+      return true;
     }
-    break;
+    return true;
   case KEY_F:
     currentSet = currentSet == lettersCapital ? letters : lettersCapital;
     gRedrawScreen = true;
-    break;
+    return true;
   case KEY_UP:
     if (inputIndex < 14 && inputField[inputIndex] != '\0') {
       inputIndex++;
       gRedrawScreen = true;
     }
-    break;
+    return true;
   case KEY_DOWN:
     if (inputIndex > 0) {
       inputIndex--;
       gRedrawScreen = true;
     }
-    break;
+    return true;
   case KEY_EXIT:
     if (currentRow) {
       currentRow = NULL;
@@ -163,19 +163,20 @@ bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       }
     }
     gRedrawScreen = true;
-    break;
+    return true;
   case KEY_MENU:
     strncpy(gTextinputText, inputField, 16);
     APPS_run(gPreviousApp);
-    break;
+    return true;
   default:
     break;
   }
+  return false;
 }
 void TEXTINPUT_render() {
   char String[8];
 
-  memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+  UI_ClearScreen();
 
   for (uint8_t i = 8; i < LCD_WIDTH - 8; ++i) {
     gFrameBuffer[2][i] = 0b00000001;

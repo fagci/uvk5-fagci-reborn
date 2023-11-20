@@ -28,7 +28,7 @@ void RESET_Update() {
 
 void RESET_Render() {
   char String[16];
-  memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+  UI_ClearScreen();
   sprintf(String, "%u%", bytesErased * 100 / BYTES_TOTAL);
   UI_PrintStringSmall(String, 0, 0, 2);
 
@@ -36,4 +36,6 @@ void RESET_Render() {
          ConvertDomain(bytesErased, 0, 8196, 0, LCD_WIDTH));
 }
 
-bool RESET_key(KEY_Code_t k, bool p, bool h) {}
+bool RESET_key(KEY_Code_t k, bool p, bool h) {
+  return false;
+}

@@ -26,7 +26,7 @@ Task *TaskAdd(const char *name, void (*handler)(void), uint16_t interval,
   if (tasksCount == TASKS_MAX) {
     return NULL;
   }
-  Task newTask = (Task){name, handler, interval, 0, continuous, 128};
+  Task newTask = (Task){name, handler, interval, interval, continuous, 128};
   tasks[tasksCount++] = newTask;
   return &tasks[tasksCount - 1];
 }
@@ -51,7 +51,7 @@ void TaskRemove(void (*handler)(void)) {
 void TaskTouch(void (*handler)(void)) {
   for (uint8_t i = 0; i < tasksCount; ++i) {
     if (tasks[i].handler == handler) {
-      tasks[i].t = 0;
+      tasks[i].countdown = 0;
       return;
     }
   }
@@ -70,13 +70,14 @@ void TasksUpdate(void) {
   bool prioritized = false;
   for (uint8_t i = 0; i < tasksCount; ++i) {
     Task *task = &tasks[i];
-    if (task->handler && task->t >= task->interval && task->priority == 0) {
+    if (task->handler && !task->countdown && task->priority == 0) {
       task->handler();
       prioritized = true;
       if (task->continuous) {
-        task->t = 0;
+        task->countdown = task->interval;
       } else {
         TaskRemove(task->handler);
+        prioritized = false; // NOTE: to perform rest actions
       }
     }
   }
@@ -84,10 +85,10 @@ void TasksUpdate(void) {
     return;
   for (uint8_t i = 0; i < tasksCount; ++i) {
     Task *task = &tasks[i];
-    if (task->handler && task->t >= task->interval) {
+    if (task->handler && !task->countdown && task->priority != 0) {
       task->handler();
       if (task->continuous) {
-        task->t = 0;
+        task->countdown = task->interval;
       } else {
         TaskRemove(task->handler);
       }
@@ -95,13 +96,12 @@ void TasksUpdate(void) {
   }
 }
 
-void SystickHandler(void);
-
 void SystickHandler(void) {
+  Task *task;
   for (uint8_t i = 0; i < tasksCount; ++i) {
-    Task *task = &tasks[i];
-    if (task->handler && task->t < task->interval) {
-      ++task->t;
+    task = &tasks[i];
+    if (task->handler && task->countdown) {
+      --task->countdown;
     }
   }
 }

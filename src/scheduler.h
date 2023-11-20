@@ -11,7 +11,7 @@ typedef struct {
   const char *name;
   void (*handler)(void);
   uint16_t interval;
-  uint16_t t;
+  uint16_t countdown;
   bool continuous;
   uint8_t priority;
 } Task;

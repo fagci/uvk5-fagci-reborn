@@ -82,7 +82,7 @@ void FINPUT_deinit() {
 
 bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed || bKeyHeld) {
-    return;
+    return false;
   }
   switch (key) {
   case KEY_0:
@@ -101,30 +101,31 @@ bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       input(KEY_STAR);
     }
     gRedrawScreen = true;
-    break;
+    return true;
   case KEY_EXIT:
     if (freqInputIndex == 0) {
       FINPUT_deinit();
-      break;
+      return true;
     }
     input(key);
     gRedrawScreen = true;
-    break;
+    return true;
   case KEY_MENU:
     tempFreq = GetTuneF(tempFreq);
     if (tempFreq >= F_MIN && tempFreq <= F_MAX) {
       RADIO_TuneTo(tempFreq, true);
     }
     FINPUT_deinit();
-    break;
+    return true;
   default:
     break;
   }
+  return false;
 }
 
 void FINPUT_render() {
   char String[16];
-  memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+  UI_ClearScreen();
 
   const uint8_t X = 19;
   const uint8_t Y = 0;

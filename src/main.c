@@ -20,7 +20,7 @@
 #include <string.h>
 
 uint8_t previousBatteryLevel = 255;
-bool batteryBlink = true;
+bool showBattery = true;
 
 void _putchar(char c) {}
 
@@ -29,16 +29,20 @@ static void onKey(KEY_Code_t k, bool p, bool h) {
     BACKLIGHT_On();
     TaskTouch(BACKLIGHT_Update);
   }
-  if (k == KEY_MENU) {
-    if (!p && !h) {
-      APPS_run(APP_MAINMENU);
-      return;
-    } else if (p && h) {
+  if (APPS_key(k, p, h)) {
+    gRedrawScreen = true;
+    return;
+  }
+  if (k == KEY_MENU && p) {
+    if (h) {
       APPS_run(APP_SETTINGS);
       return;
     }
-  }
-  APPS_key(k, p, h);
+    if (!h) {
+      APPS_run(APP_MAINMENU);
+      return;
+    }
+  };
 }
 
 static void UpdateBattery() {
@@ -50,8 +54,8 @@ static void UpdateBattery() {
       gRedrawStatus = true;
     }
   } else {
-    batteryBlink = !batteryBlink;
-    if (batteryBlink) {
+    showBattery = !showBattery;
+    if (showBattery) {
       UI_Battery(gBatteryDisplayLevel);
     } else {
       memset(gStatusLine + 115, 0, 13);
@@ -80,7 +84,7 @@ static void AddTasks() {
   TaskAdd("BL", BACKLIGHT_Update, 1000, true);
   TaskAdd("BAT", UpdateBattery, 1000, true);
 
-  APPS_run(APP_STILL);
+  APPS_run(APP_SPECTRUM);
   TaskAdd("Update", Update, 1, true);
   TaskAdd("Render", Render, 33, true);
   TaskAdd("Keys", Keys, 10, true);

@@ -77,7 +77,7 @@ void SETTINGS_update() {}
 bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
   if (!bKeyPressed || bKeyHeld) {
-    return;
+    return false;
   }
   const MenuItem *item = &menu[menuIndex];
   const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
@@ -90,7 +90,7 @@ bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       menuIndex = menuIndex == 0 ? MENU_SIZE - 1 : menuIndex - 1;
     }
     gRedrawScreen = true;
-    break;
+    return true;
   case KEY_DOWN:
     if (isSubMenu) {
       subMenuIndex = subMenuIndex == SUBMENU_SIZE - 1 ? 0 : subMenuIndex + 1;
@@ -98,15 +98,15 @@ bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       menuIndex = menuIndex == MENU_SIZE - 1 ? 0 : menuIndex + 1;
     }
     gRedrawScreen = true;
-    break;
+    return true;
   case KEY_MENU:
     // RUN APPS HERE
     switch (item->type) {
     case M_RESET:
       APPS_run(APP_RESET);
-      break;
+      return true;
     default:
-      break;
+      return true;
     }
     if (isSubMenu) {
       accept();
@@ -115,7 +115,7 @@ bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     }
     gRedrawStatus = true;
     gRedrawScreen = true;
-    break;
+    return true;
   case KEY_EXIT:
     if (isSubMenu) {
       isSubMenu = false;
@@ -124,10 +124,11 @@ bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     }
     gRedrawScreen = true;
     gRedrawStatus = true;
-    break;
+    return true;
   default:
     break;
   }
+  return false;
 }
 void SETTINGS_render() {
   UI_ClearScreen();

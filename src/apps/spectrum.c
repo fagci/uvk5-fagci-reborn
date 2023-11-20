@@ -55,22 +55,6 @@ static uint16_t listenT = 0;
 
 static uint8_t lastStepsCount = 0;
 
-VfoState_t txAllowState;
-
-// Utility functions
-
-KEY_Code_t GetKey() {
-  KEY_Code_t btn = KEYBOARD_Poll();
-  if (btn == KEY_INVALID && !GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT)) {
-    btn = KEY_PTT;
-  }
-  return btn;
-}
-
-// Radio functions
-
-// static void SetTxF(uint32_t f) { BK4819_TuneTo(fTx = f, true); }
-
 // Spectrum related
 
 bool IsPeakOverLevel() { return peak.rssi >= settings.rssiTriggerLevel; }
@@ -184,65 +168,6 @@ static void ToggleRX(bool on) {
   }
 }
 
-// static void ToggleTX(bool);
-
-/* uint16_t registersVault[128] = {0};
-
-static void RegBackupSet(uint8_t num, uint16_t value) {
-  registersVault[num] = BK4819_ReadRegister(num);
-  BK4819_WriteRegister(num, value);
-}
-
-static void RegRestore(uint8_t num) {
-  BK4819_WriteRegister(num, registersVault[num]);
-} */
-
-/* static void ToggleTX(bool on) {
-  if (isTransmitting == on) {
-    return;
-  }
-  isTransmitting = on;
-  if (on) {
-    ToggleRX(false);
-  }
-
-  BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, on);
-
-  if (on) {
-    ToggleAudio(false);
-
-    SetTxF(fMeasure);
-
-    RegBackupSet(BK4819_REG_47, 0x6040);
-    RegBackupSet(BK4819_REG_7E, 0x302E);
-    RegBackupSet(BK4819_REG_50, 0x3B20);
-    RegBackupSet(BK4819_REG_37, 0x1D0F);
-    RegBackupSet(BK4819_REG_52, 0x028F);
-    RegBackupSet(BK4819_REG_30, 0x0000);
-    BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);
-    RegBackupSet(BK4819_REG_51, 0x0000);
-
-    BK4819_SetupPowerAmplifier(fTx, gCurrentVfo->TXP_CalculatedSetting);
-  } else {
-    // RADIO_SendEndOfTransmission();
-
-    BK4819_SetupPowerAmplifier(0, 0);
-
-    RegRestore(BK4819_REG_51);
-    BK4819_WriteRegister(BK4819_REG_30, 0);
-    RegRestore(BK4819_REG_30);
-    RegRestore(BK4819_REG_52);
-    RegRestore(BK4819_REG_37);
-    RegRestore(BK4819_REG_50);
-    RegRestore(BK4819_REG_7E);
-    RegRestore(BK4819_REG_47);
-
-    SetF(fMeasure, true);
-  }
-  BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, !on);
-  BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, on);
-} */
-
 // Scan info
 
 static void ResetScanStats() {
@@ -324,44 +249,6 @@ static void UpdateRssiTriggerLevel(bool inc) {
   else
     settings.rssiTriggerLevel -= 2;
   redrawScreen = true;
-  // SYSTEM_DelayMs(10);
-}
-
-static void ApplyPreset(FreqPreset p) {
-  currentFreq = GetTuneF(p.fStart);
-  gCurrentVfo.step = p.stepSizeIndex;
-  gCurrentVfo.bw = p.listenBW;
-  gCurrentVfo.modulation = p.modulationType;
-  settings.stepsCount = p.stepsCountIndex;
-  BK4819_SetModulation(gCurrentVfo.modulation);
-  RelaunchScan();
-  ResetBlacklist();
-  redrawScreen = true;
-  settings.frequencyChangeStep = GetBW();
-}
-
-static void SelectNearestPreset(bool inc) {
-  FreqPreset p;
-  uint32_t f = GetScreenF(currentFreq);
-  const uint8_t SZ = ARRAY_SIZE(freqPresets);
-  if (inc) {
-    for (uint8_t i = 0; i < SZ; ++i) {
-      p = freqPresets[i];
-      if (f < p.fStart) {
-        ApplyPreset(p);
-        return;
-      }
-    }
-  } else {
-    for (int i = SZ - 1; i >= 0; --i) {
-      p = freqPresets[i];
-      if (f > p.fEnd) {
-        ApplyPreset(p);
-        return;
-      }
-    }
-  }
-  ApplyPreset(p);
 }
 
 static void UpdateScanStep(bool inc) {
@@ -449,16 +336,6 @@ static void DrawStatus() {
     UI_PrintStringSmallest(String, 0, 0, true, true);
   } else {
 #endif
-    const FreqPreset *p = NULL;
-    uint32_t f = GetScreenF(currentFreq);
-    for (uint8_t i = 0; i < ARRAY_SIZE(freqPresets); ++i) {
-      if (f >= freqPresets[i].fStart && f < freqPresets[i].fEnd) {
-        p = &freqPresets[i];
-      }
-    }
-    if (p != NULL) {
-      UI_PrintStringSmallest(p->name, 0, 0, true, true);
-    }
 
     sprintf(String, "D: %ums", settings.delayMS);
     UI_PrintStringSmallest(String, 64, 0, true, true);
@@ -542,139 +419,6 @@ static void DrawArrow(uint8_t x) {
   }
 }
 
-static void OnKeyDown(uint8_t key) {
-  switch (key) {
-  case KEY_3:
-    if (0)
-      SelectNearestPreset(true);
-    settings.delayMS++;
-    // SYSTEM_DelayMs(100);
-    redrawStatus = true;
-    break;
-  case KEY_9:
-    if (0)
-      SelectNearestPreset(false);
-    settings.delayMS--;
-    redrawStatus = true;
-    break;
-  case KEY_1:
-    UpdateScanStep(true);
-    break;
-  case KEY_7:
-    UpdateScanStep(false);
-    break;
-  case KEY_2:
-#ifdef ENABLE_ALL_REGISTERS
-    if (hiddenMenuState) {
-      if (hiddenMenuState <= 1) {
-        hiddenMenuState = ARRAY_SIZE(hiddenRegisterSpecs) - 1;
-      } else {
-        hiddenMenuState--;
-      }
-      redrawStatus = true;
-      break;
-    }
-#endif
-    UpdateFreqChangeStep(true);
-    break;
-  case KEY_8:
-#ifdef ENABLE_ALL_REGISTERS
-    if (hiddenMenuState) {
-      if (hiddenMenuState == ARRAY_SIZE(hiddenRegisterSpecs) - 1) {
-        hiddenMenuState = 1;
-      } else {
-        hiddenMenuState++;
-      }
-      redrawStatus = true;
-      break;
-    }
-#endif
-    UpdateFreqChangeStep(false);
-    break;
-  case KEY_UP:
-#ifdef ENABLE_ALL_REGISTERS
-    if (hiddenMenuState) {
-      UpdateRegMenuValue(hiddenRegisterSpecs[hiddenMenuState], true);
-      redrawStatus = true;
-      break;
-    }
-#endif
-    UpdateCurrentFreq(true);
-    break;
-  case KEY_DOWN:
-#ifdef ENABLE_ALL_REGISTERS
-    if (hiddenMenuState) {
-      UpdateRegMenuValue(hiddenRegisterSpecs[hiddenMenuState], false);
-      redrawStatus = true;
-      break;
-    }
-#endif
-    UpdateCurrentFreq(false);
-    break;
-  case KEY_SIDE1:
-#ifdef ENABLE_ALL_REGISTERS
-    if (settings.rssiTriggerLevel != RSSI_MAX_VALUE - 1) {
-      settings.rssiTriggerLevel = RSSI_MAX_VALUE - 1;
-    } else {
-      settings.rssiTriggerLevel = RSSI_MAX_VALUE;
-    }
-    redrawScreen = true;
-#else
-    Blacklist();
-#endif
-    break;
-  case KEY_STAR:
-    UpdateRssiTriggerLevel(true);
-    break;
-  case KEY_F:
-    UpdateRssiTriggerLevel(false);
-    break;
-  case KEY_5:
-    APPS_run(APP_FINPUT);
-    break;
-  case KEY_0:
-    RADIO_ToggleModulation();
-    break;
-  case KEY_6:
-    RADIO_ToggleListeningBW();
-    break;
-  case KEY_4:
-    ToggleStepsCount();
-    break;
-  case KEY_SIDE2:
-    ToggleBacklight();
-    break;
-  case KEY_PTT:
-    APPS_run(APP_STILL);
-    TuneToPeak();
-    settings.rssiTriggerLevel = 120;
-    break;
-  case KEY_MENU:
-#ifdef ENABLE_ALL_REGISTERS
-    hiddenMenuState = 1;
-    redrawStatus = true;
-#endif
-    break;
-  case KEY_EXIT:
-#ifdef ENABLE_ALL_REGISTERS
-    if (hiddenMenuState) {
-      hiddenMenuState = 0;
-      redrawStatus = true;
-      break;
-    }
-#endif
-    break;
-  default:
-    break;
-  }
-}
-
-/* static void OnKeysReleased() {
-  if (isTransmitting) {
-    ToggleTX(false);
-  }
-} */
-
 static void RenderStatus() {
   memset(gStatusLine, 0, LCD_WIDTH - 13);
   DrawStatus();
@@ -690,18 +434,134 @@ static void RenderSpectrum() {
 }
 
 static void Render() {
-  memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+  UI_ClearScreen();
   RenderSpectrum();
 }
 
-bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
-  if (preventKeypress)
-    return;
-
-  if (!bKeyPressed || bKeyHeld)
-    return;
-
-  OnKeyDown(Key);
+bool SPECTRUM_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  if (preventKeypress || bKeyPressed || bKeyHeld) {
+    return false;
+  }
+  switch (key) {
+  case KEY_3:
+    settings.delayMS++;
+    redrawStatus = true;
+    return true;
+  case KEY_9:
+    settings.delayMS--;
+    redrawStatus = true;
+    return true;
+  case KEY_1:
+    UpdateScanStep(true);
+    return true;
+  case KEY_7:
+    UpdateScanStep(false);
+    return true;
+  case KEY_2:
+#ifdef ENABLE_ALL_REGISTERS
+    if (hiddenMenuState) {
+      if (hiddenMenuState <= 1) {
+        hiddenMenuState = ARRAY_SIZE(hiddenRegisterSpecs) - 1;
+      } else {
+        hiddenMenuState--;
+      }
+      redrawStatus = true;
+      return true;
+    }
+#endif
+    UpdateFreqChangeStep(true);
+    return true;
+  case KEY_8:
+#ifdef ENABLE_ALL_REGISTERS
+    if (hiddenMenuState) {
+      if (hiddenMenuState == ARRAY_SIZE(hiddenRegisterSpecs) - 1) {
+        hiddenMenuState = 1;
+      } else {
+        hiddenMenuState++;
+      }
+      redrawStatus = true;
+      return true;
+    }
+#endif
+    UpdateFreqChangeStep(false);
+    return true;
+  case KEY_UP:
+#ifdef ENABLE_ALL_REGISTERS
+    if (hiddenMenuState) {
+      UpdateRegMenuValue(hiddenRegisterSpecs[hiddenMenuState], true);
+      redrawStatus = true;
+      return true;
+    }
+#endif
+    UpdateCurrentFreq(true);
+    return true;
+  case KEY_DOWN:
+#ifdef ENABLE_ALL_REGISTERS
+    if (hiddenMenuState) {
+      UpdateRegMenuValue(hiddenRegisterSpecs[hiddenMenuState], false);
+      redrawStatus = true;
+      return true;
+    }
+#endif
+    UpdateCurrentFreq(false);
+    return true;
+  case KEY_SIDE1:
+#ifdef ENABLE_ALL_REGISTERS
+    if (settings.rssiTriggerLevel != RSSI_MAX_VALUE - 1) {
+      settings.rssiTriggerLevel = RSSI_MAX_VALUE - 1;
+    } else {
+      settings.rssiTriggerLevel = RSSI_MAX_VALUE;
+    }
+    redrawScreen = true;
+#else
+    Blacklist();
+#endif
+    return true;
+  case KEY_STAR:
+    UpdateRssiTriggerLevel(true);
+    return true;
+  case KEY_F:
+    UpdateRssiTriggerLevel(false);
+    return true;
+  case KEY_5:
+    APPS_run(APP_FINPUT);
+    return true;
+  case KEY_0:
+    RADIO_ToggleModulation();
+    return true;
+  case KEY_6:
+    RADIO_ToggleListeningBW();
+    return true;
+  case KEY_4:
+    ToggleStepsCount();
+    return true;
+  case KEY_SIDE2:
+    ToggleBacklight();
+    return true;
+  case KEY_PTT:
+    APPS_run(APP_STILL);
+    TuneToPeak();
+    settings.rssiTriggerLevel = 120;
+    return true;
+  case KEY_MENU:
+#ifdef ENABLE_ALL_REGISTERS
+    hiddenMenuState = 1;
+    redrawStatus = true;
+#endif
+    return true;
+  case KEY_EXIT:
+#ifdef ENABLE_ALL_REGISTERS
+    if (hiddenMenuState) {
+      hiddenMenuState = 0;
+      redrawStatus = true;
+      return true;
+    }
+#endif
+    return true;
+  default:
+    break;
+  }
+  return false;
 }
 
 static void Scan() {
@@ -806,20 +666,8 @@ void SPECTRUM_render() {
   }
 }
 
-/* static void AutomaticPresetChoose(uint32_t f) {
-  f = GetScreenF(f);
-  for (uint8_t i = 0; i < ARRAY_SIZE(freqPresets); ++i) {
-    const FreqPreset *p = &freqPresets[i];
-    if (f >= p->fStart && f <= p->fEnd) {
-      ApplyPreset(*p);
-    }
-  }
-} */
-
 void SPECTRUM_init() {
   currentFreq = gCurrentVfo.fRX;
-
-  // AutomaticPresetChoose(currentFreq);
 
   redrawStatus = true;
   redrawScreen = true;

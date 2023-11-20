@@ -23,7 +23,7 @@ typedef struct App {
   void (*init)(void);
   void (*update)(void);
   void (*render)(void);
-  void (*key)(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
+  bool (*key)(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
 } App;
 
 extern const App apps[10];

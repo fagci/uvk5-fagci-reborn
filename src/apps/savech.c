@@ -32,35 +32,37 @@ void SAVECH_update() {
 }
 bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed) {
-    return;
+    return false;
   }
   switch (key) {
   case KEY_UP:
     currentChannelIndex =
         currentChannelIndex == 0 ? CHANNELS_COUNT - 1 : currentChannelIndex - 1;
     gRedrawScreen = true;
-    break;
+    return true;
   case KEY_DOWN:
     currentChannelIndex =
         currentChannelIndex == CHANNELS_COUNT - 1 ? 0 : currentChannelIndex + 1;
     gRedrawScreen = true;
-    break;
+    return true;
   case KEY_MENU:
     strncpy(channelNames[currentChannelIndex], gCurrentVfo.name, 15);
     EEPROM_WriteBuffer(VFO_SIZE * currentChannelIndex + CHANNELS_OFFSET,
                        &gCurrentVfo, VFO_SIZE);
     gRedrawScreen = true;
-    break;
+    return true;
   case KEY_EXIT:
     APPS_run(gPreviousApp);
+    return true;
   default:
     break;
   }
+  return false;
 }
 
 void SAVECH_render() {
   char String[16];
-  memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+  UI_ClearScreen();
   if (gotChannelNames) {
     UI_ShowItems(channelNames, CHANNELS_COUNT, currentChannelIndex);
     sprintf(String, "%u", currentChannelIndex + 1);

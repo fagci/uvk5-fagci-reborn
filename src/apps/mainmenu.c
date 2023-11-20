@@ -39,7 +39,7 @@ void MAINMENU_init() {}
 void MAINMENU_update() {}
 bool MAINMENU_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed || bKeyHeld) {
-    return;
+    return false;
   }
   const MenuItem *item = &menu[menuIndex];
   const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
@@ -47,35 +47,36 @@ bool MAINMENU_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_UP:
     menuIndex = menuIndex == 0 ? MENU_SIZE - 1 : menuIndex - 1;
     gRedrawScreen = true;
-    break;
+    return true;
   case KEY_DOWN:
     menuIndex = menuIndex == MENU_SIZE - 1 ? 0 : menuIndex + 1;
     gRedrawScreen = true;
-    break;
+    return true;
   case KEY_MENU:
     // RUN APPS HERE
     switch (item->type) {
     case M_SPECTRUM:
       APPS_run(APP_SPECTRUM);
-      break;
+      return true;
     case M_STILL:
       APPS_run(APP_STILL);
-      break;
+      return true;
     case M_TASK_MANAGER:
       APPS_run(APP_TASK_MANAGER);
-      break;
+      return true;
     default:
-      break;
+      return true;
     }
     gRedrawStatus = true;
     gRedrawScreen = true;
-    break;
+    return true;
   case KEY_EXIT:
     APPS_run(gPreviousApp);
     gRedrawScreen = true;
     gRedrawStatus = true;
-    break;
+    return true;
   default:
     break;
   }
+  return false;
 }
