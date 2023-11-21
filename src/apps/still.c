@@ -64,7 +64,10 @@ static void update() {
 static void render() { gRedrawScreen = true; }
 
 void STILL_init() {
-  BK4819_Squelch(3, gCurrentVfo.fRX);
+  BK4819_Squelch(gCurrentVfo.squelch, gCurrentVfo.fRX);
+  BK4819_SetFilterBandwidth(gCurrentVfo.bw);
+  BK4819_SetModulation(gCurrentVfo.modulation);
+
   TaskAdd("Update still", update, 10, true);
   TaskAdd("Redraw still", render, 1000, true);
 }
@@ -108,6 +111,14 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_7:
     RADIO_UpdateStep(false);
     gRedrawScreen = true;
+    return true;
+  case KEY_3:
+    gCurrentVfo.squelch++;
+    RADIO_SetSquelch(gCurrentVfo.squelch);
+    return true;
+  case KEY_9:
+    gCurrentVfo.squelch--;
+    RADIO_SetSquelch(gCurrentVfo.squelch);
     return true;
   case KEY_UP:
     if (menuState) {

@@ -7,7 +7,7 @@
 #include "inc/dp32g030/gpio.h"
 #include "scheduler.h"
 
-VFO gCurrentVfo;
+CurrentVFO gCurrentVfo;
 UpconverterTypes gUpconverterType = UPCONVERTER_OFF;
 bool gIsListening = false;
 
@@ -80,6 +80,11 @@ void RADIO_ToggleRX(bool on) {
   BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN, on);
   // BK4819_RX_TurnOn(); // broke squelch
 
+  // too many garbage, but works stable
+  // BK4819_Squelch(gCurrentVfo.squelch, gCurrentVfo.fRX);
+  BK4819_SetFilterBandwidth(gCurrentVfo.bw);
+  BK4819_SetModulation(gCurrentVfo.modulation);
+
   AUDIO_ToggleSpeaker(on);
   BK4819_ToggleAFDAC(on);
   BK4819_ToggleAFBit(on);
@@ -134,4 +139,9 @@ void RADIO_SaveCurrentVFO() {
 
 void RADIO_LoadCurrentVFO() {
   EEPROM_ReadBuffer(CURRENT_VFO_OFFSET, &gCurrentVfo, VFO_SIZE);
+}
+
+void RADIO_SetSquelch(uint8_t sq) {
+  BK4819_Squelch(gCurrentVfo.squelch = sq, gCurrentVfo.fRX);
+  onVfoUpdate();
 }

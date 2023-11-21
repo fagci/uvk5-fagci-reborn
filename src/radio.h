@@ -37,8 +37,8 @@ typedef enum {
 } UpconverterTypes;
 
 typedef struct {           // 24 bytes
-  uint32_t fRX;       // 4
-  uint32_t fTX;       // 4
+  uint32_t fRX;            // 4
+  uint32_t fTX;            // 4
   char name[10];           // 10
   uint8_t memoryBanks : 8; // 1
   uint8_t step : 4;
@@ -51,10 +51,26 @@ typedef struct {           // 24 bytes
   uint8_t codeTx : 8; // 1
 } VFO;
 
+typedef struct {           // 24 bytes
+  uint32_t fRX;            // 4
+  uint32_t fTX;            // 4
+  char name[10];           // 10
+  uint8_t memoryBanks : 8; // 1
+  uint8_t step : 4;
+  uint8_t modulation : 4; // 1
+  uint8_t bw : 2;
+  uint8_t power : 2;
+  uint8_t codeTypeRx : 4; // 1
+  uint8_t codeTypeTx : 4;
+  uint8_t codeRx : 8; // 1
+  uint8_t codeTx : 8; // 1
+  uint8_t squelch : 4;
+} CurrentVFO;
+
 typedef struct {           // 28 bytes
-  uint32_t fStart;    // 4
-  uint32_t fEnd;      // 4
-  uint32_t offset;    // 4
+  uint32_t fStart;         // 4
+  uint32_t fEnd;           // 4
+  uint32_t offset;         // 4
   char name[10];           // 10
   uint8_t memoryBanks : 8; // 1
   uint8_t step : 4;
@@ -69,7 +85,7 @@ typedef struct {           // 28 bytes
   uint8_t squelchType : 2; // 1
 } Band;
 
-extern VFO gCurrentVfo;
+extern CurrentVFO gCurrentVfo;
 extern const char *upConverterFreqNames[3];
 extern bool gIsListening;
 
@@ -91,5 +107,6 @@ void RADIO_UpdateStep(bool inc);
 void RADIO_TuneTo(uint32_t f, bool precise);
 void RADIO_SaveCurrentVFO();
 void RADIO_LoadCurrentVFO();
+void RADIO_SetSquelch(uint8_t sq);
 
 #endif /* end of include guard: RADIO_H */

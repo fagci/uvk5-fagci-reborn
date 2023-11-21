@@ -7,6 +7,7 @@
 #include "../ui/components.h"
 #include "../ui/helper.h"
 #include "apps.h"
+#include "finput.h"
 #include <string.h>
 
 #define BLACKLIST_SIZE 32
@@ -16,20 +17,20 @@ static uint16_t rssiHistory[128] = {0};
 static uint8_t i = 0;
 static uint8_t msmTime = 2;
 static uint32_t currentFreq;
-static uint32_t fStart, fEnd;
+static uint32_t fStart, fEnd, f;
 static bool gettingRssi = false;
 
 static void resetRssiHistory() { memset(rssiHistory, 0, HISTORY_SIZE); }
 static void writeRssi() {
   rssiHistory[i++] = BK4819_GetRSSI();
-  gCurrentVfo.fRX += StepFrequencyTable[gCurrentVfo.step];
+  f += StepFrequencyTable[gCurrentVfo.step];
   gettingRssi = false;
-  BK4819_TuneTo(gCurrentVfo.fRX, true);
+  BK4819_TuneTo(f, true);
 }
 
 static void step() {
   gettingRssi = true;
-  BK4819_TuneTo(gCurrentVfo.fRX, true);
+  BK4819_TuneTo(f, true);
   TaskAdd("Get RSSI", writeRssi, msmTime, false);
   TaskSetPriority(writeRssi, 0);
 }
@@ -37,10 +38,8 @@ static void step() {
 static void startNewScan() {
   i = 0;
 
-  fStart = currentFreq;
+  f = fStart = currentFreq;
   fEnd = currentFreq + 128 * StepFrequencyTable[gCurrentVfo.step];
-
-  gCurrentVfo.fRX = fStart;
 
   resetRssiHistory();
 
@@ -54,6 +53,10 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   switch (Key) {
   case KEY_EXIT:
     APPS_exit();
+    return true;
+  case KEY_5:
+    gFInputValue = &gCurrentVfo.fRX;
+    APPS_run(APP_FINPUT);
     return true;
   default:
     break;
@@ -82,7 +85,7 @@ static void render() {
 }
 
 void SPECTRUM_update(void) {
-  if (gCurrentVfo.fRX >= fEnd) {
+  if (f >= fEnd) {
     render();
     startNewScan();
     return;

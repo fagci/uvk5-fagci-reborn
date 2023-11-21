@@ -102,6 +102,9 @@ void UI_FSmall(uint32_t f) {
           gCurrentVfo.fRX % 100000);
   UI_PrintStringSmallest(String, 32, 8, false, true);
 
+  sprintf(String, "SQ:%u", gCurrentVfo.squelch);
+  UI_PrintStringSmallest(String, 74, 8, false, true);
+
   if (UI_NoChannelName(gCurrentVfo.name)) {
     sprintf(String, "%u.%05u", f / 100000, f % 100000);
     UI_PrintStringSmall(String, 8, 127, 0);
