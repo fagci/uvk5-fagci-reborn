@@ -8,6 +8,8 @@
 #include "apps.h"
 #include <string.h>
 
+uint32_t *gFInputValue;
+
 static const uint8_t FREQ_INPUT_LENGTH = 10;
 
 static KEY_Code_t freqInputArr[10];
@@ -75,10 +77,7 @@ void FINPUT_init() {
   TaskAdd("Dot blink", dotBlinkFn, 250, true);
 }
 
-void FINPUT_deinit() {
-  TaskRemove(dotBlinkFn);
-  APPS_exit();
-}
+void FINPUT_deinit() { TaskRemove(dotBlinkFn); }
 
 bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed || bKeyHeld) {
@@ -104,7 +103,8 @@ bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_EXIT:
     if (freqInputIndex == 0) {
-      FINPUT_deinit();
+      gFInputValue = NULL;
+      APPS_exit();
       return true;
     }
     input(key);
@@ -113,9 +113,14 @@ bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_MENU:
     tempFreq = GetTuneF(tempFreq);
     if (tempFreq >= F_MIN && tempFreq <= F_MAX) {
-      RADIO_TuneTo(tempFreq, true);
+      *gFInputValue = tempFreq;
+      if (gFInputValue == &gCurrentVfo.fRX ||
+          gFInputValue == &gCurrentVfo.fTX) {
+        RADIO_SaveCurrentVFO();
+      }
     }
-    FINPUT_deinit();
+    gFInputValue = NULL;
+    APPS_exit();
     return true;
   default:
     break;

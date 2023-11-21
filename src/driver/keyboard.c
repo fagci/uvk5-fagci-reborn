@@ -26,7 +26,6 @@
 KEY_Code_t gKeyReading0 = KEY_INVALID;
 KEY_Code_t gKeyReading1 = KEY_INVALID;
 uint16_t gDebounceCounter;
-bool gWasFKeyPressed;
 
 typedef const struct {
   // Using a 16 bit pre-calculated shift and invert is cheaper
@@ -150,65 +149,96 @@ bool gPttIsPressed;
 bool gPttWasReleased;
 uint8_t gPttDebounceCounter;
 
-#define KEY_HOLD_TIME 50
+static uint8_t gSerialConfigCountDown_500ms = 12;
+static uint8_t KEY_DEBOUNCE = 2;
+static uint8_t KEY_REPEAT_DELAY = 40;
+static uint8_t KEY_REPEAT = 8;
 
 void KEYBOARD_CheckKeys(void onKey(KEY_Code_t, bool, bool)) {
-  KEY_Code_t Key;
+
+  // -------------------- PTT ------------------------
 
   if (gPttIsPressed) {
-    if (GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT)) {
-      SYSTEM_DelayMs(20);
-      if (GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT)) {
+    // PTT released or serial comms config in progress
+    if (GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) ||
+        gSerialConfigCountDown_500ms > 0) {
+      if (++gPttDebounceCounter >= 3 || gSerialConfigCountDown_500ms > 0) {
         onKey(KEY_PTT, false, false);
         gPttIsPressed = false;
-        if (gKeyReading1 != KEY_INVALID) {
+        if (gKeyReading1 != KEY_INVALID)
           gPttWasReleased = true;
-        }
       }
+    } else
+      gPttDebounceCounter = 0;
+  } else if (!GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) &&
+             gSerialConfigCountDown_500ms == 0) {
+    if (++gPttDebounceCounter >= 3) {
+      gPttDebounceCounter = 0;
+      gPttIsPressed = true;
+      onKey(KEY_PTT, true, false);
     }
   } else {
-    if (!GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT)) {
-      gPttDebounceCounter = gPttDebounceCounter + 1;
-      if (gPttDebounceCounter > 4) {
-        gPttIsPressed = true;
-        onKey(KEY_PTT, true, false);
-      }
-    } else {
-      gPttDebounceCounter = 0;
-    }
+    gPttDebounceCounter = 0;
   }
-  Key = KEYBOARD_Poll();
+
+  // --------------------- OTHER KEYS ----------------------------
+
+  KEY_Code_t Key = KEYBOARD_Poll();
+
+  // new key pressed
   if (gKeyReading0 != Key) {
-    if (gKeyReading0 != KEY_INVALID && Key != KEY_INVALID) {
+    if (gKeyReading0 != KEY_INVALID && Key != KEY_INVALID)
+      // key pressed without releasing previous key
       onKey(gKeyReading1, false, gKeyBeingHeld);
-    }
+
     gKeyReading0 = Key;
     gDebounceCounter = 0;
     return;
   }
+
   gDebounceCounter++;
-  if (gDebounceCounter == 2) {
+
+  // debounced new key pressed
+  if (gDebounceCounter == KEY_DEBOUNCE) {
+    // all non PTT keys released
     if (Key == KEY_INVALID) {
+      // some button was pressed before
       if (gKeyReading1 != KEY_INVALID) {
+        // process last button released event
         onKey(gKeyReading1, false, gKeyBeingHeld);
         gKeyReading1 = KEY_INVALID;
       }
-    } else {
+    } else { // process new key pressed
       gKeyReading1 = Key;
       onKey(Key, true, false);
     }
+
     gKeyBeingHeld = false;
-  } else if (gDebounceCounter == KEY_HOLD_TIME) {
-    gKeyBeingHeld = true;
-    onKey(Key, true, true);
-  } else if (gDebounceCounter > KEY_HOLD_TIME) {
-    gKeyBeingHeld = true;
-    if ((gDebounceCounter & 15) == 0) {
-      onKey(Key, true, true);
+    return;
+  }
+
+  // the button is not held long enough for repeat yet, or not really pressed
+  if (gDebounceCounter < KEY_REPEAT_DELAY || Key == KEY_INVALID)
+    return;
+
+  // initial key repeat with longer delay
+  if (gDebounceCounter == KEY_REPEAT_DELAY) {
+    if (Key != KEY_PTT) {
+      gKeyBeingHeld = true;
+      onKey(Key, true, true); // key held event
     }
-    if (gDebounceCounter != 0xFFFF) {
+  } else {
+    // subsequent fast key repeats
+    // fast key repeats for up/down buttons
+    if (Key == KEY_UP || Key == KEY_DOWN) {
+      gKeyBeingHeld = true;
+      if ((gDebounceCounter % KEY_REPEAT) == 0)
+        onKey(Key, true, true); // key held event
+    }
+
+    if (gDebounceCounter < 0xFFFF)
       return;
-    }
-    gDebounceCounter = KEY_HOLD_TIME;
+
+    gDebounceCounter = KEY_REPEAT_DELAY + 1;
   }
 }

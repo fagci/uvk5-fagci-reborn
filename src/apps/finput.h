@@ -8,5 +8,8 @@
 void FINPUT_init();
 bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
 void FINPUT_render();
+void FINPUT_deinit();
+
+extern uint32_t *gFInputValue;
 
 #endif /* end of include guard: FINPUT_H */

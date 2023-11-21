@@ -9,6 +9,7 @@
 #include "../ui/components.h"
 #include "../ui/helper.h"
 #include "apps.h"
+#include "finput.h"
 
 static uint8_t menuState = 0;
 static bool monitorMode = false;
@@ -77,6 +78,28 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed) {
     return false;
   }
+  if (menuState) {
+    switch (key) {
+    case KEY_1:
+    case KEY_2:
+    case KEY_3:
+      menuState = key - KEY_0;
+      return true;
+    case KEY_4:
+    case KEY_5:
+    case KEY_6:
+      menuState = key - KEY_0 + 1;
+      return true;
+    case KEY_0:
+      menuState = 8;
+      return true;
+    case KEY_STAR:
+      menuState = 4;
+      return true;
+    default:
+      break;
+    }
+  }
   switch (key) {
   case KEY_1:
     RADIO_UpdateStep(true);
@@ -86,37 +109,11 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     RADIO_UpdateStep(false);
     gRedrawScreen = true;
     return true;
-#ifdef ENABLE_ALL_REGISTERS
-  case KEY_2:
-    menuState = 0;
-    if (hiddenMenuState <= 1) {
-      hiddenMenuState = ARRAY_SIZE(hiddenRegisterSpecs) - 1;
-    } else {
-      hiddenMenuState--;
-    }
-    redrawScreen = true;
-    return true;
-  case KEY_8:
-    menuState = 0;
-    if (hiddenMenuState == ARRAY_SIZE(hiddenRegisterSpecs) - 1) {
-      hiddenMenuState = 1;
-    } else {
-      hiddenMenuState++;
-    }
-    redrawScreen = true;
-    return true;
-#endif
   case KEY_UP:
     if (menuState) {
       UpdateRegMenuValue(registerSpecs[menuState], true);
       return true;
     }
-#ifdef ENABLE_ALL_REGISTERS
-    if (hiddenMenuState) {
-      UpdateRegMenuValue(hiddenRegisterSpecs[hiddenMenuState], true);
-      return true;
-    }
-#endif
     UpdateCurrentFreqStill(true);
     return true;
   case KEY_DOWN:
@@ -124,18 +121,13 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       UpdateRegMenuValue(registerSpecs[menuState], false);
       return true;
     }
-#ifdef ENABLE_ALL_REGISTERS
-    if (hiddenMenuState) {
-      UpdateRegMenuValue(hiddenRegisterSpecs[hiddenMenuState], false);
-      return true;
-    }
-#endif
     UpdateCurrentFreqStill(false);
     return true;
   case KEY_F:
     APPS_run(APP_VFO_CFG);
     return true;
   case KEY_5:
+    gFInputValue = &gCurrentVfo.fRX;
     APPS_run(APP_FINPUT);
     return true;
   case KEY_0:
@@ -151,13 +143,10 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_SIDE2:
     // ToggleBacklight();
     return true;
-  case KEY_MENU:
+  case KEY_8:
     if (!bKeyHeld) {
-      if (menuState == ARRAY_SIZE(registerSpecs) - 1) {
-        menuState = 1;
-      } else {
-        menuState++;
-      }
+      menuState =
+          menuState == ARRAY_SIZE(registerSpecs) - 1 ? 1 : menuState + 1;
       gRedrawScreen = true;
       return true;
     }

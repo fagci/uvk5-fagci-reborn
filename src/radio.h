@@ -37,8 +37,8 @@ typedef enum {
 } UpconverterTypes;
 
 typedef struct {           // 24 bytes
-  uint32_t fRX : 32;       // 4
-  uint32_t fTX : 32;       // 4
+  uint32_t fRX;       // 4
+  uint32_t fTX;       // 4
   char name[10];           // 10
   uint8_t memoryBanks : 8; // 1
   uint8_t step : 4;
@@ -52,9 +52,9 @@ typedef struct {           // 24 bytes
 } VFO;
 
 typedef struct {           // 28 bytes
-  uint32_t fStart : 32;    // 4
-  uint32_t fEnd : 32;      // 4
-  uint32_t offset : 32;    // 4
+  uint32_t fStart;    // 4
+  uint32_t fEnd;      // 4
+  uint32_t offset;    // 4
   char name[10];           // 10
   uint8_t memoryBanks : 8; // 1
   uint8_t step : 4;

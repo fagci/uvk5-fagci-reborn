@@ -5,6 +5,7 @@
 #include "../ui/components.h"
 #include "../ui/helper.h"
 #include "apps.h"
+#include "finput.h"
 #include "textinput.h"
 
 typedef enum {
@@ -84,43 +85,38 @@ static const char *getValue(Menu type) {
   return "";
 }
 
-#define ITEMS(value)                                                           \
-  for (uint8_t i = 0; i < ARRAY_SIZE(value); ++i) {                            \
-    strncpy(items[i], value[i], 15);                                           \
-  }                                                                            \
-  size = ARRAY_SIZE(value);                                                    \
-  type = MT_ITEMS;
+#define SHOW_ITEMS(value)                                                      \
+  do {                                                                         \
+    char items[ARRAY_SIZE(value)][16] = {0};                                   \
+    for (uint8_t i = 0; i < ARRAY_SIZE(value); ++i) {                          \
+      strncpy(items[i], value[i], 15);                                         \
+    }                                                                          \
+    UI_ShowItems(items, ARRAY_SIZE(value), subMenuIndex);                      \
+  } while (0)
 
-static void showModulationOptions() {
-  char items[5][16] = {0};
-  for (uint8_t i = 0; i < ARRAY_SIZE(modulationTypeOptions); ++i) {
-    strncpy(items[i], modulationTypeOptions[i], 15);
+static void showStepValues() {
+  char items[ARRAY_SIZE(StepFrequencyTable)][16] = {0};
+  for (uint8_t i = 0; i < ARRAY_SIZE(StepFrequencyTable); ++i) {
+    sprintf(items[i], "%d.%02dKHz", StepFrequencyTable[i] / 100,
+            StepFrequencyTable[i] % 100);
   }
-  UI_ShowItems(items, ARRAY_SIZE(modulationTypeOptions), subMenuIndex);
+  UI_ShowItems(items, ARRAY_SIZE(StepFrequencyTable), subMenuIndex);
 }
 
 static void showSubmenu(Menu menu) {
-  /* char(*items)[16] = {0};
-  uint8_t size;
-  MenuItemType type; */
-
   switch (menu) {
   case M_MODULATION:
-    // ITEMS(modulationTypeOptions);
-    showModulationOptions();
+    SHOW_ITEMS(modulationTypeOptions);
     return;
-    break;
+  case M_BW:
+    SHOW_ITEMS(bwNames);
+    return;
+  case M_STEP:
+    showStepValues();
+    return;
   default:
     break;
   }
-
-  /* switch (type) {
-  case MT_ITEMS:
-    UI_ShowItems(items, size, subMenuIndex);
-    break;
-  default:
-    break;
-  } */
 }
 
 void VFOCFG_init() {}
@@ -155,12 +151,20 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case M_NAME:
       gTextinputText = gCurrentVfo.name;
       APPS_run(APP_TEXTINPUT);
-      return false;
+      return true;
+    case M_F_RX:
+      gFInputValue = &gCurrentVfo.fRX;
+      APPS_run(APP_FINPUT);
+      return true;
+    case M_F_TX:
+      gFInputValue = &gCurrentVfo.fTX;
+      APPS_run(APP_FINPUT);
+      return true;
     case M_SAVE:
       APPS_run(APP_SAVECH);
-      return false;
-    default:
       return true;
+    default:
+      break;
     }
     if (isSubMenu) {
       accept();

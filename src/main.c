@@ -24,22 +24,22 @@ bool showBattery = true;
 
 void _putchar(char c) {}
 
-static void onKey(KEY_Code_t k, bool p, bool h) {
-  if (k != KEY_INVALID) {
+static void onKey(KEY_Code_t key, bool pressed, bool hold) {
+  if (key != KEY_INVALID) {
     BACKLIGHT_On();
     TaskTouch(BACKLIGHT_Update);
   }
-  if (APPS_key(k, p, h)) {
+  if (APPS_key(key, pressed, hold)) {
     gRedrawScreen = true;
     return;
   }
-  if (k == KEY_MENU && gCurrentApp != APP_SETTINGS &&
+  if (key == KEY_MENU && gCurrentApp != APP_SETTINGS &&
       gCurrentApp != APP_MAINMENU) {
-    if (h && p) {
+    if (hold && pressed) {
       APPS_run(APP_SETTINGS);
       return;
     }
-    if (!h && p) {
+    if (!hold && !pressed) {
       APPS_run(APP_MAINMENU);
       return;
     }

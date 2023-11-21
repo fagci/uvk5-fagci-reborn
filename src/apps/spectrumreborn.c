@@ -6,6 +6,7 @@
 #include "../scheduler.h"
 #include "../ui/components.h"
 #include "../ui/helper.h"
+#include "apps.h"
 #include <string.h>
 
 #define BLACKLIST_SIZE 32
@@ -47,6 +48,16 @@ static void startNewScan() {
 }
 
 bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
+  if (!bKeyPressed) {
+    return false;
+  }
+  switch (Key) {
+  case KEY_EXIT:
+    APPS_exit();
+    return true;
+  default:
+    break;
+  }
   return false;
 }
 

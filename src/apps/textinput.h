@@ -9,6 +9,7 @@ void TEXTINPUT_init();
 void TEXTINPUT_update();
 bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
 void TEXTINPUT_render();
+void TEXTINPUT_deinit();
 
 extern char *gTextinputText;
 
