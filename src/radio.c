@@ -16,6 +16,7 @@ const uint16_t StepFrequencyTable[12] = {
 
     250, 500, 625, 833, 1000, 1250, 2500, 10000,
 };
+const uint8_t squelchTypeValues[4] = {0x88, 0xAA, 0xCC, 0xFF};
 
 const uint32_t upConverterValues[3] = {0, 5000000, 12500000};
 const char *upConverterFreqNames[3] = {"None", "50M", "125M"};

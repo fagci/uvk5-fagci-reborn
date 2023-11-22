@@ -1,6 +1,7 @@
 #ifndef RADIO_H
 #define RADIO_H
 
+#include "driver/bk4819.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -36,6 +37,13 @@ typedef enum {
   UPCONVERTER_125M,
 } UpconverterTypes;
 
+typedef enum {
+  SQUELCH_RSSI_NOISE_GLITCH,
+  SQUELCH_RSSI_GLITCH,
+  SQUELCH_RSSI_NOISE,
+  SQUELCH_RSSI,
+} SquelchType;
+
 typedef struct {           // 24 bytes
   uint32_t fRX;            // 4
   uint32_t fTX;            // 4
@@ -67,29 +75,38 @@ typedef struct {           // 24 bytes
   uint8_t squelch : 4;
 } CurrentVFO;
 
-typedef struct {           // 28 bytes
-  uint32_t fStart;         // 4
-  uint32_t fEnd;           // 4
-  uint32_t offset;         // 4
-  char name[10];           // 10
-  uint8_t memoryBanks : 8; // 1
-  uint8_t step : 4;
-  uint8_t modulation : 4; // 1
-  uint8_t bw : 2;
-  uint8_t power : 2;
-  uint8_t codeTypeRx : 4; // 1
-  uint8_t codeTypeTx : 4;
-  uint8_t codeRx : 8; // 1
-  uint8_t codeTx : 8; // 1
+typedef struct { // 8 bytes
+  uint32_t start;
+  uint32_t end;
+} FRange;
+
+typedef struct { // 20 bytes
+  FRange bounds;
+  char name[10];
+  Step step : 4;
+  ModulationType modulation : 4;
+  BK4819_FilterBandwidth_t bw : 2;
+  SquelchType squelchType : 2;
   uint8_t squelch : 4;
-  uint8_t squelchType : 2; // 1
 } Band;
+
+typedef struct { // 29 bytes
+  Band band;
+  uint32_t offset;         // 4
+  uint8_t memoryBanks : 8; // 1
+  uint8_t codeTypeRx : 4;
+  uint8_t codeTypeTx : 4; // 1
+  uint8_t codeRx : 8;     // 1
+  uint8_t codeTx : 8;     // 1
+  uint8_t power : 2;
+} Preset;
 
 extern CurrentVFO gCurrentVfo;
 extern const char *upConverterFreqNames[3];
 extern bool gIsListening;
 
 extern const uint16_t StepFrequencyTable[12];
+extern const uint8_t squelchTypeValues[4];
 
 extern const char *modulationTypeOptions[5];
 extern const char *vfoStateNames[];

@@ -15,6 +15,7 @@
  */
 
 #include "../helper/measurements.h"
+#include <stdint.h>
 
 int Clamp(int v, int min, int max) {
   return v <= min ? min : (v >= max ? max : v);
@@ -47,8 +48,28 @@ uint8_t Rssi2PX(uint16_t rssi, uint8_t pxMin, uint8_t pxMax) {
 
 int Mid(uint16_t *array, uint8_t n) {
   int32_t sum = 0;
-  for (int i = 0; i < n; ++i) {
+  for (uint8_t i = 0; i < n; ++i) {
     sum += array[i];
   }
   return sum / n;
+}
+
+int Min(uint16_t *array, uint8_t n) {
+  uint8_t min = array[0];
+  for (uint8_t i = 1; i < n; ++i) {
+    if (array[i] < min) {
+      min = array[i];
+    }
+  }
+  return min;
+}
+
+int Max(uint16_t *array, uint8_t n) {
+  uint8_t max = array[0];
+  for (uint8_t i = 1; i < n; ++i) {
+    if (array[i] > max) {
+      max = array[i];
+    }
+  }
+  return max;
 }

@@ -137,7 +137,7 @@ void Main(void) {
   BK4819_Squelch(3, gCurrentVfo.fRX);
   BK4819_SetModulation(gCurrentVfo.modulation);
 
-  BACKLIGHT_SetDuration(15);
+  BACKLIGHT_SetDuration(255);
   BACKLIGHT_On();
   UpdateBattery();
 
