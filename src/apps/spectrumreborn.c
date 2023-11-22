@@ -49,14 +49,11 @@ static void writeRssi() {
   }
   f += currentStepSize;
   currentStep++;
-
-  // BK4819_TuneTo(f, true);
-  // BK4819_SetFrequency(f); // need to test
 }
 
 static void step() {
   gettingRssi = true;
-  BK4819_TuneTo(f, false);
+  BK4819_TuneTo(f, false); // if true, then bad results O_o
   TaskAdd("Get RSSI", writeRssi, msmTime, false); //->priority = 0;
 }
 
