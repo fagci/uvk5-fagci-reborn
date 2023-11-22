@@ -16,7 +16,7 @@ static const uint8_t S_HEIGHT = 32;
 static const uint8_t SPECTRUM_Y = 16;
 static const uint8_t S_BOTTOM = SPECTRUM_Y + S_HEIGHT;
 
-static uint8_t x = 0;
+// static uint8_t x = 0;
 static uint32_t f;
 static uint16_t rssiHistory[LCD_WIDTH] = {0};
 
@@ -28,7 +28,6 @@ static Band *currentBand;
 static uint16_t currentStepSize;
 static uint8_t exLen;
 static uint16_t stepsCount;
-static uint32_t bandwidth;
 
 static uint16_t currentStep;
 
@@ -43,7 +42,7 @@ static uint8_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 static void writeRssi() {
   uint8_t rssi = BK4819_GetRSSI();
   for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
-    x = LCD_WIDTH * currentStep / stepsCount + exIndex;
+    uint8_t x = LCD_WIDTH * currentStep / stepsCount + exIndex;
     rssiHistory[x] = rssi;
   }
   currentStep++;
@@ -54,9 +53,9 @@ static void writeRssi() {
 }
 
 static void step() {
-  BK4819_TuneTo(f, true);
-  TaskAdd("Get RSSI", writeRssi, msmTime, false)->priority = 0;
   gettingRssi = true;
+  BK4819_TuneTo(f, true);
+  TaskAdd("Get RSSI", writeRssi, msmTime, false); //->priority = 0;
 }
 
 static void startNewScan() {
@@ -65,12 +64,11 @@ static void startNewScan() {
   currentBand = &bandsToScan[currentBandIndex];
   currentStepSize = StepFrequencyTable[currentBand->step];
 
-  bandwidth = currentBand->bounds.end - currentBand->bounds.start;
+  uint32_t bandwidth = currentBand->bounds.end - currentBand->bounds.start;
 
   stepsCount = bandwidth / currentStepSize;
   exLen = ceilDiv(LCD_WIDTH, stepsCount);
 
-  x = 0;
   f = currentBand->bounds.start;
   currentStep = 0;
 
@@ -106,7 +104,7 @@ static void render() {
   sprintf(String, "%u.%05u", fe / 100000, fe % 100000);
   UI_PrintStringSmallest(String, 93, 49, false, true);
 
-  sprintf(String, "%u %u %u", exLen, bandwidth, stepsCount);
+  sprintf(String, "%u %u", exLen, stepsCount);
   UI_PrintStringSmallest(String, 42, 49, false, true);
 
   UI_FSmall(fs);
@@ -153,11 +151,11 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void SPECTRUM_update(void) {
-  if (x >= LCD_WIDTH - 1) {
-    gRedrawScreen = true;
+  if (gettingRssi) {
     return;
   }
-  if (gettingRssi) {
+  if (f >= currentBand->bounds.end) {
+    gRedrawScreen = true;
     return;
   }
   step();
