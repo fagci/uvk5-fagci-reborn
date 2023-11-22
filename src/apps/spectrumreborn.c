@@ -41,20 +41,22 @@ static uint8_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 
 static void writeRssi() {
   uint8_t rssi = BK4819_GetRSSI();
+  gettingRssi = false;
+
   for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
     uint8_t x = LCD_WIDTH * currentStep / stepsCount + exIndex;
     rssiHistory[x] = rssi;
   }
-  currentStep++;
-  gettingRssi = false;
   f += currentStepSize;
+  currentStep++;
+
   // BK4819_TuneTo(f, true);
-  BK4819_SetFrequency(f); // need to test
+  // BK4819_SetFrequency(f); // need to test
 }
 
 static void step() {
   gettingRssi = true;
-  BK4819_TuneTo(f, true);
+  BK4819_TuneTo(f, false);
   TaskAdd("Get RSSI", writeRssi, msmTime, false); //->priority = 0;
 }
 
@@ -66,11 +68,11 @@ static void startNewScan() {
 
   uint32_t bandwidth = currentBand->bounds.end - currentBand->bounds.start;
 
+  currentStep = 0;
   stepsCount = bandwidth / currentStepSize;
   exLen = ceilDiv(LCD_WIDTH, stepsCount);
 
   f = currentBand->bounds.start;
-  currentStep = 0;
 
   resetRssiHistory();
 
