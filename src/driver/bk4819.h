@@ -25,6 +25,12 @@
 #define F_MIN 0
 #define F_MAX 130000000
 
+typedef enum {
+  FILTER_VHF,
+  FILTER_UHF,
+  FILTER_OFF,
+} Filter;
+
 enum BK4819_AF_Type_t {
   BK4819_AF_MUTE,
   BK4819_AF_FM,

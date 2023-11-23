@@ -119,8 +119,8 @@ void SPECTRUM_init(void) {
   resetRssiHistory();
   Band band = {
       .name = "Manual",
-      .bounds.start = 43300000,
-      .bounds.end = 43400000,
+      .bounds.start = 43307500,
+      .bounds.end = 43627500,
       .step = STEP_25_0kHz,
       .bw = BK4819_FILTER_BW_NARROW,
       .modulation = MOD_FM,

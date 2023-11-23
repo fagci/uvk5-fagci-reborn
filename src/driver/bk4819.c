@@ -29,6 +29,7 @@ static const uint16_t FSK_RogerTable[7] = {
 };
 
 static uint16_t gBK4819_GpioOutState;
+static Filter selectedFilter = FILTER_OFF;
 
 bool gRxIdleMode;
 
@@ -403,16 +404,15 @@ void BK4819_RX_TurnOn(void) {
 }
 
 void BK4819_SelectFilter(uint32_t Frequency) {
-  if (Frequency < VHF_UHF_BOUND) {
-    BK4819_ToggleGpioOut(BK4819_GPIO4_PIN32_VHF_LNA, true);
-    BK4819_ToggleGpioOut(BK4819_GPIO3_PIN31_UHF_LNA, false);
-  } else if (Frequency == 0xFFFFFFFF) {
-    BK4819_ToggleGpioOut(BK4819_GPIO4_PIN32_VHF_LNA, false);
-    BK4819_ToggleGpioOut(BK4819_GPIO3_PIN31_UHF_LNA, false);
-  } else {
-    BK4819_ToggleGpioOut(BK4819_GPIO4_PIN32_VHF_LNA, false);
-    BK4819_ToggleGpioOut(BK4819_GPIO3_PIN31_UHF_LNA, true);
+  Filter filterNeeded = Frequency < VHF_UHF_BOUND ? FILTER_VHF : FILTER_UHF;
+
+  if (selectedFilter == filterNeeded) {
+    return;
   }
+
+  selectedFilter = filterNeeded;
+  BK4819_ToggleGpioOut(BK4819_GPIO4_PIN32_VHF_LNA, filterNeeded == FILTER_VHF);
+  BK4819_ToggleGpioOut(BK4819_GPIO3_PIN31_UHF_LNA, filterNeeded == FILTER_UHF);
 }
 
 void BK4819_DisableScramble(void) {
