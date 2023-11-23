@@ -16,7 +16,6 @@ static const uint8_t S_HEIGHT = 32;
 static const uint8_t SPECTRUM_Y = 16;
 static const uint8_t S_BOTTOM = SPECTRUM_Y + S_HEIGHT;
 
-// static uint8_t x = 0;
 static uint32_t f;
 static uint16_t rssiHistory[LCD_WIDTH] = {0};
 
@@ -120,8 +119,8 @@ void SPECTRUM_init(void) {
   resetRssiHistory();
   Band band = {
       .name = "Manual",
-      .bounds.start = 43307500,
-      .bounds.end = 43627500,
+      .bounds.start = 43300000,
+      .bounds.end = 43400000,
       .step = STEP_25_0kHz,
       .bw = BK4819_FILTER_BW_NARROW,
       .modulation = MOD_FM,
