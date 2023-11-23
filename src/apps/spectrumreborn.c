@@ -22,7 +22,7 @@ static bool markers[LCD_WIDTH] = {0};
 
 static Band bandsToScan[32] = {0};
 static uint8_t bandsCount = 0;
-static uint8_t currentBandIndex = 0;
+static uint8_t currentBandIndex = 255;
 static Band *currentBand;
 
 static uint16_t currentStepSize;
@@ -31,7 +31,7 @@ static uint16_t stepsCount;
 
 static uint16_t currentStep;
 
-static uint8_t msmTime = 10;
+static uint8_t msmTime = 20;
 
 static bool gettingRssi = false;
 
@@ -46,8 +46,8 @@ static uint8_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 
 static void writeRssi() {
   uint8_t rssi = BK4819_GetRSSI();
-  // bool open = (BK4819_ReadRegister(BK4819_REG_0C) >> 1) & 1;
-  bool open = BK4819_IsSquelchOpen();
+  bool open = (BK4819_ReadRegister(BK4819_REG_0C) >> 1) & 1;
+  // bool open = BK4819_IsSquelchOpen();
   gettingRssi = false;
 
   for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
@@ -66,7 +66,7 @@ static void writeRssi() {
 static void step() {
   gettingRssi = true;
 
-  BK4819_TuneTo(f, true); // if true, then bad results O_o
+  BK4819_TuneTo(f, false); // if true, then bad results O_o
   TaskAdd("Get RSSI", writeRssi, msmTime, false); //->priority = 0;
 }
 
@@ -86,9 +86,6 @@ static void startNewScan() {
 
   resetRssiHistory();
 
-  RegisterSpec sqType = {"SQ type", 0x77, 8, 0xFF, 1};
-  BK4819_SetRegValue(sqType, squelchTypeValues[currentBand->squelchType]);
-  BK4819_Squelch(currentBand->squelch, f);
   // BK4819_WriteRegister(0x43, BK4819_FILTER_BW_WIDE);
   BK4819_WriteRegister(0x43, 0b0000000110111100);
   step();
@@ -107,11 +104,11 @@ static void DrawTicks() {
 
   // center
   if (false) {
-    gFrameBuffer[5][62] = 0x80;
-    gFrameBuffer[5][63] = 0x80;
-    gFrameBuffer[5][64] = 0xff;
-    gFrameBuffer[5][65] = 0x80;
-    gFrameBuffer[5][66] = 0x80;
+    gFrameBuffer[5][62] |= 0x80;
+    gFrameBuffer[5][63] |= 0x80;
+    gFrameBuffer[5][64] |= 0xff;
+    gFrameBuffer[5][65] |= 0x80;
+    gFrameBuffer[5][66] |= 0x80;
   } else {
     gFrameBuffer[5][0] |= 0xff;
     gFrameBuffer[5][1] |= 0x80;
@@ -125,8 +122,6 @@ static void DrawTicks() {
 }
 
 static void render() {
-  /* const uint16_t rssiMin = 50;
-  const uint16_t rssiMax = 130; */
   const uint16_t rssiMin = Min(rssiHistory, LCD_WIDTH);
   const uint16_t rssiMax = Max(rssiHistory, LCD_WIDTH);
   const uint16_t vMin = rssiMin - 2;
@@ -137,28 +132,30 @@ static void render() {
 
   UI_PrintStringSmallest(currentBand->name, 0, 0, true, true);
 
-  /* sprintf(String, "\xB1%uk", settings.frequencyChangeStep / 100);
-  UI_PrintStringSmallest(String, 52, 49, false, true); */
+  // UI_PrintSmallest(52, 49, "\xB1%uk", settings.frequencyChangeStep / 100);
 
   UI_FSmall(currentBand->bounds.start);
-  UI_FSmallest(currentBand->bounds.start, 0, 49);
-  UI_FSmallest(currentBand->bounds.end, 93, 49);
 
   UI_PrintSmallest(42, 49, "%u %u", exLen, stepsCount);
+
+  DrawTicks();
+  UI_FSmallest(currentBand->bounds.start, 0, 49);
+  UI_FSmallest(currentBand->bounds.end, 93, 49);
 
   for (uint8_t x = 0; x < LCD_WIDTH; ++x) {
     uint8_t yVal = ConvertDomain(rssiHistory[x], vMin, vMax, 0, S_HEIGHT);
     if (markers[x]) {
       PutPixel(x, 16, true);
+      PutPixel(x, 17, true);
     }
     DrawHLine(S_BOTTOM - yVal, S_BOTTOM, x, true);
   }
-  DrawTicks();
 }
 
 static void addBand(const Band band) { bandsToScan[bandsCount++] = band; }
 
 void SPECTRUM_init(void) {
+  bandsCount = 0;
   resetRssiHistory();
   addBand((Band){
       .name = "LPD",
@@ -168,8 +165,12 @@ void SPECTRUM_init(void) {
       .bw = BK4819_FILTER_BW_WIDE,
       .modulation = MOD_FM,
       .squelch = 2,
-      .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+      .squelchType = SQUELCH_RSSI,
   });
+  RegisterSpec sqType = {"SQ type", 0x77, 8, 0xFF, 1};
+  BK4819_SetRegValue(sqType, squelchTypeValues[bandsToScan[0].squelchType]);
+  // BK4819_Squelch(bandsToScan[0].squelch, 1000000);
+  BK4819_SetupSquelch(120, 110, 0, 0, 0, 0);
 }
 
 bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
