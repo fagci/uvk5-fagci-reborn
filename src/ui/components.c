@@ -3,6 +3,7 @@
 #include "../helper/measurements.h"
 #include "../radio.h"
 #include "helper.h"
+#include <stdarg.h>
 
 static const uint8_t MENU_LINES_TO_SHOW = 6;
 
@@ -46,8 +47,6 @@ void UI_Battery(uint8_t Level) {
 }
 
 void UI_RSSIBar(int16_t rssi, uint32_t f, uint8_t line) {
-  char String[16];
-
   const uint8_t BAR_LEFT_MARGIN = 24;
   const uint8_t POS_Y = line * 8 + 1;
 
@@ -63,14 +62,12 @@ void UI_RSSIBar(int16_t rssi, uint32_t f, uint8_t line) {
     ln[i + 1] = ln[i + 2] = sv > 9 ? 0b00100010 : 0b00111110;
   }
 
-  sprintf(String, "%d", dBm);
-  UI_PrintStringSmallest(String, 110, POS_Y, false, true);
+  UI_PrintSmallest(110, POS_Y, "%d", dBm);
   if (s < 10) {
-    sprintf(String, "S%u", s);
+    UI_PrintSmallest(3, POS_Y, "S%u", s);
   } else {
-    sprintf(String, "S9+%u0", s - 9);
+    UI_PrintSmallest(3, POS_Y, "S9+%u0", s - 9);
   }
-  UI_PrintStringSmallest(String, 3, POS_Y, false, true);
 }
 
 void UI_F(uint32_t f, uint8_t line) {
@@ -90,27 +87,36 @@ void UI_F(uint32_t f, uint8_t line) {
 }
 
 void UI_FSmall(uint32_t f) {
-  char String[16];
-  UI_PrintStringSmallest(modulationTypeOptions[gCurrentVfo.modulation], 116, 2,
-                         false, true);
-  UI_PrintStringSmallest(bwNames[gCurrentVfo.bw], 108, 8, false, true);
-  sprintf(String, "%u.%02uk", StepFrequencyTable[gCurrentVfo.step] / 100,
-          StepFrequencyTable[gCurrentVfo.step] % 100);
-  UI_PrintStringSmallest(String, 0, 8, false, true);
+  UI_PrintSmallest(116, 2, modulationTypeOptions[gCurrentVfo.modulation]);
+  UI_PrintSmallest(108, 8, bwNames[gCurrentVfo.bw]);
 
-  sprintf(String, "%u.%05u", gCurrentVfo.fRX / 100000,
-          gCurrentVfo.fRX % 100000);
-  UI_PrintStringSmallest(String, 32, 8, false, true);
+  UI_PrintSmallest(0, 8, "%u.%02uk", StepFrequencyTable[gCurrentVfo.step] / 100,
+                   StepFrequencyTable[gCurrentVfo.step] % 100);
 
-  sprintf(String, "SQ:%u", gCurrentVfo.squelch);
-  UI_PrintStringSmallest(String, 74, 8, false, true);
+  UI_FSmallest(gCurrentVfo.fRX, 32, 8);
+
+  UI_PrintSmallest(74, 8, "SQ:%u", gCurrentVfo.squelch);
 
   if (UI_NoChannelName(gCurrentVfo.name)) {
+    char String[16];
     sprintf(String, "%u.%05u", f / 100000, f % 100000);
     UI_PrintStringSmall(String, 8, 127, 0);
   } else {
     UI_PrintStringSmall(gCurrentVfo.name, 8, 127, 0);
   }
+}
+
+void UI_PrintSmallest(uint8_t x, uint8_t y, const char *pattern, ...) {
+  char String[16];
+  va_list args;
+  va_start(args, pattern);
+
+  vsnprintf(String, 15, pattern, args);
+  UI_PrintStringSmallest(String, x, y, false, true);
+}
+
+void UI_FSmallest(uint32_t f, uint8_t x, uint8_t y) {
+  UI_PrintSmallest(x, y, "%u.%05u", f / 100000, f % 100000);
 }
 
 void UI_DrawScrollBar(const uint16_t size, const uint16_t currentIndex,

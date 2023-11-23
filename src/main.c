@@ -103,7 +103,7 @@ static void Intro() {
   UI_PrintString("OSFW", 4, 4, 0);
   UI_PrintString("reb0rn", 16, 16, 2);
   UI_PrintString(String, 72, 72, 2);
-  UI_PrintStringSmallest("by fagci", 96, 46, false, true);
+  UI_PrintSmallest(96, 46, "by fagci");
   ST7565_BlitFullScreen();
   if (introIndex++ > 50) {
     AddTasks();

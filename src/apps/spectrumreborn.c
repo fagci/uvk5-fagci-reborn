@@ -13,11 +13,12 @@
 #define BLACKLIST_SIZE 32
 
 static const uint8_t S_HEIGHT = 32;
-static const uint8_t SPECTRUM_Y = 16;
+static const uint8_t SPECTRUM_Y = 8;
 static const uint8_t S_BOTTOM = SPECTRUM_Y + S_HEIGHT;
 
 static uint32_t f;
 static uint16_t rssiHistory[LCD_WIDTH] = {0};
+static bool markers[LCD_WIDTH] = {0};
 
 static Band bandsToScan[32] = {0};
 static uint8_t bandsCount = 0;
@@ -30,21 +31,33 @@ static uint16_t stepsCount;
 
 static uint16_t currentStep;
 
-static uint8_t msmTime = 1;
+static uint8_t msmTime = 10;
 
 static bool gettingRssi = false;
 
-static void resetRssiHistory() { memset(rssiHistory, 0, LCD_WIDTH); }
+static void resetRssiHistory() {
+  for (uint8_t x = 0; x < LCD_WIDTH; ++x) {
+    rssiHistory[x] = 0;
+    markers[x] = false;
+  }
+}
 
 static uint8_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 
 static void writeRssi() {
   uint8_t rssi = BK4819_GetRSSI();
+  // bool open = (BK4819_ReadRegister(BK4819_REG_0C) >> 1) & 1;
+  bool open = BK4819_IsSquelchOpen();
   gettingRssi = false;
 
   for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
     uint8_t x = LCD_WIDTH * currentStep / stepsCount + exIndex;
-    rssiHistory[x] = rssi;
+    if (rssi > rssiHistory[x]) {
+      rssiHistory[x] = rssi;
+    }
+    if (markers[x] == false) {
+      markers[x] = open;
+    }
   }
   f += currentStepSize;
   currentStep++;
@@ -52,7 +65,8 @@ static void writeRssi() {
 
 static void step() {
   gettingRssi = true;
-  BK4819_TuneTo(f, false); // if true, then bad results O_o
+
+  BK4819_TuneTo(f, true); // if true, then bad results O_o
   TaskAdd("Get RSSI", writeRssi, msmTime, false); //->priority = 0;
 }
 
@@ -72,8 +86,42 @@ static void startNewScan() {
 
   resetRssiHistory();
 
+  RegisterSpec sqType = {"SQ type", 0x77, 8, 0xFF, 1};
+  BK4819_SetRegValue(sqType, squelchTypeValues[currentBand->squelchType]);
+  BK4819_Squelch(currentBand->squelch, f);
+  // BK4819_WriteRegister(0x43, BK4819_FILTER_BW_WIDE);
   BK4819_WriteRegister(0x43, 0b0000000110111100);
   step();
+}
+
+static void DrawTicks() {
+  uint32_t f = currentBand->bounds.start % 100000;
+  for (uint8_t x = 0; x < LCD_WIDTH; x++, f += currentStepSize) {
+    uint8_t barValue = 0b00000001;
+    (f % 10000) < currentStepSize && (barValue |= 0b00000010);
+    (f % 50000) < currentStepSize && (barValue |= 0b00000100);
+    (f % 100000) < currentStepSize && (barValue |= 0b00011000);
+
+    gFrameBuffer[5][x] |= barValue;
+  }
+
+  // center
+  if (false) {
+    gFrameBuffer[5][62] = 0x80;
+    gFrameBuffer[5][63] = 0x80;
+    gFrameBuffer[5][64] = 0xff;
+    gFrameBuffer[5][65] = 0x80;
+    gFrameBuffer[5][66] = 0x80;
+  } else {
+    gFrameBuffer[5][0] |= 0xff;
+    gFrameBuffer[5][1] |= 0x80;
+    gFrameBuffer[5][2] |= 0x80;
+    gFrameBuffer[5][3] |= 0x80;
+    gFrameBuffer[5][124] |= 0x80;
+    gFrameBuffer[5][125] |= 0x80;
+    gFrameBuffer[5][126] |= 0x80;
+    gFrameBuffer[5][127] |= 0xff;
+  }
 }
 
 static void render() {
@@ -89,45 +137,39 @@ static void render() {
 
   UI_PrintStringSmallest(currentBand->name, 0, 0, true, true);
 
-  char String[16];
-
-  uint32_t fs = currentBand->bounds.start;
-  uint32_t fe = currentBand->bounds.end;
-  sprintf(String, "%u.%05u", fs / 100000, fs % 100000);
-  UI_PrintStringSmallest(String, 0, 49, false, true);
-
   /* sprintf(String, "\xB1%uk", settings.frequencyChangeStep / 100);
   UI_PrintStringSmallest(String, 52, 49, false, true); */
 
-  sprintf(String, "%u.%05u", fe / 100000, fe % 100000);
-  UI_PrintStringSmallest(String, 93, 49, false, true);
+  UI_FSmall(currentBand->bounds.start);
+  UI_FSmallest(currentBand->bounds.start, 0, 49);
+  UI_FSmallest(currentBand->bounds.end, 93, 49);
 
-  sprintf(String, "%u %u", exLen, stepsCount);
-  UI_PrintStringSmallest(String, 42, 49, false, true);
-
-  UI_FSmall(fs);
+  UI_PrintSmallest(42, 49, "%u %u", exLen, stepsCount);
 
   for (uint8_t x = 0; x < LCD_WIDTH; ++x) {
     uint8_t yVal = ConvertDomain(rssiHistory[x], vMin, vMax, 0, S_HEIGHT);
+    if (markers[x]) {
+      PutPixel(x, 16, true);
+    }
     DrawHLine(S_BOTTOM - yVal, S_BOTTOM, x, true);
   }
+  DrawTicks();
 }
 
 static void addBand(const Band band) { bandsToScan[bandsCount++] = band; }
 
 void SPECTRUM_init(void) {
   resetRssiHistory();
-  Band band = {
-      .name = "Manual",
+  addBand((Band){
+      .name = "LPD",
       .bounds.start = 43307500,
-      .bounds.end = 43627500,
+      .bounds.end = 43477500,
       .step = STEP_25_0kHz,
-      .bw = BK4819_FILTER_BW_NARROW,
+      .bw = BK4819_FILTER_BW_WIDE,
       .modulation = MOD_FM,
-      .squelch = 3,
-      .squelchType = SQUELCH_RSSI,
-  };
-  addBand(band);
+      .squelch = 2,
+      .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+  });
 }
 
 bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {

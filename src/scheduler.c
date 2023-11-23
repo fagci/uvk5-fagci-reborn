@@ -51,7 +51,7 @@ void TaskSetPriority(void (*handler)(void), uint8_t priority) {
 }
 
 void TasksUpdate(void) {
-  /* bool prioritized = false;
+  bool prioritized = false;
   for (uint8_t i = 0; i < tasksCount; ++i) {
     Task *task = &tasks[i];
     if (task->handler && !task->countdown && task->priority == 0) {
@@ -66,7 +66,7 @@ void TasksUpdate(void) {
     }
   }
   if (prioritized)
-    return; */
+    return;
   for (uint8_t i = 0; i < tasksCount; ++i) {
     Task *task = &tasks[i];
     if (task->handler && !task->countdown && task->priority != 0) {
