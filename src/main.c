@@ -11,6 +11,7 @@
 #include "driver/system.h"
 #include "driver/systick.h"
 #include "helper/battery.h"
+#include "inc/dp32g030/gpio.h"
 #include "radio.h"
 #include "scheduler.h"
 #include "settings.h"
@@ -43,7 +44,10 @@ static void onKey(KEY_Code_t key, bool pressed, bool hold) {
       APPS_run(APP_MAINMENU);
       return;
     }
-  };
+  }
+  if (key == KEY_SIDE2 && !hold && pressed) {
+    GPIO_FlipBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
+  }
 }
 
 static void UpdateBattery() {

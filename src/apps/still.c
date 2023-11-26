@@ -32,7 +32,7 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
 
   if (s.num == BK4819_REG_13) {
     v = gCurrentVfo.gainIndex;
-    maxValue = ARRAY_SIZE(gainTable);
+    maxValue = ARRAY_SIZE(gainTable) - 1;
   } else {
     v = BK4819_GetRegValue(s);
     maxValue = s.mask;
