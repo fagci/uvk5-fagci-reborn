@@ -64,11 +64,7 @@ static void update() {
 static void render() { gRedrawScreen = true; }
 
 void STILL_init() {
-  /* RegisterSpec sqType = {"SQ type", 0x77, 8, 0xFF, 1};
-  BK4819_SetRegValue(sqType, 0xFF); */
-  BK4819_Squelch(gCurrentVfo.squelch, gCurrentVfo.fRX);
-  BK4819_SetFilterBandwidth(gCurrentVfo.bw);
-  BK4819_SetModulation(gCurrentVfo.modulation);
+  RADIO_SetupByCurrentVFO();
 
   TaskAdd("Update still", update, 10, true);
   TaskAdd("Redraw still", render, 1000, true);

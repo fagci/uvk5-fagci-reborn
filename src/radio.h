@@ -73,6 +73,7 @@ typedef struct {           // 24 bytes
   uint8_t codeRx : 8; // 1
   uint8_t codeTx : 8; // 1
   uint8_t squelch : 4;
+  uint8_t gainIndex : 7;
 } CurrentVFO;
 
 typedef struct { // 8 bytes
@@ -125,5 +126,6 @@ void RADIO_TuneTo(uint32_t f, bool precise);
 void RADIO_SaveCurrentVFO();
 void RADIO_LoadCurrentVFO();
 void RADIO_SetSquelch(uint8_t sq);
+void RADIO_SetupByCurrentVFO();
 
 #endif /* end of include guard: RADIO_H */
