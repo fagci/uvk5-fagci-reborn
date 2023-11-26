@@ -68,8 +68,14 @@ enum BK4819_CssScanResult_t {
   BK4819_CSS_RESULT_CDCSS,
 };
 
+typedef struct {
+  uint16_t regValue;
+  int8_t gainDb;
+} Gain;
+
 typedef enum BK4819_CssScanResult_t BK4819_CssScanResult_t;
 extern const uint16_t BWRegValues[3];
+extern const Gain gainTable[96];
 
 extern bool gRxIdleMode;
 
@@ -176,5 +182,6 @@ void BK4819_SetToneFrequency(uint16_t f);
 void BK4819_SetModulation(ModulationType type);
 bool BK4819_IsSquelchOpen();
 void BK4819_ResetRSSI();
+void BK4819_SetGain(uint8_t gainIndex);
 
 #endif

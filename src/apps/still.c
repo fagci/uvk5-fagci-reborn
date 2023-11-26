@@ -19,10 +19,7 @@ static char String[16];
 
 static const RegisterSpec registerSpecs[] = {
     {},
-    {"LNAs", BK4819_REG_13, 8, 0b11, 1},
-    {"LNA", BK4819_REG_13, 5, 0b111, 1},
-    {"PGA", BK4819_REG_13, 0, 0b111, 1},
-    {"MIX", BK4819_REG_13, 3, 0b11, 1},
+    {"ATT", BK4819_REG_13, 0, 0xFFFF, 1},
 
     {"IF", 0x3D, 0, 0xFFFF, 100},
     {"DEV", 0x40, 0, 0xFFF, 10},
@@ -31,12 +28,25 @@ static const RegisterSpec registerSpecs[] = {
 };
 
 static void UpdateRegMenuValue(RegisterSpec s, bool add) {
-  uint16_t v = BK4819_GetRegValue(s);
+  uint16_t v, maxValue;
 
-  if (add && v <= s.mask - s.inc) {
+  if (s.num == BK4819_REG_13) {
+    v = gCurrentVfo.gainIndex;
+    maxValue = ARRAY_SIZE(gainTable);
+  } else {
+    v = BK4819_GetRegValue(s);
+    maxValue = s.mask;
+  }
+
+  if (add && v <= maxValue - s.inc) {
     v += s.inc;
   } else if (!add && v >= 0 + s.inc) {
     v -= s.inc;
+  }
+
+  if (s.num == BK4819_REG_13) {
+    gCurrentVfo.gainIndex = v;
+    v = gainTable[v].regValue;
   }
 
   BK4819_SetRegValue(s, v);
@@ -194,10 +204,15 @@ static void DrawRegs() {
         gFrameBuffer[row + 1][j + offset] = 0xFF;
       }
     }
+
     sprintf(String, "%s", rs.name);
     UI_PrintStringSmallest(String, offset + 2, row * 8 + 2, false,
                            menuState != idx);
-    sprintf(String, "%u", BK4819_GetRegValue(rs));
+    if (rs.num == BK4819_REG_13) {
+      sprintf(String, "%ddB", gainTable[gCurrentVfo.gainIndex].gainDb);
+    } else {
+      sprintf(String, "%u", BK4819_GetRegValue(rs));
+    }
     UI_PrintStringSmallest(String, offset + 2, (row + 1) * 8 + 1, false,
                            menuState != idx);
   }

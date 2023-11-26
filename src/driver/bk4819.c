@@ -60,12 +60,7 @@ const uint8_t SQ[2][6][16] = {
 
 const uint16_t BWRegValues[3] = {0x3028, 0x4048, 0x0018};
 
-typedef struct {
-  uint16_t regValue;
-  int8_t gainDb;
-} Gain;
-
-static const Gain gainTable[] = {
+const Gain gainTable[96] = {
     {0x0000, -98}, //   1 .. 0 0 0 0 .. -33dB -24dB -8dB -33dB .. -98dB
     {0x0008, -96}, //   2 .. 0 0 1 0 .. -33dB -24dB -6dB -33dB .. -96dB
     {0x0100, -95}, //   3 .. 1 0 0 0 .. -30dB -24dB -8dB -33dB .. -95dB

@@ -150,7 +150,9 @@ void RADIO_SetSquelch(uint8_t sq) {
 void RADIO_SetupByCurrentVFO() {
   /* RegisterSpec sqType = {"SQ type", 0x77, 8, 0xFF, 1};
   BK4819_SetRegValue(sqType, squelchTypeValues[gCurrentVfo.squelchType]); */
+  BK4819_TuneTo(gCurrentVfo.fRX, true);
   BK4819_Squelch(gCurrentVfo.squelch, gCurrentVfo.fRX);
   BK4819_SetFilterBandwidth(gCurrentVfo.bw);
   BK4819_SetModulation(gCurrentVfo.modulation);
+  BK4819_SetGain(gCurrentVfo.gainIndex);
 }
