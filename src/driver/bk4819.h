@@ -52,6 +52,13 @@ typedef enum {
   MOD_RAW,
 } ModulationType;
 
+typedef enum {
+  SQUELCH_RSSI_NOISE_GLITCH,
+  SQUELCH_RSSI_GLITCH,
+  SQUELCH_RSSI_NOISE,
+  SQUELCH_RSSI,
+} SquelchType;
+
 typedef enum BK4819_AF_Type_t BK4819_AF_Type_t;
 
 enum BK4819_FilterBandwidth_t {
@@ -104,6 +111,7 @@ void BK4819_SetupSquelch(uint8_t SquelchOpenRSSIThresh,
                          uint8_t SquelchCloseGlitchThresh,
                          uint8_t SquelchOpenGlitchThresh);
 void BK4819_Squelch(uint8_t sql, uint32_t f);
+void BK4819_SquelchType(SquelchType t);
 
 void BK4819_SetAF(BK4819_AF_Type_t AF);
 void BK4819_RX_TurnOn(void);

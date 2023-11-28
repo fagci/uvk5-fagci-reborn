@@ -45,7 +45,7 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   }
 
   if (s.num == BK4819_REG_13) {
-    gCurrentVfo.gainIndex = v;
+    RADIO_SetGain(v);
     v = gainTable[v].regValue;
   }
 
@@ -62,7 +62,7 @@ static void UpdateCurrentFreqStill(bool inc) {
   } else {
     return;
   }
-  RADIO_TuneTo(gCurrentVfo.fRX, false);
+  RADIO_TuneTo(gCurrentVfo.fRX, true);
   gRedrawScreen = true;
 }
 

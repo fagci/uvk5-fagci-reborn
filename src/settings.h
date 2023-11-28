@@ -27,6 +27,8 @@ typedef struct {
   uint8_t dtmfdecode : 1; // 1
   uint8_t brightness : 4;
   bool spectrumAutosquelch : 1;
+  uint8_t reserved1 : 3;
+  uint8_t reserved2 : 8;
 } __attribute__((packed)) Settings;
 
 #define SETTINGS_SIZE sizeof(Settings)

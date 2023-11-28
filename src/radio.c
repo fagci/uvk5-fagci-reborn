@@ -16,7 +16,6 @@ const uint16_t StepFrequencyTable[12] = {
 
     250, 500, 625, 833, 1000, 1250, 2500, 10000,
 };
-const uint8_t squelchTypeValues[4] = {0x88, 0xAA, 0xCC, 0xFF};
 
 const uint32_t upConverterValues[3] = {0, 5000000, 12500000};
 const char *upConverterFreqNames[3] = {"None", "50M", "125M"};
@@ -136,12 +135,6 @@ void RADIO_TuneTo(uint32_t f, bool precise) {
 }
 
 void RADIO_SaveCurrentVFO() {
-  /* uint8_t n = 0;
-  const uint8_t SZ = sizeof(gCurrentVfo);
-  while (n < SZ) {
-    EEPROM_WriteBuffer(CURRENT_VFO_OFFSET + n, &gCurrentVfo + n, (SZ - n) % 9);
-    n += 8;
-  } */
   EEPROM_WriteBuffer(CURRENT_VFO_OFFSET, &gCurrentVfo, CURRENT_VFO_SIZE);
 }
 
@@ -154,17 +147,37 @@ void RADIO_SetSquelch(uint8_t sq) {
   onVfoUpdate();
 }
 
+void RADIO_SetSquelchType(SquelchType t) {
+  BK4819_SquelchType(gCurrentVfo.squelchType = t);
+  onVfoUpdate();
+}
+
 void RADIO_SetGain(uint8_t gainIndex) {
-  BK4819_SetGain(gainIndex);
+  BK4819_SetGain(gCurrentVfo.gainIndex = gainIndex);
   onVfoUpdate();
 }
 
 void RADIO_SetupByCurrentVFO() {
-  RegisterSpec sqType = {"SQ type", 0x77, 8, 0xFF, 1};
-  BK4819_SetRegValue(sqType, squelchTypeValues[gCurrentVfo.squelchType]);
+  BK4819_SquelchType(gCurrentVfo.squelchType);
   BK4819_Squelch(gCurrentVfo.squelch, gCurrentVfo.fRX);
   BK4819_TuneTo(gCurrentVfo.fRX, true);
   BK4819_SetFilterBandwidth(gCurrentVfo.bw);
   BK4819_SetModulation(gCurrentVfo.modulation);
   BK4819_SetGain(gCurrentVfo.gainIndex);
+}
+
+void RADIO_SetupBandParams(Band *b) {
+  BK4819_SquelchType(b->squelchType);
+  BK4819_Squelch(b->squelch, b->bounds.start);
+  BK4819_SetFilterBandwidth(b->bw);
+  BK4819_SetModulation(b->modulation);
+  BK4819_SetGain(b->gainIndex);
+}
+
+void RADIO_LoadChannel(uint16_t num, VFO *p) {
+  EEPROM_ReadBuffer(CHANNELS_OFFSET + num * VFO_SIZE, p, VFO_SIZE);
+}
+
+void RADIO_SaveChannel(uint16_t num, VFO *p) {
+  EEPROM_WriteBuffer(CHANNELS_OFFSET + num * VFO_SIZE, p, VFO_SIZE);
 }

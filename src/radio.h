@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define BANDS_COUNT 30
+#define BANDS_COUNT 28
 #define CHANNELS_COUNT 300
 
 #define PRESET_SIZE sizeof(Preset)
@@ -38,13 +38,6 @@ typedef enum {
   UPCONVERTER_125M,
 } UpconverterTypes;
 
-typedef enum {
-  SQUELCH_RSSI_NOISE_GLITCH,
-  SQUELCH_RSSI_GLITCH,
-  SQUELCH_RSSI_NOISE,
-  SQUELCH_RSSI,
-} SquelchType;
-
 typedef struct {           // 24 bytes
   uint32_t fRX;            // 4
   uint32_t fTX;            // 4
@@ -54,10 +47,11 @@ typedef struct {           // 24 bytes
   ModulationType modulation : 4; // 1
   BK4819_FilterBandwidth_t bw : 2;
   uint8_t power : 2;
-  uint8_t codeTypeRx : 4; // 1
-  uint8_t codeTypeTx : 4;
-  uint8_t codeRx : 8; // 1
-  uint8_t codeTx : 8; // 1
+  uint8_t reserved : 4; // 1
+  uint8_t codeTypeRx : 4;
+  uint8_t codeTypeTx : 4; // 1
+  uint8_t codeRx : 8;     // 1
+  uint8_t codeTx : 8;     // 1
 } __attribute__((packed)) VFO;
 
 typedef struct {           // 26 bytes
@@ -69,13 +63,19 @@ typedef struct {           // 26 bytes
   ModulationType modulation : 4; // 1
   BK4819_FilterBandwidth_t bw : 2;
   uint8_t power : 2;
-  uint8_t codeTypeRx : 4; // 1
-  uint8_t codeTypeTx : 4;
-  uint8_t codeRx : 8; // 1
-  uint8_t codeTx : 8; // 1
+  uint8_t reserved : 4; // 1
+  uint8_t codeTypeRx : 4;
+  uint8_t codeTypeTx : 4; // 1
+  uint8_t codeRx : 8;     // 1
+  uint8_t codeTx : 8;     // 1
   uint8_t gainIndex : 7;
+  bool reserved1 : 1; // 1
   uint8_t squelch : 4;
   SquelchType squelchType : 2;
+  uint8_t reserved2 : 2;   // 1
+  uint32_t reserved3 : 32; // 4
+  uint8_t reserved4 : 8;   // 1
+  uint8_t reserved5 : 8;   // 1
 } __attribute__((packed)) CurrentVFO;
 
 typedef struct { // 8 bytes
@@ -83,7 +83,7 @@ typedef struct { // 8 bytes
   uint32_t end;
 } __attribute__((packed)) FRange;
 
-typedef struct { // 20 bytes
+typedef struct { // 21 bytes
   FRange bounds;
   char name[10];
   Step step : 4;
@@ -91,6 +91,8 @@ typedef struct { // 20 bytes
   BK4819_FilterBandwidth_t bw : 2;
   SquelchType squelchType : 2;
   uint8_t squelch : 4;
+  uint8_t gainIndex : 7;
+  bool reserved1 : 1;
 } __attribute__((packed)) Band;
 
 typedef struct { // 29 bytes
@@ -102,6 +104,9 @@ typedef struct { // 29 bytes
   uint8_t codeRx : 8;     // 1
   uint8_t codeTx : 8;     // 1
   uint8_t power : 2;
+  uint8_t a : 6;
+  uint8_t b : 8;
+  uint8_t c : 8;
 } __attribute__((packed)) Preset;
 
 extern CurrentVFO gCurrentVfo;
@@ -109,7 +114,6 @@ extern const char *upConverterFreqNames[3];
 extern bool gIsListening;
 
 extern const uint16_t StepFrequencyTable[12];
-extern const uint8_t squelchTypeValues[4];
 
 extern const char *modulationTypeOptions[5];
 extern const char *vfoStateNames[];
@@ -128,6 +132,10 @@ void RADIO_TuneTo(uint32_t f, bool precise);
 void RADIO_SaveCurrentVFO();
 void RADIO_LoadCurrentVFO();
 void RADIO_SetSquelch(uint8_t sq);
+void RADIO_SetGain(uint8_t gainIndex);
 void RADIO_SetupByCurrentVFO();
+void RADIO_SetupBandParams(Band *b);
+void RADIO_LoadChannel(uint16_t num, VFO *p);
+void RADIO_SaveChannel(uint16_t num, VFO *p);
 
 #endif /* end of include guard: RADIO_H */

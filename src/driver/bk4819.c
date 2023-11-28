@@ -448,6 +448,12 @@ void BK4819_Squelch(uint8_t sql, uint32_t f) {
                       SQ[band][sql][3], SQ[band][sql][4], SQ[band][sql][5]);
 }
 
+void BK4819_SquelchType(SquelchType t) {
+  const RegisterSpec sqType = {"SQ type", 0x77, 8, 0xFF, 1};
+  const uint8_t squelchTypeValues[4] = {0x88, 0xAA, 0xCC, 0xFF};
+  BK4819_SetRegValue(sqType, squelchTypeValues[t]);
+}
+
 void BK4819_SetAF(BK4819_AF_Type_t AF) {
   // AF Output Inverse Mode = Inverse
   // Undocumented bits 0x2040
@@ -1030,6 +1036,16 @@ void BK4819_ToggleAFDAC(bool on) {
 void BK4819_TuneTo(uint32_t f, bool precise) {
   BK4819_SelectFilter(f);
   BK4819_SetFrequency(f);
+  if (precise) {
+    uint16_t reg = BK4819_ReadRegister(BK4819_REG_30);
+    BK4819_WriteRegister(BK4819_REG_30, reg & ~BK4819_REG_30_ENABLE_VCO_CALIB);
+    BK4819_WriteRegister(BK4819_REG_30, reg);
+  }
+}
+
+/* void BK4819_TuneTo(uint32_t f, bool precise) {
+  BK4819_SelectFilter(f);
+  BK4819_SetFrequency(f);
   uint16_t reg = BK4819_ReadRegister(BK4819_REG_30);
   if (precise) {
     BK4819_WriteRegister(BK4819_REG_30, 0);
@@ -1038,7 +1054,7 @@ void BK4819_TuneTo(uint32_t f, bool precise) {
     BK4819_WriteRegister(BK4819_REG_30, reg & ~BK4819_REG_30_ENABLE_VCO_CALIB);
   }
   BK4819_WriteRegister(BK4819_REG_30, reg);
-}
+} */
 
 void BK4819_SetToneFrequency(uint16_t f) {
   BK4819_WriteRegister(BK4819_REG_71, (f * 103U) / 10U);

@@ -48,6 +48,7 @@ static void writeRssi() {
   uint8_t rssi = BK4819_GetRSSI();
   // bool open = (BK4819_ReadRegister(BK4819_REG_0C) >> 1) & 1;
   bool open = BK4819_IsSquelchOpen();
+  BK4819_ResetRSSI();
   gettingRssi = false;
 
   for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
@@ -62,19 +63,10 @@ static void writeRssi() {
   f += currentStepSize;
   currentStep++;
 }
-#include "../driver/system.h"
-static void setupBandParams(Band *b) {
-  RegisterSpec sqType = {"SQ type", 0x77, 8, 0xFF, 1};
-  BK4819_SetRegValue(sqType, squelchTypeValues[b->squelchType]);
-  BK4819_Squelch(b->squelch, b->bounds.start);
-  BK4819_SetModulation(b->modulation);
-  // BK4819_SetupSquelch(130, 110, 0, 0, 0, 0);
-}
 
 static void step() {
   gettingRssi = true;
-
-  BK4819_TuneTo(f, false); // if true, then bad results O_o
+  BK4819_TuneTo(f, true); // if true, then bad results O_o
   TaskAdd("Get RSSI", writeRssi, msmTime, false); //->priority = 0;
 }
 
@@ -94,7 +86,7 @@ static void startNewScan() {
 
   resetRssiHistory();
 
-  setupBandParams(currentBand);
+  RADIO_SetupBandParams(currentBand);
   // BK4819_WriteRegister(0x43, BK4819_FILTER_BW_WIDE);
   BK4819_WriteRegister(0x43, 0b0000000110111100);
   step();
@@ -174,6 +166,7 @@ void SPECTRUM_init(void) {
       .bw = BK4819_FILTER_BW_WIDE,
       .modulation = MOD_FM,
       .squelch = gCurrentVfo.squelch,
+      .gainIndex = gCurrentVfo.gainIndex,
       .squelchType = SQUELCH_RSSI,
   });
 }

@@ -27,6 +27,89 @@ bool showBattery = true;
 
 void _putchar(char c) {}
 
+void selfTest() {
+  UI_PrintSmallest(0, 0, "PRS O:%u SZ:%u", BANDS_OFFSET, PRESET_SIZE);
+  UI_PrintSmallest(0, 6, "CHN O:%u SZ:%u", CHANNELS_OFFSET, VFO_SIZE);
+  UI_PrintSmallest(0, 12, "CUR O:%u SZ:%u", CURRENT_VFO_OFFSET,
+                   CURRENT_VFO_SIZE);
+  UI_PrintSmallest(0, 18, "SET O:%u SZ:%u", SETTINGS_OFFSET, SETTINGS_SIZE);
+  ST7565_BlitFullScreen();
+
+  uint16_t succ = 0;
+  uint16_t fail = 0;
+  for (uint8_t i = 0; i < BANDS_COUNT; i++) {
+    Preset p = {
+        .a = 0b110101,
+        .c = 0b01010101,
+    };
+    sprintf(p.band.name, "Preset %u", i);
+    EEPROM_WriteBuffer(BANDS_OFFSET + i * PRESET_SIZE, &p, PRESET_SIZE);
+    p.c = 0;
+    p.a = 0;
+    EEPROM_ReadBuffer(BANDS_OFFSET + i * PRESET_SIZE, &p, PRESET_SIZE);
+    if (p.c == 0b01010101 && p.a == 0b110101) {
+      succ++;
+    } else {
+      fail++;
+    }
+  }
+  UI_PrintSmallest(0, 30, "Presets +:%u -:%u", succ, fail);
+  ST7565_BlitFullScreen();
+
+  succ = 0;
+  fail = 0;
+  for (uint16_t i = 0; i < CHANNELS_COUNT; i++) {
+    VFO p = {
+        .codeTx = 0b01010101,
+        .memoryBanks = 0b01010010,
+    };
+    // sprintf(p.name, "CH test %u", i); // need to use snprintf I think
+    RADIO_SaveChannel(i, &p);
+    p.codeTx = p.memoryBanks = 0;
+    RADIO_LoadChannel(i, &p);
+    if (p.codeTx == 0b01010101 && p.memoryBanks == 0b01010010) {
+      succ++;
+    } else {
+      fail++;
+    }
+  }
+  UI_PrintSmallest(0, 36, "Channels +:%u -:%u", succ, fail);
+  ST7565_BlitFullScreen();
+
+  gSettings.reserved2 = 0b10101010;
+  SETTINGS_Save();
+  gSettings.reserved2 = 0;
+  SETTINGS_Load();
+  if (gSettings.reserved2 != 0b10101010) {
+    UI_PrintSmallest(0, 24, "Settings failure");
+    ST7565_BlitFullScreen();
+    while (true) {
+      GPIO_FlipBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
+      SYSTEM_DelayMs(200);
+    }
+  }
+
+  gCurrentVfo.reserved2 = 1;
+  RADIO_SaveCurrentVFO();
+  gCurrentVfo.reserved2 = 0;
+  RADIO_LoadCurrentVFO();
+  if (gCurrentVfo.reserved2 != 1) {
+    UI_PrintSmallest(0, 24, "Current VFO failure");
+    ST7565_BlitFullScreen();
+    while (true) {
+      GPIO_FlipBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
+      SYSTEM_DelayMs(200);
+      GPIO_FlipBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
+      SYSTEM_DelayMs(100);
+      GPIO_FlipBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
+      SYSTEM_DelayMs(300);
+    }
+  }
+
+  while (true)
+    continue;
+}
+
 static void onKey(KEY_Code_t key, bool pressed, bool hold) {
   if (key != KEY_INVALID) {
     BACKLIGHT_On();
@@ -180,40 +263,9 @@ void Main(void) {
   BACKLIGHT_On();
   UpdateBattery();
 
-  UI_PrintSmallest(0, 0, "PRS O:%u SZ:%u", BANDS_OFFSET, PRESET_SIZE);
-  UI_PrintSmallest(0, 6, "CHN O:%u SZ:%u", CHANNELS_OFFSET, VFO_SIZE);
-  UI_PrintSmallest(0, 12, "CUR O:%u SZ:%u", CURRENT_VFO_OFFSET,
-                   CURRENT_VFO_SIZE);
-  UI_PrintSmallest(0, 18, "SET O:%u SZ:%u", SETTINGS_OFFSET, SETTINGS_SIZE);
-  ST7565_BlitFullScreen();
+  // selfTest();
 
-  gSettings.brightness = 4;
-  SETTINGS_Save();
-  gSettings.brightness = 0;
-  SETTINGS_Load();
-  if (gSettings.brightness != 4) {
-    while (true) {
-      GPIO_FlipBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
-      SYSTEM_DelayMs(200);
-    }
-  }
-
-  gCurrentVfo.step = 5;
-  RADIO_SaveCurrentVFO();
-  gCurrentVfo.step = 0;
-  RADIO_LoadCurrentVFO();
-  if (gCurrentVfo.step != 5) {
-    while (true) {
-      GPIO_FlipBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
-      SYSTEM_DelayMs(200);
-      GPIO_FlipBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
-      SYSTEM_DelayMs(100);
-      GPIO_FlipBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
-      SYSTEM_DelayMs(300);
-    }
-  }
-
-  TaskAdd("Intro", Intro, 20, true);
+  TaskAdd("Intro", Intro, 2, true);
 
   while (true) {
     TasksUpdate();
