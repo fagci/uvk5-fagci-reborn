@@ -53,11 +53,11 @@ static void writeRssi() {
   noise = BK4819_GetNoise();
   rssi = BK4819_GetRSSI();
 
-  bool open = rssi >= 100 && noise < 60;
-  RADIO_ToggleRX(open);
+  bool open = rssi >= 100 && noise < 50;
+  /* RADIO_ToggleRX(open);
   if (open) {
     SYSTEM_DelayMs(1000);
-  }
+  } */
 
   gettingRssi = false;
 
@@ -178,6 +178,17 @@ void SPECTRUM_init(void) {
       .squelchType = SQUELCH_RSSI,
   }); */
   addBand((Band){
+      .name = "MED",
+      .bounds.start = 40605000,
+      .bounds.end = 40605000+2500*64,
+      .step = STEP_25_0kHz,
+      .bw = BK4819_FILTER_BW_WIDE,
+      .modulation = MOD_FM,
+      .squelch = 3, // gCurrentVfo.squelch,
+      .gainIndex = gCurrentVfo.gainIndex,
+      .squelchType = SQUELCH_RSSI,
+  });
+  /* addBand((Band){
       .name = "TEST",
       .bounds.start = 45207500,
       .bounds.end = 45277500,
@@ -187,7 +198,7 @@ void SPECTRUM_init(void) {
       .squelch = 3, // gCurrentVfo.squelch,
       .gainIndex = gCurrentVfo.gainIndex,
       .squelchType = SQUELCH_RSSI,
-  });
+  }); */
 }
 
 static void setBaseF(uint32_t f) {
