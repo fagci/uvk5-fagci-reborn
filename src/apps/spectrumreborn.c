@@ -30,7 +30,7 @@ static uint8_t exLen;
 static uint16_t stepsCount;
 static uint16_t currentStep;
 
-static uint8_t msmTime = 10;
+static uint8_t msmTime = 3;
 
 static bool gettingRssi = false;
 
@@ -43,12 +43,20 @@ static void resetRssiHistory() {
 
 static uint16_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 
+static uint16_t g = 0, n = 0, r = 0;
+
 static void writeRssi() {
   uint16_t rssi = BK4819_GetRSSI();
-  // bool open = (BK4819_ReadRegister(BK4819_REG_0C) >> 1) & 1;
-  bool open = BK4819_IsSquelchOpen();
-  BK4819_ResetRSSI();
+  BK4819_WriteRegister(BK4819_REG_02, 0);
+  bool open = (BK4819_ReadRegister(BK4819_REG_0C) >> 1) & 1;
+  // bool open = BK4819_IsSquelchOpen();
   gettingRssi = false;
+
+  if (f == 43400000) {
+    g = BK4819_GetGlitch();
+    n = BK4819_GetNoise();
+    r = rssi;
+  }
 
   for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
     uint8_t x = LCD_WIDTH * currentStep / stepsCount + exIndex;
@@ -86,8 +94,23 @@ static void startNewScan() {
   resetRssiHistory();
 
   RADIO_SetupBandParams(currentBand);
-  BK4819_WriteRegister(0x43, BK4819_FILTER_BW_WIDE);
+
+  // -= S Q U E L C H =-
+
+  // BW NARROW
+  //         G  N   R
+  // 10ms + 17 20 296
+  // 10ms - 46 62  73
+
+  //         G  N   R
+  //  1ms + 33 52 160
+  //  1ms - 42 64 100
+  uint32_t ro = 80, rc = 80, no = 60, nc = 60, go = 38, gc = 38;
+  BK4819_SetupSquelch(ro, rc, no, nc, go, gc);
+
+  // BK4819_WriteRegister(0x43, BK4819_FILTER_BW_WIDE);
   // BK4819_WriteRegister(0x43, 0b0000000110111100);
+  BK4819_WriteRegister(0x43, 0x205C);
   step();
 }
 
@@ -113,10 +136,6 @@ static void DrawTicks() {
   } else {
     gFrameBuffer[5][0] |= 0xff;
     gFrameBuffer[5][1] |= 0x80;
-    gFrameBuffer[5][2] |= 0x80;
-    gFrameBuffer[5][3] |= 0x80;
-    gFrameBuffer[5][124] |= 0x80;
-    gFrameBuffer[5][125] |= 0x80;
     gFrameBuffer[5][126] |= 0x80;
     gFrameBuffer[5][127] |= 0xff;
   }
@@ -137,7 +156,7 @@ static void render() {
 
   UI_FSmall(currentBand->bounds.start);
 
-  UI_PrintSmallest(42, 49, "%u %u", exLen, stepsCount);
+  UI_PrintSmallest(42, 49, "G%u N%u R%u", g, n, r);
 
   DrawTicks();
   UI_FSmallest(currentBand->bounds.start, 0, 49);
@@ -146,8 +165,8 @@ static void render() {
   for (uint8_t x = 0; x < LCD_WIDTH; ++x) {
     uint8_t yVal = ConvertDomain(rssiHistory[x], vMin, vMax, 0, S_HEIGHT);
     if (markers[x]) {
-      PutPixel(x, 16, true);
-      PutPixel(x, 17, true);
+      PutPixel(x, 46, true);
+      PutPixel(x, 47, true);
     }
     DrawHLine(S_BOTTOM - yVal, S_BOTTOM, x, true);
   }
@@ -165,7 +184,7 @@ void SPECTRUM_init(void) {
       .step = STEP_25_0kHz,
       .bw = BK4819_FILTER_BW_WIDE,
       .modulation = MOD_FM,
-      .squelch = gCurrentVfo.squelch,
+      .squelch = 3, // gCurrentVfo.squelch,
       .gainIndex = gCurrentVfo.gainIndex,
       .squelchType = SQUELCH_RSSI,
   });

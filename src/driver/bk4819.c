@@ -817,7 +817,15 @@ void BK4819_EnableCTCSS(void) {
 }
 
 uint16_t BK4819_GetRSSI(void) {
-  return BK4819_ReadRegister(BK4819_REG_67) & 0x01FF;
+  return BK4819_ReadRegister(BK4819_REG_67) & 0x1FF;
+}
+
+uint8_t BK4819_GetNoise(void) {
+  return BK4819_ReadRegister(BK4819_REG_65) & 0x7F;
+}
+
+uint8_t BK4819_GetGlitch(void) {
+  return BK4819_ReadRegister(BK4819_REG_63) & 0xFF;
 }
 
 bool BK4819_GetFrequencyScanResult(uint32_t *pFrequency) {
@@ -1043,27 +1051,14 @@ void BK4819_TuneTo(uint32_t f, bool precise) {
   }
 }
 
-/* void BK4819_TuneTo(uint32_t f, bool precise) {
-  BK4819_SelectFilter(f);
-  BK4819_SetFrequency(f);
-  uint16_t reg = BK4819_ReadRegister(BK4819_REG_30);
-  if (precise) {
-    BK4819_WriteRegister(BK4819_REG_30, 0);
-    // BK4819_WriteRegister(BK4819_REG_30, 0x0200); // from radtel-rt-890-oefw
-  } else {
-    BK4819_WriteRegister(BK4819_REG_30, reg & ~BK4819_REG_30_ENABLE_VCO_CALIB);
-  }
-  BK4819_WriteRegister(BK4819_REG_30, reg);
-} */
-
 void BK4819_SetToneFrequency(uint16_t f) {
   BK4819_WriteRegister(BK4819_REG_71, (f * 103U) / 10U);
 }
 
-static bool isSquelchOpen = false;
+// static bool isSquelchOpen = false;
 bool BK4819_IsSquelchOpen() {
-  // return (BK4819_ReadRegister(BK4819_REG_0C) >> 1) & 1
-  while (BK4819_ReadRegister(BK4819_REG_0C) & 1U) {
+  return (BK4819_ReadRegister(BK4819_REG_0C) >> 1) & 1;
+  /* while (BK4819_ReadRegister(BK4819_REG_0C) & 1U) {
     BK4819_WriteRegister(BK4819_REG_02, 0);
 
     uint16_t Mask = BK4819_ReadRegister(BK4819_REG_02);
@@ -1076,7 +1071,7 @@ bool BK4819_IsSquelchOpen() {
       isSquelchOpen = false;
     }
   }
-  return isSquelchOpen;
+  return isSquelchOpen; */
 }
 
 void BK4819_ResetRSSI() {

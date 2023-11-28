@@ -153,6 +153,8 @@ void BK4819_EnableCDCSS(void);
 void BK4819_EnableCTCSS(void);
 
 uint16_t BK4819_GetRSSI(void);
+uint8_t BK4819_GetNoise(void);
+uint8_t BK4819_GetGlitch(void);
 
 bool BK4819_GetFrequencyScanResult(uint32_t *pFrequency);
 BK4819_CssScanResult_t BK4819_GetCxCSSScanResult(uint32_t *pCdcssFreq,
