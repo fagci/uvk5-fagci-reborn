@@ -82,13 +82,14 @@ void RADIO_ToggleRX(bool on) {
   // BK4819_RX_TurnOn(); // broke squelch
 
   // too many garbage, but works stable
-  // BK4819_Squelch(gCurrentVfo.squelch, gCurrentVfo.fRX);
+  /* BK4819_Squelch(gCurrentVfo.squelch, gCurrentVfo.fRX);
   BK4819_SetFilterBandwidth(gCurrentVfo.bw);
-  BK4819_SetModulation(gCurrentVfo.modulation);
+  BK4819_SetModulation(gCurrentVfo.modulation); */
+  // RADIO_SetupByCurrentVFO();
 
   AUDIO_ToggleSpeaker(on);
   BK4819_ToggleAFDAC(on);
-  BK4819_ToggleAFBit(on);
+  // BK4819_ToggleAFBit(on);
 }
 
 static void onVfoUpdate() {
@@ -135,11 +136,17 @@ void RADIO_TuneTo(uint32_t f, bool precise) {
 }
 
 void RADIO_SaveCurrentVFO() {
-  EEPROM_WriteBuffer(CURRENT_VFO_OFFSET, &gCurrentVfo, VFO_SIZE);
+  /* uint8_t n = 0;
+  const uint8_t SZ = sizeof(gCurrentVfo);
+  while (n < SZ) {
+    EEPROM_WriteBuffer(CURRENT_VFO_OFFSET + n, &gCurrentVfo + n, (SZ - n) % 9);
+    n += 8;
+  } */
+  EEPROM_WriteBuffer(CURRENT_VFO_OFFSET, &gCurrentVfo, CURRENT_VFO_SIZE);
 }
 
 void RADIO_LoadCurrentVFO() {
-  EEPROM_ReadBuffer(CURRENT_VFO_OFFSET, &gCurrentVfo, VFO_SIZE);
+  EEPROM_ReadBuffer(CURRENT_VFO_OFFSET, &gCurrentVfo, CURRENT_VFO_SIZE);
 }
 
 void RADIO_SetSquelch(uint8_t sq) {
@@ -147,11 +154,16 @@ void RADIO_SetSquelch(uint8_t sq) {
   onVfoUpdate();
 }
 
+void RADIO_SetGain(uint8_t gainIndex) {
+  BK4819_SetGain(gainIndex);
+  onVfoUpdate();
+}
+
 void RADIO_SetupByCurrentVFO() {
-  /* RegisterSpec sqType = {"SQ type", 0x77, 8, 0xFF, 1};
-  BK4819_SetRegValue(sqType, squelchTypeValues[gCurrentVfo.squelchType]); */
-  BK4819_TuneTo(gCurrentVfo.fRX, true);
+  RegisterSpec sqType = {"SQ type", 0x77, 8, 0xFF, 1};
+  BK4819_SetRegValue(sqType, squelchTypeValues[gCurrentVfo.squelchType]);
   BK4819_Squelch(gCurrentVfo.squelch, gCurrentVfo.fRX);
+  BK4819_TuneTo(gCurrentVfo.fRX, true);
   BK4819_SetFilterBandwidth(gCurrentVfo.bw);
   BK4819_SetModulation(gCurrentVfo.modulation);
   BK4819_SetGain(gCurrentVfo.gainIndex);

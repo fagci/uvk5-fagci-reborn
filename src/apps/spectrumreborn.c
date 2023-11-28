@@ -46,6 +46,7 @@ static uint8_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 
 static void writeRssi() {
   uint8_t rssi = BK4819_GetRSSI();
+  // bool open = (BK4819_ReadRegister(BK4819_REG_0C) >> 1) & 1;
   bool open = BK4819_IsSquelchOpen();
   gettingRssi = false;
 
@@ -66,7 +67,7 @@ static void setupBandParams(Band *b) {
   RegisterSpec sqType = {"SQ type", 0x77, 8, 0xFF, 1};
   BK4819_SetRegValue(sqType, squelchTypeValues[b->squelchType]);
   BK4819_Squelch(b->squelch, b->bounds.start);
-  SYSTEM_DelayMs(100);
+  BK4819_SetModulation(b->modulation);
   // BK4819_SetupSquelch(130, 110, 0, 0, 0, 0);
 }
 
@@ -172,9 +173,14 @@ void SPECTRUM_init(void) {
       .step = STEP_25_0kHz,
       .bw = BK4819_FILTER_BW_WIDE,
       .modulation = MOD_FM,
-      .squelch = 2,
-      .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+      .squelch = gCurrentVfo.squelch,
+      .squelchType = SQUELCH_RSSI,
   });
+}
+
+static void setBaseF(uint32_t f) {
+  gCurrentVfo.fRX = f;
+  RADIO_SaveCurrentVFO();
 }
 
 bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
@@ -186,7 +192,7 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     APPS_exit();
     return true;
   case KEY_5:
-    gFInputValue = &gCurrentVfo.fRX;
+    gFInputCallback = setBaseF;
     APPS_run(APP_FINPUT);
     return true;
   default:

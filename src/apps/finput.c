@@ -8,7 +8,7 @@
 #include "apps.h"
 #include <string.h>
 
-uint32_t *gFInputValue;
+void (*gFInputCallback)(uint32_t f);
 
 static const uint8_t FREQ_INPUT_LENGTH = 10;
 
@@ -103,7 +103,7 @@ bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_EXIT:
     if (freqInputIndex == 0) {
-      gFInputValue = NULL;
+      gFInputCallback = NULL;
       APPS_exit();
       return true;
     }
@@ -112,14 +112,10 @@ bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_MENU:
     tempFreq = GetTuneF(tempFreq);
-    if (tempFreq >= F_MIN && tempFreq <= F_MAX) {
-      *gFInputValue = tempFreq;
-      if (gFInputValue == &gCurrentVfo.fRX ||
-          gFInputValue == &gCurrentVfo.fTX) {
-        RADIO_SaveCurrentVFO();
-      }
+    if (tempFreq >= F_MIN && tempFreq <= F_MAX && gFInputCallback) {
+      gFInputCallback(tempFreq);
     }
-    gFInputValue = NULL;
+    gFInputCallback = NULL;
     APPS_exit();
     return true;
   default:

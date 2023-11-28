@@ -5,14 +5,15 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define BANDS_COUNT 32
+#define BANDS_COUNT 30
 #define CHANNELS_COUNT 300
 
-#define BAND_SIZE 28
-#define VFO_SIZE 24
+#define PRESET_SIZE sizeof(Preset)
+#define VFO_SIZE sizeof(VFO)
+#define CURRENT_VFO_SIZE sizeof(CurrentVFO)
 
 #define BANDS_OFFSET 0
-#define CHANNELS_OFFSET (BANDS_OFFSET + BAND_SIZE * BANDS_COUNT)
+#define CHANNELS_OFFSET (BANDS_OFFSET + PRESET_SIZE * BANDS_COUNT)
 #define CURRENT_VFO_OFFSET (CHANNELS_OFFSET + VFO_SIZE * CHANNELS_COUNT)
 
 typedef enum {
@@ -49,37 +50,38 @@ typedef struct {           // 24 bytes
   uint32_t fTX;            // 4
   char name[10];           // 10
   uint8_t memoryBanks : 8; // 1
-  uint8_t step : 4;
-  uint8_t modulation : 4; // 1
-  uint8_t bw : 2;
+  Step step : 4;
+  ModulationType modulation : 4; // 1
+  BK4819_FilterBandwidth_t bw : 2;
   uint8_t power : 2;
   uint8_t codeTypeRx : 4; // 1
   uint8_t codeTypeTx : 4;
   uint8_t codeRx : 8; // 1
   uint8_t codeTx : 8; // 1
-} VFO;
+} __attribute__((packed)) VFO;
 
-typedef struct {           // 24 bytes
+typedef struct {           // 26 bytes
   uint32_t fRX;            // 4
   uint32_t fTX;            // 4
   char name[10];           // 10
   uint8_t memoryBanks : 8; // 1
-  uint8_t step : 4;
-  uint8_t modulation : 4; // 1
-  uint8_t bw : 2;
+  Step step : 4;
+  ModulationType modulation : 4; // 1
+  BK4819_FilterBandwidth_t bw : 2;
   uint8_t power : 2;
   uint8_t codeTypeRx : 4; // 1
   uint8_t codeTypeTx : 4;
   uint8_t codeRx : 8; // 1
   uint8_t codeTx : 8; // 1
-  uint8_t squelch : 4;
   uint8_t gainIndex : 7;
-} CurrentVFO;
+  uint8_t squelch : 4;
+  SquelchType squelchType : 2;
+} __attribute__((packed)) CurrentVFO;
 
 typedef struct { // 8 bytes
   uint32_t start;
   uint32_t end;
-} FRange;
+} __attribute__((packed)) FRange;
 
 typedef struct { // 20 bytes
   FRange bounds;
@@ -89,7 +91,7 @@ typedef struct { // 20 bytes
   BK4819_FilterBandwidth_t bw : 2;
   SquelchType squelchType : 2;
   uint8_t squelch : 4;
-} Band;
+} __attribute__((packed)) Band;
 
 typedef struct { // 29 bytes
   Band band;
@@ -100,7 +102,7 @@ typedef struct { // 29 bytes
   uint8_t codeRx : 8;     // 1
   uint8_t codeTx : 8;     // 1
   uint8_t power : 2;
-} Preset;
+} __attribute__((packed)) Preset;
 
 extern CurrentVFO gCurrentVfo;
 extern const char *upConverterFreqNames[3];

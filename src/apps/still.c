@@ -69,7 +69,10 @@ static void UpdateCurrentFreqStill(bool inc) {
 static void update() {
   rssi = BK4819_GetRSSI();
   RADIO_ToggleRX(monitorMode || BK4819_IsSquelchOpen());
+  // BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN, BK4819_IsSquelchOpen());
 }
+
+static void setF(uint32_t f) { RADIO_TuneTo(f, true); }
 
 static void render() { gRedrawScreen = true; }
 
@@ -146,7 +149,7 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     APPS_run(APP_VFO_CFG);
     return true;
   case KEY_5:
-    gFInputValue = &gCurrentVfo.fRX;
+    gFInputCallback = setF;
     APPS_run(APP_FINPUT);
     return true;
   case KEY_0:

@@ -107,11 +107,11 @@ void UI_FSmall(uint32_t f) {
 }
 
 void UI_PrintSmallest(uint8_t x, uint8_t y, const char *pattern, ...) {
-  char String[16];
+  char String[32];
   va_list args;
   va_start(args, pattern);
 
-  vsnprintf(String, 15, pattern, args);
+  vsnprintf(String, 31, pattern, args);
   UI_PrintStringSmallest(String, x, y, false, true);
 }
 

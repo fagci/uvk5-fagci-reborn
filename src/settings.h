@@ -27,10 +27,10 @@ typedef struct {
   uint8_t dtmfdecode : 1; // 1
   uint8_t brightness : 4;
   bool spectrumAutosquelch : 1;
-} Settings;
+} __attribute__((packed)) Settings;
 
 #define SETTINGS_SIZE sizeof(Settings)
-#define SETTINGS_OFFSET 8120
+#define SETTINGS_OFFSET (CURRENT_VFO_OFFSET + CURRENT_VFO_SIZE)
 
 extern Settings gSettings;
 

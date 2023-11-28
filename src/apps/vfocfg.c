@@ -119,6 +119,12 @@ static void showSubmenu(Menu menu) {
   }
 }
 
+static void setRXF(uint32_t f) { RADIO_TuneTo(f, true); }
+static void setTXF(uint32_t f) {
+  gCurrentVfo.fTX = f;
+  RADIO_SaveCurrentVFO();
+}
+
 void VFOCFG_init() {}
 void VFOCFG_update() {}
 bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
@@ -153,11 +159,11 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       APPS_run(APP_TEXTINPUT);
       return true;
     case M_F_RX:
-      gFInputValue = &gCurrentVfo.fRX;
+      gFInputCallback = setRXF;
       APPS_run(APP_FINPUT);
       return true;
     case M_F_TX:
-      gFInputValue = &gCurrentVfo.fTX;
+      gFInputCallback = setTXF;
       APPS_run(APP_FINPUT);
       return true;
     case M_SAVE:
