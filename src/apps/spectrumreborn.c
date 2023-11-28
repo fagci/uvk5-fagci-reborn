@@ -43,20 +43,23 @@ static void resetRssiHistory() {
 
 static uint16_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 
-static uint16_t g = 0, n = 0, r = 0;
+static uint16_t glitch = 0, noise = 0, rssi = 0;
 
+#include "../driver/system.h"
 static void writeRssi() {
-  uint16_t rssi = BK4819_GetRSSI();
   BK4819_WriteRegister(BK4819_REG_02, 0);
-  bool open = (BK4819_ReadRegister(BK4819_REG_0C) >> 1) & 1;
-  // bool open = BK4819_IsSquelchOpen();
-  gettingRssi = false;
 
-  if (f == 43400000) {
-    g = BK4819_GetGlitch();
-    n = BK4819_GetNoise();
-    r = rssi;
+  glitch = BK4819_GetGlitch();
+  noise = BK4819_GetNoise();
+  rssi = BK4819_GetRSSI();
+
+  bool open = rssi >= 100 && noise < 60;
+  RADIO_ToggleRX(open);
+  if (open) {
+    SYSTEM_DelayMs(1000);
   }
+
+  gettingRssi = false;
 
   for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
     uint8_t x = LCD_WIDTH * currentStep / stepsCount + exIndex;
@@ -92,25 +95,11 @@ static void startNewScan() {
   f = currentBand->bounds.start;
 
   resetRssiHistory();
-
-  RADIO_SetupBandParams(currentBand);
-
-  // -= S Q U E L C H =-
-
-  // BW NARROW
-  //         G  N   R
-  // 10ms + 17 20 296
-  // 10ms - 46 62  73
-
-  //         G  N   R
-  //  1ms + 33 52 160
-  //  1ms - 42 64 100
-  uint32_t ro = 80, rc = 80, no = 60, nc = 60, go = 38, gc = 38;
-  BK4819_SetupSquelch(ro, rc, no, nc, go, gc);
+  RADIO_SetupBandParams(&bandsToScan[0]);
 
   // BK4819_WriteRegister(0x43, BK4819_FILTER_BW_WIDE);
-  // BK4819_WriteRegister(0x43, 0b0000000110111100);
-  BK4819_WriteRegister(0x43, 0x205C);
+  BK4819_WriteRegister(0x43, 0b0000000110111100);
+  // BK4819_WriteRegister(0x43, 0x205C);
   step();
 }
 
@@ -156,7 +145,7 @@ static void render() {
 
   UI_FSmall(currentBand->bounds.start);
 
-  UI_PrintSmallest(42, 49, "G%u N%u R%u", g, n, r);
+  UI_PrintSmallest(42, 49, "G%u N%u R%u", glitch, noise, rssi);
 
   DrawTicks();
   UI_FSmallest(currentBand->bounds.start, 0, 49);
@@ -177,10 +166,21 @@ static void addBand(const Band band) { bandsToScan[bandsCount++] = band; }
 void SPECTRUM_init(void) {
   bandsCount = 0;
   resetRssiHistory();
-  addBand((Band){
+  /* addBand((Band){
       .name = "LPD",
       .bounds.start = 43307500,
       .bounds.end = 43477500,
+      .step = STEP_25_0kHz,
+      .bw = BK4819_FILTER_BW_WIDE,
+      .modulation = MOD_FM,
+      .squelch = 3, // gCurrentVfo.squelch,
+      .gainIndex = gCurrentVfo.gainIndex,
+      .squelchType = SQUELCH_RSSI,
+  }); */
+  addBand((Band){
+      .name = "TEST",
+      .bounds.start = 45207500,
+      .bounds.end = 45277500,
       .step = STEP_25_0kHz,
       .bw = BK4819_FILTER_BW_WIDE,
       .modulation = MOD_FM,

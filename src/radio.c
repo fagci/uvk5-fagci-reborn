@@ -168,7 +168,7 @@ void RADIO_SetupByCurrentVFO() {
 
 void RADIO_SetupBandParams(Band *b) {
   // BK4819_SquelchType(b->squelchType);
-  BK4819_Squelch(b->squelch, b->bounds.start);
+  // BK4819_Squelch(b->squelch, b->bounds.start);
   BK4819_SetFilterBandwidth(b->bw);
   BK4819_SetModulation(b->modulation);
   BK4819_SetGain(b->gainIndex);
