@@ -25,10 +25,9 @@ static uint8_t bandsCount = 0;
 static uint8_t currentBandIndex = 255;
 static Band *currentBand;
 
-static uint16_t currentStepSize;
+static uint32_t currentStepSize;
 static uint8_t exLen;
 static uint16_t stepsCount;
-
 static uint16_t currentStep;
 
 static uint8_t msmTime = 10;
@@ -42,10 +41,10 @@ static void resetRssiHistory() {
   }
 }
 
-static uint8_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
+static uint16_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 
 static void writeRssi() {
-  uint8_t rssi = BK4819_GetRSSI();
+  uint16_t rssi = BK4819_GetRSSI();
   // bool open = (BK4819_ReadRegister(BK4819_REG_0C) >> 1) & 1;
   bool open = BK4819_IsSquelchOpen();
   BK4819_ResetRSSI();
@@ -66,7 +65,7 @@ static void writeRssi() {
 
 static void step() {
   gettingRssi = true;
-  BK4819_TuneTo(f, true); // if true, then bad results O_o
+  BK4819_TuneTo(f, true);
   TaskAdd("Get RSSI", writeRssi, msmTime, false); //->priority = 0;
 }
 
@@ -87,14 +86,15 @@ static void startNewScan() {
   resetRssiHistory();
 
   RADIO_SetupBandParams(currentBand);
-  // BK4819_WriteRegister(0x43, BK4819_FILTER_BW_WIDE);
-  BK4819_WriteRegister(0x43, 0b0000000110111100);
+  BK4819_WriteRegister(0x43, BK4819_FILTER_BW_WIDE);
+  // BK4819_WriteRegister(0x43, 0b0000000110111100);
   step();
 }
 
 static void DrawTicks() {
-  uint32_t f = currentBand->bounds.start % 100000;
-  for (uint8_t x = 0; x < LCD_WIDTH; x++, f += currentStepSize) {
+  for (uint16_t step = 0; step < stepsCount; step++) {
+    uint8_t x = LCD_WIDTH * step / stepsCount;
+    uint32_t f = currentBand->bounds.start + step * currentStepSize;
     uint8_t barValue = 0b00000001;
     (f % 10000) < currentStepSize && (barValue |= 0b00000010);
     (f % 50000) < currentStepSize && (barValue |= 0b00000100);
