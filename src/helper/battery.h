@@ -24,6 +24,7 @@ extern uint16_t gBatteryCurrentVoltage;
 extern uint16_t gBatteryVoltage;
 extern uint8_t gBatteryDisplayLevel;
 extern bool gChargingWithTypeC;
+extern uint16_t gBatteryCurrent;
 
 void BATTERY_GetReadings(bool bDisplayBatteryLevel);
 void BATTERY_UpdateBatteryInfo();

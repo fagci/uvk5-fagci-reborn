@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define BATTERY_X 115
+
 typedef struct MenuItem {
   const char *name;
   uint8_t type;

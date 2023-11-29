@@ -8,7 +8,7 @@
 static const uint8_t MENU_LINES_TO_SHOW = 6;
 
 void UI_Battery(uint8_t Level) {
-  const uint8_t START = 115;
+  const uint8_t START = BATTERY_X;
   const uint8_t WORK_START = START + 2;
   const uint8_t WORK_WIDTH = 10;
   const uint8_t WORK_END = WORK_START + WORK_WIDTH;

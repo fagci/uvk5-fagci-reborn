@@ -23,15 +23,15 @@ uint16_t gBatteryCurrentVoltage;
 uint16_t gBatteryVoltage;
 uint8_t gBatteryDisplayLevel;
 bool gChargingWithTypeC;
+uint16_t gBatteryCurrent = 0;
 
 const uint16_t BATTERY_CALIBRATION[6] = {1309, 1805, 1905, 1960, 2023, 2300};
-uint16_t currentValues;
 uint16_t voltages[4];
 
 void BATTERY_UpdateBatteryInfo() {
-  BOARD_ADC_GetBatteryInfo(&gBatteryCurrentVoltage, &currentValues);
+  BOARD_ADC_GetBatteryInfo(&gBatteryCurrentVoltage, &gBatteryCurrent);
   for (uint8_t i = 0; i < 4; i++) {
-    BOARD_ADC_GetBatteryInfo(&voltages[i], &currentValues);
+    BOARD_ADC_GetBatteryInfo(&voltages[i], &gBatteryCurrent);
   }
   BATTERY_GetReadings(false);
 }
@@ -48,5 +48,5 @@ void BATTERY_GetReadings(bool bDisplayBatteryLevel) {
   }
 
   gBatteryVoltage = (Voltage * 760) / BATTERY_CALIBRATION[3];
-  gChargingWithTypeC = currentValues >= 501;
+  gChargingWithTypeC = gBatteryCurrent >= 501;
 }

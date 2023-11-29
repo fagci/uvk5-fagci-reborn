@@ -141,6 +141,7 @@ static void UpdateBattery() {
     if (previousBatteryLevel != gBatteryDisplayLevel) {
       previousBatteryLevel = gBatteryDisplayLevel;
       UI_Battery(gBatteryDisplayLevel);
+
       gRedrawStatus = true;
     }
   } else {
@@ -148,13 +149,11 @@ static void UpdateBattery() {
     if (showBattery) {
       UI_Battery(gBatteryDisplayLevel);
     } else {
-      memset(gStatusLine + 115, 0, 13);
+      memset(gStatusLine + BATTERY_X, 0, 13);
     }
     gRedrawStatus = true;
   }
 }
-
-static void Update() { APPS_update(); }
 
 static void Render() {
   if (!gRedrawStatus && !gRedrawScreen) {
@@ -162,6 +161,11 @@ static void Render() {
   }
   APPS_render();
   ST7565_Render();
+}
+
+static void Update() { 
+    APPS_update();
+    Render();
 }
 
 static void Keys() { KEYBOARD_CheckKeys(onKey); }
@@ -180,7 +184,7 @@ static void AddTasks() {
 
   APPS_run(APP_SPECTRUM);
   TaskAdd("Update", Update, 1, true);
-  TaskAdd("Render", Render, 33, true);
+  // TaskAdd("Render", Render, 1, true);
   TaskAdd("Keys", Keys, 10, true);
 }
 

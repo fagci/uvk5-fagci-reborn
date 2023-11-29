@@ -34,6 +34,8 @@ static uint8_t msmTime = 3;
 
 static bool gettingRssi = false;
 
+static bool newScan = true;
+
 static void resetRssiHistory() {
   for (uint8_t x = 0; x < LCD_WIDTH; ++x) {
     rssiHistory[x] = 0;
@@ -53,7 +55,8 @@ static void writeRssi() {
   noise = BK4819_GetNoise();
   rssi = BK4819_GetRSSI();
 
-  bool open = rssi >= 100 && noise < 50;
+  bool open = BK4819_IsSquelchOpen();
+  // bool open = rssi >= 100 && noise < 50;
   /* RADIO_ToggleRX(open);
   if (open) {
     SYSTEM_DelayMs(1000);
@@ -97,6 +100,11 @@ static void startNewScan() {
   resetRssiHistory();
   RADIO_SetupBandParams(&bandsToScan[0]);
 
+  RegisterSpec sq0delay = {"SQ0 delay", 0x4E, 9, 0b111, 1};
+  RegisterSpec sq1delay = {"SQ1 delay", 0x4E, 11, 0b111, 1};
+  BK4819_SetRegValue(sq0delay, 0);
+  BK4819_SetRegValue(sq1delay, 0);
+
   // BK4819_WriteRegister(0x43, BK4819_FILTER_BW_WIDE);
   BK4819_WriteRegister(0x43, 0b0000000110111100);
   // BK4819_WriteRegister(0x43, 0x205C);
@@ -130,41 +138,11 @@ static void DrawTicks() {
   }
 }
 
-static void render() {
-  const uint16_t rssiMin = Min(rssiHistory, LCD_WIDTH);
-  const uint16_t rssiMax = Max(rssiHistory, LCD_WIDTH);
-  const uint16_t vMin = rssiMin - 2;
-  const uint16_t vMax = rssiMax + 20 + (rssiMax - rssiMin) / 2;
-
-  UI_ClearStatus();
-  UI_ClearScreen();
-
-  UI_PrintStringSmallest(currentBand->name, 0, 0, true, true);
-
-  // UI_PrintSmallest(52, 49, "\xB1%uk", settings.frequencyChangeStep / 100);
-
-  UI_FSmall(currentBand->bounds.start);
-
-  UI_PrintSmallest(42, 49, "G%u N%u R%u", glitch, noise, rssi);
-
-  DrawTicks();
-  UI_FSmallest(currentBand->bounds.start, 0, 49);
-  UI_FSmallest(currentBand->bounds.end, 93, 49);
-
-  for (uint8_t x = 0; x < LCD_WIDTH; ++x) {
-    uint8_t yVal = ConvertDomain(rssiHistory[x], vMin, vMax, 0, S_HEIGHT);
-    if (markers[x]) {
-      PutPixel(x, 46, true);
-      PutPixel(x, 47, true);
-    }
-    DrawHLine(S_BOTTOM - yVal, S_BOTTOM, x, true);
-  }
-}
-
 static void addBand(const Band band) { bandsToScan[bandsCount++] = band; }
 
 void SPECTRUM_init(void) {
   bandsCount = 0;
+  newScan = true;
   resetRssiHistory();
   /* addBand((Band){
       .name = "LPD",
@@ -180,7 +158,7 @@ void SPECTRUM_init(void) {
   addBand((Band){
       .name = "MED",
       .bounds.start = 40605000,
-      .bounds.end = 40605000+2500*64,
+      .bounds.end = 40605000 + 2500 * 64 * 32,
       .step = STEP_25_0kHz,
       .bw = BK4819_FILTER_BW_WIDE,
       .modulation = MOD_FM,
@@ -228,14 +206,45 @@ void SPECTRUM_update(void) {
   if (gettingRssi) {
     return;
   }
+  if (newScan) {
+    newScan = false;
+    startNewScan();
+  }
   if (f >= currentBand->bounds.end) {
     gRedrawScreen = true;
+    newScan = true;
     return;
   }
   step();
 }
 
 void SPECTRUM_render(void) {
-  render();
-  startNewScan(); // bad practice, but we need to render before
+  const uint16_t rssiMin = Min(rssiHistory, LCD_WIDTH);
+  const uint16_t rssiMax = Max(rssiHistory, LCD_WIDTH);
+  const uint16_t vMin = rssiMin - 2;
+  const uint16_t vMax = rssiMax + 20 + (rssiMax - rssiMin) / 2;
+
+  UI_ClearStatus();
+  UI_ClearScreen();
+
+  UI_PrintStringSmallest(currentBand->name, 0, 0, true, true);
+
+  // UI_PrintSmallest(52, 49, "\xB1%uk", settings.frequencyChangeStep / 100);
+
+  UI_FSmall(currentBand->bounds.start);
+
+  UI_PrintSmallest(42, 49, "G%u N%u R%u", glitch, noise, rssi);
+
+  DrawTicks();
+  UI_FSmallest(currentBand->bounds.start, 0, 49);
+  UI_FSmallest(currentBand->bounds.end, 93, 49);
+
+  for (uint8_t x = 0; x < LCD_WIDTH; ++x) {
+    uint8_t yVal = ConvertDomain(rssiHistory[x], vMin, vMax, 0, S_HEIGHT);
+    if (markers[x]) {
+      PutPixel(x, 46, true);
+      PutPixel(x, 47, true);
+    }
+    DrawHLine(S_BOTTOM - yVal, S_BOTTOM, x, true);
+  }
 }

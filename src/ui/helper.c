@@ -19,6 +19,7 @@
 #include "../font.h"
 #include "../misc.h"
 #include "../radio.h"
+#include "components.h"
 #include "inputbox.h"
 
 void UI_PrintString(const char *pString, uint8_t Start, uint8_t End,
@@ -174,7 +175,7 @@ bool UI_NoChannelName(const char *channelName) {
   return channelName[0] < 32 || channelName[0] > 127;
 }
 
-void UI_ClearStatus() { memset(gStatusLine, 0, 114); }
+void UI_ClearStatus() { memset(gStatusLine, 0, BATTERY_X - 1); }
 void UI_ClearStatusFull() { memset(gStatusLine, 0, sizeof(gStatusLine)); }
 
 void UI_ClearScreen() { memset(gFrameBuffer, 0, sizeof(gFrameBuffer)); }
