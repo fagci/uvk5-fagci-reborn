@@ -83,6 +83,10 @@ static void step() {
   BK4819_WriteRegister(BK4819_REG_30, 0xBFF1 & ~BK4819_REG_30_ENABLE_VCO_CALIB);
   BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
 
+  /* uint16_t r = BK4819_ReadRegister(BK4819_REG_37);
+  BK4819_WriteRegister(BK4819_REG_37, r & ~(1 << 2));
+  BK4819_WriteRegister(BK4819_REG_37, r); */
+
   SYSTEM_DelayMs(tuneDelay); // to get tuned
 
   TaskAdd("Get RSSI", writeRssi, msmTime, false); // ->priority = 0;
@@ -105,7 +109,15 @@ static void startNewScan() {
   resetRssiHistory();
   RADIO_SetupBandParams(&bandsToScan[0]);
 
-  BK4819_WriteRegister(0x43, 0b0000000110111100);
+  BK4819_WriteRegister(
+      0x43,
+      0 | 1 << 2        // gain after FM demod = 6dB
+          | 0b10 << 4   // BW mode selection:00: 12.5k 01: 6.25k 10: 25k/20k
+          | 0b000 << 6  // LPF BW
+          | 0b000 << 9  // RF BW weak
+          | 0b000 << 12 // RF BW
+  );
+  // BK4819_WriteRegister(0x43, 0b0000000110111100);
   // BK4819_WriteRegister(0x43, BK4819_FILTER_BW_WIDE);
   // BK4819_WriteRegister(0x43, 0x205C);
   step();
@@ -152,10 +164,17 @@ static void addBand(const Band band) { bandsToScan[bandsCount++] = band; }
 void SPECTRUM_init(void) {
   bandsCount = 0;
   newScan = true;
+
   RegisterSpec sq0delay = {"SQ0 delay", 0x4E, 9, 0b111, 1};
   RegisterSpec sq1delay = {"SQ1 delay", 0x4E, 11, 0b111, 1};
   BK4819_SetRegValue(sq0delay, 0);
   BK4819_SetRegValue(sq1delay, 0);
+  BK4819_WriteRegister(0x2B, 0); // various filters
+  BK4819_WriteRegister(0x73,
+                       BK4819_ReadRegister(0x73) | (1 << 4)); // AFC disable
+  BK4819_WriteRegister(BK4819_REG_3F, 0);                     // interrupts
+BK4819_SetupSquelch(110, 90, 62, 64, 255, 255);
+
   resetRssiHistory();
   addBand((Band){
       .name = "LPD",
