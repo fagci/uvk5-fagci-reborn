@@ -119,7 +119,6 @@ static void showSubmenu(Menu menu) {
   }
 }
 
-static void setRXF(uint32_t f) { RADIO_TuneTo(f, true); }
 static void setTXF(uint32_t f) {
   gCurrentVfo.fTX = f;
   RADIO_SaveCurrentVFO();
@@ -159,7 +158,7 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       APPS_run(APP_TEXTINPUT);
       return true;
     case M_F_RX:
-      gFInputCallback = setRXF;
+      gFInputCallback = RADIO_TuneTo;
       APPS_run(APP_FINPUT);
       return true;
     case M_F_TX:

@@ -35,6 +35,8 @@ typedef struct {
 #define SETTINGS_OFFSET (CURRENT_VFO_OFFSET + CURRENT_VFO_SIZE)
 
 extern Settings gSettings;
+extern uint8_t BL_TIME_VALUES[7];
+extern const char *BL_TIME_NAMES[7];
 
 void SETTINGS_Save();
 void SETTINGS_Load();

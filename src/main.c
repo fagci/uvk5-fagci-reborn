@@ -43,10 +43,10 @@ void selfTest() {
         .c = 0b01010101,
     };
     sprintf(p.band.name, "Preset %u", i);
-    EEPROM_WriteBuffer(BANDS_OFFSET + i * PRESET_SIZE, &p, PRESET_SIZE);
+    RADIO_SavePreset(i, &p);
     p.c = 0;
     p.a = 0;
-    EEPROM_ReadBuffer(BANDS_OFFSET + i * PRESET_SIZE, &p, PRESET_SIZE);
+    RADIO_LoadPreset(i, &p);
     if (p.c == 0b01010101 && p.a == 0b110101) {
       succ++;
     } else {
@@ -155,17 +155,13 @@ static void UpdateBattery() {
   }
 }
 
-static void Render() {
+static void Update() {
+  APPS_update();
   if (!gRedrawStatus && !gRedrawScreen) {
     return;
   }
   APPS_render();
   ST7565_Render();
-}
-
-static void Update() { 
-    APPS_update();
-    Render();
 }
 
 static void Keys() { KEYBOARD_CheckKeys(onKey); }
@@ -184,7 +180,6 @@ static void AddTasks() {
 
   APPS_run(APP_SPECTRUM);
   TaskAdd("Update", Update, 1, true);
-  // TaskAdd("Render", Render, 1, true);
   TaskAdd("Keys", Keys, 10, true);
 }
 
@@ -258,11 +253,11 @@ void Main(void) {
     SETTINGS_Save();
   }
 
-  BK4819_TuneTo(gCurrentVfo.fRX, true);
+  BK4819_TuneTo(gCurrentVfo.fRX);
   BK4819_Squelch(3, gCurrentVfo.fRX);
   BK4819_SetModulation(gCurrentVfo.modulation);
 
-  BACKLIGHT_SetDuration(gSettings.backlight);
+  BACKLIGHT_SetDuration(BL_TIME_VALUES[gSettings.backlight]);
   BACKLIGHT_SetBrightness(gSettings.brightness);
   BACKLIGHT_On();
   UpdateBattery();

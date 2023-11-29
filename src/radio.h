@@ -128,7 +128,7 @@ void RADIO_ToggleRX(bool on);
 void RADIO_ToggleModulation();
 void RADIO_ToggleListeningBW();
 void RADIO_UpdateStep(bool inc);
-void RADIO_TuneTo(uint32_t f, bool precise);
+void RADIO_TuneTo(uint32_t f);
 void RADIO_SaveCurrentVFO();
 void RADIO_LoadCurrentVFO();
 void RADIO_SetSquelch(uint8_t sq);
@@ -137,5 +137,7 @@ void RADIO_SetupByCurrentVFO();
 void RADIO_SetupBandParams(Band *b);
 void RADIO_LoadChannel(uint16_t num, VFO *p);
 void RADIO_SaveChannel(uint16_t num, VFO *p);
+void RADIO_SavePreset(uint8_t num, Preset *p);
+void RADIO_LoadPreset(uint8_t num, Preset *p);
 
 #endif /* end of include guard: RADIO_H */

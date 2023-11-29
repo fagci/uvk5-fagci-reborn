@@ -12,6 +12,7 @@ typedef enum {
   M_NONE,
   M_UPCONVERTER,
   M_BRIGHTNESS,
+  M_BL_TIME,
   M_RESET,
 } Menu;
 
@@ -28,7 +29,8 @@ static bool isSubMenu = false;
 
 static const MenuItem menu[] = {
     {"Upconverter", M_UPCONVERTER, 3},
-    {"Brightness", M_BRIGHTNESS, 10},
+    {"Brightness", M_BRIGHTNESS, 16},
+    {"BL time", M_BL_TIME, ARRAY_SIZE(BL_TIME_VALUES)},
     {"EEPROM reset", M_RESET},
 };
 
@@ -38,11 +40,15 @@ static void accept() {
   case M_UPCONVERTER: {
     uint32_t f = GetScreenF(gCurrentVfo.fRX);
     gSettings.upconverter = subMenuIndex;
-    RADIO_TuneTo(GetTuneF(f), true);
+    RADIO_TuneTo(GetTuneF(f));
     SETTINGS_Save();
   }; break;
   case M_BRIGHTNESS:
     gSettings.brightness = subMenuIndex;
+    SETTINGS_Save();
+    break;
+  case M_BL_TIME:
+    gSettings.backlight = subMenuIndex;
     SETTINGS_Save();
     break;
   default:
@@ -57,6 +63,8 @@ static const char *getValue(Menu type) {
   case M_BRIGHTNESS:
     sprintf(Output, "%u", gSettings.brightness);
     return Output;
+  case M_BL_TIME:
+    return BL_TIME_NAMES[gSettings.backlight];
   case M_UPCONVERTER:
     return upConverterFreqNames[gSettings.upconverter];
   default:
@@ -65,19 +73,23 @@ static const char *getValue(Menu type) {
   return "";
 }
 
-static void subUpconverter() {
-  char items[5][16] = {0};
-  for (uint8_t i = 0; i < ARRAY_SIZE(upConverterFreqNames); ++i) {
-    strncpy(items[i], upConverterFreqNames[i], 15);
-  }
-  UI_ShowItems(items, ARRAY_SIZE(upConverterFreqNames), subMenuIndex);
-}
+#define SHOW_ITEMS(value)                                                      \
+  do {                                                                         \
+    char items[ARRAY_SIZE(value)][16] = {0};                                   \
+    for (uint8_t i = 0; i < ARRAY_SIZE(value); ++i) {                          \
+      strncpy(items[i], value[i], 15);                                         \
+    }                                                                          \
+    UI_ShowItems(items, ARRAY_SIZE(value), subMenuIndex);                      \
+  } while (0)
 
 static void showSubmenu(Menu menuType) {
   const MenuItem *item = &menu[menuIndex];
   switch (menuType) {
   case M_UPCONVERTER:
-    subUpconverter();
+    SHOW_ITEMS(upConverterFreqNames);
+    break;
+  case M_BL_TIME:
+    SHOW_ITEMS(BL_TIME_NAMES);
     break;
   case M_BRIGHTNESS:
     UI_ShowRangeItems(item->size, subMenuIndex);
@@ -93,6 +105,9 @@ static void onSubChange() {
   case M_BRIGHTNESS:
     BACKLIGHT_SetBrightness(subMenuIndex);
     break;
+  case M_BL_TIME:
+    BACKLIGHT_SetDuration(BL_TIME_VALUES[subMenuIndex]);
+    break;
   default:
     break;
   }
@@ -103,6 +118,9 @@ static void setInitialSubmenuIndex() {
   switch (item->type) {
   case M_BRIGHTNESS:
     subMenuIndex = gSettings.brightness;
+    break;
+  case M_BL_TIME:
+    subMenuIndex = gSettings.backlight;
     break;
   case M_UPCONVERTER:
     subMenuIndex = gSettings.upconverter;

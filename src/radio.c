@@ -128,9 +128,9 @@ void RADIO_ToggleListeningBW() {
   onVfoUpdate();
 }
 
-void RADIO_TuneTo(uint32_t f, bool precise) {
+void RADIO_TuneTo(uint32_t f) {
   gCurrentVfo.fRX = f;
-  BK4819_TuneTo(f, precise);
+  BK4819_TuneTo(f);
   onVfoUpdate();
 }
 
@@ -160,7 +160,7 @@ void RADIO_SetGain(uint8_t gainIndex) {
 void RADIO_SetupByCurrentVFO() {
   BK4819_SquelchType(gCurrentVfo.squelchType);
   BK4819_Squelch(gCurrentVfo.squelch, gCurrentVfo.fRX);
-  BK4819_TuneTo(gCurrentVfo.fRX, true);
+  BK4819_TuneTo(gCurrentVfo.fRX);
   BK4819_SetFilterBandwidth(gCurrentVfo.bw);
   BK4819_SetModulation(gCurrentVfo.modulation);
   BK4819_SetGain(gCurrentVfo.gainIndex);
@@ -180,4 +180,12 @@ void RADIO_LoadChannel(uint16_t num, VFO *p) {
 
 void RADIO_SaveChannel(uint16_t num, VFO *p) {
   EEPROM_WriteBuffer(CHANNELS_OFFSET + num * VFO_SIZE, p, VFO_SIZE);
+}
+
+void RADIO_SavePreset(uint8_t num, Preset *p) {
+  EEPROM_WriteBuffer(BANDS_OFFSET + num * PRESET_SIZE, &p, PRESET_SIZE);
+}
+
+void RADIO_LoadPreset(uint8_t num, Preset *p) {
+  EEPROM_ReadBuffer(BANDS_OFFSET + num * PRESET_SIZE, &p, PRESET_SIZE);
 }

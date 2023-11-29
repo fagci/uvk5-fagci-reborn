@@ -18,6 +18,7 @@ static const uint8_t S_BOTTOM = SPECTRUM_Y + S_HEIGHT;
 
 static uint32_t f;
 static uint16_t rssiHistory[LCD_WIDTH] = {0};
+static uint8_t x;
 static bool markers[LCD_WIDTH] = {0};
 
 static Band bandsToScan[32] = {0};
@@ -29,12 +30,16 @@ static uint32_t currentStepSize;
 static uint8_t exLen;
 static uint16_t stepsCount;
 static uint16_t currentStep;
+static uint32_t bandwidth;
 
 static uint8_t msmTime = 3;
+static uint8_t tuneDelay = 1;
 
 static bool gettingRssi = false;
 
 static bool newScan = true;
+
+static uint16_t listenT = 0;
 
 static void resetRssiHistory() {
   for (uint8_t x = 0; x < LCD_WIDTH; ++x) {
@@ -45,27 +50,20 @@ static void resetRssiHistory() {
 
 static uint16_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 
-static uint16_t glitch = 0, noise = 0, rssi = 0;
-
-#include "../driver/system.h"
 static void writeRssi() {
-  BK4819_WriteRegister(BK4819_REG_02, 0);
-
-  glitch = BK4819_GetGlitch();
-  noise = BK4819_GetNoise();
-  rssi = BK4819_GetRSSI();
-
+  uint16_t rssi = BK4819_GetRSSI();
   bool open = BK4819_IsSquelchOpen();
-  // bool open = rssi >= 100 && noise < 50;
-  /* RADIO_ToggleRX(open);
+
+  RADIO_ToggleRX(open);
   if (open) {
-    SYSTEM_DelayMs(1000);
-  } */
+    listenT = 1000;
+    gRedrawScreen = true;
+  }
 
   gettingRssi = false;
 
   for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
-    uint8_t x = LCD_WIDTH * currentStep / stepsCount + exIndex;
+    x = LCD_WIDTH * currentStep / stepsCount + exIndex;
     if (rssi > rssiHistory[x]) {
       rssiHistory[x] = rssi;
     }
@@ -77,10 +75,17 @@ static void writeRssi() {
   currentStep++;
 }
 
+#include "../driver/system.h"
+
 static void step() {
   gettingRssi = true;
-  BK4819_TuneTo(f, true);
-  TaskAdd("Get RSSI", writeRssi, msmTime, false); //->priority = 0;
+  BK4819_SetFrequency(f);
+  BK4819_WriteRegister(BK4819_REG_30, 0xBFF1 & ~BK4819_REG_30_ENABLE_VCO_CALIB);
+  BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
+
+  SYSTEM_DelayMs(tuneDelay); // to get tuned
+
+  TaskAdd("Get RSSI", writeRssi, msmTime, false); // ->priority = 0;
 }
 
 static void startNewScan() {
@@ -89,7 +94,7 @@ static void startNewScan() {
   currentBand = &bandsToScan[currentBandIndex];
   currentStepSize = StepFrequencyTable[currentBand->step];
 
-  uint32_t bandwidth = currentBand->bounds.end - currentBand->bounds.start;
+  bandwidth = currentBand->bounds.end - currentBand->bounds.start;
 
   currentStep = 0;
   stepsCount = bandwidth / currentStepSize;
@@ -100,29 +105,13 @@ static void startNewScan() {
   resetRssiHistory();
   RADIO_SetupBandParams(&bandsToScan[0]);
 
-  RegisterSpec sq0delay = {"SQ0 delay", 0x4E, 9, 0b111, 1};
-  RegisterSpec sq1delay = {"SQ1 delay", 0x4E, 11, 0b111, 1};
-  BK4819_SetRegValue(sq0delay, 0);
-  BK4819_SetRegValue(sq1delay, 0);
-
-  // BK4819_WriteRegister(0x43, BK4819_FILTER_BW_WIDE);
   BK4819_WriteRegister(0x43, 0b0000000110111100);
+  // BK4819_WriteRegister(0x43, BK4819_FILTER_BW_WIDE);
   // BK4819_WriteRegister(0x43, 0x205C);
   step();
 }
 
 static void DrawTicks() {
-  for (uint16_t step = 0; step < stepsCount; step++) {
-    uint8_t x = LCD_WIDTH * step / stepsCount;
-    uint32_t f = currentBand->bounds.start + step * currentStepSize;
-    uint8_t barValue = 0b00000001;
-    (f % 10000) < currentStepSize && (barValue |= 0b00000010);
-    (f % 50000) < currentStepSize && (barValue |= 0b00000100);
-    (f % 100000) < currentStepSize && (barValue |= 0b00011000);
-
-    gFrameBuffer[5][x] |= barValue;
-  }
-
   // center
   if (false) {
     gFrameBuffer[5][62] |= 0x80;
@@ -136,6 +125,26 @@ static void DrawTicks() {
     gFrameBuffer[5][126] |= 0x80;
     gFrameBuffer[5][127] |= 0xff;
   }
+
+  if (bandwidth > 600000) {
+    for (uint16_t step = 0; step < stepsCount; step++) {
+      uint8_t x = LCD_WIDTH * step / stepsCount;
+      uint32_t f = currentBand->bounds.start + step * currentStepSize;
+      (f % 500000) < currentStepSize && (gFrameBuffer[5][x] |= 0b00011111);
+    }
+    return;
+  }
+
+  for (uint16_t step = 0; step < stepsCount; step++) {
+    uint8_t x = LCD_WIDTH * step / stepsCount;
+    uint32_t f = currentBand->bounds.start + step * currentStepSize;
+    uint8_t barValue = 0b00000001;
+    (f % 10000) < currentStepSize && (barValue |= 0b00000010);
+    (f % 50000) < currentStepSize && (barValue |= 0b00000100);
+    (f % 100000) < currentStepSize && (barValue |= 0b00011000);
+
+    gFrameBuffer[5][x] |= barValue;
+  }
 }
 
 static void addBand(const Band band) { bandsToScan[bandsCount++] = band; }
@@ -143,8 +152,12 @@ static void addBand(const Band band) { bandsToScan[bandsCount++] = band; }
 void SPECTRUM_init(void) {
   bandsCount = 0;
   newScan = true;
+  RegisterSpec sq0delay = {"SQ0 delay", 0x4E, 9, 0b111, 1};
+  RegisterSpec sq1delay = {"SQ1 delay", 0x4E, 11, 0b111, 1};
+  BK4819_SetRegValue(sq0delay, 0);
+  BK4819_SetRegValue(sq1delay, 0);
   resetRssiHistory();
-  /* addBand((Band){
+  addBand((Band){
       .name = "LPD",
       .bounds.start = 43307500,
       .bounds.end = 43477500,
@@ -154,8 +167,8 @@ void SPECTRUM_init(void) {
       .squelch = 3, // gCurrentVfo.squelch,
       .gainIndex = gCurrentVfo.gainIndex,
       .squelchType = SQUELCH_RSSI,
-  }); */
-  addBand((Band){
+  });
+  /* addBand((Band){
       .name = "MED",
       .bounds.start = 40605000,
       .bounds.end = 40605000 + 2500 * 64 * 32,
@@ -165,7 +178,7 @@ void SPECTRUM_init(void) {
       .squelch = 3, // gCurrentVfo.squelch,
       .gainIndex = gCurrentVfo.gainIndex,
       .squelchType = SQUELCH_RSSI,
-  });
+  }); */
   /* addBand((Band){
       .name = "TEST",
       .bounds.start = 45207500,
@@ -196,6 +209,18 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     gFInputCallback = setBaseF;
     APPS_run(APP_FINPUT);
     return true;
+  case KEY_3:
+    msmTime++;
+    return true;
+  case KEY_9:
+    msmTime--;
+    return true;
+  case KEY_2:
+    tuneDelay++;
+    return true;
+  case KEY_8:
+    tuneDelay--;
+    return true;
   default:
     break;
   }
@@ -203,6 +228,14 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void SPECTRUM_update(void) {
+  if (listenT) {
+    listenT--;
+    if (listenT == 0 || !BK4819_IsSquelchOpen()) {
+      RADIO_ToggleRX(false);
+    } else {
+      return;
+    }
+  }
   if (gettingRssi) {
     return;
   }
@@ -219,8 +252,8 @@ void SPECTRUM_update(void) {
 }
 
 void SPECTRUM_render(void) {
-  const uint16_t rssiMin = Min(rssiHistory, LCD_WIDTH);
-  const uint16_t rssiMax = Max(rssiHistory, LCD_WIDTH);
+  const uint16_t rssiMin = Min(rssiHistory, x);
+  const uint16_t rssiMax = Max(rssiHistory, x);
   const uint16_t vMin = rssiMin - 2;
   const uint16_t vMax = rssiMax + 20 + (rssiMax - rssiMin) / 2;
 
@@ -233,18 +266,22 @@ void SPECTRUM_render(void) {
 
   UI_FSmall(currentBand->bounds.start);
 
-  UI_PrintSmallest(42, 49, "G%u N%u R%u", glitch, noise, rssi);
+  UI_PrintSmallest(42, 49, "TUN%u T%u", tuneDelay, msmTime);
 
   DrawTicks();
   UI_FSmallest(currentBand->bounds.start, 0, 49);
   UI_FSmallest(currentBand->bounds.end, 93, 49);
 
-  for (uint8_t x = 0; x < LCD_WIDTH; ++x) {
-    uint8_t yVal = ConvertDomain(rssiHistory[x], vMin, vMax, 0, S_HEIGHT);
-    if (markers[x]) {
-      PutPixel(x, 46, true);
-      PutPixel(x, 47, true);
+  for (uint8_t xx = 0; xx < x; ++xx) {
+    uint8_t yVal = ConvertDomain(rssiHistory[xx], vMin, vMax, 0, S_HEIGHT);
+    DrawHLine(S_BOTTOM - yVal, S_BOTTOM, xx, true);
+    if (markers[xx]) {
+      PutPixel(xx, 46, true);
+      PutPixel(xx, 47, true);
+      if (xx > 0)
+        PutPixel(xx - 1, 47, true);
+      if (xx < LCD_WIDTH - 1)
+        PutPixel(xx + 1, 47, true);
     }
-    DrawHLine(S_BOTTOM - yVal, S_BOTTOM, x, true);
   }
 }

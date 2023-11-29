@@ -50,7 +50,7 @@ void BACKLIGHT_Toggle(bool on) {
 
 void BACKLIGHT_On() {
   countdown = duration;
-  BACKLIGHT_Toggle(true);
+  BACKLIGHT_Toggle(countdown);
 }
 
 void BACKLIGHT_SetDuration(uint8_t durationSec) {

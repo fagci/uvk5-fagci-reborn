@@ -415,9 +415,9 @@ void BK4819_SetupPowerAmplifier(uint16_t Bias, uint32_t Frequency) {
   BK4819_WriteRegister(BK4819_REG_36, (Bias << 8) | 0x80U | Gain);
 }
 
-void BK4819_SetFrequency(uint32_t Frequency) {
-  BK4819_WriteRegister(BK4819_REG_38, Frequency & 0xFFFF);
-  BK4819_WriteRegister(BK4819_REG_39, (Frequency >> 16) & 0xFFFF);
+void BK4819_SetFrequency(uint32_t f) {
+  BK4819_WriteRegister(BK4819_REG_38, f & 0xFFFF);
+  BK4819_WriteRegister(BK4819_REG_39, (f >> 16) & 0xFFFF);
 }
 
 uint32_t BK4819_GetFrequency() {
@@ -1041,37 +1041,20 @@ void BK4819_ToggleAFDAC(bool on) {
   BK4819_WriteRegister(BK4819_REG_30, Reg);
 }
 
-void BK4819_TuneTo(uint32_t f, bool precise) {
+void BK4819_TuneTo(uint32_t f) {
   BK4819_SelectFilter(f);
   BK4819_SetFrequency(f);
-  if (precise) {
-    uint16_t reg = BK4819_ReadRegister(BK4819_REG_30);
-    BK4819_WriteRegister(BK4819_REG_30, reg & ~BK4819_REG_30_ENABLE_VCO_CALIB);
-    BK4819_WriteRegister(BK4819_REG_30, reg);
-  }
+  uint16_t reg = BK4819_ReadRegister(BK4819_REG_30);
+  BK4819_WriteRegister(BK4819_REG_30, reg & ~BK4819_REG_30_ENABLE_VCO_CALIB);
+  BK4819_WriteRegister(BK4819_REG_30, reg);
 }
 
 void BK4819_SetToneFrequency(uint16_t f) {
   BK4819_WriteRegister(BK4819_REG_71, (f * 103U) / 10U);
 }
 
-// static bool isSquelchOpen = false;
 bool BK4819_IsSquelchOpen() {
   return (BK4819_ReadRegister(BK4819_REG_0C) >> 1) & 1;
-  /* while (BK4819_ReadRegister(BK4819_REG_0C) & 1U) {
-    BK4819_WriteRegister(BK4819_REG_02, 0);
-
-    uint16_t Mask = BK4819_ReadRegister(BK4819_REG_02);
-
-    if (Mask & BK4819_REG_02_SQUELCH_LOST) {
-      isSquelchOpen = true;
-    }
-
-    if (Mask & BK4819_REG_02_SQUELCH_FOUND) {
-      isSquelchOpen = false;
-    }
-  }
-  return isSquelchOpen; */
 }
 
 void BK4819_ResetRSSI() {
