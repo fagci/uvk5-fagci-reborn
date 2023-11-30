@@ -4,6 +4,7 @@
 #include "../inc/dp32g030/pwmplus.h"
 #include "../settings.h"
 #include "gpio.h"
+#include "system.h"
 
 uint8_t duration = 2;
 uint8_t countdown;
@@ -12,7 +13,7 @@ bool state = false;
 void BACKLIGHT_Init() {
   // 48MHz / 94 / 1024 ~ 500Hz
   const uint32_t PWM_FREQUENCY_HZ = 1000;
-  PWM_PLUS0_CLKSRC |= ((48000000 / 1024 / PWM_FREQUENCY_HZ) << 16);
+  PWM_PLUS0_CLKSRC |= ((CPU_CLOCK_HZ / 1024 / PWM_FREQUENCY_HZ) << 16);
   PWM_PLUS0_PERIOD = 1023;
 
   PORTCON_PORTB_SEL0 &= ~(0

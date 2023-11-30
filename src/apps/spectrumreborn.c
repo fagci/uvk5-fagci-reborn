@@ -11,15 +11,25 @@
 #include <string.h>
 
 #define BLACKLIST_SIZE 32
+#define DATA_LEN 64
 
 static const uint8_t S_HEIGHT = 32;
 static const uint8_t SPECTRUM_Y = 8;
 static const uint8_t S_BOTTOM = SPECTRUM_Y + S_HEIGHT;
 
+typedef struct {
+  uint32_t f;
+  uint32_t rssi;
+  uint32_t noise;
+} Peak;
+
 static uint32_t f;
-static uint16_t rssiHistory[LCD_WIDTH] = {0};
+static uint16_t rssiHistory[DATA_LEN] = {0};
 static uint8_t x;
-static bool markers[LCD_WIDTH] = {0};
+static bool markers[DATA_LEN] = {0};
+
+static Peak peaks[16] = {0};
+static uint8_t peaksCount = 255;
 
 static Band bandsToScan[32] = {0};
 static uint8_t bandsCount = 0;
@@ -41,18 +51,42 @@ static bool newScan = true;
 
 static uint16_t listenT = 0;
 
+static uint16_t rssiO = 255, rssiC = 255;
+
+static uint16_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
+
 static void resetRssiHistory() {
-  for (uint8_t x = 0; x < LCD_WIDTH; ++x) {
+  for (uint8_t x = 0; x < DATA_LEN; ++x) {
     rssiHistory[x] = 0;
     markers[x] = false;
   }
 }
 
-static uint16_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
+#include "../driver/uart.h"
+static void addBand(const Band band) { bandsToScan[bandsCount++] = band; }
+static void addPeak(const Peak peak) {
+  for (uint8_t i = 0; i < peaksCount; i++) {
+    if (peaks[i].f == peak.f) {
+      peaks[i].noise = peak.noise;
+      peaks[i].rssi = peak.rssi;
+      return;
+    }
+  }
+  if (peaksCount < 16) {
+  UART_printf("%u.%04u,%u,%u\n", peak.f / 100000, peak.f / 10 % 10000, peak.rssi,
+              peak.noise);
+    peaks[peaksCount++] = peak;
+  }
+}
 
 static void writeRssi() {
   uint16_t rssi = BK4819_GetRSSI();
+  uint16_t noise = BK4819_GetNoise();
   bool open = BK4819_IsSquelchOpen();
+
+  if (rssi > rssiO && noise < 60) {
+    addPeak((Peak){.f = f, .rssi = rssi, .noise = noise});
+  }
 
   RADIO_ToggleRX(open);
   if (open) {
@@ -63,7 +97,7 @@ static void writeRssi() {
   gettingRssi = false;
 
   for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
-    x = LCD_WIDTH * currentStep / stepsCount + exIndex;
+    x = DATA_LEN * currentStep / stepsCount + exIndex;
     if (rssi > rssiHistory[x]) {
       rssiHistory[x] = rssi;
     }
@@ -102,7 +136,7 @@ static void startNewScan() {
 
   currentStep = 0;
   stepsCount = bandwidth / currentStepSize;
-  exLen = ceilDiv(LCD_WIDTH, stepsCount);
+  exLen = ceilDiv(DATA_LEN, stepsCount);
 
   f = currentBand->bounds.start;
 
@@ -134,13 +168,13 @@ static void DrawTicks() {
   } else {
     gFrameBuffer[5][0] |= 0xff;
     gFrameBuffer[5][1] |= 0x80;
-    gFrameBuffer[5][126] |= 0x80;
-    gFrameBuffer[5][127] |= 0xff;
+    gFrameBuffer[5][DATA_LEN - 2] |= 0x80;
+    gFrameBuffer[5][DATA_LEN - 1] |= 0xff;
   }
 
   if (bandwidth > 600000) {
     for (uint16_t step = 0; step < stepsCount; step++) {
-      uint8_t x = LCD_WIDTH * step / stepsCount;
+      uint8_t x = DATA_LEN * step / stepsCount;
       uint32_t f = currentBand->bounds.start + step * currentStepSize;
       (f % 500000) < currentStepSize && (gFrameBuffer[5][x] |= 0b00011111);
     }
@@ -148,7 +182,7 @@ static void DrawTicks() {
   }
 
   for (uint16_t step = 0; step < stepsCount; step++) {
-    uint8_t x = LCD_WIDTH * step / stepsCount;
+    uint8_t x = DATA_LEN * step / stepsCount;
     uint32_t f = currentBand->bounds.start + step * currentStepSize;
     uint8_t barValue = 0b00000001;
     (f % 10000) < currentStepSize && (barValue |= 0b00000010);
@@ -158,8 +192,6 @@ static void DrawTicks() {
     gFrameBuffer[5][x] |= barValue;
   }
 }
-
-static void addBand(const Band band) { bandsToScan[bandsCount++] = band; }
 
 void SPECTRUM_init(void) {
   bandsCount = 0;
@@ -173,7 +205,8 @@ void SPECTRUM_init(void) {
   BK4819_WriteRegister(0x73,
                        BK4819_ReadRegister(0x73) | (1 << 4)); // AFC disable
   BK4819_WriteRegister(BK4819_REG_3F, 0);                     // interrupts
-BK4819_SetupSquelch(110, 90, 62, 64, 255, 255);
+                                                              // 64 - 67
+  BK4819_SetupSquelch(110, 90, 64, 65, 255, 255);
 
   resetRssiHistory();
   addBand((Band){
@@ -276,6 +309,10 @@ void SPECTRUM_render(void) {
   const uint16_t vMin = rssiMin - 2;
   const uint16_t vMax = rssiMax + 20 + (rssiMax - rssiMin) / 2;
 
+  rssiC = rssiMin + (rssiMax - rssiMin) / 3;
+  rssiO = rssiMin + (rssiMax - rssiMin) / 5;
+  BK4819_SetupSquelch(rssiO, rssiC, 64, 65, 255, 255);
+
   UI_ClearStatus();
   UI_ClearScreen();
 
@@ -302,5 +339,18 @@ void SPECTRUM_render(void) {
       if (xx < LCD_WIDTH - 1)
         PutPixel(xx + 1, 47, true);
     }
+  }
+
+  for (uint8_t x = 0; x < DATA_LEN; x++) {
+    PutPixel(x, S_BOTTOM - ConvertDomain(rssiO, vMin, vMax, 0, S_HEIGHT), 2);
+    PutPixel(x, S_BOTTOM - ConvertDomain(rssiC, vMin, vMax, 0, S_HEIGHT), 2);
+  }
+
+  DrawHLine(16, S_BOTTOM, DATA_LEN - 1, true);
+
+  for (uint8_t i = 0; i < 5; i++) {
+    Peak p = peaks[i];
+    UI_PrintSmallest(65, i * 6 + 16, "%u.%04u %u %u", p.f / 100000,
+                     p.f / 10 % 10000, p.rssi, p.noise);
   }
 }

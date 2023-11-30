@@ -10,6 +10,7 @@
 #include "driver/st7565.h"
 #include "driver/system.h"
 #include "driver/systick.h"
+#include "driver/uart.h"
 #include "helper/battery.h"
 #include "inc/dp32g030/gpio.h"
 #include "misc.h"
@@ -76,11 +77,11 @@ void selfTest() {
   UI_PrintSmallest(0, 36, "Channels +:%u -:%u", succ, fail);
   ST7565_BlitFullScreen();
 
-  gSettings.reserved2 = 0b10101010;
+  gSettings.reserved2 = 0b1011;
   SETTINGS_Save();
   gSettings.reserved2 = 0;
   SETTINGS_Load();
-  if (gSettings.reserved2 != 0b10101010) {
+  if (gSettings.reserved2 != 0b1011) {
     UI_PrintSmallest(0, 24, "Settings failure");
     ST7565_BlitFullScreen();
     while (true) {
@@ -156,6 +157,9 @@ static void UpdateBattery() {
 }
 
 static void Update() {
+  if (UART_HasData()) {
+    UART_printf("%s\n", gUartData);
+  }
   APPS_update();
   if (!gRedrawStatus && !gRedrawScreen) {
     return;
@@ -208,6 +212,8 @@ void Main(void) {
   BACKLIGHT_Toggle(true);
 
   SETTINGS_Load();
+
+  UART_Init();
 
   BATTERY_UpdateBatteryInfo();
   RADIO_SetupRegisters();

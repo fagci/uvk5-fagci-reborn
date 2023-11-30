@@ -1,6 +1,7 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
+#include "apps/apps.h"
 #include "radio.h"
 #include <stdint.h>
 
@@ -28,7 +29,8 @@ typedef struct {
   uint8_t brightness : 4;
   bool spectrumAutosquelch : 1;
   uint8_t reserved1 : 3;
-  uint8_t reserved2 : 8;
+  AppType_t mainApp : 4;
+  uint8_t reserved2 : 4;
 } __attribute__((packed)) Settings;
 
 #define SETTINGS_SIZE sizeof(Settings)
