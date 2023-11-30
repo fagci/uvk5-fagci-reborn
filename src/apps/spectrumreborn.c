@@ -73,8 +73,8 @@ static void addPeak(const Peak peak) {
     }
   }
   if (peaksCount < 16) {
-  UART_printf("%u.%04u,%u,%u\n", peak.f / 100000, peak.f / 10 % 10000, peak.rssi,
-              peak.noise);
+    UART_printf("%u.%04u,%u,%u\n", peak.f / 100000, peak.f / 10 % 10000,
+                peak.rssi, peak.noise);
     peaks[peaksCount++] = peak;
   }
 }
@@ -83,18 +83,13 @@ static void writeRssi() {
   uint16_t rssi = BK4819_GetRSSI();
   uint16_t noise = BK4819_GetNoise();
   bool open = BK4819_IsSquelchOpen();
+  gettingRssi = false;
 
-  if (rssi > rssiO && noise < 60) {
+  if (rssi >= rssiO && noise < 65) {
     addPeak((Peak){.f = f, .rssi = rssi, .noise = noise});
   }
 
   RADIO_ToggleRX(open);
-  if (open) {
-    listenT = 1000;
-    gRedrawScreen = true;
-  }
-
-  gettingRssi = false;
 
   for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
     x = DATA_LEN * currentStep / stepsCount + exIndex;
@@ -105,6 +100,13 @@ static void writeRssi() {
       markers[x] = open;
     }
   }
+
+  if (open) {
+    listenT = 1000;
+    gRedrawScreen = true;
+    return;
+  }
+
   f += currentStepSize;
   currentStep++;
 }
@@ -121,7 +123,7 @@ static void step() {
   BK4819_WriteRegister(BK4819_REG_37, r & ~(1 << 2));
   BK4819_WriteRegister(BK4819_REG_37, r); */
 
-  SYSTEM_DelayMs(tuneDelay); // to get tuned
+  SYSTEM_DelayMs(tuneDelay); // to get tuned (max 0.3ms actually)
 
   TaskAdd("Get RSSI", writeRssi, msmTime, false); // ->priority = 0;
 }
@@ -281,8 +283,7 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 
 void SPECTRUM_update(void) {
   if (listenT) {
-    listenT--;
-    if (listenT == 0 || !BK4819_IsSquelchOpen()) {
+    if (--listenT == 0 || !BK4819_IsSquelchOpen()) {
       RADIO_ToggleRX(false);
     } else {
       return;
@@ -309,9 +310,9 @@ void SPECTRUM_render(void) {
   const uint16_t vMin = rssiMin - 2;
   const uint16_t vMax = rssiMax + 20 + (rssiMax - rssiMin) / 2;
 
-  rssiC = rssiMin + (rssiMax - rssiMin) / 3;
-  rssiO = rssiMin + (rssiMax - rssiMin) / 5;
-  BK4819_SetupSquelch(rssiO, rssiC, 64, 65, 255, 255);
+  rssiC = rssiMin + 6;
+  rssiO = rssiMin + 12;
+  BK4819_SetupSquelch(rssiO, rssiC, 64, 70, 255, 255);
 
   UI_ClearStatus();
   UI_ClearScreen();
