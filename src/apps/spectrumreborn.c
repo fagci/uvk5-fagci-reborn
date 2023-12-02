@@ -2,6 +2,7 @@
 #include "../driver/audio.h"
 #include "../driver/bk4819.h"
 #include "../driver/st7565.h"
+#include "../driver/system.h"
 #include "../helper/measurements.h"
 #include "../scheduler.h"
 #include "../ui/components.h"
@@ -25,6 +26,7 @@ typedef struct {
 
 static uint32_t f;
 static uint16_t rssiHistory[DATA_LEN] = {0};
+static uint16_t noiseHistory[DATA_LEN] = {0};
 static uint8_t x;
 static bool markers[DATA_LEN] = {0};
 
@@ -42,22 +44,23 @@ static uint16_t stepsCount;
 static uint16_t currentStep;
 static uint32_t bandwidth;
 
-static uint8_t msmTime = 3;
-static uint8_t tuneDelay = 1;
-
 static bool gettingRssi = false;
 
 static bool newScan = true;
 
 static uint16_t listenT = 0;
 
-static uint16_t rssiO = 255, rssiC = 255;
+#define U16_MAX 65535
+
+static uint16_t rssiO = U16_MAX, rssiC = U16_MAX;
+static uint16_t noiseO = U16_MAX, noiseC = U16_MAX;
 
 static uint16_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 
 static void resetRssiHistory() {
   for (uint8_t x = 0; x < DATA_LEN; ++x) {
     rssiHistory[x] = 0;
+    noiseHistory[x] = 0;
     markers[x] = false;
   }
 }
@@ -73,62 +76,59 @@ static void addPeak(const Peak peak) {
     }
   }
   if (peaksCount < 16) {
-    UART_printf("%u.%04u,%u,%u\n", peak.f / 100000, peak.f / 10 % 10000,
-                peak.rssi, peak.noise);
     peaks[peaksCount++] = peak;
   }
 }
 
 static void writeRssi() {
   uint16_t rssi = BK4819_GetRSSI();
-  uint16_t noise = BK4819_GetNoise();
+  uint16_t noise = 0; // BK4819_GetNoise();
   bool open = BK4819_IsSquelchOpen();
   gettingRssi = false;
 
-  if (rssi >= rssiO && noise < 65) {
+  if (rssi >= rssiO && noise <= noiseO) {
     addPeak((Peak){.f = f, .rssi = rssi, .noise = noise});
   }
-
-  RADIO_ToggleRX(open);
 
   for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
     x = DATA_LEN * currentStep / stepsCount + exIndex;
     if (rssi > rssiHistory[x]) {
       rssiHistory[x] = rssi;
     }
+    if (noise > noiseHistory[x]) {
+      noiseHistory[x] = noise;
+    }
     if (markers[x] == false) {
       markers[x] = open;
     }
   }
 
+  /* RADIO_ToggleRX(open);
   if (open) {
     listenT = 1000;
     gRedrawScreen = true;
     return;
-  }
+  } */
 
   f += currentStepSize;
   currentStep++;
 }
 
-#include "../driver/system.h"
-
-static void step() {
-  gettingRssi = true;
+static void SetF(uint32_t f) {
   BK4819_SetFrequency(f);
   BK4819_WriteRegister(BK4819_REG_30, 0xBFF1 & ~BK4819_REG_30_ENABLE_VCO_CALIB);
   BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
+  SYSTEM_DelayMs(1);
+}
 
-  /* uint16_t r = BK4819_ReadRegister(BK4819_REG_37);
-  BK4819_WriteRegister(BK4819_REG_37, r & ~(1 << 2));
-  BK4819_WriteRegister(BK4819_REG_37, r); */
-
-  SYSTEM_DelayMs(tuneDelay); // to get tuned (max 0.3ms actually)
-
-  TaskAdd("Get RSSI", writeRssi, msmTime, false); // ->priority = 0;
+static void step() {
+  gettingRssi = true;
+  SetF(f);
+  TaskAdd("Get RSSI", writeRssi, 1, false); // ->priority = 0;
 }
 
 static void startNewScan() {
+  uint8_t oldBandIndex = currentBandIndex;
   currentBandIndex =
       currentBandIndex < bandsCount - 1 ? currentBandIndex + 1 : 0;
   currentBand = &bandsToScan[currentBandIndex];
@@ -143,19 +143,11 @@ static void startNewScan() {
   f = currentBand->bounds.start;
 
   resetRssiHistory();
-  RADIO_SetupBandParams(&bandsToScan[0]);
-
-  BK4819_WriteRegister(
-      0x43,
-      0 | 1 << 2        // gain after FM demod = 6dB
-          | 0b10 << 4   // BW mode selection:00: 12.5k 01: 6.25k 10: 25k/20k
-          | 0b000 << 6  // LPF BW
-          | 0b000 << 9  // RF BW weak
-          | 0b000 << 12 // RF BW
-  );
-  // BK4819_WriteRegister(0x43, 0b0000000110111100);
-  // BK4819_WriteRegister(0x43, BK4819_FILTER_BW_WIDE);
-  // BK4819_WriteRegister(0x43, 0x205C);
+  if (currentBandIndex != oldBandIndex) {
+    RADIO_SetupBandParams(&bandsToScan[0]);
+  }
+  SetF(f - StepFrequencyTable[currentBand->step]); // to make first measurement
+                                                   // better
   step();
 }
 
@@ -199,16 +191,19 @@ void SPECTRUM_init(void) {
   bandsCount = 0;
   newScan = true;
 
-  RegisterSpec sq0delay = {"SQ0 delay", 0x4E, 9, 0b111, 1};
-  RegisterSpec sq1delay = {"SQ1 delay", 0x4E, 11, 0b111, 1};
-  BK4819_SetRegValue(sq0delay, 0);
-  BK4819_SetRegValue(sq1delay, 0);
   BK4819_WriteRegister(0x2B, 0); // various filters
   BK4819_WriteRegister(0x73,
                        BK4819_ReadRegister(0x73) | (1 << 4)); // AFC disable
   BK4819_WriteRegister(BK4819_REG_3F, 0);                     // interrupts
-                                                              // 64 - 67
-  BK4819_SetupSquelch(110, 90, 64, 65, 255, 255);
+
+  /* BK4819_WriteRegister(
+      0x43,
+      0 | 1 << 2        // gain after FM demod = 6dB
+          | 0b10 << 4   // BW mode selection:00: 12.5k 01: 6.25k 10: 25k/20k
+          | 0b000 << 6  // LPF BW
+          | 0b000 << 9  // RF BW weak
+          | 0b000 << 12 // RF BW
+  ); */
 
   resetRssiHistory();
   addBand((Band){
@@ -264,16 +259,12 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     APPS_run(APP_FINPUT);
     return true;
   case KEY_3:
-    msmTime++;
     return true;
   case KEY_9:
-    msmTime--;
     return true;
   case KEY_2:
-    tuneDelay++;
     return true;
   case KEY_8:
-    tuneDelay--;
     return true;
   default:
     break;
@@ -284,7 +275,7 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 void SPECTRUM_update(void) {
   if (listenT) {
     if (--listenT == 0 || !BK4819_IsSquelchOpen()) {
-      RADIO_ToggleRX(false);
+      listenT = 0;
     } else {
       return;
     }
@@ -310,9 +301,20 @@ void SPECTRUM_render(void) {
   const uint16_t vMin = rssiMin - 2;
   const uint16_t vMax = rssiMax + 20 + (rssiMax - rssiMin) / 2;
 
-  rssiC = rssiMin + 6;
-  rssiO = rssiMin + 12;
-  BK4819_SetupSquelch(rssiO, rssiC, 64, 70, 255, 255);
+  // const uint16_t noiseMin = Min(noiseHistory, x);
+  const uint16_t noiseMax = Max(noiseHistory, x);
+
+  // max = 64
+  // open = max - 2
+  // close = max - 1
+
+  noiseC = noiseMax - 3;
+  noiseO = noiseC - 2;
+
+  rssiC = rssiMin + 15;
+  rssiO = rssiC + 3;
+
+  BK4819_SetupSquelch(rssiO, rssiC, noiseO, noiseC, 255, 255);
 
   UI_ClearStatus();
   UI_ClearScreen();
@@ -322,8 +324,6 @@ void SPECTRUM_render(void) {
   // UI_PrintSmallest(52, 49, "\xB1%uk", settings.frequencyChangeStep / 100);
 
   UI_FSmall(currentBand->bounds.start);
-
-  UI_PrintSmallest(42, 49, "TUN%u T%u", tuneDelay, msmTime);
 
   DrawTicks();
   UI_FSmallest(currentBand->bounds.start, 0, 49);
@@ -335,16 +335,15 @@ void SPECTRUM_render(void) {
     if (markers[xx]) {
       PutPixel(xx, 46, true);
       PutPixel(xx, 47, true);
-      if (xx > 0)
+      /* if (xx > 0)
         PutPixel(xx - 1, 47, true);
       if (xx < LCD_WIDTH - 1)
-        PutPixel(xx + 1, 47, true);
+        PutPixel(xx + 1, 47, true); */
     }
   }
 
   for (uint8_t x = 0; x < DATA_LEN; x++) {
     PutPixel(x, S_BOTTOM - ConvertDomain(rssiO, vMin, vMax, 0, S_HEIGHT), 2);
-    PutPixel(x, S_BOTTOM - ConvertDomain(rssiC, vMin, vMax, 0, S_HEIGHT), 2);
   }
 
   DrawHLine(16, S_BOTTOM, DATA_LEN - 1, true);

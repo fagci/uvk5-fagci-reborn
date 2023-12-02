@@ -50,7 +50,7 @@ void TaskSetPriority(void (*handler)(void), uint8_t priority) {
   }
 }
 
-void TasksUpdate(void) {
+/* void TasksUpdate(void) {
   bool prioritized = false;
   for (uint8_t i = 0; i < tasksCount; ++i) {
     Task *task = &tasks[i];
@@ -67,6 +67,20 @@ void TasksUpdate(void) {
   }
   if (prioritized)
     return;
+  for (uint8_t i = 0; i < tasksCount; ++i) {
+    Task *task = &tasks[i];
+    if (task->handler && !task->countdown && task->priority != 0) {
+      task->handler();
+      if (task->continuous) {
+        task->countdown = task->interval;
+      } else {
+        TaskRemove(task->handler);
+      }
+    }
+  }
+} */
+
+void TasksUpdate(void) {
   for (uint8_t i = 0; i < tasksCount; ++i) {
     Task *task = &tasks[i];
     if (task->handler && !task->countdown && task->priority != 0) {

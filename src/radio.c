@@ -86,9 +86,17 @@ void RADIO_ToggleRX(bool on) {
   BK4819_SetModulation(gCurrentVfo.modulation); */
   // RADIO_SetupByCurrentVFO();
 
-  AUDIO_ToggleSpeaker(on);
-  BK4819_ToggleAFDAC(on);
-  // BK4819_ToggleAFBit(on);
+  if (on) {
+    BK4819_ToggleAFDAC(true);
+    BK4819_ToggleAFBit(true);
+    SYSTEM_DelayMs(10);
+    AUDIO_ToggleSpeaker(true);
+  } else {
+    AUDIO_ToggleSpeaker(false);
+    SYSTEM_DelayMs(10);
+    BK4819_ToggleAFDAC(false);
+    BK4819_ToggleAFBit(false);
+  }
 }
 
 static void onVfoUpdate() {
@@ -167,8 +175,8 @@ void RADIO_SetupByCurrentVFO() {
 }
 
 void RADIO_SetupBandParams(Band *b) {
-  // BK4819_SquelchType(b->squelchType);
-  // BK4819_Squelch(b->squelch, b->bounds.start);
+  BK4819_SquelchType(b->squelchType);
+  BK4819_Squelch(b->squelch, b->bounds.start);
   BK4819_SetFilterBandwidth(b->bw);
   BK4819_SetModulation(b->modulation);
   BK4819_SetGain(b->gainIndex);
