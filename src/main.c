@@ -157,15 +157,21 @@ static void UpdateBattery() {
 }
 
 static void Update() {
-  if (UART_HasData()) {
-    UART_printf("%s\n", gUartData);
-  }
+  uint32_t now = elapsedMilliseconds;
   APPS_update();
+  UART_printf("%u: APPS_update() took %ums\n", elapsedMilliseconds,
+              elapsedMilliseconds - now);
   if (!gRedrawStatus && !gRedrawScreen) {
     return;
   }
+  now = elapsedMilliseconds;
   APPS_render();
+  UART_printf("%u: APPS_render() took %ums\n", elapsedMilliseconds,
+              elapsedMilliseconds - now);
+  now = elapsedMilliseconds;
   ST7565_Render();
+  UART_printf("%u: ST7565_Render() took %ums\n", elapsedMilliseconds,
+              elapsedMilliseconds - now);
 }
 
 static void Keys() { KEYBOARD_CheckKeys(onKey); }

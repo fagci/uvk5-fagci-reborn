@@ -104,7 +104,11 @@ void UART_LogSendText(const void *str) {
     UART_Send(str, strlen(str));
 }
 
+static char sendBuffer[1024 * 4] = {0};
+static uint32_t sendBufferIndex = 0;
+
 void UART_printf(const char *str, ...) {
+    return;
   char text[256];
   int len;
 
@@ -113,8 +117,15 @@ void UART_printf(const char *str, ...) {
   len = vsnprintf(text, sizeof(text), str, va);
   va_end(va);
 
+  memcpy(sendBuffer + sendBufferIndex, text, len);
+  sendBufferIndex += len;
+
+  if (sendBufferIndex > 2048) {
+    UART_Send(sendBuffer, sendBufferIndex);
+    sendBufferIndex = 0;
+  }
+  return;
   UART_Send(text, len);
-  // UART_Send(text, strlen(text));
 }
 
 #define DMA_INDEX(x, y) (((x) + (y)) % sizeof(UART_DMA_Buffer))

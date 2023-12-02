@@ -76,13 +76,12 @@ void APPS_init(AppType_t app) {
     sprintf(String, "%s>%u", String, appsStack[i]);
   }
   UI_PrintStringSmallest(String, 0, 0, true, true);
+  gRedrawStatus = true;
   // UI_PrintStringSmallest(apps[gCurrentApp].name, 0, 0, true, true);
+
   if (apps[app].init) {
     apps[app].init();
   }
-  APPS_render();
-  gRedrawStatus = true;
-  gRedrawScreen = true;
 }
 void APPS_update(void) {
   if (apps[gCurrentApp].update) {

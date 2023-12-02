@@ -3,6 +3,7 @@
 #include "../driver/bk4819.h"
 #include "../driver/st7565.h"
 #include "../driver/system.h"
+#include "../driver/uart.h"
 #include "../helper/measurements.h"
 #include "../scheduler.h"
 #include "../ui/components.h"
@@ -20,11 +21,12 @@ static const uint8_t S_BOTTOM = SPECTRUM_Y + S_HEIGHT;
 
 typedef struct {
   uint32_t f;
-  uint32_t rssi;
-  uint32_t noise;
+  uint16_t rssi;
+  uint16_t noise;
+  uint16_t glitch;
 } Peak;
 
-static uint32_t f;
+static uint32_t f = 0;
 static uint16_t rssiHistory[DATA_LEN] = {0};
 static uint16_t noiseHistory[DATA_LEN] = {0};
 static uint16_t glitchHistory[DATA_LEN] = {0};
@@ -45,8 +47,6 @@ static uint16_t stepsCount;
 static uint16_t currentStep;
 static uint32_t bandwidth;
 
-static bool gettingRssi = false;
-
 static bool newScan = true;
 
 static uint16_t listenT = 0;
@@ -54,8 +54,8 @@ static uint16_t listenT = 0;
 #define U16_MAX 65535
 
 static uint16_t rssiO = U16_MAX;
-static uint16_t noiseO = U16_MAX;
-static uint16_t glitchO = U16_MAX;
+static uint16_t noiseO = 0;
+static uint16_t glitchO = 0;
 
 static uint16_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 
@@ -68,13 +68,13 @@ static void resetRssiHistory() {
   }
 }
 
-#include "../driver/uart.h"
 static void addBand(const Band band) { bandsToScan[bandsCount++] = band; }
 static void addPeak(const Peak peak) {
   for (uint8_t i = 0; i < peaksCount; i++) {
     if (peaks[i].f == peak.f) {
       peaks[i].noise = peak.noise;
       peaks[i].rssi = peak.rssi;
+      peaks[i].glitch = peak.glitch;
       return;
     }
   }
@@ -83,28 +83,35 @@ static void addPeak(const Peak peak) {
   }
 }
 
-static void writeRssi() {
-  uint16_t rssi = BK4819_GetRSSI();
-  uint16_t noise = BK4819_GetNoise();
-  uint16_t glitch = BK4819_GetGlitch();
-  // bool open = BK4819_IsSquelchOpen();
-  bool open = rssi >= rssiO && noise <= noiseO && glitch <= glitchO;
-  gettingRssi = false;
+static Peak msm = {0, 0, U16_MAX, U16_MAX};
 
-  if (rssi >= rssiO && noise <= noiseO) {
-    addPeak((Peak){.f = f, .rssi = rssi, .noise = noise});
+static bool isSquelchOpen() {
+  return msm.rssi >= rssiO && msm.noise <= noiseO && msm.glitch <= glitchO;
+}
+
+static void writeRssi() {
+  msm.rssi = BK4819_GetRSSI();
+  msm.noise = BK4819_GetNoise();
+  msm.glitch = BK4819_GetGlitch();
+  UART_printf("%u: Got rssi\n", elapsedMilliseconds);
+
+  // bool open = BK4819_IsSquelchOpen();
+  bool open = isSquelchOpen();
+
+  if (open) {
+    addPeak(msm);
   }
 
   for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
     x = DATA_LEN * currentStep / stepsCount + exIndex;
-    if (rssi > rssiHistory[x]) {
-      rssiHistory[x] = rssi;
+    if (msm.rssi > rssiHistory[x]) {
+      rssiHistory[x] = msm.rssi;
     }
-    if (noise > noiseHistory[x]) {
-      noiseHistory[x] = noise;
+    if (msm.noise > noiseHistory[x]) {
+      noiseHistory[x] = msm.noise;
     }
-    if (glitch > glitchHistory[x]) {
-      glitchHistory[x] = glitch;
+    if (msm.glitch > glitchHistory[x]) {
+      glitchHistory[x] = msm.glitch;
     }
     if (markers[x] == false) {
       markers[x] = open;
@@ -122,17 +129,21 @@ static void writeRssi() {
   currentStep++;
 }
 
-static void SetF(uint32_t f) {
+static void setF(uint32_t f) {
   BK4819_SetFrequency(f);
-  BK4819_WriteRegister(BK4819_REG_30, 0xBFF1 & ~BK4819_REG_30_ENABLE_VCO_CALIB);
+  BK4819_WriteRegister(BK4819_REG_30, 0);
+  // BK4819_WriteRegister(BK4819_REG_30, 0xBFF1 &
+  // ~BK4819_REG_30_ENABLE_VCO_CALIB);
   BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
-  SYSTEM_DelayMs(1);
+  // SYSTEM_DelayMs(1);
 }
 
 static void step() {
-  gettingRssi = true;
-  SetF(f);
-  TaskAdd("Get RSSI", writeRssi, 1, false); // ->priority = 0;
+  msm.f = f;
+  msm.rssi = 0;
+  msm.noise = msm.glitch = U16_MAX;
+  setF(f);
+  TaskAdd("Get RSSI", writeRssi, 3, false)->priority = 0;
 }
 
 static void startNewScan() {
@@ -154,9 +165,9 @@ static void startNewScan() {
   if (currentBandIndex != oldBandIndex) {
     RADIO_SetupBandParams(&bandsToScan[0]);
   }
-  SetF(f - StepFrequencyTable[currentBand->step]); // to make first measurement
+  setF(f - StepFrequencyTable[currentBand->step]); // to make first measurement
                                                    // better
-  step();
+  // step();
 }
 
 static void DrawTicks() {
@@ -204,17 +215,17 @@ void SPECTRUM_init(void) {
                        BK4819_ReadRegister(0x73) | (1 << 4)); // AFC disable
   BK4819_WriteRegister(BK4819_REG_3F, 0);                     // interrupts
 
-  /* BK4819_WriteRegister(
+  BK4819_WriteRegister(
       0x43,
       0 | 1 << 2        // gain after FM demod = 6dB
-          | 0b10 << 4   // BW mode selection:00: 12.5k 01: 6.25k 10: 25k/20k
+          | 0b01 << 4   // BW mode selection:00: 12.5k 01: 6.25k 10: 25k/20k
           | 0b000 << 6  // LPF BW
           | 0b000 << 9  // RF BW weak
           | 0b000 << 12 // RF BW
-  ); */
+  );
 
   resetRssiHistory();
-  addBand((Band){
+  /* addBand((Band){
       .name = "LPD",
       .bounds.start = 43307500,
       .bounds.end = 43477500,
@@ -224,18 +235,18 @@ void SPECTRUM_init(void) {
       .squelch = 3, // gCurrentVfo.squelch,
       .gainIndex = gCurrentVfo.gainIndex,
       .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
-  });
-  /* addBand((Band){
+  }); */
+  addBand((Band){
       .name = "MED",
       .bounds.start = 40605000,
-      .bounds.end = 40605000 + 2500 * 64 * 32,
+      .bounds.end = 40605000 + 2500 * 32,
       .step = STEP_25_0kHz,
       .bw = BK4819_FILTER_BW_WIDE,
       .modulation = MOD_FM,
       .squelch = 3, // gCurrentVfo.squelch,
       .gainIndex = gCurrentVfo.gainIndex,
       .squelchType = SQUELCH_RSSI,
-  }); */
+  });
   /* addBand((Band){
       .name = "TEST",
       .bounds.start = 45207500,
@@ -247,11 +258,24 @@ void SPECTRUM_init(void) {
       .gainIndex = gCurrentVfo.gainIndex,
       .squelchType = SQUELCH_RSSI,
   }); */
+  step();
 }
 
 static void setBaseF(uint32_t f) {
   gCurrentVfo.fRX = f;
   RADIO_SaveCurrentVFO();
+}
+
+static void updateStats() {
+  const uint16_t noiseFloor = Std(rssiHistory, x);
+  const uint16_t noiseMax = Max(noiseHistory, x);
+  const uint16_t glitchMax = Max(glitchHistory, x);
+
+  if (x) {
+    rssiO = noiseFloor + 5;
+    noiseO = noiseMax - 10;
+    glitchO = glitchMax;
+  }
 }
 
 bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
@@ -281,25 +305,28 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void SPECTRUM_update(void) {
+  if (msm.rssi == 0) {
+    return;
+  }
+  UART_printf("Spectrum update pass\n");
   if (listenT) {
-    if (--listenT == 0 || !BK4819_IsSquelchOpen()) {
+    if (--listenT == 0 || !isSquelchOpen()) {
       listenT = 0;
     } else {
       return;
     }
-  }
-  if (gettingRssi) {
-    return;
   }
   if (newScan) {
     newScan = false;
     startNewScan();
   }
   if (f >= currentBand->bounds.end) {
+    updateStats();
     gRedrawScreen = true;
     newScan = true;
     return;
   }
+
   step();
 }
 
@@ -309,22 +336,12 @@ void SPECTRUM_render(void) {
   const uint16_t vMin = rssiMin - 2;
   const uint16_t vMax = rssiMax + 20 + (rssiMax - rssiMin) / 2;
 
-  const uint16_t noiseFloor = Std(rssiHistory, x);
-  const uint16_t noiseMax = Max(noiseHistory, x);
-  const uint16_t glitchMax = Max(glitchHistory, x);
-
-  rssiO = noiseFloor + 1;
-  noiseO = noiseMax - 1;
-  glitchO = glitchMax - 1;
-
-  // BK4819_SetupSquelch(rssiO, rssiC, noiseO, noiseC, glitchO, glitchC);
-
   UI_ClearStatus();
   UI_ClearScreen();
 
   UI_PrintStringSmallest(currentBand->name, 0, 0, true, true);
 
-  // UI_PrintSmallest(52, 49, "\xB1%uk", settings.frequencyChangeStep / 100);
+  // UI_PrintSmallest(46, 49, "%u %u", noiseMax, glitchMax);
 
   UI_FSmall(currentBand->bounds.start);
 
@@ -338,10 +355,6 @@ void SPECTRUM_render(void) {
     if (markers[xx]) {
       PutPixel(xx, 46, true);
       PutPixel(xx, 47, true);
-      /* if (xx > 0)
-        PutPixel(xx - 1, 47, true);
-      if (xx < LCD_WIDTH - 1)
-        PutPixel(xx + 1, 47, true); */
     }
   }
 
@@ -354,6 +367,6 @@ void SPECTRUM_render(void) {
   for (uint8_t i = 0; i < 5; i++) {
     Peak p = peaks[i];
     UI_PrintSmallest(65, i * 6 + 16, "%u.%04u %u %u", p.f / 100000,
-                     p.f / 10 % 10000, p.rssi, p.noise);
+                     p.f / 10 % 10000, p.noise, p.glitch);
   }
 }
