@@ -18,5 +18,7 @@ int Rssi2DBm(uint16_t rssi);
 int Mid(uint16_t *array, uint8_t n);
 int Min(uint16_t *array, uint8_t n);
 int Max(uint16_t *array, uint8_t n);
+uint16_t Mean(uint16_t *array, uint8_t n);
+uint16_t Std(uint16_t *data, uint8_t n);
 
 #endif /* end of include guard: MEASUREMENTS_H */

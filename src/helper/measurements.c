@@ -73,3 +73,32 @@ int Max(uint16_t *array, uint8_t n) {
   }
   return max;
 }
+
+uint16_t Mean(uint16_t *array, uint8_t n) {
+  uint32_t sum = 0;
+  for (uint8_t i = 0; i < n; ++i) {
+    sum += array[i];
+  }
+  return sum / n;
+}
+
+uint16_t Sqrt(uint32_t v) {
+  uint16_t res = 0;
+  for (uint32_t i = 0; i < v; ++i) {
+    if (i * i <= v) {
+      res = i;
+    } else {
+      break;
+    }
+  }
+  return res;
+}
+
+uint16_t Std(uint16_t *data, uint8_t n) {
+  uint32_t sumDev = 0;
+
+  for (uint8_t i = 0; i < n; ++i) {
+    sumDev += data[i] * data[i];
+  }
+  return Sqrt(sumDev / n);
+}

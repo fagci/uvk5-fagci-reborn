@@ -27,6 +27,7 @@ typedef struct {
 static uint32_t f;
 static uint16_t rssiHistory[DATA_LEN] = {0};
 static uint16_t noiseHistory[DATA_LEN] = {0};
+static uint16_t glitchHistory[DATA_LEN] = {0};
 static uint8_t x;
 static bool markers[DATA_LEN] = {0};
 
@@ -52,8 +53,9 @@ static uint16_t listenT = 0;
 
 #define U16_MAX 65535
 
-static uint16_t rssiO = U16_MAX, rssiC = U16_MAX;
-static uint16_t noiseO = U16_MAX, noiseC = U16_MAX;
+static uint16_t rssiO = U16_MAX;
+static uint16_t noiseO = U16_MAX;
+static uint16_t glitchO = U16_MAX;
 
 static uint16_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 
@@ -61,6 +63,7 @@ static void resetRssiHistory() {
   for (uint8_t x = 0; x < DATA_LEN; ++x) {
     rssiHistory[x] = 0;
     noiseHistory[x] = 0;
+    glitchHistory[x] = 0;
     markers[x] = false;
   }
 }
@@ -82,8 +85,10 @@ static void addPeak(const Peak peak) {
 
 static void writeRssi() {
   uint16_t rssi = BK4819_GetRSSI();
-  uint16_t noise = 0; // BK4819_GetNoise();
-  bool open = BK4819_IsSquelchOpen();
+  uint16_t noise = BK4819_GetNoise();
+  uint16_t glitch = BK4819_GetGlitch();
+  // bool open = BK4819_IsSquelchOpen();
+  bool open = rssi >= rssiO && noise <= noiseO && glitch <= glitchO;
   gettingRssi = false;
 
   if (rssi >= rssiO && noise <= noiseO) {
@@ -97,6 +102,9 @@ static void writeRssi() {
     }
     if (noise > noiseHistory[x]) {
       noiseHistory[x] = noise;
+    }
+    if (glitch > glitchHistory[x]) {
+      glitchHistory[x] = glitch;
     }
     if (markers[x] == false) {
       markers[x] = open;
@@ -215,7 +223,7 @@ void SPECTRUM_init(void) {
       .modulation = MOD_FM,
       .squelch = 3, // gCurrentVfo.squelch,
       .gainIndex = gCurrentVfo.gainIndex,
-      .squelchType = SQUELCH_RSSI,
+      .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
   });
   /* addBand((Band){
       .name = "MED",
@@ -301,20 +309,15 @@ void SPECTRUM_render(void) {
   const uint16_t vMin = rssiMin - 2;
   const uint16_t vMax = rssiMax + 20 + (rssiMax - rssiMin) / 2;
 
-  // const uint16_t noiseMin = Min(noiseHistory, x);
+  const uint16_t noiseFloor = Std(rssiHistory, x);
   const uint16_t noiseMax = Max(noiseHistory, x);
+  const uint16_t glitchMax = Max(glitchHistory, x);
 
-  // max = 64
-  // open = max - 2
-  // close = max - 1
+  rssiO = noiseFloor + 1;
+  noiseO = noiseMax - 1;
+  glitchO = glitchMax - 1;
 
-  noiseC = noiseMax - 3;
-  noiseO = noiseC - 2;
-
-  rssiC = rssiMin + 15;
-  rssiO = rssiC + 3;
-
-  BK4819_SetupSquelch(rssiO, rssiC, noiseO, noiseC, 255, 255);
+  // BK4819_SetupSquelch(rssiO, rssiC, noiseO, noiseC, glitchO, glitchC);
 
   UI_ClearStatus();
   UI_ClearScreen();
