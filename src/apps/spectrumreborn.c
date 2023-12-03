@@ -21,9 +21,14 @@ static const uint8_t S_BOTTOM = SPECTRUM_Y + S_HEIGHT;
 
 typedef struct {
   uint32_t f;
+  uint32_t firstTime;
+  uint32_t lastTimeCheck;
+  uint32_t lastTimeOpen;
+  uint32_t duration;
   uint16_t rssi;
   uint16_t noise;
   uint16_t glitch;
+  bool open;
 } Peak;
 
 static uint32_t f = 0;
@@ -68,19 +73,31 @@ static void resetRssiHistory() {
   }
 }
 
-static void addBand(const Band band) { bandsToScan[bandsCount++] = band; }
-static void addPeak(const Peak peak) {
+static Peak *getPeak(uint32_t f) {
   for (uint8_t i = 0; i < peaksCount; i++) {
-    if (peaks[i].f == peak.f) {
-      peaks[i].noise = peak.noise;
-      peaks[i].rssi = peak.rssi;
-      peaks[i].glitch = peak.glitch;
-      return;
+    if (peaks[i].f == f) {
+      return &peaks[i];
     }
   }
+  return NULL;
+}
+static void addBand(const Band band) { bandsToScan[bandsCount++] = band; }
+static Peak *addPeak(uint32_t f) {
   if (peaksCount < 16) {
-    peaks[peaksCount++] = peak;
+    peaks[peaksCount] = (Peak){
+        .f = f,
+        .firstTime = elapsedMilliseconds,
+        .lastTimeCheck = elapsedMilliseconds,
+        .lastTimeOpen = elapsedMilliseconds,
+        .duration = 0,
+        .rssi = 0,
+        .noise = U16_MAX,
+        .glitch = U16_MAX,
+        .open = true, // as we add it when open
+    };
+    return &peaks[peaksCount++];
   }
+  return NULL;
 }
 
 static Peak msm = {0, 0, U16_MAX, U16_MAX};
@@ -98,8 +115,26 @@ static void writeRssi() {
   // bool open = BK4819_IsSquelchOpen();
   bool open = isSquelchOpen();
 
-  if (open) {
-    addPeak(msm);
+  Peak *p = getPeak(f);
+
+  if (p && p->open) {
+    p->duration += elapsedMilliseconds - p->lastTimeCheck;
+  }
+
+  if (!p && open) {
+    p = addPeak(f);
+  }
+
+  if (p) {
+    p->noise = msm.noise;
+    p->rssi = msm.rssi;
+    p->glitch = msm.glitch;
+
+    if (open) {
+      p->lastTimeOpen = elapsedMilliseconds;
+    }
+    p->lastTimeCheck = elapsedMilliseconds;
+    p->open = open;
   }
 
   for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
@@ -225,7 +260,7 @@ void SPECTRUM_init(void) {
   );
 
   resetRssiHistory();
-  /* addBand((Band){
+  addBand((Band){
       .name = "LPD",
       .bounds.start = 43307500,
       .bounds.end = 43477500,
@@ -235,8 +270,30 @@ void SPECTRUM_init(void) {
       .squelch = 3, // gCurrentVfo.squelch,
       .gainIndex = gCurrentVfo.gainIndex,
       .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+  });
+  /* addBand((Band){
+      .name = "Avia",
+      .bounds.start = 11800000,
+      .bounds.end = 13000000,
+      .step = STEP_25_0kHz,
+      .bw = BK4819_FILTER_BW_WIDE,
+      .modulation = MOD_AM,
+      .squelch = gCurrentVfo.squelch,
+      .gainIndex = gCurrentVfo.gainIndex,
+      .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
   }); */
-  addBand((Band){
+  /* addBand((Band){
+      .name = "JD",
+      .bounds.start = 15171250,
+      .bounds.end = 15401250,
+      .step = STEP_25_0kHz,
+      .bw = BK4819_FILTER_BW_WIDE,
+      .modulation = MOD_FM,
+      .squelch = 3, // gCurrentVfo.squelch,
+      .gainIndex = gCurrentVfo.gainIndex,
+      .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+  }); */
+  /* addBand((Band){
       .name = "MED",
       .bounds.start = 40605000,
       .bounds.end = 40605000 + 2500 * 32,
@@ -246,7 +303,7 @@ void SPECTRUM_init(void) {
       .squelch = 3, // gCurrentVfo.squelch,
       .gainIndex = gCurrentVfo.gainIndex,
       .squelchType = SQUELCH_RSSI,
-  });
+  }); */
   /* addBand((Band){
       .name = "TEST",
       .bounds.start = 45207500,
@@ -264,6 +321,31 @@ void SPECTRUM_init(void) {
 static void setBaseF(uint32_t f) {
   gCurrentVfo.fRX = f;
   RADIO_SaveCurrentVFO();
+}
+
+static void swap(Peak *a, Peak *b) {
+  Peak tmp = *a;
+  *a = *b;
+  *b = tmp;
+}
+
+static bool sortByLastOpenTime(Peak *a, Peak *b) {
+  return a->lastTimeOpen < b->lastTimeOpen;
+}
+
+static void Sort(Peak *items, uint16_t n, bool (*compare)(Peak *a, Peak *b)) {
+  for (uint16_t i = 0; i < n - 1; i++) {
+    bool swapped = false;
+    for (uint16_t j = 0; j < n - i - 1; j++) {
+      if (compare(&items[j], &items[j + 1])) {
+        swap(&items[j], &items[j + 1]);
+        swapped = true;
+      }
+    }
+    if (!swapped) {
+      break;
+    }
+  }
 }
 
 static void updateStats() {
@@ -364,9 +446,12 @@ void SPECTRUM_render(void) {
 
   DrawHLine(16, S_BOTTOM, DATA_LEN - 1, true);
 
-  for (uint8_t i = 0; i < 5; i++) {
-    Peak p = peaks[i];
-    UI_PrintSmallest(65, i * 6 + 16, "%u.%04u %u %u", p.f / 100000,
-                     p.f / 10 % 10000, p.noise, p.glitch);
+  if (peaksCount != 255) {
+    Sort(peaks, peaksCount, sortByLastOpenTime);
+    for (uint8_t i = 0; i < Clamp(peaksCount, 0, 5); i++) {
+      Peak *p = &peaks[i];
+      UI_PrintSmallest(65, i * 6 + 16, "%c%u.%04u %us", p->open ? '>' : ' ',
+                       p->f / 100000, p->f / 10 % 10000, p->duration / 1000);
+    }
   }
 }
