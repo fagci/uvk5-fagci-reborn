@@ -167,10 +167,7 @@ static void writeRssi() {
 static void setF(uint32_t f) {
   BK4819_SetFrequency(f);
   BK4819_WriteRegister(BK4819_REG_30, 0);
-  // BK4819_WriteRegister(BK4819_REG_30, 0xBFF1 &
-  // ~BK4819_REG_30_ENABLE_VCO_CALIB);
   BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
-  // SYSTEM_DelayMs(1);
 }
 
 static void step() {
@@ -200,9 +197,6 @@ static void startNewScan() {
   if (currentBandIndex != oldBandIndex) {
     RADIO_SetupBandParams(&bandsToScan[0]);
   }
-  setF(f - StepFrequencyTable[currentBand->step]); // to make first measurement
-                                                   // better
-  // step();
 }
 
 static void DrawTicks() {
@@ -250,14 +244,14 @@ void SPECTRUM_init(void) {
                        BK4819_ReadRegister(0x73) | (1 << 4)); // AFC disable
   BK4819_WriteRegister(BK4819_REG_3F, 0);                     // interrupts
 
-  BK4819_WriteRegister(
+  /* BK4819_WriteRegister(
       0x43,
       0 | 1 << 2        // gain after FM demod = 6dB
           | 0b01 << 4   // BW mode selection:00: 12.5k 01: 6.25k 10: 25k/20k
           | 0b000 << 6  // LPF BW
           | 0b000 << 9  // RF BW weak
           | 0b000 << 12 // RF BW
-  );
+  ); */
 
   resetRssiHistory();
   addBand((Band){
@@ -422,8 +416,6 @@ void SPECTRUM_render(void) {
   UI_ClearScreen();
 
   UI_PrintStringSmallest(currentBand->name, 0, 0, true, true);
-
-  // UI_PrintSmallest(46, 49, "%u %u", noiseMax, glitchMax);
 
   UI_FSmall(currentBand->bounds.start);
 

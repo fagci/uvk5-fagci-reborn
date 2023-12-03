@@ -16,13 +16,6 @@ typedef enum {
   M_RESET,
 } Menu;
 
-#define ITEMS(value)                                                           \
-  for (uint8_t i = 0; i < ARRAY_SIZE(value); ++i) {                            \
-    strncpy(items[i], value[i], 15);                                           \
-  }                                                                            \
-  size = ARRAY_SIZE(value);                                                    \
-  type = MT_ITEMS;
-
 static uint8_t menuIndex = 0;
 static uint8_t subMenuIndex = 0;
 static bool isSubMenu = false;
@@ -72,15 +65,6 @@ static const char *getValue(Menu type) {
   }
   return "";
 }
-
-#define SHOW_ITEMS(value)                                                      \
-  do {                                                                         \
-    char items[ARRAY_SIZE(value)][16] = {0};                                   \
-    for (uint8_t i = 0; i < ARRAY_SIZE(value); ++i) {                          \
-      strncpy(items[i], value[i], 15);                                         \
-    }                                                                          \
-    UI_ShowItems(items, ARRAY_SIZE(value), subMenuIndex);                      \
-  } while (0)
 
 static void showSubmenu(Menu menuType) {
   const MenuItem *item = &menu[menuIndex];
