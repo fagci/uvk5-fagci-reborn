@@ -70,14 +70,13 @@ bool APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 void APPS_init(AppType_t app) {
   char String[16] = "";
   gCurrentApp = app;
-  UI_ClearScreen();
   UI_ClearStatus();
   for (uint8_t i = 0; i <= stackIndex; i++) {
     sprintf(String, "%s>%u", String, appsStack[i]);
   }
   UI_PrintStringSmallest(String, 0, 0, true, true);
-  gRedrawStatus = true;
   // UI_PrintStringSmallest(apps[gCurrentApp].name, 0, 0, true, true);
+  gRedrawStatus = true;
 
   if (apps[app].init) {
     apps[app].init();

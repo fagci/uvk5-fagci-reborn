@@ -26,8 +26,8 @@
 #define NEED_WAIT_FIFO                                                         \
   ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) != SPI_FIFOST_TFF_BITS_NOT_FULL)
 
-uint8_t gStatusLine[128];
-uint8_t gFrameBuffer[7][128];
+uint8_t gStatusLine[LCD_WIDTH];
+uint8_t gFrameBuffer[7][LCD_WIDTH];
 
 bool gRedrawStatus = true;
 bool gRedrawScreen = true;
