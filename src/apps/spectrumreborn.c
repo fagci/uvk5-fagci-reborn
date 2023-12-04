@@ -99,24 +99,16 @@ static Peak msm = {0};
 
 static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
 
-static uint16_t testNoise = 0;
-static uint16_t testGlitch = 0;
-
-static void writeRssi() {
+static void updateMeasurements() {
   msm.rssi = BK4819_GetRSSI();
   msm.noise = BK4819_GetNoise();
   UART_printf("%u: Got rssi\n", elapsedMilliseconds);
 
-  bool open = isSquelchOpen();
-
-  if (msm.f == 45220000) {
-    testGlitch = BK4819_GetGlitch();
-    testNoise = msm.noise;
-  }
+  msm.open = isSquelchOpen();
 
   Peak *peak = getPeak(msm.f);
 
-  if (peak == NULL && open) {
+  if (peak == NULL && msm.open) {
     peak = addPeak(msm.f);
   }
 
@@ -127,11 +119,11 @@ static void writeRssi() {
     if (peak->open) {
       peak->duration += elapsedMilliseconds - peak->lastTimeCheck;
     }
-    if (open) {
+    if (msm.open) {
       peak->lastTimeOpen = elapsedMilliseconds;
     }
     peak->lastTimeCheck = elapsedMilliseconds;
-    peak->open = open;
+    peak->open = msm.open;
   }
 
   if (exLen) {
@@ -139,7 +131,7 @@ static void writeRssi() {
       x = DATA_LEN * currentStep / stepsCount + exIndex;
       rssiHistory[x] = msm.rssi;
       noiseHistory[x] = msm.noise;
-      markers[x] = open;
+      markers[x] = msm.open;
     }
   } else {
     x = DATA_LEN * currentStep / stepsCount;
@@ -149,17 +141,26 @@ static void writeRssi() {
     if (msm.noise < noiseHistory[x]) {
       noiseHistory[x] = msm.noise;
     }
-    if (markers[x] == false && open) {
+    if (markers[x] == false && msm.open) {
       markers[x] = true;
     }
   }
 
-  /* RADIO_ToggleRX(open);
-  if (open) {
+  // TODO: temporary maybe
+  if (gIsListening) {
+    gRedrawScreen = true;
+  }
+}
+
+static void writeRssi() {
+  updateMeasurements();
+
+  RADIO_ToggleRX(msm.open);
+  if (msm.open) {
     listenT = 1000;
     gRedrawScreen = true;
     return;
-  } */
+  }
 
   msm.f += currentStepSize;
   currentStep++;
@@ -176,7 +177,7 @@ static void step() {
   } */
 
   BK4819_SetFrequency(msm.f);
-  BK4819_WriteRegister(BK4819_REG_30, 0);
+  BK4819_WriteRegister(BK4819_REG_30, 0x200);
   BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
 
   TaskAdd("Get RSSI", writeRssi, msmDelay, false)->priority = 0;
@@ -299,7 +300,7 @@ static void updateStats() {
   const uint16_t noiseFloor = Std(rssiHistory, x);
   const uint16_t noiseMax = Max(noiseHistory, x);
   rssiO = noiseFloor;
-  noiseO = noiseMax - 14;
+  noiseO = noiseMax - 12;
 }
 
 bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
@@ -328,16 +329,21 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
+bool updateListen() {
+  return --listenT > 0 && isSquelchOpen();
+}
+
 void SPECTRUM_update(void) {
   if (msm.rssi == 0) {
     return;
   }
   UART_printf("Spectrum update pass\n");
   if (listenT) {
-    if (--listenT == 0 || !isSquelchOpen()) {
-      listenT = 0;
-    } else {
+    if (updateListen()) {
       return;
+    } else {
+      listenT = 0;
+      RADIO_ToggleRX(false);
     }
   }
   if (newScan) {
@@ -355,8 +361,6 @@ void SPECTRUM_update(void) {
 }
 
 void SPECTRUM_render(void) {
-  if (x < DATA_LEN - 1)
-    return;
   const uint16_t rssiMin = Min(rssiHistory, x);
   const uint16_t rssiMax = Max(rssiHistory, x);
   const uint16_t vMin = rssiMin - 2;
@@ -379,21 +383,16 @@ void SPECTRUM_render(void) {
       PutPixel(xx, 47, true);
     }
   }
-  const uint16_t noiseMax = Max(noiseHistory, x);
-  UI_PrintSmallest(42, 49, "%u, %d %u", msmDelay, noiseMax - testNoise,
-                   testGlitch);
 
-  if (1) {
-    DrawHLine(0, S_BOTTOM, DATA_LEN - 1, true);
+  DrawHLine(0, S_BOTTOM, DATA_LEN - 1, true);
 
-    if (peaksCount != 255) {
-      Sort(peaks, peaksCount, SortByLastOpenTime);
-      for (uint8_t i = 0; i < Clamp(peaksCount, 0, 8); i++) {
-        Peak *p = &peaks[i];
-        UI_PrintSmallest(DATA_LEN + 1, i * 6, "%c%u.%04u %us",
-                         p->open ? '>' : ' ', p->f / 100000, p->f / 10 % 10000,
-                         p->duration / 1000);
-      }
+  if (peaksCount != 255) {
+    Sort(peaks, peaksCount, SortByLastOpenTime);
+    for (uint8_t i = 0; i < Clamp(peaksCount, 0, 8); i++) {
+      Peak *p = &peaks[i];
+      UI_PrintSmallest(DATA_LEN + 1, i * 6, "%c%u.%04u %us",
+                       p->open ? '>' : ' ', p->f / 100000, p->f / 10 % 10000,
+                       p->duration / 1000);
     }
   }
 }
