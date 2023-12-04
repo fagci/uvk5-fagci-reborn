@@ -78,13 +78,6 @@ void RADIO_ToggleRX(bool on) {
   gIsListening = on;
 
   BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN, on);
-  // BK4819_RX_TurnOn(); // broke squelch
-
-  // too many garbage, but works stable
-  /* BK4819_Squelch(gCurrentVfo.squelch, gCurrentVfo.fRX);
-  BK4819_SetFilterBandwidth(gCurrentVfo.bw);
-  BK4819_SetModulation(gCurrentVfo.modulation); */
-  // RADIO_SetupByCurrentVFO();
 
   if (on) {
     BK4819_ToggleAFDAC(true);

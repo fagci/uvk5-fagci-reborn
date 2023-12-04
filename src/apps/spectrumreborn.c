@@ -145,11 +145,6 @@ static void updateMeasurements() {
       markers[x] = true;
     }
   }
-
-  // TODO: temporary maybe
-  if (gIsListening) {
-    gRedrawScreen = true;
-  }
 }
 
 static void writeRssi() {
@@ -168,16 +163,16 @@ static void writeRssi() {
 
 static void step() {
   msm.rssi = 0;
-  // msm.noise = U16_MAX;
-  /* for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
+  msm.noise = U16_MAX;
+  for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
     uint8_t lx = DATA_LEN * currentStep / stepsCount + exIndex;
     noiseHistory[lx] = U16_MAX;
     rssiHistory[lx] = 0;
     markers[lx] = false;
-  } */
+  }
 
   BK4819_SetFrequency(msm.f);
-  BK4819_WriteRegister(BK4819_REG_30, 0x200);
+  BK4819_WriteRegister(BK4819_REG_30, 0x0);
   BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
 
   TaskAdd("Get RSSI", writeRssi, msmDelay, false)->priority = 0;
@@ -198,8 +193,8 @@ static void startNewScan() {
 
   msm.f = currentBand->bounds.start;
 
-  resetRssiHistory();
   if (currentBandIndex != oldBandIndex) {
+    resetRssiHistory();
     RADIO_SetupBandParams(&bandsToScan[0]);
     gRedrawStatus = true;
   }
@@ -300,7 +295,7 @@ static void updateStats() {
   const uint16_t noiseFloor = Std(rssiHistory, x);
   const uint16_t noiseMax = Max(noiseHistory, x);
   rssiO = noiseFloor;
-  noiseO = noiseMax - 12;
+  noiseO = noiseMax - 14; // was 12
 }
 
 bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
@@ -330,7 +325,12 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 bool updateListen() {
-  return --listenT > 0 && isSquelchOpen();
+  msm.rssi = BK4819_GetRSSI();
+  msm.noise = BK4819_GetNoise();
+  noiseO -= 12;
+  bool open = isSquelchOpen();
+  noiseO += 12;
+  return --listenT > 0 && open;
 }
 
 void SPECTRUM_update(void) {
@@ -343,7 +343,9 @@ void SPECTRUM_update(void) {
       return;
     } else {
       listenT = 0;
-      RADIO_ToggleRX(false);
+      gRedrawScreen = true;
+      // RADIO_ToggleRX(false); // куда-то уезжает пик без этого
+      return;
     }
   }
   if (newScan) {
@@ -375,7 +377,7 @@ void SPECTRUM_render(void) {
   UI_FSmallest(currentBand->bounds.start, 0, 49);
   UI_FSmallest(currentBand->bounds.end, 93, 49);
 
-  for (uint8_t xx = 0; xx < x; ++xx) {
+  for (uint8_t xx = 0; xx < DATA_LEN; ++xx) {
     uint8_t yVal = ConvertDomain(rssiHistory[xx], vMin, vMax, 0, S_HEIGHT);
     DrawHLine(S_BOTTOM - yVal, S_BOTTOM, xx, true);
     if (markers[xx]) {
