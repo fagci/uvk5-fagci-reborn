@@ -15,7 +15,9 @@
 
 #define BLACKLIST_SIZE 32
 #define DATA_LEN 64
-#define U16_MAX 65535
+
+static const uint16_t U16_MAX = 65535;
+static const uint8_t NOISE_OPEN_DIFF = 14;
 
 static const uint8_t S_HEIGHT = 42;
 static const uint8_t SPECTRUM_Y = 0;
@@ -282,7 +284,7 @@ static void updateStats() {
   const uint16_t noiseFloor = Std(rssiHistory, x);
   const uint16_t noiseMax = Max(noiseHistory, x);
   rssiO = noiseFloor;
-  noiseO = noiseMax - 14; // was 12
+  noiseO = noiseMax - NOISE_OPEN_DIFF;
 }
 
 bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
@@ -314,9 +316,10 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 bool updateListen() {
   msm.rssi = BK4819_GetRSSI();
   msm.noise = BK4819_GetNoise();
-  noiseO -= 12;
+  noiseO -= NOISE_OPEN_DIFF;
   bool open = isSquelchOpen();
-  noiseO += 12;
+  noiseO += NOISE_OPEN_DIFF;
+  gRedrawScreen = true;
   return open;
 }
 
@@ -326,14 +329,11 @@ void SPECTRUM_update(void) {
   }
   UART_printf("Spectrum update pass\n");
   if (gIsListening) {
-    if (updateListen()) {
-      return;
-    } else {
-      // listenT = 0;
+    if (!updateListen()) {
       gRedrawScreen = true;
-      RADIO_ToggleRX(false); // куда-то уезжает пик без этого
-      return;
+      RADIO_ToggleRX(false);
     }
+    return;
   }
   if (newScan) {
     newScan = false;
