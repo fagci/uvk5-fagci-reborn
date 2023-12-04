@@ -33,7 +33,8 @@ static uint8_t peaksCount = 255;
 
 static Band bandsToScan[32] = {0};
 static uint8_t bandsCount = 0;
-static uint8_t currentBandIndex = 255;
+static uint8_t currentBandIndex = 0;
+static uint8_t oldBandIndex = 255;
 static Band *currentBand;
 
 static uint32_t currentStepSize;
@@ -94,7 +95,13 @@ static void updateMeasurements() {
   msm.noise = BK4819_GetNoise();
   UART_printf("%u: Got rssi\n", elapsedMilliseconds);
 
-  msm.open = isSquelchOpen();
+  if (gIsListening) {
+    noiseO -= NOISE_OPEN_DIFF;
+    msm.open = isSquelchOpen();
+    noiseO += NOISE_OPEN_DIFF;
+  } else {
+    msm.open = isSquelchOpen();
+  }
 
   Peak *peak = getPeak(msm.f);
 
@@ -168,9 +175,6 @@ static void step() {
 }
 
 static void startNewScan() {
-  uint8_t oldBandIndex = currentBandIndex;
-  currentBandIndex =
-      currentBandIndex < bandsCount - 1 ? currentBandIndex + 1 : 0;
   currentBand = &bandsToScan[currentBandIndex];
   currentStepSize = StepFrequencyTable[currentBand->step];
 
@@ -184,7 +188,15 @@ static void startNewScan() {
 
   if (currentBandIndex != oldBandIndex) {
     resetRssiHistory();
+    for (uint8_t i = 0; i < peaksCount && peaksCount != 255; ++i) {
+      Peak *p = &peaks[i];
+      p->open = false;
+      p->lastTimeCheck = elapsedMilliseconds;
+    }
+    rssiO = U16_MAX;
+    noiseO = 0;
     RADIO_SetupBandParams(&bandsToScan[0]);
+    oldBandIndex = currentBandIndex;
     gRedrawStatus = true;
   }
 }
@@ -228,7 +240,7 @@ void SPECTRUM_init(void) {
 
   resetRssiHistory();
 
-  /* addBand((Band){
+  addBand((Band){
       .name = "LPD",
       .bounds.start = 43307500,
       .bounds.end = 43477500,
@@ -236,8 +248,8 @@ void SPECTRUM_init(void) {
       .bw = BK4819_FILTER_BW_WIDE,
       .modulation = MOD_FM,
       .gainIndex = gCurrentVfo.gainIndex,
-  }); */
-  /* addBand((Band){
+  });
+  addBand((Band){
       .name = "Avia",
       .bounds.start = 11800000,
       .bounds.end = 13000000,
@@ -245,8 +257,8 @@ void SPECTRUM_init(void) {
       .bw = BK4819_FILTER_BW_WIDE,
       .modulation = MOD_AM,
       .gainIndex = gCurrentVfo.gainIndex,
-  }); */
-  /* addBand((Band){
+  });
+  addBand((Band){
       .name = "JD",
       .bounds.start = 15171250,
       .bounds.end = 15401250,
@@ -254,7 +266,7 @@ void SPECTRUM_init(void) {
       .bw = BK4819_FILTER_BW_WIDE,
       .modulation = MOD_FM,
       .gainIndex = gCurrentVfo.gainIndex,
-  }); */
+  });
   addBand((Band){
       .name = "MED",
       .bounds.start = 40605000,
@@ -266,7 +278,7 @@ void SPECTRUM_init(void) {
       .squelchType = SQUELCH_RSSI_NOISE,
       .gainIndex = gCurrentVfo.gainIndex,
   });
-  /* addBand((Band){
+  addBand((Band){
       .name = "TEST",
       .bounds.start = 45200000,
       .bounds.end = 45280000,
@@ -276,7 +288,7 @@ void SPECTRUM_init(void) {
       .gainIndex = gCurrentVfo.gainIndex,
       .squelchType = SQUELCH_RSSI_NOISE,
       .squelch = 0,
-  }); */
+  });
   step();
 }
 
@@ -294,6 +306,16 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   switch (Key) {
   case KEY_EXIT:
     APPS_exit();
+    return true;
+  case KEY_UP:
+    currentBandIndex =
+        currentBandIndex < bandsCount - 1 ? currentBandIndex + 1 : 0;
+    newScan = true;
+    return true;
+  case KEY_DOWN:
+    currentBandIndex =
+        currentBandIndex > 0 ? currentBandIndex - 1 : bandsCount - 1;
+    newScan = true;
     return true;
   case KEY_5:
     return true;
@@ -313,31 +335,22 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-bool updateListen() {
-  msm.rssi = BK4819_GetRSSI();
-  msm.noise = BK4819_GetNoise();
-  noiseO -= NOISE_OPEN_DIFF;
-  bool open = isSquelchOpen();
-  noiseO += NOISE_OPEN_DIFF;
-  gRedrawScreen = true;
-  return open;
-}
-
 void SPECTRUM_update(void) {
   if (msm.rssi == 0) {
     return;
   }
+  if (newScan || currentBandIndex != oldBandIndex) {
+    newScan = false;
+    startNewScan();
+  }
   UART_printf("Spectrum update pass\n");
   if (gIsListening) {
-    if (!updateListen()) {
-      gRedrawScreen = true;
+    updateMeasurements();
+    gRedrawScreen = true;
+    if (!msm.open) {
       RADIO_ToggleRX(false);
     }
     return;
-  }
-  if (newScan) {
-    newScan = false;
-    startNewScan();
   }
   if (msm.f >= currentBand->bounds.end) {
     updateStats();
