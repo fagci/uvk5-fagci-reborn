@@ -27,16 +27,6 @@ static uint8_t x;
 static bool markers[DATA_LEN] = {0};
 
 static Peak peaks[16] = {0};
-/* static Peak peaks[16] = {
-    (Peak){40605000, 0, 0, 0, 0, 0, U16_MAX, true},
-    (Peak){40615000, 0, 0, 0, 0, 0, U16_MAX, true},
-    (Peak){40625000, 0, 0, 0, 0, 0, U16_MAX, true},
-    (Peak){40635000, 0, 0, 0, 0, 0, U16_MAX, true},
-    (Peak){40645000, 0, 0, 0, 0, 0, U16_MAX, true},
-    (Peak){40655000, 0, 0, 0, 0, 0, U16_MAX, true},
-    (Peak){40665000, 0, 0, 0, 0, 0, U16_MAX, true},
-    (Peak){40675000, 0, 0, 0, 0, 0, U16_MAX, true},
-}; */
 static uint8_t peaksCount = 255;
 
 static Band bandsToScan[32] = {0};
@@ -51,8 +41,6 @@ static uint16_t currentStep;
 static uint32_t bandwidth;
 
 static bool newScan = true;
-
-static uint16_t listenT = 0;
 
 static uint16_t rssiO = U16_MAX;
 static uint16_t noiseO = 0;
@@ -152,7 +140,6 @@ static void writeRssi() {
 
   RADIO_ToggleRX(msm.open);
   if (msm.open) {
-    listenT = 1000;
     gRedrawScreen = true;
     return;
   }
@@ -330,7 +317,7 @@ bool updateListen() {
   noiseO -= 12;
   bool open = isSquelchOpen();
   noiseO += 12;
-  return --listenT > 0 && open;
+  return open;
 }
 
 void SPECTRUM_update(void) {
@@ -338,13 +325,13 @@ void SPECTRUM_update(void) {
     return;
   }
   UART_printf("Spectrum update pass\n");
-  if (listenT) {
+  if (gIsListening) {
     if (updateListen()) {
       return;
     } else {
-      listenT = 0;
+      // listenT = 0;
       gRedrawScreen = true;
-      // RADIO_ToggleRX(false); // куда-то уезжает пик без этого
+      RADIO_ToggleRX(false); // куда-то уезжает пик без этого
       return;
     }
   }
