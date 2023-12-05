@@ -1,7 +1,6 @@
 #include "components.h"
 #include "../driver/st7565.h"
 #include "../helper/measurements.h"
-#include "../radio.h"
 #include "helper.h"
 #include <stdarg.h>
 
@@ -194,4 +193,40 @@ void UI_ShowRangeItems(uint16_t size, uint16_t currentIndex) {
   }
 
   UI_DrawScrollBar(size, currentIndex, MENU_LINES_TO_SHOW);
+}
+
+void UI_DrawTicks(uint8_t x1, uint8_t x2, uint8_t line, Band *band,
+                  bool centerMode) {
+  uint8_t width = (x2 - x1);
+  uint8_t center = x1 + (width >> 1);
+
+  if (centerMode) {
+    gFrameBuffer[line][center - 2] |= 0x80;
+    gFrameBuffer[line][center - 1] |= 0x80;
+    gFrameBuffer[line][center] |= 0xff;
+    gFrameBuffer[line][center + 1] |= 0x80;
+    gFrameBuffer[line][center + 2] |= 0x80;
+  } else {
+    gFrameBuffer[line][x1] |= 0xff;
+    gFrameBuffer[line][x1 + 1] |= 0x80;
+    gFrameBuffer[line][x2 - 2] |= 0x80;
+    gFrameBuffer[line][x2 - 1] |= 0xff;
+  }
+
+  uint32_t g1 = 10000;
+  uint32_t g2 = 50000;
+  uint32_t g3 = 100000;
+
+  uint16_t stepSize = StepFrequencyTable[band->step];
+  uint32_t bw = band->bounds.end - band->bounds.start;
+  uint16_t stepsCount = bw / stepSize;
+  uint8_t *pLine = gFrameBuffer[line];
+
+  for (uint16_t i = 0; i < stepsCount; ++i) {
+    uint8_t x = width * i / stepsCount;
+    uint32_t f = band->bounds.start + i * stepSize;
+    (f % g1) < stepSize && (pLine[x] |= 0b00000001);
+    (f % g2) < stepSize && (pLine[x] |= 0b00000011);
+    (f % g3) < stepSize && (pLine[x] |= 0b00000111);
+  }
 }

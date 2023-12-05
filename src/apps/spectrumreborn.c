@@ -20,7 +20,7 @@
 static const uint16_t U16_MAX = 65535;
 static const uint8_t NOISE_OPEN_DIFF = 14;
 
-static const uint8_t S_HEIGHT = 42;
+static const uint8_t S_HEIGHT = 39;
 static const uint8_t SPECTRUM_Y = 0;
 static const uint8_t S_BOTTOM = SPECTRUM_Y + S_HEIGHT;
 
@@ -148,12 +148,12 @@ static void step() {
 }
 
 static void startNewScan() {
+  currentStep = 0;
   currentBand = &bandsToScan[gSettings.presetIndex];
   currentStepSize = StepFrequencyTable[currentBand->step];
 
   bandwidth = currentBand->bounds.end - currentBand->bounds.start;
 
-  currentStep = 0;
   stepsCount = bandwidth / currentStepSize;
   exLen = ceilDiv(DATA_LEN, stepsCount);
 
@@ -168,39 +168,6 @@ static void startNewScan() {
     RADIO_SetupBandParams(&bandsToScan[0]);
     oldBandIndex = gSettings.presetIndex;
     gRedrawStatus = true;
-  }
-}
-
-static void DrawTicks() {
-  // center
-  if (false) {
-    gFrameBuffer[5][62] |= 0x80;
-    gFrameBuffer[5][63] |= 0x80;
-    gFrameBuffer[5][64] |= 0xff;
-    gFrameBuffer[5][65] |= 0x80;
-    gFrameBuffer[5][66] |= 0x80;
-  } else {
-    gFrameBuffer[5][0] |= 0xff;
-    gFrameBuffer[5][1] |= 0x80;
-    gFrameBuffer[5][DATA_LEN - 2] |= 0x80;
-    gFrameBuffer[5][DATA_LEN - 1] |= 0xff;
-  }
-
-  if (bandwidth > 600000) {
-    for (uint16_t step = 0; step < stepsCount; step++) {
-      uint8_t x = DATA_LEN * step / stepsCount;
-      uint32_t f = currentBand->bounds.start + step * currentStepSize;
-      (f % 500000) < currentStepSize && (gFrameBuffer[5][x] |= 0b00110000);
-    }
-    return;
-  }
-
-  for (uint16_t step = 0; step < stepsCount; step++) {
-    uint8_t x = DATA_LEN * step / stepsCount;
-    uint32_t f = currentBand->bounds.start + step * currentStepSize;
-    (f % 10000) < currentStepSize && (gFrameBuffer[5][x] |= 0b00001000);
-    (f % 50000) < currentStepSize && (gFrameBuffer[5][x] |= 0b00011000);
-    (f % 100000) < currentStepSize && (gFrameBuffer[5][x] |= 0b01110000);
   }
 }
 
@@ -300,7 +267,7 @@ void SPECTRUM_render(void) {
 
   UI_PrintStringSmallest(currentBand->name, 0, 0, true, true);
 
-  DrawTicks();
+  UI_DrawTicks(0, DATA_LEN, 5, currentBand, false);
   UI_FSmallest(currentBand->bounds.start, 0, 49);
   UI_FSmallest(currentBand->bounds.end, 93, 49);
 
