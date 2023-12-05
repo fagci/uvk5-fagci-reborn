@@ -115,7 +115,7 @@ static void setInitialSubmenuIndex() {
   }
 }
 
-void SETTINGS_init() {}
+void SETTINGS_init() { gRedrawScreen = true; }
 void SETTINGS_update() {}
 bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed || bKeyHeld) {

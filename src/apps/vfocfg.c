@@ -115,7 +115,7 @@ static void setTXF(uint32_t f) {
   RADIO_SaveCurrentVFO();
 }
 
-void VFOCFG_init() {}
+void VFOCFG_init() { gRedrawScreen = true; }
 void VFOCFG_update() {}
 bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed || bKeyHeld) {

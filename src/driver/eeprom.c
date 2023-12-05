@@ -20,33 +20,38 @@
 #include "../driver/system.h"
 #include "../inc/dp32g030/gpio.h"
 
-void EEPROM_ReadBuffer(uint16_t Address, void *pBuffer, uint8_t Size) {
+void EEPROM_ReadBuffer(uint16_t address, void *pBuffer, uint8_t size) {
+  if (size == 0 || (address + size) > 0x2000) {
+    return;
+  }
+
   I2C_Start();
 
   I2C_Write(0xA0);
 
-  I2C_Write((Address >> 8) & 0xFF);
-  I2C_Write((Address >> 0) & 0xFF);
+  I2C_Write((address >> 8) & 0xFF);
+  I2C_Write((address >> 0) & 0xFF);
 
   I2C_Start();
 
   I2C_Write(0xA1);
 
-  I2C_ReadBuffer(pBuffer, Size);
+  I2C_ReadBuffer(pBuffer, size);
 
   I2C_Stop();
 }
 
-void EEPROM_WriteBuffer(uint16_t Address, const void *pBuffer, uint8_t size) {
+void EEPROM_WriteBuffer(uint16_t address, const void *pBuffer, uint8_t size) {
   GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
   for (uint8_t offset = 0; offset < size; offset += 8) {
-    uint8_t n = (size - offset) % 9;
+    uint8_t rest = (size - offset);
+    uint8_t n = rest > 8 ? 8 : rest;
     I2C_Start();
 
     I2C_Write(0xA0);
 
-    I2C_Write(((Address + offset) >> 8) & 0xFF);
-    I2C_Write(((Address + offset) >> 0) & 0xFF);
+    I2C_Write(((address + offset) >> 8) & 0xFF);
+    I2C_Write(((address + offset) >> 0) & 0xFF);
 
     I2C_WriteBuffer(pBuffer + offset, n);
 

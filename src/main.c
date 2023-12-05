@@ -274,9 +274,19 @@ void Main(void) {
   BACKLIGHT_On();
   UpdateBattery();
 
-  // selfTest();
-
-  TaskAdd("Intro", Intro, 2, true);
+  if (KEYBOARD_Poll() == KEY_EXIT) {
+    APPS_run(APP_RESET);
+    TaskAdd("Update", Update, 1, true);
+  } else if (KEYBOARD_Poll() == KEY_MENU) {
+    // selfTest();
+    for (uint8_t i = 0; i < 6; ++i) {
+      Preset p = {};
+      RADIO_LoadPreset(i, &p);
+      UI_PrintSmallest(0, 6 * i, "%u", p.band.bounds.start);
+    }
+  } else {
+    TaskAdd("Intro", Intro, 2, true);
+  }
 
   while (true) {
     TasksUpdate();

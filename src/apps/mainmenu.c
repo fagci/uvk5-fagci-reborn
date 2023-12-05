@@ -35,7 +35,9 @@ void MAINMENU_render() {
   UI_ShowMenu(menu, ARRAY_SIZE(menu), menuIndex);
 }
 
-void MAINMENU_init() {}
+void MAINMENU_init() {
+    gRedrawScreen = true;
+}
 void MAINMENU_update() {}
 bool MAINMENU_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed || bKeyHeld) {

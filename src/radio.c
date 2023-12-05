@@ -185,9 +185,9 @@ void RADIO_SaveChannel(uint16_t num, VFO *p) {
 }
 
 void RADIO_SavePreset(uint8_t num, Preset *p) {
-  EEPROM_WriteBuffer(BANDS_OFFSET + num * PRESET_SIZE, &p, PRESET_SIZE);
+  EEPROM_WriteBuffer(BANDS_OFFSET + num * PRESET_SIZE, p, PRESET_SIZE);
 }
 
 void RADIO_LoadPreset(uint8_t num, Preset *p) {
-  EEPROM_ReadBuffer(BANDS_OFFSET + num * PRESET_SIZE, &p, PRESET_SIZE);
+  EEPROM_ReadBuffer(BANDS_OFFSET + num * PRESET_SIZE, p, PRESET_SIZE);
 }

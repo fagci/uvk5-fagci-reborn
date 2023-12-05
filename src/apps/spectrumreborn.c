@@ -239,56 +239,11 @@ void SPECTRUM_init(void) {
   newScan = true;
 
   resetRssiHistory();
-
-  addBand((Band){
-      .name = "LPD",
-      .bounds.start = 43307500,
-      .bounds.end = 43477500,
-      .step = STEP_25_0kHz,
-      .bw = BK4819_FILTER_BW_WIDE,
-      .modulation = MOD_FM,
-      .gainIndex = gCurrentVfo.gainIndex,
-  });
-  addBand((Band){
-      .name = "Avia",
-      .bounds.start = 11800000,
-      .bounds.end = 13000000,
-      .step = STEP_25_0kHz,
-      .bw = BK4819_FILTER_BW_WIDE,
-      .modulation = MOD_AM,
-      .gainIndex = gCurrentVfo.gainIndex,
-  });
-  addBand((Band){
-      .name = "JD",
-      .bounds.start = 15171250,
-      .bounds.end = 15401250,
-      .step = STEP_25_0kHz,
-      .bw = BK4819_FILTER_BW_WIDE,
-      .modulation = MOD_FM,
-      .gainIndex = gCurrentVfo.gainIndex,
-  });
-  addBand((Band){
-      .name = "MED",
-      .bounds.start = 40605000,
-      .bounds.end = 40605000 + 2500 * 32,
-      .step = STEP_25_0kHz,
-      .bw = BK4819_FILTER_BW_WIDE,
-      .modulation = MOD_FM,
-      .squelch = 0,
-      .squelchType = SQUELCH_RSSI_NOISE,
-      .gainIndex = gCurrentVfo.gainIndex,
-  });
-  addBand((Band){
-      .name = "TEST",
-      .bounds.start = 45200000,
-      .bounds.end = 45280000,
-      .step = STEP_25_0kHz,
-      .bw = BK4819_FILTER_BW_WIDE,
-      .modulation = MOD_FM,
-      .gainIndex = gCurrentVfo.gainIndex,
-      .squelchType = SQUELCH_RSSI_NOISE,
-      .squelch = 0,
-  });
+  for (uint8_t i = 0; i < 28; ++i) {
+    Preset p = {};
+    RADIO_LoadPreset(i, &p);
+    addBand(p.band);
+  }
   step();
 }
 
