@@ -7,6 +7,7 @@
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
 #include "../scheduler.h"
+#include "../settings.h"
 #include "../ui/components.h"
 #include "../ui/helper.h"
 #include "apps.h"
@@ -28,12 +29,8 @@ static uint16_t noiseHistory[DATA_LEN] = {0};
 static uint8_t x;
 static bool markers[DATA_LEN] = {0};
 
-static Peak peaks[16] = {0};
-static uint8_t peaksCount = 255;
-
 static Band bandsToScan[32] = {0};
 static uint8_t bandsCount = 0;
-static uint8_t currentBandIndex = 0;
 static uint8_t oldBandIndex = 255;
 static Band *currentBand;
 
@@ -61,32 +58,7 @@ static void resetRssiHistory() {
 }
 static void addBand(const Band band) { bandsToScan[bandsCount++] = band; }
 
-static Peak *getPeak(uint32_t f) {
-  for (uint8_t i = 0; i < peaksCount; ++i) {
-    if ((&peaks[i])->f == f) {
-      return &peaks[i];
-    }
-  }
-  return NULL;
-}
-static Peak *addPeak(uint32_t f) {
-  if (peaksCount < 16) {
-    peaks[peaksCount] = (Peak){
-        .f = f,
-        .firstTime = elapsedMilliseconds,
-        .lastTimeCheck = elapsedMilliseconds,
-        .lastTimeOpen = elapsedMilliseconds,
-        .duration = 0,
-        .rssi = 0,
-        .noise = U16_MAX,
-        .open = true, // as we add it when open
-    };
-    return &peaks[peaksCount++];
-  }
-  return NULL;
-}
-
-static Peak msm = {0};
+static Loot msm = {0};
 
 static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
 
@@ -103,10 +75,10 @@ static void updateMeasurements() {
     msm.open = isSquelchOpen();
   }
 
-  Peak *peak = getPeak(msm.f);
+  Loot *peak = LOOT_Get(msm.f);
 
   if (peak == NULL && msm.open) {
-    peak = addPeak(msm.f);
+    peak = LOOT_Add(msm.f);
   }
 
   if (peak != NULL) {
@@ -117,6 +89,7 @@ static void updateMeasurements() {
       peak->duration += elapsedMilliseconds - peak->lastTimeCheck;
     }
     if (msm.open) {
+      BK4819_GetCxCSSScanResult(&(peak->cd), &(peak->ct));
       peak->lastTimeOpen = elapsedMilliseconds;
     }
     peak->lastTimeCheck = elapsedMilliseconds;
@@ -168,14 +141,14 @@ static void step() {
   }
 
   BK4819_SetFrequency(msm.f);
-  BK4819_WriteRegister(BK4819_REG_30, 0x0);
+  BK4819_WriteRegister(BK4819_REG_30, 0x200);
   BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
 
   TaskAdd("Get RSSI", writeRssi, msmDelay, false)->priority = 0;
 }
 
 static void startNewScan() {
-  currentBand = &bandsToScan[currentBandIndex];
+  currentBand = &bandsToScan[gSettings.presetIndex];
   currentStepSize = StepFrequencyTable[currentBand->step];
 
   bandwidth = currentBand->bounds.end - currentBand->bounds.start;
@@ -186,17 +159,14 @@ static void startNewScan() {
 
   msm.f = currentBand->bounds.start;
 
-  if (currentBandIndex != oldBandIndex) {
+  if (gSettings.presetIndex != oldBandIndex) {
     resetRssiHistory();
-    for (uint8_t i = 0; i < peaksCount && peaksCount != 255; ++i) {
-      Peak *p = &peaks[i];
-      p->open = false;
-      p->lastTimeCheck = elapsedMilliseconds;
-    }
+    LOOT_Clear();
+    LOOT_Standby();
     rssiO = U16_MAX;
     noiseO = 0;
     RADIO_SetupBandParams(&bandsToScan[0]);
-    oldBandIndex = currentBandIndex;
+    oldBandIndex = gSettings.presetIndex;
     gRedrawStatus = true;
   }
 }
@@ -263,13 +233,15 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     APPS_exit();
     return true;
   case KEY_UP:
-    currentBandIndex =
-        currentBandIndex < bandsCount - 1 ? currentBandIndex + 1 : 0;
+    gSettings.presetIndex =
+        gSettings.presetIndex < bandsCount - 1 ? gSettings.presetIndex + 1 : 0;
+    SETTINGS_DelayedSave();
     newScan = true;
     return true;
   case KEY_DOWN:
-    currentBandIndex =
-        currentBandIndex > 0 ? currentBandIndex - 1 : bandsCount - 1;
+    gSettings.presetIndex =
+        gSettings.presetIndex > 0 ? gSettings.presetIndex - 1 : bandsCount - 1;
+    SETTINGS_DelayedSave();
     newScan = true;
     return true;
   case KEY_5:
@@ -294,7 +266,7 @@ void SPECTRUM_update(void) {
   if (msm.rssi == 0) {
     return;
   }
-  if (newScan || currentBandIndex != oldBandIndex) {
+  if (newScan || gSettings.presetIndex != oldBandIndex) {
     newScan = false;
     startNewScan();
   }
@@ -343,13 +315,11 @@ void SPECTRUM_render(void) {
 
   DrawHLine(0, S_BOTTOM, DATA_LEN - 1, true);
 
-  if (peaksCount != 255) {
-    Sort(peaks, peaksCount, SortByLastOpenTime);
-    for (uint8_t i = 0; i < Clamp(peaksCount, 0, 8); i++) {
-      Peak *p = &peaks[i];
-      UI_PrintSmallest(DATA_LEN + 1, i * 6, "%c%u.%04u %us",
-                       p->open ? '>' : ' ', p->f / 100000, p->f / 10 % 10000,
-                       p->duration / 1000);
-    }
+  for (uint8_t i = 0; i < Clamp(LOOT_Size(), 0, 8); i++) {
+    Loot *p = LOOT_Item(i);
+    /* UI_PrintSmallest(DATA_LEN + 1, i * 6, "%c%u.%04u %us", p->open ? '>' : '
+       ', p->f / 100000, p->f / 10 % 10000, p->duration / 1000); */
+    UI_PrintSmallest(DATA_LEN + 1, i * 6, "%c%u.%04u %u", p->open ? '>' : ' ',
+                     p->f / 100000, p->f / 10 % 10000, p->ct);
   }
 }

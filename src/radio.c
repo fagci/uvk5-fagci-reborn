@@ -173,7 +173,7 @@ void RADIO_SetupBandParams(Band *b) {
   BK4819_Squelch(b->squelch, b->bounds.start);
   BK4819_SetFilterBandwidth(b->bw);
   BK4819_SetModulation(b->modulation);
-  BK4819_SetGain(b->gainIndex);
+  // BK4819_SetGain(b->gainIndex);
 }
 
 void RADIO_LoadChannel(uint16_t num, VFO *p) {

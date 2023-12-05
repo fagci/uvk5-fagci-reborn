@@ -31,6 +31,8 @@ typedef struct {
   uint8_t reserved1 : 3;
   AppType_t mainApp : 4;
   uint8_t reserved2 : 4;
+  uint8_t presetIndex : 5;
+  uint8_t reserved3 : 3;
 } __attribute__((packed)) Settings;
 
 #define SETTINGS_SIZE sizeof(Settings)
@@ -42,5 +44,6 @@ extern const char *BL_TIME_NAMES[7];
 
 void SETTINGS_Save();
 void SETTINGS_Load();
+void SETTINGS_DelayedSave();
 
 #endif /* end of include guard: SETTINGS_H */

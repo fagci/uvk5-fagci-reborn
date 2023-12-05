@@ -13,10 +13,18 @@ typedef struct {
   uint32_t duration;
   uint16_t rssi;
   uint16_t noise;
+  uint32_t cd;
+  uint16_t ct;
   bool open;
-} Peak;
+} Loot;
 
-bool SortByLastOpenTime(Peak *a, Peak *b);
-void Sort(Peak *items, uint16_t n, bool (*compare)(Peak *a, Peak *b));
+bool LOOT_SortByLastOpenTime(Loot *a, Loot *b);
+Loot *LOOT_Get(uint32_t f);
+Loot *LOOT_Add(uint32_t f);
+void LOOT_Clear();
+void LOOT_Standby();
+uint8_t LOOT_Size();
+void LOOT_Sort(bool (*compare)(Loot *a, Loot *b));
+Loot *LOOT_Item(uint8_t i);
 
 #endif

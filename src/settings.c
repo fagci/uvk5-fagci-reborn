@@ -1,5 +1,6 @@
 #include "settings.h"
 #include "driver/eeprom.h"
+#include "scheduler.h"
 
 Settings gSettings;
 
@@ -13,4 +14,9 @@ void SETTINGS_Save() {
 
 void SETTINGS_Load() {
   EEPROM_ReadBuffer(SETTINGS_OFFSET, &gSettings, SETTINGS_SIZE);
+}
+
+void SETTINGS_DelayedSave() {
+  TaskRemove(SETTINGS_Save);
+  TaskAdd("Settings save", SETTINGS_Save, 5000, false);
 }
