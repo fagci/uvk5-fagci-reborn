@@ -7,17 +7,17 @@
 
 typedef struct {
   uint8_t squelch : 4;
-  uint8_t scrambler : 4; // 1
+  uint8_t scrambler : 4;
   uint8_t batsave : 4;
-  uint8_t vox : 4; // 1
+  uint8_t vox : 4;
   uint8_t backlight : 4;
-  uint8_t txTime : 4; // 1
+  uint8_t txTime : 4;
   uint8_t micGain : 4;
-  uint8_t currentScanlist : 4; // 1
+  uint8_t currentScanlist : 4;
   UpconverterTypes upconverter : 2;
   uint8_t roger : 2;
   uint8_t scanmode : 2;
-  uint8_t chDisplayMode : 2; // 1
+  uint8_t chDisplayMode : 2;
   uint8_t dw : 1;
   uint8_t crossBand : 1;
   uint8_t beep : 1;
@@ -25,18 +25,17 @@ typedef struct {
   uint8_t busyChannelTxLock : 1;
   uint8_t ste : 1;
   uint8_t repeaterSte : 1;
-  uint8_t dtmfdecode : 1; // 1
+  uint8_t dtmfdecode : 1;
   uint8_t brightness : 4;
-  bool spectrumAutosquelch : 1;
-  uint8_t reserved1 : 3;
+  uint8_t contrast : 4;
   AppType_t mainApp : 4;
-  uint8_t reserved2 : 4;
-  uint8_t presetIndex : 5;
-  uint8_t reserved3 : 3;
+  uint8_t reserved1 : 4;
+  uint16_t activeChannel : 10;
+  uint8_t activePreset : 6;
 } __attribute__((packed)) Settings;
 
 #define SETTINGS_SIZE sizeof(Settings)
-#define SETTINGS_OFFSET (CURRENT_VFO_OFFSET + CURRENT_VFO_SIZE)
+#define SETTINGS_OFFSET 8128
 
 extern Settings gSettings;
 extern uint8_t BL_TIME_VALUES[7];

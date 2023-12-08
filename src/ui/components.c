@@ -89,12 +89,13 @@ void UI_FSmall(uint32_t f) {
   UI_PrintSmallest(116, 2, modulationTypeOptions[gCurrentVfo.modulation]);
   UI_PrintSmallest(108, 8, bwNames[gCurrentVfo.bw]);
 
-  UI_PrintSmallest(0, 8, "%u.%02uk", StepFrequencyTable[gCurrentVfo.step] / 100,
-                   StepFrequencyTable[gCurrentVfo.step] % 100);
+  uint16_t step = StepFrequencyTable[gCurrentPreset.band.step];
+
+  UI_PrintSmallest(0, 8, "%u.%02uk", step / 100, step % 100);
 
   UI_FSmallest(gCurrentVfo.fRX, 32, 8);
 
-  UI_PrintSmallest(74, 8, "SQ:%u", gCurrentVfo.squelch);
+  UI_PrintSmallest(74, 8, "SQ:%u", gCurrentPreset.band.squelch);
 
   if (UI_NoChannelName(gCurrentVfo.name)) {
     char String[16];

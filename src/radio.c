@@ -7,7 +7,8 @@
 #include "inc/dp32g030/gpio.h"
 #include "scheduler.h"
 
-CurrentVFO gCurrentVfo;
+VFO gCurrentVfo;
+Preset gCurrentPreset;
 UpconverterTypes gUpconverterType = UPCONVERTER_OFF;
 bool gIsListening = false;
 
@@ -108,10 +109,10 @@ void RADIO_ToggleModulation() {
 }
 
 void RADIO_UpdateStep(bool inc) {
-  if (inc && gCurrentVfo.step < STEP_100_0kHz) {
-    ++gCurrentVfo.step;
-  } else if (!inc && gCurrentVfo.step > 0) {
-    --gCurrentVfo.step;
+  if (inc && gCurrentPreset.band.step < STEP_100_0kHz) {
+    ++gCurrentPreset.band.step;
+  } else if (!inc && gCurrentPreset.band.step > 0) {
+    --gCurrentPreset.band.step;
   } else {
     return;
   }
@@ -136,35 +137,39 @@ void RADIO_TuneTo(uint32_t f) {
 }
 
 void RADIO_SaveCurrentVFO() {
-  EEPROM_WriteBuffer(CURRENT_VFO_OFFSET, &gCurrentVfo, CURRENT_VFO_SIZE);
+  const uint16_t CURRENT_VFO_OFFSET =
+      CHANNELS_OFFSET + gSettings.activeChannel * VFO_SIZE;
+  EEPROM_WriteBuffer(CURRENT_VFO_OFFSET, &gCurrentVfo, VFO_SIZE);
 }
 
 void RADIO_LoadCurrentVFO() {
-  EEPROM_ReadBuffer(CURRENT_VFO_OFFSET, &gCurrentVfo, CURRENT_VFO_SIZE);
+  const uint16_t CURRENT_VFO_OFFSET =
+      CHANNELS_OFFSET + gSettings.activeChannel * VFO_SIZE;
+  EEPROM_ReadBuffer(CURRENT_VFO_OFFSET, &gCurrentVfo, VFO_SIZE);
 }
 
 void RADIO_SetSquelch(uint8_t sq) {
-  BK4819_Squelch(gCurrentVfo.squelch = sq, gCurrentVfo.fRX);
+  BK4819_Squelch(gCurrentPreset.band.squelch = sq, gCurrentVfo.fRX);
   onVfoUpdate();
 }
 
 void RADIO_SetSquelchType(SquelchType t) {
-  BK4819_SquelchType(gCurrentVfo.squelchType = t);
+  BK4819_SquelchType(gCurrentPreset.band.squelchType = t);
   onVfoUpdate();
 }
 
 void RADIO_SetGain(uint8_t gainIndex) {
-  BK4819_SetGain(gCurrentVfo.gainIndex = gainIndex);
+  BK4819_SetGain(gCurrentPreset.band.gainIndex = gainIndex);
   onVfoUpdate();
 }
 
 void RADIO_SetupByCurrentVFO() {
-  BK4819_SquelchType(gCurrentVfo.squelchType);
-  BK4819_Squelch(gCurrentVfo.squelch, gCurrentVfo.fRX);
+  BK4819_SquelchType(gCurrentPreset.band.squelchType);
+  BK4819_Squelch(gCurrentPreset.band.squelch, gCurrentVfo.fRX);
   BK4819_TuneTo(gCurrentVfo.fRX);
   BK4819_SetFilterBandwidth(gCurrentVfo.bw);
   BK4819_SetModulation(gCurrentVfo.modulation);
-  BK4819_SetGain(gCurrentVfo.gainIndex);
+  BK4819_SetGain(gCurrentPreset.band.gainIndex);
 }
 
 void RADIO_SetupBandParams(Band *b) {

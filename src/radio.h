@@ -10,11 +10,9 @@
 
 #define PRESET_SIZE sizeof(Preset)
 #define VFO_SIZE sizeof(VFO)
-#define CURRENT_VFO_SIZE sizeof(CurrentVFO)
 
 #define BANDS_OFFSET 0
 #define CHANNELS_OFFSET (BANDS_OFFSET + PRESET_SIZE * BANDS_COUNT)
-#define CURRENT_VFO_OFFSET (CHANNELS_OFFSET + VFO_SIZE * CHANNELS_COUNT)
 
 typedef enum {
   STEP_0_01kHz,
@@ -38,45 +36,20 @@ typedef enum {
   UPCONVERTER_125M,
 } UpconverterTypes;
 
-typedef struct {           // 24 bytes
-  uint32_t fRX;            // 4
-  uint32_t fTX;            // 4
-  char name[10];           // 10
-  uint8_t memoryBanks : 8; // 1
-  Step step : 4;
+typedef struct {                 // 24 bytes
+  uint32_t fRX;                  // 4
+  uint32_t fTX;                  // 4
+  char name[10];                 // 10
+  uint8_t memoryBanks : 8;       // 1
   ModulationType modulation : 4; // 1
   BK4819_FilterBandwidth_t bw : 2;
   uint8_t power : 2;
-  uint8_t reserved : 4; // 1
   uint8_t codeTypeRx : 4;
   uint8_t codeTypeTx : 4; // 1
   uint8_t codeRx : 8;     // 1
   uint8_t codeTx : 8;     // 1
+  uint8_t reserved : 8;   // 1
 } __attribute__((packed)) VFO;
-
-typedef struct {           // 26 bytes
-  uint32_t fRX;            // 4
-  uint32_t fTX;            // 4
-  char name[10];           // 10
-  uint8_t memoryBanks : 8; // 1
-  Step step : 4;
-  ModulationType modulation : 4; // 1
-  BK4819_FilterBandwidth_t bw : 2;
-  uint8_t power : 2;
-  uint8_t reserved : 4; // 1
-  uint8_t codeTypeRx : 4;
-  uint8_t codeTypeTx : 4; // 1
-  uint8_t codeRx : 8;     // 1
-  uint8_t codeTx : 8;     // 1
-  uint8_t gainIndex : 7;
-  bool reserved1 : 1; // 1
-  uint8_t squelch : 4;
-  SquelchType squelchType : 2;
-  uint8_t reserved2 : 2;   // 1
-  uint32_t reserved3 : 32; // 4
-  uint8_t reserved4 : 8;   // 1
-  uint8_t reserved5 : 8;   // 1
-} __attribute__((packed)) CurrentVFO;
 
 typedef struct { // 8 bytes
   uint32_t start;
@@ -109,7 +82,8 @@ typedef struct { // 29 bytes
   uint8_t c : 8;
 } __attribute__((packed)) Preset;
 
-extern CurrentVFO gCurrentVfo;
+extern VFO gCurrentVfo;
+extern Preset gCurrentPreset;
 extern const char *upConverterFreqNames[3];
 extern bool gIsListening;
 

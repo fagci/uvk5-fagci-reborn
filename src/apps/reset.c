@@ -5,10 +5,11 @@
 #include "../helper/measurements.h"
 #include "../ui/helper.h"
 #include "../radio.h"
+#include "../settings.h"
 #include "ARMCM0.h"
+#include "apps.h"
 #include <string.h>
 
-static const uint16_t BYTES_TOTAL = 0x2000;
 static const Band freqPresets[] = {
     (Band){(FRange){181000, 200000}, "160m HAM", STEP_1_0kHz, MOD_USB, BK4819_FILTER_BW_NARROWER},
     (Band){(FRange){350000, 380000}, "80m HAM", STEP_1_0kHz, MOD_USB, BK4819_FILTER_BW_NARROWER},
@@ -40,35 +41,74 @@ static const Band freqPresets[] = {
     (Band){(FRange){124000000, 130000000}, "23cm HAM", STEP_25_0kHz, MOD_FM, BK4819_FILTER_BW_WIDE},
 };
 
-static uint16_t bytesErased = 0;
+// static uint16_t bytesErased = 0;
+static uint16_t presetsWrote = 0;
+static uint16_t channelsWrote = 0;
 static uint8_t buf[8];
 
+static VFO channelTemplate = {0};
+
+static const uint16_t TOTAL_TO_ERASE = BANDS_COUNT + CHANNELS_COUNT + 1;
+
 void RESET_Init() {
-  bytesErased = 0;
+presetsWrote = 0;
+channelsWrote = 0;
   memset(buf, 0xFF, sizeof(buf));
 }
 
 void RESET_Update() {
-  EEPROM_WriteBuffer(bytesErased, buf, 8);
-  bytesErased += 8;
-  if (bytesErased >= BYTES_TOTAL) {
-        for(uint8_t i=0;i<28;++i) {
-            Preset p ={.band = freqPresets[i]};
-            RADIO_SavePreset(i, &p);
-        }
-    NVIC_SystemReset();
-  }
+  if (presetsWrote < BANDS_COUNT) {
+            Preset p ={.band = freqPresets[presetsWrote]};
+            RADIO_SavePreset(presetsWrote, &p);
+        presetsWrote++;
+  } else if(channelsWrote < CHANNELS_COUNT) {
+        sprintf(channelTemplate.name, "CH-%u", channelsWrote + 1);
+        RADIO_SaveChannel(channelsWrote, &channelTemplate);
+        channelsWrote++;
+    } else {
+        gSettings = (Settings){
+          .squelch = 4,
+          .scrambler = 0,
+          .batsave = 4,
+          .vox = 0,
+          .backlight = BL_TIME_VALUES[3],
+          .txTime = 0,
+          .micGain = 15,
+          .currentScanlist = 1,
+          .upconverter = UPCONVERTER_OFF,
+          .roger = 0,
+          .scanmode = 0,
+          .chDisplayMode = 0,
+          .dw = false,
+          .crossBand = false,
+          .beep = false,
+          .keylock = false,
+          .busyChannelTxLock = false,
+          .ste = true,
+          .repeaterSte = true,
+          .dtmfdecode = false,
+          .brightness = 8,
+          .contrast = 0,
+          .mainApp = APP_STILL,
+          .reserved1 = 0,
+          .activeChannel = 0,
+          .activePreset = 22,
+        };
+        SETTINGS_Save();
+        NVIC_SystemReset();
+    }
   gRedrawScreen = true;
 }
 
 void RESET_Render() {
   char String[16];
   UI_ClearScreen();
-  sprintf(String, "%u%", bytesErased * 100 / BYTES_TOTAL);
+    uint16_t done = channelsWrote + presetsWrote;
+  sprintf(String, "%u%", done * 100 / TOTAL_TO_ERASE);
   UI_PrintStringSmall(String, 0, 0, 2);
 
   memset(gFrameBuffer[3], 0b00111100,
-         ConvertDomain(bytesErased, 0, 8196, 0, LCD_WIDTH));
+         ConvertDomain(done, 0, 8196, 0, LCD_WIDTH));
 }
 
 bool RESET_key(KEY_Code_t k, bool p, bool h) {

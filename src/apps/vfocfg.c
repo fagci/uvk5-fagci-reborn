@@ -50,7 +50,7 @@ static void accept() {
     RADIO_SaveCurrentVFO();
     break;
   case M_STEP:
-    gCurrentVfo.step = subMenuIndex;
+    gCurrentPreset.band.step = subMenuIndex;
     RADIO_SaveCurrentVFO();
     break;
   default:
@@ -76,8 +76,8 @@ static const char *getValue(Menu type) {
   case M_MODULATION:
     return modulationTypeOptions[gCurrentVfo.modulation];
   case M_STEP:
-    sprintf(Output, "%d.%02dKHz", StepFrequencyTable[gCurrentVfo.step] / 100,
-            StepFrequencyTable[gCurrentVfo.step] % 100);
+    sprintf(Output, "%d.%02dKHz", StepFrequencyTable[gCurrentPreset.band.step] / 100,
+            StepFrequencyTable[gCurrentPreset.band.step] % 100);
     return Output;
   default:
     break;

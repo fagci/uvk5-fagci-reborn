@@ -31,7 +31,7 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   uint16_t v, maxValue;
 
   if (s.num == BK4819_REG_13) {
-    v = gCurrentVfo.gainIndex;
+    v = gCurrentPreset.band.gainIndex;
     maxValue = ARRAY_SIZE(gainTable) - 1;
   } else {
     v = BK4819_GetRegValue(s);
@@ -54,7 +54,7 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
 }
 
 static void UpdateCurrentFreqStill(bool inc) {
-  const uint16_t offset = StepFrequencyTable[gCurrentVfo.step];
+  const uint16_t offset = StepFrequencyTable[gCurrentPreset.band.step];
   if (inc && gCurrentVfo.fRX < F_MAX) {
     gCurrentVfo.fRX += offset;
   } else if (!inc && gCurrentVfo.fRX > F_MIN) {
@@ -122,12 +122,12 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     gRedrawScreen = true;
     return true;
   case KEY_3:
-    gCurrentVfo.squelch++;
-    RADIO_SetSquelch(gCurrentVfo.squelch);
+    gCurrentPreset.band.squelch++;
+    RADIO_SetSquelch(gCurrentPreset.band.squelch);
     return true;
   case KEY_9:
-    gCurrentVfo.squelch--;
-    RADIO_SetSquelch(gCurrentVfo.squelch);
+    gCurrentPreset.band.squelch--;
+    RADIO_SetSquelch(gCurrentPreset.band.squelch);
     return true;
   case KEY_UP:
     if (menuState) {
@@ -210,7 +210,7 @@ static void DrawRegs() {
     UI_PrintStringSmallest(String, offset + 2, row * 8 + 2, false,
                            menuState != idx);
     if (rs.num == BK4819_REG_13) {
-      sprintf(String, "%ddB", gainTable[gCurrentVfo.gainIndex].gainDb);
+      sprintf(String, "%ddB", gainTable[gCurrentPreset.band.gainIndex].gainDb);
     } else {
       sprintf(String, "%u", BK4819_GetRegValue(rs));
     }

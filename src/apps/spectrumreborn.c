@@ -6,6 +6,7 @@
 #include "../driver/uart.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
+#include "../helper/presetlist.h"
 #include "../scheduler.h"
 #include "../settings.h"
 #include "../ui/components.h"
@@ -29,9 +30,6 @@ static uint16_t noiseHistory[DATA_LEN] = {0};
 static uint8_t x;
 static bool markers[DATA_LEN] = {0};
 
-static Band bandsToScan[32] = {0};
-static uint8_t bandsCount = 0;
-static uint8_t oldBandIndex = 255;
 static Band *currentBand;
 
 static uint32_t currentStepSize;
@@ -47,6 +45,8 @@ static uint16_t noiseO = 0;
 
 static uint8_t msmDelay = 5;
 
+static uint16_t oldPresetIndex = 255;
+
 static uint16_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 
 static void resetRssiHistory() {
@@ -56,7 +56,6 @@ static void resetRssiHistory() {
     markers[x] = false;
   }
 }
-static void addBand(const Band band) { bandsToScan[bandsCount++] = band; }
 
 static Loot msm = {0};
 
@@ -149,7 +148,7 @@ static void step() {
 
 static void startNewScan() {
   currentStep = 0;
-  currentBand = &bandsToScan[gSettings.presetIndex];
+  currentBand = &PRESETS_Item(gSettings.activePreset)->band;
   currentStepSize = StepFrequencyTable[currentBand->step];
 
   bandwidth = currentBand->bounds.end - currentBand->bounds.start;
@@ -159,28 +158,23 @@ static void startNewScan() {
 
   msm.f = currentBand->bounds.start;
 
-  if (gSettings.presetIndex != oldBandIndex) {
+  if (gSettings.activePreset != oldPresetIndex) {
     resetRssiHistory();
     LOOT_Clear();
     LOOT_Standby();
     rssiO = U16_MAX;
     noiseO = 0;
-    RADIO_SetupBandParams(&bandsToScan[0]);
-    oldBandIndex = gSettings.presetIndex;
+    RADIO_SetupBandParams(currentBand);
+    oldPresetIndex = gSettings.activePreset;
     gRedrawStatus = true;
   }
 }
 
 void SPECTRUM_init(void) {
-  bandsCount = 0;
   newScan = true;
 
   resetRssiHistory();
-  for (uint8_t i = 0; i < 28; ++i) {
-    Preset p = {};
-    RADIO_LoadPreset(i, &p);
-    addBand(p.band);
-  }
+  PRESETS_Load();
   step();
 }
 
@@ -200,15 +194,11 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     APPS_exit();
     return true;
   case KEY_UP:
-    gSettings.presetIndex =
-        gSettings.presetIndex < bandsCount - 1 ? gSettings.presetIndex + 1 : 0;
-    SETTINGS_DelayedSave();
+    PRESETS_SelectPresetRelative(true);
     newScan = true;
     return true;
   case KEY_DOWN:
-    gSettings.presetIndex =
-        gSettings.presetIndex > 0 ? gSettings.presetIndex - 1 : bandsCount - 1;
-    SETTINGS_DelayedSave();
+    PRESETS_SelectPresetRelative(false);
     newScan = true;
     return true;
   case KEY_5:
@@ -233,7 +223,7 @@ void SPECTRUM_update(void) {
   if (msm.rssi == 0) {
     return;
   }
-  if (newScan || gSettings.presetIndex != oldBandIndex) {
+  if (newScan || gSettings.activePreset != oldPresetIndex) {
     newScan = false;
     startNewScan();
   }
