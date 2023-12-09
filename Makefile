@@ -5,6 +5,8 @@ BIN_DIR := bin
 TARGET = $(BIN_DIR)/firmware
 
 SRC = $(wildcard $(SRC_DIR)/driver/*.c)
+SRC += $(wildcard $(SRC_DIR)/external/mcufont/fonts/freesans.c)
+SRC += $(wildcard $(SRC_DIR)/external/mcufont/decoder/*.c)
 SRC += $(wildcard $(SRC_DIR)/helper/*.c)
 SRC += $(wildcard $(SRC_DIR)/ui/*.c)
 SRC += $(wildcard $(SRC_DIR)/apps/*.c)
@@ -28,7 +30,7 @@ SIZE = arm-none-eabi-size
 GIT_HASH := $(shell git rev-parse --short HEAD)
 
 ASFLAGS = -c -mcpu=cortex-m0
-CFLAGS = -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD -ffunction-sections -fdata-sections
+CFLAGS = -Os -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD -ffunction-sections -fdata-sections
 CFLAGS += -DPRINTF_INCLUDE_CONFIG_H
 CFLAGS += -DGIT_HASH=\"$(GIT_HASH)\"
 LDFLAGS = -mcpu=cortex-m0 -nostartfiles -Wl,-T,firmware.ld
@@ -37,6 +39,8 @@ INC =
 INC += -I ./src
 INC += -I ./src/external/CMSIS_5/CMSIS/Core/Include/
 INC += -I ./src/external/CMSIS_5/Device/ARM/ARMCM0/Include
+INC += -I ./src/external/mcufont/decoder/
+INC += -I ./src/external/mcufont/fonts/
 
 DEPS = $(OBJS:.o=.d)
 

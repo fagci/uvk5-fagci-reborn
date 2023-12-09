@@ -179,3 +179,4 @@ void UI_ClearStatus() { memset(gStatusLine, 0, BATTERY_X - 1); }
 void UI_ClearStatusFull() { memset(gStatusLine, 0, sizeof(gStatusLine)); }
 
 void UI_ClearScreen() { memset(gFrameBuffer, 0, sizeof(gFrameBuffer)); }
+

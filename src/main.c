@@ -18,6 +18,7 @@
 #include "scheduler.h"
 #include "settings.h"
 #include "ui/components.h"
+#include "ui/graphics.h"
 #include "ui/helper.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -161,6 +162,25 @@ void Main(void) {
   BACKLIGHT_SetBrightness(gSettings.brightness);
   BACKLIGHT_On();
   UpdateBattery();
+
+#include "ui/fonts/DSEG7_Classic_Mini_Regular_11.h"
+#include "ui/fonts/Dialog_plain_5.h"
+#include "ui/fonts/Serif_plain_7.h"
+  const char *text = "145.550";
+  moveTo(2, 12);
+  for (uint8_t i = 0; i < strlen(text); i++) {
+    write(text[i], 1, 1, false, true, false, &DSEG7_Classic_Mini_Regular_11);
+  }
+  const char *text2 =
+      "Test string to check wraps and another possibilities of new library";
+  moveTo(2, 32);
+  for (uint8_t i = 0; i < strlen(text2); i++) {
+    write(text2[i], 1, 1, true, true, false, &Serif_plain_7);
+  }
+
+  ST7565_BlitFullScreen();
+  while (true) {
+  }
 
   if (KEYBOARD_Poll() == KEY_EXIT) {
     APPS_run(APP_RESET);
