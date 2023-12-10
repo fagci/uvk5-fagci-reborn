@@ -20,6 +20,8 @@
 
 static uint8_t cursor_x = 0, cursor_y = 0;
 
+void UI_ClearScreen() { memset(gFrameBuffer, 0, sizeof(gFrameBuffer)); }
+
 void PutPixel(uint8_t x, uint8_t y, uint8_t fill) {
   if (fill == 1) {
     gFrameBuffer[y >> 3][x] |= 1 << (y & 7);
