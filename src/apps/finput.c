@@ -153,7 +153,7 @@ void FINPUT_render() {
 
   // decimal point
   if (freqInputDotIndex || (!freqInputDotIndex && dotBlink)) {
-    PrintBigDigits(i * charWidth, 15, "%c", '.');
+    PrintBigDigits(i * (charWidth + 1), 15, "%c", '.');
   }
   pFb1 += 3;
   pFb0 += 3;

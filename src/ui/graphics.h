@@ -17,7 +17,10 @@ void FillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color);
 
 void PrintSmall(uint8_t x, uint8_t y, const char *pattern, ...);
 void PrintSmallC(uint8_t x, uint8_t y, uint8_t color, const char *pattern, ...);
+void PrintSmallRight(uint8_t x, uint8_t y, const char *pattern, ...);
 void PrintMedium(uint8_t x, uint8_t y, const char *pattern, ...);
+void PrintMediumCentered(uint8_t x, uint8_t y, const char *pattern, ...);
+void PrintMediumRight(uint8_t x, uint8_t y, const char *pattern, ...);
 void PrintMediumBold(uint8_t x, uint8_t y, const char *pattern, ...);
 void PrintBigDigits(uint8_t x, uint8_t y, const char *pattern, ...);
 

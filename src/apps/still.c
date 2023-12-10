@@ -191,9 +191,9 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
 static void DrawRegs() {
   const uint8_t PAD_LEFT = 0;
-  const uint8_t PAD_TOP = 26;
+  const uint8_t PAD_TOP = 30;
   const uint8_t CELL_WIDTH = 30;
-  const uint8_t CELL_HEIGHT = 18;
+  const uint8_t CELL_HEIGHT = 16;
   uint8_t row = 0;
 
   for (uint8_t i = 0, idx = 1; idx < ARRAY_SIZE(registerSpecs); ++i, ++idx) {
@@ -208,9 +208,9 @@ static void DrawRegs() {
     const uint8_t textX = offsetX + 3;
 
     if (menuState == idx) {
-      FillRoundRect(offsetX, offsetY, CELL_WIDTH - 2, CELL_HEIGHT - 2, 3, true);
+      FillRoundRect(offsetX, offsetY, CELL_WIDTH - 2, CELL_HEIGHT - 1, 3, true);
     } else {
-      DrawRoundRect(offsetX, offsetY, CELL_WIDTH - 2, CELL_HEIGHT - 2, 3, true);
+      DrawRoundRect(offsetX, offsetY, CELL_WIDTH - 2, CELL_HEIGHT - 1, 3, true);
     }
 
     if (rs.num == BK4819_REG_13) {
@@ -220,12 +220,13 @@ static void DrawRegs() {
     }
 
     PrintSmallC(textX, offsetY + 7, 2, "%s", rs.name);
-    PrintSmallC(textX, offsetY + CELL_HEIGHT - 4, 2, String);
+    PrintSmallC(textX, offsetY + CELL_HEIGHT - 3, 2, String);
   }
 }
 
 void STILL_render() {
   UI_ClearScreen();
+  PrintSmall(0, 5, "%s", gCurrentPreset->band.name);
   UI_FSmall(GetScreenF(gCurrentVfo.fRX));
   UI_RSSIBar(rssi, gCurrentVfo.fRX, 3);
   DrawRegs();

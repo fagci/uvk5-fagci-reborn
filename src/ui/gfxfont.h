@@ -1,6 +1,9 @@
 #ifndef _GFXFONT_H_
 #define _GFXFONT_H_
 
+// to use fonts w/o cleanup
+#define PROGMEM
+
 #include <stdint.h>
 
 typedef struct {           // Data stored PER GLYPH

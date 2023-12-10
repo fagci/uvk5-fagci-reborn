@@ -1,8 +1,8 @@
 #include "../driver/st7565.h"
-#include "fonts/Dialog_bold_8.h"
-#include "fonts/Dialog_plain_8.h"
 #include "fonts/Numbers_seg_13_16.h"
 #include "fonts/TomThumb.h"
+#include "fonts/muHeavy8ptBold.h"
+#include "fonts/muMatrix8ptRegular.h"
 #include "gfxfont.h"
 #include "helper.h"
 #include <stdint.h>
@@ -173,6 +173,34 @@ void charBounds(unsigned char c, int16_t *x, int16_t *y, int16_t *minx,
   }
 }
 
+static void getTextBounds(const char *str, int16_t x, int16_t y, int16_t *x1,
+                          int16_t *y1, uint16_t *w, uint16_t *h, bool wrap,
+                          const GFXfont *gfxFont) {
+
+  uint8_t c; // Current character
+  int16_t minx = 0x7FFF, miny = 0x7FFF, maxx = -1, maxy = -1; // Bound rect
+  // Bound rect is intentionally initialized inverted, so 1st char sets it
+
+  *x1 = x; // Initial position is value passed in
+  *y1 = y;
+  *w = *h = 0; // Initial size is zero
+
+  while ((c = *str++)) {
+    // charBounds() modifies x/y to advance for each character,
+    // and min/max x/y are updated to incrementally build bounding rect.
+    charBounds(c, &x, &y, &minx, &miny, &maxx, &maxy, 1, 1, wrap, gfxFont);
+  }
+
+  if (maxx >= minx) {     // If legit string bounds were found...
+    *x1 = minx;           // Update x1 to least X coord,
+    *w = maxx - minx + 1; // And w to bound rect width
+  }
+  if (maxy >= miny) { // Same for height
+    *y1 = miny;
+    *h = maxy - miny + 1;
+  }
+}
+
 void write(uint8_t c, uint8_t textsize_x, uint8_t textsize_y, bool wrap,
            uint8_t color, uint8_t bg, const GFXfont *gfxFont) {
   if (c == '\n') {
@@ -203,10 +231,20 @@ void moveTo(uint8_t x, uint8_t y) {
 }
 
 static void printString(const GFXfont *gfxFont, uint8_t x, uint8_t y,
-                        uint8_t color, const char *pattern, va_list args) {
+                        uint8_t color, uint8_t posLCR, const char *pattern,
+                        va_list args) {
   char String[256];
   vsnprintf(String, 255, pattern, args);
 
+  int16_t x1, y1;
+  uint16_t w, h;
+  getTextBounds(String, x, y, &x1, &y1, &w, &h, true,
+                gfxFont); // calc width of new string
+  if (posLCR == 1) {      // centered
+    x = x - w / 2;
+  } else if (posLCR == 2) {
+    x = x - w;
+  }
   moveTo(x, y);
   for (uint8_t i = 0; i < strlen(String); i++) {
     write(String[i], 1, 1, true, color, false, gfxFont);
@@ -216,7 +254,14 @@ static void printString(const GFXfont *gfxFont, uint8_t x, uint8_t y,
 void PrintSmall(uint8_t x, uint8_t y, const char *pattern, ...) {
   va_list args;
   va_start(args, pattern);
-  printString(&TomThumb, x, y, true, pattern, args);
+  printString(&TomThumb, x, y, true, 0, pattern, args);
+  va_end(args);
+}
+
+void PrintSmallRight(uint8_t x, uint8_t y, const char *pattern, ...) {
+  va_list args;
+  va_start(args, pattern);
+  printString(&TomThumb, x, y, true, 2, pattern, args);
   va_end(args);
 }
 
@@ -224,28 +269,42 @@ void PrintSmallC(uint8_t x, uint8_t y, uint8_t color, const char *pattern,
                  ...) {
   va_list args;
   va_start(args, pattern);
-  printString(&TomThumb, x, y, color, pattern, args);
+  printString(&TomThumb, x, y, color, 0, pattern, args);
   va_end(args);
 }
 
 void PrintMedium(uint8_t x, uint8_t y, const char *pattern, ...) {
   va_list args;
   va_start(args, pattern);
-  printString(&Dialog_plain_8, x, y, true, pattern, args);
+  printString(&muMatrix8ptRegular, x, y, true, 0, pattern, args);
+  va_end(args);
+}
+
+void PrintMediumCentered(uint8_t x, uint8_t y, const char *pattern, ...) {
+  va_list args;
+  va_start(args, pattern);
+  printString(&muMatrix8ptRegular, x, y, true, 1, pattern, args);
+  va_end(args);
+}
+
+void PrintMediumRight(uint8_t x, uint8_t y, const char *pattern, ...) {
+  va_list args;
+  va_start(args, pattern);
+  printString(&muMatrix8ptRegular, x, y, true, 2, pattern, args);
   va_end(args);
 }
 
 void PrintMediumBold(uint8_t x, uint8_t y, const char *pattern, ...) {
   va_list args;
   va_start(args, pattern);
-  printString(&Dialog_bold_8, x, y, true, pattern, args);
+  printString(&muHeavy8ptBold, x, y, true, 0, pattern, args);
   va_end(args);
 }
 
 void PrintBigDigits(uint8_t x, uint8_t y, const char *pattern, ...) {
   va_list args;
   va_start(args, pattern);
-  printString(&Numbers_13_16, x, y, true, pattern, args);
+  printString(&Numbers_13_16, x, y, true, 0, pattern, args);
   va_end(args);
 }
 

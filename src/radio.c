@@ -25,12 +25,12 @@ const uint16_t StepFrequencyTable[12] = {
 const uint32_t upConverterValues[3] = {0, 5000000, 12500000};
 const char *upConverterFreqNames[3] = {"None", "50M", "125M"};
 
-const char *modulationTypeOptions[5] = {" FM", " AM", "SSB", "BYP", "RAW"};
+const char *modulationTypeOptions[5] = {"FM", "AM", "SSB", "BYP", "RAW"};
 const char *vfoStateNames[] = {
     "NORMAL", "BUSY", "BAT LOW", "DISABLE", "TIMEOUT", "ALARM", "VOL HIGH",
 };
 const char *powerNames[] = {"LOW", "MID", "HIGH"};
-const char *bwNames[3] = {"  25k", "12.5k", "6.25k"};
+const char *bwNames[3] = {"25k", "12.5k", "6.25k"};
 const char *deviationNames[] = {"", "+", "-"};
 
 void RADIO_SetupRegisters() {

@@ -132,6 +132,12 @@ static void Intro() {
   PrintSmall(96, 46, "by fagci");
   ST7565_Blit();
   if (PRESETS_Load()) {
+    RADIO_LoadCurrentVFO();
+
+    BK4819_TuneTo(gCurrentVfo.fRX);
+    BK4819_Squelch(3, gCurrentVfo.fRX);
+    BK4819_SetModulation(gCurrentVfo.modulation);
+
     AddTasks();
     TaskRemove(Intro);
   }
@@ -150,12 +156,6 @@ void Main(void) {
 
   BATTERY_UpdateBatteryInfo();
   RADIO_SetupRegisters();
-
-  RADIO_LoadCurrentVFO();
-
-  BK4819_TuneTo(gCurrentVfo.fRX);
-  BK4819_Squelch(3, gCurrentVfo.fRX);
-  BK4819_SetModulation(gCurrentVfo.modulation);
 
   BACKLIGHT_SetDuration(BL_TIME_VALUES[gSettings.backlight]);
   BACKLIGHT_SetBrightness(gSettings.brightness);
