@@ -60,7 +60,7 @@ void UI_RSSIBar(int16_t rssi, uint32_t f, uint8_t line) {
     ln[i + 1] = ln[i + 2] = sv > 9 ? 0b00100010 : 0b00111110;
   }
 
-  PrintMediumRight(LCD_WIDTH - 1, POS_Y + 5, "%d", dBm);
+  PrintMediumEx(LCD_WIDTH - 1, POS_Y + 5, 2, true, "%d", dBm);
   if (s < 10) {
     PrintMedium(0, POS_Y + 5, "S%u", s);
   } else {
@@ -69,19 +69,19 @@ void UI_RSSIBar(int16_t rssi, uint32_t f, uint8_t line) {
 }
 
 void UI_FSmall(uint32_t f) {
-  PrintSmallRight(LCD_WIDTH - 1, 7 + 8,
-                  modulationTypeOptions[gCurrentVfo.modulation]);
-  PrintSmallRight(LCD_WIDTH - 1, 13 + 8, bwNames[gCurrentVfo.bw]);
+  PrintSmallEx(LCD_WIDTH - 1, 15, 2, true,
+               modulationTypeOptions[gCurrentVfo.modulation]);
+  PrintSmallEx(LCD_WIDTH - 1, 21, 2, true, bwNames[gCurrentVfo.bw]);
 
   uint16_t step = StepFrequencyTable[gCurrentPreset->band.step];
 
-  PrintSmall(0, 13 + 8, "%u.%02uk", step / 100, step % 100);
+  PrintSmall(0, 21, "%u.%02uk", step / 100, step % 100);
 
-  UI_FSmallest(gCurrentVfo.fRX, 32, 8 + 5 + 8);
+  UI_FSmallest(gCurrentVfo.fRX, 32, 21);
 
-  PrintSmall(74, 13 + 8, "SQ:%u", gCurrentPreset->band.squelch);
+  PrintSmall(74, 21, "SQ:%u", gCurrentPreset->band.squelch);
 
-  PrintMediumCentered(64, 8 + 7, "%u.%05u", f / 100000, f % 100000);
+  PrintMediumEx(64, 15, 1, true, "%u.%05u", f / 100000, f % 100000);
 }
 
 void UI_FSmallest(uint32_t f, uint8_t x, uint8_t y) {

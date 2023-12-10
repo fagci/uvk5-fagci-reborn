@@ -1,3 +1,4 @@
+#include "graphics.h"
 #include "../driver/st7565.h"
 #include "fonts/Numbers_seg_13_16.h"
 #include "fonts/TomThumb.h"
@@ -69,15 +70,15 @@ static void DrawALine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
   }
 }
 
-void DrawVLine(int16_t x, int16_t y, int16_t h, uint16_t color) {
+void DrawVLine(int16_t x, int16_t y, int16_t h, Color color) {
   DrawALine(x, y, x, y + h - 1, color);
 }
 
-void DrawHLine(int16_t x, int16_t y, int16_t w, uint16_t color) {
+void DrawHLine(int16_t x, int16_t y, int16_t w, Color color) {
   DrawALine(x, y, x + w - 1, y, color);
 }
 
-void DrawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color) {
+void DrawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, Color color) {
   if (x0 == x1) {
     if (y0 > y1)
       _swap_int16_t(y0, y1);
@@ -91,20 +92,20 @@ void DrawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color) {
   }
 }
 
-void DrawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
+void DrawRect(int16_t x, int16_t y, int16_t w, int16_t h, Color color) {
   DrawHLine(x, y, w, color);
   DrawHLine(x, y + h - 1, w, color);
   DrawVLine(x, y, h, color);
   DrawVLine(x + w - 1, y, h, color);
 }
 
-void FillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
+void FillRect(int16_t x, int16_t y, int16_t w, int16_t h, Color color) {
   for (int16_t i = x; i < x + w; i++) {
     DrawVLine(i, y, h, color);
   }
 }
 
-static void m_putchar(int16_t x, int16_t y, unsigned char c, uint16_t color,
+static void m_putchar(int16_t x, int16_t y, unsigned char c, Color color,
                       uint16_t bg, uint8_t size_x, uint8_t size_y,
                       const GFXfont *gfxFont) {
   c -= gfxFont->first;
@@ -202,7 +203,7 @@ static void getTextBounds(const char *str, int16_t x, int16_t y, int16_t *x1,
 }
 
 void write(uint8_t c, uint8_t textsize_x, uint8_t textsize_y, bool wrap,
-           uint8_t color, uint8_t bg, const GFXfont *gfxFont) {
+           Color color, uint8_t bg, const GFXfont *gfxFont) {
   if (c == '\n') {
     cursor_x = 0;
     cursor_y += (int16_t)textsize_y * gfxFont->yAdvance;
@@ -231,7 +232,7 @@ void moveTo(uint8_t x, uint8_t y) {
 }
 
 static void printString(const GFXfont *gfxFont, uint8_t x, uint8_t y,
-                        uint8_t color, uint8_t posLCR, const char *pattern,
+                        Color color, TextPos posLCR, const char *pattern,
                         va_list args) {
   char String[256];
   vsnprintf(String, 255, pattern, args);
@@ -258,18 +259,11 @@ void PrintSmall(uint8_t x, uint8_t y, const char *pattern, ...) {
   va_end(args);
 }
 
-void PrintSmallRight(uint8_t x, uint8_t y, const char *pattern, ...) {
+void PrintSmallEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,
+                  const char *pattern, ...) {
   va_list args;
   va_start(args, pattern);
-  printString(&TomThumb, x, y, true, 2, pattern, args);
-  va_end(args);
-}
-
-void PrintSmallC(uint8_t x, uint8_t y, uint8_t color, const char *pattern,
-                 ...) {
-  va_list args;
-  va_start(args, pattern);
-  printString(&TomThumb, x, y, color, 0, pattern, args);
+  printString(&TomThumb, x, y, color, posLCR, pattern, args);
   va_end(args);
 }
 
@@ -280,17 +274,11 @@ void PrintMedium(uint8_t x, uint8_t y, const char *pattern, ...) {
   va_end(args);
 }
 
-void PrintMediumCentered(uint8_t x, uint8_t y, const char *pattern, ...) {
+void PrintMediumEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,
+                   const char *pattern, ...) {
   va_list args;
   va_start(args, pattern);
-  printString(&muMatrix8ptRegular, x, y, true, 1, pattern, args);
-  va_end(args);
-}
-
-void PrintMediumRight(uint8_t x, uint8_t y, const char *pattern, ...) {
-  va_list args;
-  va_start(args, pattern);
-  printString(&muMatrix8ptRegular, x, y, true, 2, pattern, args);
+  printString(&muMatrix8ptRegular, x, y, color, posLCR, pattern, args);
   va_end(args);
 }
 
@@ -309,7 +297,7 @@ void PrintBigDigits(uint8_t x, uint8_t y, const char *pattern, ...) {
 }
 
 static void fillCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t corners,
-                             int16_t delta, uint16_t color) {
+                             int16_t delta, Color color) {
 
   int16_t f = 1 - r;
   int16_t ddF_x = 1;
@@ -350,7 +338,7 @@ static void fillCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t corners,
 }
 
 static void drawCircleHelper(int16_t x0, int16_t y0, int16_t r,
-                             uint8_t cornername, uint16_t color) {
+                             uint8_t cornername, Color color) {
   int16_t f = 1 - r;
   int16_t ddF_x = 1;
   int16_t ddF_y = -2 * r;
@@ -385,7 +373,7 @@ static void drawCircleHelper(int16_t x0, int16_t y0, int16_t r,
   }
 }
 
-void DrawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color) {
+void DrawCircle(int16_t x0, int16_t y0, int16_t r, Color color) {
   int16_t f = 1 - r;
   int16_t ddF_x = 1;
   int16_t ddF_y = -2 * r;
@@ -418,13 +406,13 @@ void DrawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color) {
   }
 }
 
-void FillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color) {
+void FillCircle(int16_t x0, int16_t y0, int16_t r, Color color) {
   DrawVLine(x0, y0 - r, 2 * r + 1, color);
   fillCircleHelper(x0, y0, r, 3, 0, color);
 }
 
 void DrawRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r,
-                   uint16_t color) {
+                   Color color) {
   int16_t max_radius = ((w < h) ? w : h) / 2; // 1/2 minor axis
   if (r > max_radius)
     r = max_radius;
@@ -441,7 +429,7 @@ void DrawRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r,
 }
 
 void FillRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r,
-                   uint16_t color) {
+                   Color color) {
   int16_t max_radius = ((w < h) ? w : h) / 2; // 1/2 minor axis
   if (r > max_radius)
     r = max_radius;

@@ -192,7 +192,7 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 static void DrawRegs() {
   const uint8_t PAD_LEFT = 0;
   const uint8_t PAD_TOP = 30;
-  const uint8_t CELL_WIDTH = 30;
+  const uint8_t CELL_WIDTH = 31;
   const uint8_t CELL_HEIGHT = 16;
   uint8_t row = 0;
 
@@ -205,7 +205,7 @@ static void DrawRegs() {
     RegisterSpec rs = registerSpecs[idx];
     const uint8_t offsetX = PAD_LEFT + i * CELL_WIDTH + 2;
     const uint8_t offsetY = PAD_TOP + row * CELL_HEIGHT + 2;
-    const uint8_t textX = offsetX + 3;
+    // const uint8_t textX = offsetX + 3;
 
     if (menuState == idx) {
       FillRoundRect(offsetX, offsetY, CELL_WIDTH - 2, CELL_HEIGHT - 1, 3, true);
@@ -219,8 +219,10 @@ static void DrawRegs() {
       sprintf(String, "%u", BK4819_GetRegValue(rs));
     }
 
-    PrintSmallC(textX, offsetY + 7, 2, "%s", rs.name);
-    PrintSmallC(textX, offsetY + CELL_HEIGHT - 3, 2, String);
+    PrintSmallEx(offsetX + (CELL_WIDTH - 2) / 2, offsetY + 7, POS_C, C_INVERT,
+                 "%s", rs.name);
+    PrintSmallEx(offsetX + (CELL_WIDTH - 2) / 2, offsetY + CELL_HEIGHT - 3,
+                 POS_C, C_INVERT, String);
   }
 }
 
