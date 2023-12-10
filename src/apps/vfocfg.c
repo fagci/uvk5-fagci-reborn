@@ -1,5 +1,6 @@
 #include "vfocfg.h"
 #include "../driver/st7565.h"
+#include "../helper/presetlist.h"
 #include "../misc.h"
 #include "../radio.h"
 #include "../ui/components.h"
@@ -51,7 +52,7 @@ static void accept() {
     RADIO_SaveCurrentVFO();
     break;
   case M_STEP:
-    gCurrentPreset.band.step = subMenuIndex;
+    gCurrentPreset->band.step = subMenuIndex;
     RADIO_SaveCurrentVFO();
     break;
   default:
@@ -78,8 +79,8 @@ static const char *getValue(Menu type) {
     return modulationTypeOptions[gCurrentVfo.modulation];
   case M_STEP:
     sprintf(Output, "%d.%02dKHz",
-            StepFrequencyTable[gCurrentPreset.band.step] / 100,
-            StepFrequencyTable[gCurrentPreset.band.step] % 100);
+            StepFrequencyTable[gCurrentPreset->band.step] / 100,
+            StepFrequencyTable[gCurrentPreset->band.step] % 100);
     return Output;
   default:
     break;
@@ -170,7 +171,7 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     } else {
       isSubMenu = true;
     }
-    gRedrawStatus = true;
+    gRedrawScreen = true;
     gRedrawScreen = true;
     return true;
   case KEY_EXIT:
@@ -180,7 +181,7 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       APPS_exit();
     }
     gRedrawScreen = true;
-    gRedrawStatus = true;
+    gRedrawScreen = true;
     return true;
   default:
     break;
@@ -192,7 +193,7 @@ void VFOCFG_render() {
   const MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {
     showSubmenu(item->type);
-    UI_PrintStringSmallest(item->name, 0, 0, true, true);
+    PrintSmall(0, 0, item->name);
   } else {
     UI_ShowMenu(menu, ARRAY_SIZE(menu), menuIndex);
     PrintMedium(126, 6 * 8 + 12, getValue(item->type));

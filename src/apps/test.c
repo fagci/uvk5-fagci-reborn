@@ -3,6 +3,7 @@
 #include "../scheduler.h"
 #include "../ui/components.h"
 #include "../ui/helper.h"
+#include "../ui/graphics.h"
 #include "apps.h"
 
 void TEST_Init() {}
@@ -17,7 +18,7 @@ void TEST_Render() {
   for (uint8_t i = 0; i < TASKS_MAX; i++) {
     if (tasks[i].handler) {
       sprintf(String, "%u(%s): %u", i, tasks[i].name, tasks[i].countdown);
-      UI_PrintStringSmallest(String, i / 8 * 64, i % 8 * 6, false, true);
+      PrintSmall(i / 8 * 64, i % 8 * 6, String);
     }
   }
 }

@@ -12,6 +12,7 @@
 #include "driver/systick.h"
 #include "driver/uart.h"
 #include "helper/battery.h"
+#include "helper/presetlist.h"
 #include "inc/dp32g030/gpio.h"
 #include "misc.h"
 #include "radio.h"
@@ -33,7 +34,7 @@ void selfTest() {
   PrintSmall(0, 0, "PRS O:%u SZ:%u", BANDS_OFFSET, PRESET_SIZE);
   PrintSmall(0, 6, "CHN O:%u SZ:%u", CHANNELS_OFFSET, VFO_SIZE);
   PrintSmall(0, 18, "SET O:%u SZ:%u", SETTINGS_OFFSET, SETTINGS_SIZE);
-  ST7565_BlitFullScreen();
+  ST7565_Blit();
 
   while (true)
     continue;
@@ -71,16 +72,16 @@ static void UpdateBattery() {
       previousBatteryLevel = gBatteryDisplayLevel;
       UI_Battery(gBatteryDisplayLevel);
 
-      gRedrawStatus = true;
+      gRedrawScreen = true;
     }
   } else {
     showBattery = !showBattery;
     if (showBattery) {
       UI_Battery(gBatteryDisplayLevel);
     } else {
-      memset(gStatusLine + BATTERY_X, 0, 13);
+      memset(gFrameBuffer[0] + BATTERY_X, 0, 13);
     }
-    gRedrawStatus = true;
+    gRedrawScreen = true;
   }
 }
 
@@ -89,7 +90,7 @@ static void Update() {
   APPS_update();
   UART_printf("%u: APPS_update() took %ums\n", elapsedMilliseconds,
               elapsedMilliseconds - now);
-  if (!gRedrawStatus && !gRedrawScreen) {
+  if (!gRedrawScreen) {
     return;
   }
   now = elapsedMilliseconds;
@@ -116,7 +117,7 @@ static void AddTasks() {
   TaskAdd("BL", BACKLIGHT_Update, 1000, true);
   TaskAdd("BAT", UpdateBattery, 1000, true);
 
-  APPS_run(APP_SPECTRUM);
+  APPS_run(APP_STILL);
   TaskAdd("Update", Update, 1, true);
   TaskAdd("Keys", Keys, 10, true);
 }
@@ -124,15 +125,13 @@ static void AddTasks() {
 static uint8_t introIndex = 0;
 static void Intro() {
   char pb[] = "-\\|/";
-  char String[2] = {0};
-  sprintf(String, "%c", pb[introIndex & 3]);
-  memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+  UI_ClearScreen();
   PrintMedium(4, 0 + 12, "OSFW");
   PrintMedium(16, 2 * 8 + 12, "reb0rn");
-  PrintMedium(72, 2 * 8 + 12, String);
+  PrintMedium(72, 2 * 8 + 12, "%c", pb[introIndex & 3]);
   PrintSmall(96, 46, "by fagci");
-  ST7565_BlitFullScreen();
-  if (introIndex++ > 50) {
+  ST7565_Blit();
+  if (PRESETS_Load()) {
     AddTasks();
     TaskRemove(Intro);
   }

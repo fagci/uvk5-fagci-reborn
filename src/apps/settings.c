@@ -160,14 +160,12 @@ bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       isSubMenu = true;
       setInitialSubmenuIndex();
     }
-    gRedrawStatus = true;
     gRedrawScreen = true;
     return true;
   case KEY_EXIT:
     if (isSubMenu) {
       isSubMenu = false;
       gRedrawScreen = true;
-      gRedrawStatus = true;
     } else {
       APPS_exit();
     }
@@ -183,7 +181,7 @@ void SETTINGS_render() {
   const MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {
     showSubmenu(item->type);
-    UI_PrintStringSmallest(item->name, 0, 0, true, true);
+    PrintSmall(0, 0, item->name);
   } else {
     UI_ShowMenu(menu, ARRAY_SIZE(menu), menuIndex);
     PrintMedium(1, 6 * 8 + 12, getValue(item->type));

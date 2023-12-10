@@ -1,6 +1,7 @@
 #include "apps.h"
 #include "../driver/st7565.h"
 #include "../ui/helper.h"
+#include "../ui/graphics.h"
 #include "finput.h"
 #include "mainmenu.h"
 #include "reset.h"
@@ -74,9 +75,9 @@ void APPS_init(AppType_t app) {
   for (uint8_t i = 0; i <= stackIndex; i++) {
     sprintf(String, "%s>%u", String, appsStack[i]);
   }
-  UI_PrintStringSmallest(String, 0, 0, true, true);
+  PrintSmall(0, 6, String);
   // UI_PrintStringSmallest(apps[gCurrentApp].name, 0, 0, true, true);
-  gRedrawStatus = true;
+  gRedrawScreen = true;
 
   if (apps[app].init) {
     apps[app].init();

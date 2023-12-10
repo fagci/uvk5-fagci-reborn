@@ -168,7 +168,7 @@ static void startNewScan() {
     noiseO = 0;
     RADIO_SetupBandParams(currentBand);
     oldPresetIndex = gSettings.activePreset;
-    gRedrawStatus = true;
+    gRedrawScreen = true;
   }
 }
 
@@ -176,7 +176,6 @@ void SPECTRUM_init(void) {
   newScan = true;
 
   resetRssiHistory();
-  PRESETS_Load();
   step();
 }
 
@@ -257,7 +256,7 @@ void SPECTRUM_render(void) {
   UI_ClearStatus();
   UI_ClearScreen();
 
-  UI_PrintStringSmallest(currentBand->name, 0, 0, true, true);
+  PrintSmall(0, 0, currentBand->name);
 
   UI_DrawTicks(0, DATA_LEN, 5, currentBand, false);
   UI_FSmallest(currentBand->bounds.start, 0, 49);

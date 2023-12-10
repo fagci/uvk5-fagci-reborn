@@ -26,78 +26,34 @@
 #define NEED_WAIT_FIFO                                                         \
   ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) != SPI_FIFOST_TFF_BITS_NOT_FULL)
 
-uint8_t gStatusLine[LCD_WIDTH];
-uint8_t gFrameBuffer[7][LCD_WIDTH];
+uint8_t gFrameBuffer[8][LCD_WIDTH];
 
-bool gRedrawStatus = true;
 bool gRedrawScreen = true;
 
-void ST7565_DrawLine(uint8_t Column, uint8_t Line, uint16_t Size,
-                     const uint8_t *pBitmap, bool bIsClearMode) {
-  uint16_t i;
+static void ST7565_Configure_GPIO_B11(void) {
+  GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_ST7565_RES);
+  SYSTEM_DelayMs(1);
+  GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_ST7565_RES);
+  SYSTEM_DelayMs(20);
+  GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_ST7565_RES);
+  SYSTEM_DelayMs(120);
+}
 
-  SPI_ToggleMasterMode(&SPI0->CR, false);
-  ST7565_SelectColumnAndLine(Column + 4U, Line);
-  GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
-
-  if (bIsClearMode) {
-    for (i = 0; i < Size; i++) {
-      while (NEED_WAIT_FIFO)
-        continue;
-      SPI0->WDR = 0;
-    }
-  } else {
-    for (i = 0; i < Size; i++) {
-      while (NEED_WAIT_FIFO)
-        continue;
-      SPI0->WDR = pBitmap[i];
-    }
-  }
-
+static void ST7565_SelectColumnAndLine(uint8_t Column, uint8_t Line) {
+  GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
+  while (NEED_WAIT_FIFO)
+    continue;
+  SPI0->WDR = Line + 0xB0;
+  while (NEED_WAIT_FIFO)
+    continue;
+  SPI0->WDR = ((Column >> 4) & 0x0F) | 0x10;
+  while (NEED_WAIT_FIFO)
+    continue;
+  SPI0->WDR = ((Column >> 0) & 0x0F);
   SPI_WaitForUndocumentedTxFifoStatusBit();
-  SPI_ToggleMasterMode(&SPI0->CR, true);
 }
 
-void ST7565_BlitFullScreen(void) {
-  uint8_t Line;
-  uint8_t Column;
-
-  SPI_ToggleMasterMode(&SPI0->CR, false);
-  ST7565_WriteByte(0x40);
-
-  for (Line = 0; Line < ARRAY_SIZE(gFrameBuffer); Line++) {
-    ST7565_SelectColumnAndLine(4U, Line + 1U);
-    GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
-    for (Column = 0; Column < ARRAY_SIZE(gFrameBuffer[0]); Column++) {
-      while (NEED_WAIT_FIFO)
-        continue;
-      SPI0->WDR = gFrameBuffer[Line][Column];
-    }
-    SPI_WaitForUndocumentedTxFifoStatusBit();
-  }
-
-  // SYSTEM_DelayMs(20);
-  SPI_ToggleMasterMode(&SPI0->CR, true);
-}
-
-void ST7565_BlitStatusLine(void) {
-  uint8_t i;
-
-  SPI_ToggleMasterMode(&SPI0->CR, false);
-  ST7565_WriteByte(0x40);
-  ST7565_SelectColumnAndLine(4, 0);
-  GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
-
-  for (i = 0; i < ARRAY_SIZE(gStatusLine); i++) {
-    while (NEED_WAIT_FIFO)
-      continue;
-    SPI0->WDR = gStatusLine[i];
-  }
-  SPI_WaitForUndocumentedTxFifoStatusBit();
-  SPI_ToggleMasterMode(&SPI0->CR, true);
-}
-
-void ST7565_FillScreen(uint8_t Value) {
+static void ST7565_FillScreen(uint8_t Value) {
   uint8_t i, j;
 
   SPI_ToggleMasterMode(&SPI0->CR, false);
@@ -111,6 +67,27 @@ void ST7565_FillScreen(uint8_t Value) {
     }
     SPI_WaitForUndocumentedTxFifoStatusBit();
   }
+  SPI_ToggleMasterMode(&SPI0->CR, true);
+}
+
+void ST7565_Blit(void) {
+  uint8_t Line;
+  uint8_t Column;
+
+  SPI_ToggleMasterMode(&SPI0->CR, false);
+  ST7565_WriteByte(0x40);
+
+  for (Line = 0; Line < ARRAY_SIZE(gFrameBuffer); Line++) {
+    ST7565_SelectColumnAndLine(4U, Line);
+    GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
+    for (Column = 0; Column < ARRAY_SIZE(gFrameBuffer[0]); Column++) {
+      while (NEED_WAIT_FIFO)
+        continue;
+      SPI0->WDR = gFrameBuffer[Line][Column];
+    }
+    SPI_WaitForUndocumentedTxFifoStatusBit();
+  }
+
   SPI_ToggleMasterMode(&SPI0->CR, true);
 }
 
@@ -144,29 +121,6 @@ void ST7565_Init(void) {
   ST7565_FillScreen(0x00);
 }
 
-void ST7565_Configure_GPIO_B11(void) {
-  GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_ST7565_RES);
-  SYSTEM_DelayMs(1);
-  GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_ST7565_RES);
-  SYSTEM_DelayMs(20);
-  GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_ST7565_RES);
-  SYSTEM_DelayMs(120);
-}
-
-void ST7565_SelectColumnAndLine(uint8_t Column, uint8_t Line) {
-  GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
-  while (NEED_WAIT_FIFO)
-    continue;
-  SPI0->WDR = Line + 0xB0;
-  while (NEED_WAIT_FIFO)
-    continue;
-  SPI0->WDR = ((Column >> 4) & 0x0F) | 0x10;
-  while (NEED_WAIT_FIFO)
-    continue;
-  SPI0->WDR = ((Column >> 0) & 0x0F);
-  SPI_WaitForUndocumentedTxFifoStatusBit();
-}
-
 void ST7565_WriteByte(uint8_t Value) {
   GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
   while (NEED_WAIT_FIFO)
@@ -175,13 +129,8 @@ void ST7565_WriteByte(uint8_t Value) {
 }
 
 void ST7565_Render() {
-  if (gRedrawStatus) {
-    ST7565_BlitStatusLine();
-    gRedrawStatus = false;
-  }
-
   if (gRedrawScreen) {
-    ST7565_BlitFullScreen();
+    ST7565_Blit();
     gRedrawScreen = false;
   }
 }

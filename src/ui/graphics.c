@@ -1,6 +1,7 @@
 #include "../driver/st7565.h"
-#include "fonts/FreeSans9pt7b.h"
-#include "fonts/FreeSansBold9pt7b.h"
+#include "fonts/Dialog_bold_8.h"
+#include "fonts/Dialog_plain_8.h"
+#include "fonts/Numbers_seg_13_16.h"
 #include "fonts/TomThumb.h"
 #include "gfxfont.h"
 #include "helper.h"
@@ -17,6 +18,16 @@
 #endif
 
 static uint8_t cursor_x = 0, cursor_y = 0;
+
+void PutPixel(uint8_t x, uint8_t y, uint8_t fill) {
+  if (fill == 1) {
+    gFrameBuffer[y >> 3][x] |= 1 << (y & 7);
+  } else if (fill == 2) {
+    gFrameBuffer[y >> 3][x] ^= 1 << (y & 7);
+  } else {
+    gFrameBuffer[y >> 3][x] &= ~(1 << (y & 7));
+  }
+}
 
 static void DrawALine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
                       int16_t color) {
@@ -88,9 +99,7 @@ void DrawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
 }
 
 void FillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
-  int16_t i;
-
-  for (i = x; i < x + w; i++) {
+  for (int16_t i = x; i < x + w; i++) {
     DrawVLine(i, y, h, color);
   }
 }
@@ -194,33 +203,192 @@ void moveTo(uint8_t x, uint8_t y) {
 }
 
 static void printString(const GFXfont *gfxFont, uint8_t x, uint8_t y,
-                        const char *pattern, va_list args) {
+                        uint8_t color, const char *pattern, va_list args) {
   char String[256];
   vsnprintf(String, 255, pattern, args);
 
   moveTo(x, y);
   for (uint8_t i = 0; i < strlen(String); i++) {
-    write(String[i], 1, 1, true, true, false, gfxFont);
+    write(String[i], 1, 1, true, color, false, gfxFont);
   }
 }
 
 void PrintSmall(uint8_t x, uint8_t y, const char *pattern, ...) {
   va_list args;
   va_start(args, pattern);
-  printString(&TomThumb, x, y, pattern, args);
+  printString(&TomThumb, x, y, true, pattern, args);
+  va_end(args);
+}
+
+void PrintSmallC(uint8_t x, uint8_t y, uint8_t color, const char *pattern,
+                 ...) {
+  va_list args;
+  va_start(args, pattern);
+  printString(&TomThumb, x, y, color, pattern, args);
   va_end(args);
 }
 
 void PrintMedium(uint8_t x, uint8_t y, const char *pattern, ...) {
   va_list args;
   va_start(args, pattern);
-  printString(&FreeSans9pt7b, x, y, pattern, args);
+  printString(&Dialog_plain_8, x, y, true, pattern, args);
   va_end(args);
 }
 
 void PrintMediumBold(uint8_t x, uint8_t y, const char *pattern, ...) {
   va_list args;
   va_start(args, pattern);
-  printString(&FreeSansBold9pt7b, x, y, pattern, args);
+  printString(&Dialog_bold_8, x, y, true, pattern, args);
   va_end(args);
+}
+
+void PrintBigDigits(uint8_t x, uint8_t y, const char *pattern, ...) {
+  va_list args;
+  va_start(args, pattern);
+  printString(&Numbers_13_16, x, y, true, pattern, args);
+  va_end(args);
+}
+
+static void fillCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t corners,
+                             int16_t delta, uint16_t color) {
+
+  int16_t f = 1 - r;
+  int16_t ddF_x = 1;
+  int16_t ddF_y = -2 * r;
+  int16_t x = 0;
+  int16_t y = r;
+  int16_t px = x;
+  int16_t py = y;
+
+  delta++; // Avoid some +1's in the loop
+
+  while (x < y) {
+    if (f >= 0) {
+      y--;
+      ddF_y += 2;
+      f += ddF_y;
+    }
+    x++;
+    ddF_x += 2;
+    f += ddF_x;
+    // These checks avoid double-drawing certain lines, important
+    // for the SSD1306 library which has an INVERT drawing mode.
+    if (x < (y + 1)) {
+      if (corners & 1)
+        DrawVLine(x0 + x, y0 - y, 2 * y + delta, color);
+      if (corners & 2)
+        DrawVLine(x0 - x, y0 - y, 2 * y + delta, color);
+    }
+    if (y != py) {
+      if (corners & 1)
+        DrawVLine(x0 + py, y0 - px, 2 * px + delta, color);
+      if (corners & 2)
+        DrawVLine(x0 - py, y0 - px, 2 * px + delta, color);
+      py = y;
+    }
+    px = x;
+  }
+}
+
+static void drawCircleHelper(int16_t x0, int16_t y0, int16_t r,
+                             uint8_t cornername, uint16_t color) {
+  int16_t f = 1 - r;
+  int16_t ddF_x = 1;
+  int16_t ddF_y = -2 * r;
+  int16_t x = 0;
+  int16_t y = r;
+
+  while (x < y) {
+    if (f >= 0) {
+      y--;
+      ddF_y += 2;
+      f += ddF_y;
+    }
+    x++;
+    ddF_x += 2;
+    f += ddF_x;
+    if (cornername & 0x4) {
+      PutPixel(x0 + x, y0 + y, color);
+      PutPixel(x0 + y, y0 + x, color);
+    }
+    if (cornername & 0x2) {
+      PutPixel(x0 + x, y0 - y, color);
+      PutPixel(x0 + y, y0 - x, color);
+    }
+    if (cornername & 0x8) {
+      PutPixel(x0 - y, y0 + x, color);
+      PutPixel(x0 - x, y0 + y, color);
+    }
+    if (cornername & 0x1) {
+      PutPixel(x0 - y, y0 - x, color);
+      PutPixel(x0 - x, y0 - y, color);
+    }
+  }
+}
+
+void DrawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color) {
+  int16_t f = 1 - r;
+  int16_t ddF_x = 1;
+  int16_t ddF_y = -2 * r;
+  int16_t x = 0;
+  int16_t y = r;
+
+  PutPixel(x0, y0 + r, color);
+  PutPixel(x0, y0 - r, color);
+  PutPixel(x0 + r, y0, color);
+  PutPixel(x0 - r, y0, color);
+
+  while (x < y) {
+    if (f >= 0) {
+      y--;
+      ddF_y += 2;
+      f += ddF_y;
+    }
+    x++;
+    ddF_x += 2;
+    f += ddF_x;
+
+    PutPixel(x0 + x, y0 + y, color);
+    PutPixel(x0 - x, y0 + y, color);
+    PutPixel(x0 + x, y0 - y, color);
+    PutPixel(x0 - x, y0 - y, color);
+    PutPixel(x0 + y, y0 + x, color);
+    PutPixel(x0 - y, y0 + x, color);
+    PutPixel(x0 + y, y0 - x, color);
+    PutPixel(x0 - y, y0 - x, color);
+  }
+}
+
+void FillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color) {
+  DrawVLine(x0, y0 - r, 2 * r + 1, color);
+  fillCircleHelper(x0, y0, r, 3, 0, color);
+}
+
+void DrawRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r,
+                   uint16_t color) {
+  int16_t max_radius = ((w < h) ? w : h) / 2; // 1/2 minor axis
+  if (r > max_radius)
+    r = max_radius;
+  // smarter version
+  DrawHLine(x + r, y, w - 2 * r, color);         // Top
+  DrawHLine(x + r, y + h - 1, w - 2 * r, color); // Bottom
+  DrawVLine(x, y + r, h - 2 * r, color);         // Left
+  DrawVLine(x + w - 1, y + r, h - 2 * r, color); // Right
+  // draw four corners
+  drawCircleHelper(x + r, y + r, r, 1, color);
+  drawCircleHelper(x + w - r - 1, y + r, r, 2, color);
+  drawCircleHelper(x + w - r - 1, y + h - r - 1, r, 4, color);
+  drawCircleHelper(x + r, y + h - r - 1, r, 8, color);
+}
+
+void FillRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r,
+                   uint16_t color) {
+  int16_t max_radius = ((w < h) ? w : h) / 2; // 1/2 minor axis
+  if (r > max_radius)
+    r = max_radius;
+  // smarter version
+  FillRect(x + r, y, w - 2 * r, h, color);
+  // draw four corners
+  fillCircleHelper(x + w - r - 1, y + r, r, 1, h - 2 * r - 1, color);
+  fillCircleHelper(x + r, y + r, r, 2, h - 2 * r - 1, color);
 }

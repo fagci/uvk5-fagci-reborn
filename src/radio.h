@@ -83,7 +83,6 @@ typedef struct { // 29 bytes
 } __attribute__((packed)) Preset;
 
 extern VFO gCurrentVfo;
-extern Preset gCurrentPreset;
 extern const char *upConverterFreqNames[3];
 extern bool gIsListening;
 
@@ -105,6 +104,7 @@ void RADIO_UpdateStep(bool inc);
 void RADIO_TuneTo(uint32_t f);
 void RADIO_SaveCurrentVFO();
 void RADIO_LoadCurrentVFO();
+void RADIO_SaveCurrentPreset();
 void RADIO_SetSquelch(uint8_t sq);
 void RADIO_SetGain(uint8_t gainIndex);
 void RADIO_SetupByCurrentVFO();

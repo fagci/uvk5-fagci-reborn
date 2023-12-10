@@ -21,20 +21,13 @@
 #include <stdint.h>
 
 #define LCD_WIDTH 128
+#define LCD_HEIGHT 64
 
-extern uint8_t gStatusLine[LCD_WIDTH];
-extern uint8_t gFrameBuffer[7][LCD_WIDTH];
-extern bool gRedrawStatus;
 extern bool gRedrawScreen;
+extern uint8_t gFrameBuffer[8][LCD_WIDTH];
 
-void ST7565_DrawLine(uint8_t Column, uint8_t Line, uint16_t Size,
-                     const uint8_t *pBitmap, bool bIsClearMode);
-void ST7565_BlitFullScreen(void);
-void ST7565_BlitStatusLine(void);
-void ST7565_FillScreen(uint8_t Value);
+void ST7565_Blit(void);
 void ST7565_Init(void);
-void ST7565_Configure_GPIO_B11(void);
-void ST7565_SelectColumnAndLine(uint8_t Column, uint8_t Line);
 void ST7565_WriteByte(uint8_t Value);
 void ST7565_Render();
 

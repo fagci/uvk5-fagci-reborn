@@ -16,108 +16,13 @@
 
 #include "helper.h"
 #include "../driver/st7565.h"
-#include "../font.h"
 #include "../misc.h"
 #include "../radio.h"
 #include "components.h"
 #include "inputbox.h"
 
-void UI_DisplayFrequency(const char *pDigits, uint8_t X, uint8_t Y,
-                         bool bDisplayLeadingZero, bool flag) {
-  const unsigned int charWidth = 13;
-  uint8_t *pFb0 = gFrameBuffer[Y] + X;
-  uint8_t *pFb1 = pFb0 + 128;
-  bool bCanDisplay = false;
-  uint8_t i = 0;
-
-  // MHz
-  while (i < 4) {
-    const unsigned int Digit = pDigits[i++];
-    if (bDisplayLeadingZero || bCanDisplay || Digit > 0) {
-      bCanDisplay = true;
-      memmove(pFb0, gFontBigDigits[Digit], charWidth);
-      memmove(pFb1, gFontBigDigits[Digit] + charWidth, charWidth);
-    } else if (flag) {
-      pFb0 -= 6;
-      pFb1 -= 6;
-    }
-    pFb0 += charWidth;
-    pFb1 += charWidth;
-  }
-
-  // decimal point
-  *pFb1 = 0x60;
-  pFb0++;
-  pFb1++;
-  *pFb1 = 0x60;
-  pFb0++;
-  pFb1++;
-  *pFb1 = 0x60;
-  pFb0++;
-  pFb1++;
-
-  // kHz
-  while (i < 7) {
-    const uint8_t Digit = pDigits[i++];
-    memmove(pFb0, gFontBigDigits[Digit], charWidth);
-    memmove(pFb1, gFontBigDigits[Digit] + charWidth, charWidth);
-    pFb0 += charWidth;
-    pFb1 += charWidth;
-  }
-}
-
-void UI_DisplaySmallDigits(uint8_t Size, const char *pString, uint8_t X,
-                           uint8_t Y) {
-  for (uint8_t i = 0; i < Size; i++) {
-    memcpy(gFrameBuffer[Y] + (i * 7) + X, gFontSmallDigits[(uint8_t)pString[i]],
-           7);
-  }
-}
-
-void PutPixel(uint8_t x, uint8_t y, uint8_t fill) {
-  if (fill == 1) {
-    gFrameBuffer[y >> 3][x] |= 1 << (y & 7);
-  } else if (fill == 2) {
-    gFrameBuffer[y >> 3][x] ^= 1 << (y & 7);
-  } else {
-    gFrameBuffer[y >> 3][x] &= ~(1 << (y & 7));
-  }
-}
-
-void PutPixelStatus(uint8_t x, uint8_t y, bool fill) {
-  if (fill) {
-    gStatusLine[x] |= 1 << y;
-  } else {
-    gStatusLine[x] &= ~(1 << y);
-  }
-}
-
-void UI_PrintStringSmallest(const char *pString, uint8_t x, uint8_t y,
-                            bool statusbar, bool fill) {
-  uint8_t c;
-  uint8_t pixels;
-  const uint8_t *p = (const uint8_t *)pString;
-
-  while ((c = *p++)) {
-    c -= 0x20;
-    for (uint8_t i = 0; i < 3; ++i) {
-      pixels = gFont3x5[c][i];
-      for (uint8_t j = 0; j < 6; ++j) {
-        if (pixels & 1) {
-          if (statusbar)
-            PutPixelStatus(x + i, y + j, fill);
-          else
-            PutPixel(x + i, y + j, fill);
-        }
-        pixels >>= 1;
-      }
-    }
-    x += 4;
-  }
-}
-
-void UI_ClearStatus() { memset(gStatusLine, 0, BATTERY_X - 1); }
-void UI_ClearStatusFull() { memset(gStatusLine, 0, sizeof(gStatusLine)); }
+void UI_ClearStatus() { memset(gFrameBuffer[0], 0, BATTERY_X - 1); }
+void UI_ClearStatusFull() { memset(gFrameBuffer[0], 0, LCD_WIDTH); }
 
 void UI_ClearScreen() { memset(gFrameBuffer, 0, sizeof(gFrameBuffer)); }
 

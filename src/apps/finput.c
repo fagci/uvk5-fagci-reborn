@@ -1,9 +1,9 @@
 #include "finput.h"
 #include "../driver/bk4819.h"
 #include "../driver/st7565.h"
-#include "../font.h"
 #include "../radio.h"
 #include "../scheduler.h"
+#include "../ui/graphics.h"
 #include "../ui/helper.h"
 #include "apps.h"
 #include <string.h>
@@ -70,7 +70,7 @@ static void input(KEY_Code_t key) {
 }
 
 void FINPUT_init() {
-  memset(gStatusLine, 0, sizeof(gStatusLine));
+  UI_ClearStatus();
   freqInputIndex = 0;
   freqInputDotIndex = 0;
   ResetFreqInput();
@@ -143,8 +143,7 @@ void FINPUT_render() {
     if (i >= 4 - dotIndex) {
       const unsigned int Digit = freqInputArr[i - (4 - dotIndex)];
       if (Digit < 10) {
-        memmove(pFb0, gFontBigDigits[Digit], charWidth);
-        memmove(pFb1, gFontBigDigits[Digit] + charWidth, charWidth);
+        PrintBigDigits(i * charWidth, 15, "%c", '0' + Digit);
       }
     }
     i++;
@@ -154,15 +153,9 @@ void FINPUT_render() {
 
   // decimal point
   if (freqInputDotIndex || (!freqInputDotIndex && dotBlink)) {
-    *pFb1 = 0x60;
-    pFb1++;
-    *pFb1 = 0x60;
-    pFb1++;
-    *pFb1 = 0x60;
-    pFb1++;
-  } else {
-    pFb1 += 3;
+    PrintBigDigits(i * charWidth, 15, "%c", '.');
   }
+  pFb1 += 3;
   pFb0 += 3;
 
   // kHz
@@ -170,8 +163,7 @@ void FINPUT_render() {
     i = dotIndex + 1;
     while (i < freqInputIndex && i < dotIndex + 4) {
       const uint8_t Digit = freqInputArr[i];
-      memmove(pFb0, gFontBigDigits[Digit], charWidth);
-      memmove(pFb1, gFontBigDigits[Digit] + charWidth, charWidth);
+      PrintBigDigits(i * charWidth + charWidth * 4 + 4, 13, "%c", '0' + Digit);
       i++;
       pFb0 += charWidth;
       pFb1 += charWidth;
@@ -183,7 +175,7 @@ void FINPUT_render() {
     if (hz > 3) {
       String[0] = hz > 4 ? freqInputArr[freqInputDotIndex + 4] : 11;
       String[1] = hz > 5 ? freqInputArr[freqInputDotIndex + 5] : 11;
-      UI_DisplaySmallDigits(2, String, 113, 1);
+      PrintMedium(113, 16 + 12, String);
     }
   }
 }
