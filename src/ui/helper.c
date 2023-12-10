@@ -22,53 +22,6 @@
 #include "components.h"
 #include "inputbox.h"
 
-void UI_PrintString(const char *pString, uint8_t Start, uint8_t End,
-                    uint8_t Line) {
-  const uint8_t Width = 8;
-  const size_t Length = strlen(pString);
-  if (End > Start) {
-    Start += (((End - Start) - (Length * Width)) + 1) / 2;
-  }
-  for (size_t i = 0; i < Length; i++) {
-    if (pString[i] >= ' ') {
-      const uint8_t Index = pString[i] - ' ';
-      const uint8_t offset = (i * Width) + Start;
-      memcpy(gFrameBuffer[Line] + offset, &gFontBig[Index][0], 8);
-      memcpy(gFrameBuffer[Line + 1] + offset, &gFontBig[Index][8], 8);
-    }
-  }
-}
-
-static void printString(const uint8_t font[95][6], const char *pString,
-                        uint8_t Start, uint8_t End, uint8_t Line) {
-  const size_t Length = strlen(pString);
-  size_t i;
-
-  if (End > Start) {
-    Start += (((End - Start) - (Length * 8)) + 1) / 2;
-  }
-  const unsigned int char_width = ARRAY_SIZE(gFontSmall[0]);
-  const unsigned int char_spacing = char_width + 1;
-  uint8_t *pFb = gFrameBuffer[Line] + Start;
-  for (i = 0; i < Length; i++) {
-    if (pString[i] >= 32) {
-      const unsigned int Index = (unsigned int)pString[i] - 32;
-      if (Index < ARRAY_SIZE(gFontSmall))
-        memmove(pFb + (i * char_spacing), &font[Index], char_width);
-    }
-  }
-}
-
-void UI_PrintStringSmall(const char *pString, uint8_t Start, uint8_t End,
-                         uint8_t Line) {
-  printString(gFontSmall, pString, Start, End, Line);
-}
-
-void UI_PrintStringSmallBold(const char *pString, uint8_t Start, uint8_t End,
-                             uint8_t Line) {
-  printString(gFontSmallBold, pString, Start, End, Line);
-}
-
 void UI_DisplayFrequency(const char *pDigits, uint8_t X, uint8_t Y,
                          bool bDisplayLeadingZero, bool flag) {
   const unsigned int charWidth = 13;
@@ -139,14 +92,6 @@ void PutPixelStatus(uint8_t x, uint8_t y, bool fill) {
   }
 }
 
-void DrawHLine(int sy, int ey, int nx, bool fill) {
-  for (uint8_t i = sy; i <= ey; i++) {
-    if (i < 56 && nx < LCD_WIDTH) {
-      PutPixel(nx, i, fill);
-    }
-  }
-}
-
 void UI_PrintStringSmallest(const char *pString, uint8_t x, uint8_t y,
                             bool statusbar, bool fill) {
   uint8_t c;
@@ -169,10 +114,6 @@ void UI_PrintStringSmallest(const char *pString, uint8_t x, uint8_t y,
     }
     x += 4;
   }
-}
-
-bool UI_NoChannelName(const char *channelName) {
-  return channelName[0] < 32 || channelName[0] > 127;
 }
 
 void UI_ClearStatus() { memset(gStatusLine, 0, BATTERY_X - 1); }

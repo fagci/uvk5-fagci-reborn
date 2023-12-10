@@ -30,9 +30,9 @@ bool showBattery = true;
 void _putchar(char c) {}
 
 void selfTest() {
-  UI_PrintSmallest(0, 0, "PRS O:%u SZ:%u", BANDS_OFFSET, PRESET_SIZE);
-  UI_PrintSmallest(0, 6, "CHN O:%u SZ:%u", CHANNELS_OFFSET, VFO_SIZE);
-  UI_PrintSmallest(0, 18, "SET O:%u SZ:%u", SETTINGS_OFFSET, SETTINGS_SIZE);
+  PrintSmall(0, 0, "PRS O:%u SZ:%u", BANDS_OFFSET, PRESET_SIZE);
+  PrintSmall(0, 6, "CHN O:%u SZ:%u", CHANNELS_OFFSET, VFO_SIZE);
+  PrintSmall(0, 18, "SET O:%u SZ:%u", SETTINGS_OFFSET, SETTINGS_SIZE);
   ST7565_BlitFullScreen();
 
   while (true)
@@ -127,10 +127,10 @@ static void Intro() {
   char String[2] = {0};
   sprintf(String, "%c", pb[introIndex & 3]);
   memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
-  UI_PrintString("OSFW", 4, 4, 0);
-  UI_PrintString("reb0rn", 16, 16, 2);
-  UI_PrintString(String, 72, 72, 2);
-  UI_PrintSmallest(96, 46, "by fagci");
+  PrintMedium(4, 0 + 12, "OSFW");
+  PrintMedium(16, 2 * 8 + 12, "reb0rn");
+  PrintMedium(72, 2 * 8 + 12, String);
+  PrintSmall(96, 46, "by fagci");
   ST7565_BlitFullScreen();
   if (introIndex++ > 50) {
     AddTasks();
@@ -163,25 +163,6 @@ void Main(void) {
   BACKLIGHT_On();
   UpdateBattery();
 
-#include "ui/fonts/DSEG7_Classic_Mini_Regular_11.h"
-#include "ui/fonts/Dialog_plain_5.h"
-#include "ui/fonts/Serif_plain_7.h"
-  const char *text = "145.550";
-  moveTo(2, 12);
-  for (uint8_t i = 0; i < strlen(text); i++) {
-    write(text[i], 1, 1, false, true, false, &DSEG7_Classic_Mini_Regular_11);
-  }
-  const char *text2 =
-      "Test string to check wraps and another possibilities of new library";
-  moveTo(2, 32);
-  for (uint8_t i = 0; i < strlen(text2); i++) {
-    write(text2[i], 1, 1, true, true, false, &Serif_plain_7);
-  }
-
-  ST7565_BlitFullScreen();
-  while (true) {
-  }
-
   if (KEYBOARD_Poll() == KEY_EXIT) {
     APPS_run(APP_RESET);
     TaskAdd("Update", Update, 1, true);
@@ -190,7 +171,7 @@ void Main(void) {
     for (uint8_t i = 0; i < 6; ++i) {
       Preset p = {};
       RADIO_LoadPreset(i, &p);
-      UI_PrintSmallest(0, 6 * i, "%u", p.band.bounds.start);
+      PrintSmall(0, 6 * i, "%u", p.band.bounds.start);
     }
   } else {
     TaskAdd("Intro", Intro, 2, true);

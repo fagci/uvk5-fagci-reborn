@@ -10,6 +10,7 @@
 #include "../scheduler.h"
 #include "../settings.h"
 #include "../ui/components.h"
+#include "../ui/graphics.h"
 #include "../ui/helper.h"
 #include "apps.h"
 #include "finput.h"
@@ -22,6 +23,7 @@ static const uint16_t U16_MAX = 65535;
 static const uint8_t NOISE_OPEN_DIFF = 14;
 
 static const uint8_t S_HEIGHT = 39;
+
 static const uint8_t SPECTRUM_Y = 0;
 static const uint8_t S_BOTTOM = SPECTRUM_Y + S_HEIGHT;
 
@@ -263,20 +265,19 @@ void SPECTRUM_render(void) {
 
   for (uint8_t xx = 0; xx < DATA_LEN; ++xx) {
     uint8_t yVal = ConvertDomain(rssiHistory[xx], vMin, vMax, 0, S_HEIGHT);
-    DrawHLine(S_BOTTOM - yVal, S_BOTTOM, xx, true);
+    DrawVLine(xx, S_BOTTOM - yVal, yVal, true);
     if (markers[xx]) {
-      PutPixel(xx, 46, true);
-      PutPixel(xx, 47, true);
+      DrawVLine(xx, 46, 2, true);
     }
   }
 
-  DrawHLine(0, S_BOTTOM, DATA_LEN - 1, true);
+  DrawVLine(DATA_LEN - 1, 0, S_BOTTOM, true);
 
   for (uint8_t i = 0; i < Clamp(LOOT_Size(), 0, 8); i++) {
     Loot *p = LOOT_Item(i);
-    /* UI_PrintSmallest(DATA_LEN + 1, i * 6, "%c%u.%04u %us", p->open ? '>' : '
+    /* PrintSmall(DATA_LEN + 1, i * 6, "%c%u.%04u %us", p->open ? '>' : '
        ', p->f / 100000, p->f / 10 % 10000, p->duration / 1000); */
-    UI_PrintSmallest(DATA_LEN + 1, i * 6, "%c%u.%04u %u", p->open ? '>' : ' ',
-                     p->f / 100000, p->f / 10 % 10000, p->ct);
+    PrintSmall(DATA_LEN + 1, i * 6 + 5, "%c%u.%04u %u", p->open ? '>' : ' ',
+               p->f / 100000, p->f / 10 % 10000, p->ct);
   }
 }

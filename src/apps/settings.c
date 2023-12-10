@@ -6,6 +6,7 @@
 #include "../settings.h"
 #include "../ui/components.h"
 #include "../ui/helper.h"
+#include "../ui/graphics.h"
 #include "apps.h"
 
 typedef enum {
@@ -185,6 +186,6 @@ void SETTINGS_render() {
     UI_PrintStringSmallest(item->name, 0, 0, true, true);
   } else {
     UI_ShowMenu(menu, ARRAY_SIZE(menu), menuIndex);
-    UI_PrintStringSmall(getValue(item->type), 1, 126, 6);
+    PrintMedium(1, 6 * 8 + 12, getValue(item->type));
   }
 }

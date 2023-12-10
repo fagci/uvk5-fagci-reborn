@@ -1,6 +1,7 @@
 #include "components.h"
 #include "../driver/st7565.h"
 #include "../helper/measurements.h"
+#include "graphics.h"
 #include "helper.h"
 #include <stdarg.h>
 
@@ -61,11 +62,11 @@ void UI_RSSIBar(int16_t rssi, uint32_t f, uint8_t line) {
     ln[i + 1] = ln[i + 2] = sv > 9 ? 0b00100010 : 0b00111110;
   }
 
-  UI_PrintSmallest(110, POS_Y, "%d", dBm);
+  PrintSmall(110, POS_Y, "%d", dBm);
   if (s < 10) {
-    UI_PrintSmallest(3, POS_Y, "S%u", s);
+    PrintSmall(3, POS_Y, "S%u", s);
   } else {
-    UI_PrintSmallest(3, POS_Y, "S9+%u0", s - 9);
+    PrintSmall(3, POS_Y, "S9+%u0", s - 9);
   }
 }
 
@@ -86,37 +87,22 @@ void UI_F(uint32_t f, uint8_t line) {
 }
 
 void UI_FSmall(uint32_t f) {
-  UI_PrintSmallest(116, 2, modulationTypeOptions[gCurrentVfo.modulation]);
-  UI_PrintSmallest(108, 8, bwNames[gCurrentVfo.bw]);
+  PrintSmall(116, 2, modulationTypeOptions[gCurrentVfo.modulation]);
+  PrintSmall(108, 8, bwNames[gCurrentVfo.bw]);
 
   uint16_t step = StepFrequencyTable[gCurrentPreset.band.step];
 
-  UI_PrintSmallest(0, 8, "%u.%02uk", step / 100, step % 100);
+  PrintSmall(0, 8, "%u.%02uk", step / 100, step % 100);
 
   UI_FSmallest(gCurrentVfo.fRX, 32, 8);
 
-  UI_PrintSmallest(74, 8, "SQ:%u", gCurrentPreset.band.squelch);
+  PrintSmall(74, 8, "SQ:%u", gCurrentPreset.band.squelch);
 
-  if (UI_NoChannelName(gCurrentVfo.name)) {
-    char String[16];
-    sprintf(String, "%u.%05u", f / 100000, f % 100000);
-    UI_PrintStringSmall(String, 8, 127, 0);
-  } else {
-    UI_PrintStringSmall(gCurrentVfo.name, 8, 127, 0);
-  }
-}
-
-void UI_PrintSmallest(uint8_t x, uint8_t y, const char *pattern, ...) {
-  char String[32];
-  va_list args;
-  va_start(args, pattern);
-
-  vsnprintf(String, 31, pattern, args);
-  UI_PrintStringSmallest(String, x, y, false, true);
+  PrintMedium(8, 0 + 12, "%u.%05u", f / 100000, f % 100000);
 }
 
 void UI_FSmallest(uint32_t f, uint8_t x, uint8_t y) {
-  UI_PrintSmallest(x, y, "%u.%05u", f / 100000, f % 100000);
+  PrintSmall(x, y, "%u.%05u", f / 100000, f % 100000);
 }
 
 void UI_DrawScrollBar(const uint16_t size, const uint16_t currentIndex,
@@ -141,9 +127,9 @@ void UI_ShowMenuItem(uint8_t line, const char *name, bool isCurrent) {
     gFrameBuffer[line][1] = 0b00111110;
     gFrameBuffer[line][2] = 0b00011100;
     gFrameBuffer[line][3] = 0b00001000;
-    UI_PrintStringSmallBold(name, 6, 6, line);
+    PrintMediumBold(6, line * 8 + 6 + 12, name);
   } else {
-    UI_PrintStringSmall(name, 6, 6, line);
+    PrintMedium(6, line * 8 + 6 + 12, name);
   }
 }
 

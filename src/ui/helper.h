@@ -22,24 +22,16 @@
 #include <stdint.h>
 #include <string.h>
 
-void UI_PrintString(const char *pString, uint8_t Start, uint8_t End,
-                    uint8_t Line);
-void UI_PrintStringSmall(const char *pString, uint8_t Start, uint8_t End,
-                         uint8_t Line);
-void UI_PrintStringSmallBold(const char *pString, uint8_t Start, uint8_t End,
-                             uint8_t Line);
 void UI_DisplayFrequency(const char *pDigits, uint8_t X, uint8_t Y,
                          bool bDisplayLeadingZero, bool bFlag);
 void UI_DisplaySmallDigits(uint8_t Size, const char *pString, uint8_t X,
                            uint8_t Y);
 void PutPixel(uint8_t x, uint8_t y, uint8_t fill);
 void PutPixelStatus(uint8_t x, uint8_t y, bool fill);
-void DrawHLine(int sy, int ey, int nx, bool fill);
 void UI_PrintStringSmallest(const char *pString, uint8_t x, uint8_t y,
                             bool statusbar, bool fill);
 /* void UI_ClearAppScreen();
 void UI_DrawScanListFlag(uint8_t *pLine, uint8_t attrs); */
-bool UI_NoChannelName(const char *channelName);
 void UI_ClearStatus();
 void UI_ClearScreen();
 

@@ -1,6 +1,7 @@
 #include "textinput.h"
 #include "../driver/st7565.h"
 #include "../scheduler.h"
+#include "../ui/graphics.h"
 #include "../ui/helper.h"
 #include "apps.h"
 #include <string.h>
@@ -183,7 +184,7 @@ void TEXTINPUT_render() {
     gFrameBuffer[2][i] = 0b00000001;
   }
 
-  UI_PrintStringSmall(inputField, 8, 8, 1);
+  PrintMedium(8, 8 + 12, inputField);
 
   const uint8_t CHAR_W = 6;
   uint8_t rowStrlen = 0;
@@ -201,21 +202,19 @@ void TEXTINPUT_render() {
       const uint8_t xPos = x * 43 + 1;
       const uint8_t line = y + 3;
 
-      sprintf(String, "%u", idx + 1);
-      UI_PrintStringSmall(String, xPos, xPos, line);
+      PrintMedium(xPos, line * 8 + 12, "%u", idx + 1);
       for (uint8_t j = 0; j < CHAR_W + 2; ++j) {
         gFrameBuffer[line][xPos + j - 1] ^= 0xFF;
       }
 
       if (currentRow) {
         if (idx < rowStrlen) {
-          sprintf(String, "%c", currentRow[idx]);
-          UI_PrintStringSmall(String, xPos + 10, xPos + 10, line);
+          PrintMedium(xPos + 10, line * 8 + 12, "%c", currentRow[idx]);
         }
       } else {
         strncpy(String, currentSet[idx], 4);
         String[4] = '\0';
-        UI_PrintStringSmall(String, xPos + 10, xPos + 10, line);
+        PrintMedium(xPos + 10, line * 8 + 12, String);
       }
     }
   }

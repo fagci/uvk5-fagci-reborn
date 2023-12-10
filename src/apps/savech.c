@@ -3,6 +3,7 @@
 #include "../driver/st7565.h"
 #include "../radio.h"
 #include "../ui/components.h"
+#include "../ui/graphics.h"
 #include "../ui/helper.h"
 #include "apps.h"
 #include <string.h>
@@ -18,9 +19,9 @@ void SAVECH_update() {
   if (!gotChannelNames) {
     EEPROM_ReadBuffer(VFO_SIZE * readIndex + 8 + CHANNELS_OFFSET,
                       channelNames[readIndex], 15);
-    if (UI_NoChannelName(channelNames[readIndex])) {
+    /* if (UI_NoChannelName(channelNames[readIndex])) {
       sprintf(channelNames[readIndex], "CH-%03u", readIndex + 1);
-    }
+    } */
     if ((readIndex & 7) == 0) {
       gRedrawScreen = true;
     }
@@ -61,18 +62,14 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void SAVECH_render() {
-  char String[16];
   UI_ClearScreen();
   if (gotChannelNames) {
     UI_ShowItems(channelNames, CHANNELS_COUNT, currentChannelIndex);
-    sprintf(String, "%u", currentChannelIndex + 1);
-    UI_PrintStringSmall(String, 0, 0, 6);
+    PrintMedium(0, 6 * 8 + 12, "%u", currentChannelIndex + 1);
   } else {
     char pb[] = "-\\|/";
-    char String[2] = {0};
-    UI_PrintString("Reading", 4, 4, 0);
-    UI_PrintString("channels", 4, 4, 2);
-    sprintf(String, "%c", pb[readIndex & 3]);
-    UI_PrintString(String, 72, 72, 2);
+    PrintMedium(4, 0 + 12, "Reading");
+    PrintMedium(4, 2 * 8 + 12, "channels");
+    PrintMedium(72, 2*8+12, "%c", pb[readIndex & 3]);
   }
 }

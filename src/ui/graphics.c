@@ -1,4 +1,7 @@
 #include "../driver/st7565.h"
+#include "fonts/FreeSans9pt7b.h"
+#include "fonts/FreeSansBold9pt7b.h"
+#include "fonts/TomThumb.h"
 #include "gfxfont.h"
 #include "helper.h"
 #include <stdint.h>
@@ -15,7 +18,8 @@
 
 static uint8_t cursor_x = 0, cursor_y = 0;
 
-void m_putaline(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t color) {
+static void DrawALine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+                      int16_t color) {
   int16_t steep = abs(y1 - y0) > abs(x1 - x0);
   if (steep) {
     _swap_int16_t(x0, y0);
@@ -54,46 +58,46 @@ void m_putaline(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t color) {
   }
 }
 
-void m_putvline(int16_t x, int16_t y, int16_t h, uint16_t color) {
-  m_putaline(x, y, x, y + h - 1, color);
+void DrawVLine(int16_t x, int16_t y, int16_t h, uint16_t color) {
+  DrawALine(x, y, x, y + h - 1, color);
 }
 
-void m_puthline(int16_t x, int16_t y, int16_t w, uint16_t color) {
-  m_putaline(x, y, x + w - 1, y, color);
+void DrawHLine(int16_t x, int16_t y, int16_t w, uint16_t color) {
+  DrawALine(x, y, x + w - 1, y, color);
 }
 
-void m_putline(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color) {
+void DrawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color) {
   if (x0 == x1) {
     if (y0 > y1)
       _swap_int16_t(y0, y1);
-    m_putvline(x0, y0, y1 - y0 + 1, color);
+    DrawVLine(x0, y0, y1 - y0 + 1, color);
   } else if (y0 == y1) {
     if (x0 > x1)
       _swap_int16_t(x0, x1);
-    m_puthline(x0, y0, x1 - x0 + 1, color);
+    DrawHLine(x0, y0, x1 - x0 + 1, color);
   } else {
-    m_putaline(x0, y0, x1, y1, color);
+    DrawALine(x0, y0, x1, y1, color);
   }
 }
 
-void m_putrect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
-  m_puthline(x, y, w, color);
-  m_puthline(x, y + h - 1, w, color);
-  m_putvline(x, y, h, color);
-  m_putvline(x + w - 1, y, h, color);
+void DrawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
+  DrawHLine(x, y, w, color);
+  DrawHLine(x, y + h - 1, w, color);
+  DrawVLine(x, y, h, color);
+  DrawVLine(x + w - 1, y, h, color);
 }
 
-void m_putfillrect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
+void FillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
   int16_t i;
 
   for (i = x; i < x + w; i++) {
-    m_putvline(i, y, h, color);
+    DrawVLine(i, y, h, color);
   }
 }
 
-void m_putchar(int16_t x, int16_t y, unsigned char c, uint16_t color,
-               uint16_t bg, uint8_t size_x, uint8_t size_y,
-               const GFXfont *gfxFont) {
+static void m_putchar(int16_t x, int16_t y, unsigned char c, uint16_t color,
+                      uint16_t bg, uint8_t size_x, uint8_t size_y,
+                      const GFXfont *gfxFont) {
   c -= gfxFont->first;
   GFXglyph *glyph = &gfxFont->glyph[c];
   const uint8_t *bitmap = gfxFont->bitmap;
@@ -118,8 +122,8 @@ void m_putchar(int16_t x, int16_t y, unsigned char c, uint16_t color,
         if (size_x == 1 && size_y == 1) {
           PutPixel(x + xo + xx, y + yo + yy, color);
         } else {
-          m_putfillrect(x + (xo16 + xx) * size_x, y + (yo16 + yy) * size_y,
-                        size_x, size_y, color);
+          FillRect(x + (xo16 + xx) * size_x, y + (yo16 + yy) * size_y, size_x,
+                   size_y, color);
         }
       }
       bits <<= 1;
@@ -187,4 +191,36 @@ void write(uint8_t c, uint8_t textsize_x, uint8_t textsize_y, bool wrap,
 void moveTo(uint8_t x, uint8_t y) {
   cursor_x = x;
   cursor_y = y;
+}
+
+static void printString(const GFXfont *gfxFont, uint8_t x, uint8_t y,
+                        const char *pattern, va_list args) {
+  char String[256];
+  vsnprintf(String, 255, pattern, args);
+
+  moveTo(x, y);
+  for (uint8_t i = 0; i < strlen(String); i++) {
+    write(String[i], 1, 1, true, true, false, gfxFont);
+  }
+}
+
+void PrintSmall(uint8_t x, uint8_t y, const char *pattern, ...) {
+  va_list args;
+  va_start(args, pattern);
+  printString(&TomThumb, x, y, pattern, args);
+  va_end(args);
+}
+
+void PrintMedium(uint8_t x, uint8_t y, const char *pattern, ...) {
+  va_list args;
+  va_start(args, pattern);
+  printString(&FreeSans9pt7b, x, y, pattern, args);
+  va_end(args);
+}
+
+void PrintMediumBold(uint8_t x, uint8_t y, const char *pattern, ...) {
+  va_list args;
+  va_start(args, pattern);
+  printString(&FreeSansBold9pt7b, x, y, pattern, args);
+  va_end(args);
 }

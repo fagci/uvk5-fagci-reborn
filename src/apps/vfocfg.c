@@ -3,6 +3,7 @@
 #include "../misc.h"
 #include "../radio.h"
 #include "../ui/components.h"
+#include "../ui/graphics.h"
 #include "../ui/helper.h"
 #include "apps.h"
 #include "finput.h"
@@ -76,7 +77,8 @@ static const char *getValue(Menu type) {
   case M_MODULATION:
     return modulationTypeOptions[gCurrentVfo.modulation];
   case M_STEP:
-    sprintf(Output, "%d.%02dKHz", StepFrequencyTable[gCurrentPreset.band.step] / 100,
+    sprintf(Output, "%d.%02dKHz",
+            StepFrequencyTable[gCurrentPreset.band.step] / 100,
             StepFrequencyTable[gCurrentPreset.band.step] % 100);
     return Output;
   default:
@@ -193,6 +195,6 @@ void VFOCFG_render() {
     UI_PrintStringSmallest(item->name, 0, 0, true, true);
   } else {
     UI_ShowMenu(menu, ARRAY_SIZE(menu), menuIndex);
-    UI_PrintStringSmall(getValue(item->type), 1, 126, 6);
+    PrintMedium(126, 6 * 8 + 12, getValue(item->type));
   }
 }
