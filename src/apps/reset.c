@@ -6,7 +6,6 @@
 #include "../radio.h"
 #include "../settings.h"
 #include "../ui/graphics.h"
-#include "../ui/helper.h"
 #include "ARMCM0.h"
 #include "apps.h"
 #include <string.h>

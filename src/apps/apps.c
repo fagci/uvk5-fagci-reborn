@@ -1,6 +1,5 @@
 #include "apps.h"
 #include "../driver/st7565.h"
-#include "../ui/helper.h"
 #include "../ui/graphics.h"
 #include "finput.h"
 #include "mainmenu.h"

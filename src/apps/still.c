@@ -9,7 +9,6 @@
 #include "../scheduler.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
-#include "../ui/helper.h"
 #include "apps.h"
 #include "finput.h"
 

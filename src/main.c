@@ -20,7 +20,6 @@
 #include "settings.h"
 #include "ui/components.h"
 #include "ui/graphics.h"
-#include "ui/helper.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>

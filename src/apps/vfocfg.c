@@ -5,7 +5,6 @@
 #include "../radio.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
-#include "../ui/helper.h"
 #include "apps.h"
 #include "finput.h"
 #include "textinput.h"

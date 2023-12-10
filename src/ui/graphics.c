@@ -5,7 +5,6 @@
 #include "fonts/muHeavy8ptBold.h"
 #include "fonts/muMatrix8ptRegular.h"
 #include "gfxfont.h"
-#include "helper.h"
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -20,6 +19,7 @@
 
 static uint8_t cursor_x = 0, cursor_y = 0;
 
+void UI_ClearStatus() { memset(gFrameBuffer[0], 0, sizeof(gFrameBuffer[0])); }
 void UI_ClearScreen() { memset(gFrameBuffer, 0, sizeof(gFrameBuffer)); }
 
 void PutPixel(uint8_t x, uint8_t y, uint8_t fill) {

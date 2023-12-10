@@ -4,7 +4,7 @@
 #include "../misc.h"
 #include "../radio.h"
 #include "../ui/components.h"
-#include "../ui/helper.h"
+#include "../ui/graphics.h"
 #include "apps.h"
 #include <string.h>
 
@@ -35,9 +35,7 @@ void MAINMENU_render() {
   UI_ShowMenu(menu, ARRAY_SIZE(menu), menuIndex);
 }
 
-void MAINMENU_init() {
-    gRedrawScreen = true;
-}
+void MAINMENU_init() { gRedrawScreen = true; }
 void MAINMENU_update() {}
 bool MAINMENU_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed || bKeyHeld) {

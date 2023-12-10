@@ -2,7 +2,6 @@
 #include "../driver/st7565.h"
 #include "../scheduler.h"
 #include "../ui/graphics.h"
-#include "../ui/helper.h"
 #include "apps.h"
 #include <string.h>
 

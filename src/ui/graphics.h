@@ -2,9 +2,11 @@
 
 #define GRAPHICS_H
 
+#include "../external/printf/printf.h"
 #include "gfxfont.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
 typedef enum {
   POS_L,

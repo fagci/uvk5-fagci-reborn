@@ -1,10 +1,11 @@
 #include "components.h"
 #include "../driver/st7565.h"
+#include "../external/printf/printf.h"
 #include "../helper/measurements.h"
 #include "../helper/presetlist.h"
 #include "graphics.h"
-#include "helper.h"
 #include <stdarg.h>
+#include <string.h>
 
 static const uint8_t MENU_LINES_TO_SHOW = 6;
 
