@@ -2,11 +2,12 @@
 
 #define LOOTLIST_HELPER_H
 
+#include "../radio.h"
 #include <stdbool.h>
 #include <stdint.h>
 
 typedef struct {
-  uint32_t f;
+  VFO *vfo;
   uint32_t firstTime;
   uint32_t lastTimeCheck;
   uint32_t lastTimeOpen;

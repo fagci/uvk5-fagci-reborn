@@ -10,6 +10,7 @@
 #include "still.h"
 #include "test.h"
 #include "textinput.h"
+#include "vfo.h"
 #include "vfocfg.h"
 
 #define APPS_STACK_SIZE 8
@@ -55,6 +56,7 @@ const App apps[APPS_COUNT] = {
     {"VFO config", VFOCFG_init, VFOCFG_update, VFOCFG_render, VFOCFG_key},
     {"Save to channel", SAVECH_init, SAVECH_update, SAVECH_render, SAVECH_key},
     {"Settings", SETTINGS_init, SETTINGS_update, SETTINGS_render, SETTINGS_key},
+    {"VFO", VFO_init, VFO_update, VFO_render, VFO_key},
     // {"Scanlist", NULL, SCANLIST_update, SCANLIST_render, SCANLIST_key},
     /* {"A to B scanner", ABSCANNER_init, ABSCANNER_update, ABSCANNER_render,
      ABSCANNER_key}, */

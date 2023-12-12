@@ -1,11 +1,11 @@
 #include "graphics.h"
-#include "../driver/st7565.h"
-#include "fonts/Numbers_seg_13_16.h"
+// #include "fonts/DSEG7_Classic_Mini_Regular_11.h"
+// #include "fonts/Numbers_seg_13_16.h"
+#include "fonts/NumbersStepanv3.h"
+// #include "fonts/NumbersSoftAce6.h"
 #include "fonts/TomThumb.h"
 #include "fonts/muHeavy8ptBold.h"
 #include "fonts/muMatrix8ptRegular.h"
-#include "gfxfont.h"
-#include <stdint.h>
 #include <stdlib.h>
 
 #ifndef _swap_int16_t
@@ -241,7 +241,7 @@ static void printString(const GFXfont *gfxFont, uint8_t x, uint8_t y,
 
   int16_t x1, y1;
   uint16_t w, h;
-  getTextBounds(String, x, y, &x1, &y1, &w, &h, true,
+  getTextBounds(String, x, y, &x1, &y1, &w, &h, false,
                 gfxFont); // calc width of new string
   if (posLCR == 1) {      // centered
     x = x - w / 2;
@@ -272,7 +272,7 @@ void PrintSmallEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,
 void PrintMedium(uint8_t x, uint8_t y, const char *pattern, ...) {
   va_list args;
   va_start(args, pattern);
-  printString(&muMatrix8ptRegular, x, y, true, 0, pattern, args);
+  printString(&MuMatrix8ptRegular, x, y, true, 0, pattern, args);
   va_end(args);
 }
 
@@ -280,7 +280,7 @@ void PrintMediumEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,
                    const char *pattern, ...) {
   va_list args;
   va_start(args, pattern);
-  printString(&muMatrix8ptRegular, x, y, color, posLCR, pattern, args);
+  printString(&MuMatrix8ptRegular, x, y, color, posLCR, pattern, args);
   va_end(args);
 }
 
@@ -294,7 +294,15 @@ void PrintMediumBold(uint8_t x, uint8_t y, const char *pattern, ...) {
 void PrintBigDigits(uint8_t x, uint8_t y, const char *pattern, ...) {
   va_list args;
   va_start(args, pattern);
-  printString(&Numbers_13_16, x, y, true, 0, pattern, args);
+  printString(&dig_14, x, y, true, 0, pattern, args);
+  va_end(args);
+}
+
+void PrintBigDigitsEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,
+                      const char *pattern, ...) {
+  va_list args;
+  va_start(args, pattern);
+  printString(&dig_14, x, y, color, posLCR, pattern, args);
   va_end(args);
 }
 

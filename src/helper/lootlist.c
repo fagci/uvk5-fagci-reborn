@@ -8,7 +8,7 @@ static int8_t lootIndex = -1;
 
 Loot *LOOT_Get(uint32_t f) {
   for (uint8_t i = 0; i < LOOT_Size(); ++i) {
-    if ((&loot[i])->f == f) {
+    if ((&loot[i])->vfo->fRX == f) {
       return &loot[i];
     }
   }
@@ -23,7 +23,7 @@ Loot *LOOT_Add(uint32_t f) {
   if (LOOT_Size() < LOOT_SIZE_MAX) {
     lootIndex++;
     loot[lootIndex] = (Loot){
-        .f = f,
+        .vfo = &(VFO){f},
         .firstTime = elapsedMilliseconds,
         .lastTimeCheck = elapsedMilliseconds,
         .lastTimeOpen = elapsedMilliseconds,
@@ -35,6 +35,16 @@ Loot *LOOT_Add(uint32_t f) {
     return &loot[lootIndex];
   }
   return NULL;
+}
+
+Loot *LOOT_AddVFO(VFO *vfo) {
+  Loot *p = LOOT_Get(vfo->fRX);
+  if (p) {
+    return p;
+  }
+  p = LOOT_Add(vfo->fRX);
+  p->vfo = vfo;
+  return p;
 }
 
 void LOOT_Clear() { lootIndex = -1; }
