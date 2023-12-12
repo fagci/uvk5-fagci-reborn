@@ -1,7 +1,7 @@
 #include "graphics.h"
 // #include "fonts/DSEG7_Classic_Mini_Regular_11.h"
-// #include "fonts/Numbers_seg_13_16.h"
 #include "fonts/NumbersStepanv3.h"
+#include "fonts/NumbersStepanv4.h"
 // #include "fonts/NumbersSoftAce6.h"
 #include "fonts/TomThumb.h"
 #include "fonts/muHeavy8ptBold.h"
@@ -18,6 +18,9 @@
 #endif
 
 static uint8_t cursor_x = 0, cursor_y = 0;
+
+static const GFXfont *fontBig = &dig_11;
+static const GFXfont *fontBiggest = &dig_14;
 
 void UI_ClearStatus() { memset(gFrameBuffer[0], 0, sizeof(gFrameBuffer[0])); }
 void UI_ClearScreen() { memset(gFrameBuffer, 0, sizeof(gFrameBuffer)); }
@@ -294,7 +297,7 @@ void PrintMediumBold(uint8_t x, uint8_t y, const char *pattern, ...) {
 void PrintBigDigits(uint8_t x, uint8_t y, const char *pattern, ...) {
   va_list args;
   va_start(args, pattern);
-  printString(&dig_14, x, y, true, 0, pattern, args);
+  printString(fontBig, x, y, true, 0, pattern, args);
   va_end(args);
 }
 
@@ -302,7 +305,22 @@ void PrintBigDigitsEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,
                       const char *pattern, ...) {
   va_list args;
   va_start(args, pattern);
-  printString(&dig_14, x, y, color, posLCR, pattern, args);
+  printString(fontBig, x, y, color, posLCR, pattern, args);
+  va_end(args);
+}
+
+void PrintBiggestDigits(uint8_t x, uint8_t y, const char *pattern, ...) {
+  va_list args;
+  va_start(args, pattern);
+  printString(fontBiggest, x, y, true, 0, pattern, args);
+  va_end(args);
+}
+
+void PrintBiggestDigitsEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,
+                          const char *pattern, ...) {
+  va_list args;
+  va_start(args, pattern);
+  printString(fontBiggest, x, y, color, posLCR, pattern, args);
   va_end(args);
 }
 

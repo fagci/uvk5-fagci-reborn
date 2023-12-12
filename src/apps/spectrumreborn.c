@@ -58,7 +58,7 @@ static void resetRssiHistory() {
   }
 }
 
-static Loot msm = {&(VFO){0}};
+static Loot msm = {(VFO){0}};
 
 static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
 
@@ -75,10 +75,10 @@ static void updateMeasurements() {
     msm.open = isSquelchOpen();
   }
 
-  Loot *peak = LOOT_Get(msm.vfo->fRX);
+  Loot *peak = LOOT_Get(msm.vfo.fRX);
 
   if (peak == NULL && msm.open) {
-    peak = LOOT_Add(msm.vfo->fRX);
+    peak = LOOT_Add(msm.vfo.fRX);
   }
 
   if (peak != NULL) {
@@ -126,7 +126,7 @@ static void writeRssi() {
     return;
   }
 
-  msm.vfo->fRX += currentStepSize;
+  msm.vfo.fRX += currentStepSize;
   currentStep++;
 }
 
@@ -140,7 +140,7 @@ static void step() {
     markers[lx] = false;
   }
 
-  BK4819_SetFrequency(msm.vfo->fRX);
+  BK4819_SetFrequency(msm.vfo.fRX);
   BK4819_WriteRegister(BK4819_REG_30, 0x200);
   BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
 
@@ -157,7 +157,7 @@ static void startNewScan() {
   stepsCount = bandwidth / currentStepSize;
   exLen = ceilDiv(DATA_LEN, stepsCount);
 
-  msm.vfo->fRX = currentBand->bounds.start;
+  msm.vfo.fRX = currentBand->bounds.start;
 
   if (gSettings.activePreset != oldPresetIndex) {
     resetRssiHistory();
@@ -236,7 +236,7 @@ void SPECTRUM_update(void) {
     }
     return;
   }
-  if (msm.vfo->fRX >= currentBand->bounds.end) {
+  if (msm.vfo.fRX >= currentBand->bounds.end) {
     updateStats();
     gRedrawScreen = true;
     newScan = true;
@@ -276,6 +276,6 @@ void SPECTRUM_render(void) {
     /* PrintSmall(DATA_LEN + 1, i * 6, "%c%u.%04u %us", p->open ? '>' : '
        ', p->f / 100000, p->f / 10 % 10000, p->duration / 1000); */
     PrintSmall(DATA_LEN + 1, i * 6 + 5, "%c%u.%04u %u", p->open ? '>' : ' ',
-               p->vfo->fRX / 100000, p->vfo->fRX / 10 % 10000, p->ct);
+               p->vfo.fRX / 100000, p->vfo.fRX / 10 % 10000, p->ct);
   }
 }
