@@ -211,11 +211,11 @@ void RADIO_SetupBandParams(Band *b) {
 }
 
 void RADIO_LoadChannel(uint16_t num, VFO *p) {
-  EEPROM_ReadBuffer(CHANNELS_OFFSET + num * VFO_SIZE, p, VFO_SIZE);
+  EEPROM_ReadBuffer(CHANNELS_OFFSET - num * VFO_SIZE, p, VFO_SIZE);
 }
 
 void RADIO_SaveChannel(uint16_t num, VFO *p) {
-  EEPROM_WriteBuffer(CHANNELS_OFFSET + num * VFO_SIZE, p, VFO_SIZE);
+  EEPROM_WriteBuffer(CHANNELS_OFFSET - num * VFO_SIZE, p, VFO_SIZE);
 }
 
 void RADIO_SavePreset(uint8_t num, Preset *p) {

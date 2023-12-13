@@ -9,6 +9,8 @@
 
 static uint16_t currentChannelIndex = 0;
 
+#define CHANNELS_COUNT 255
+
 static char channelNames[CHANNELS_COUNT][16];
 static bool gotChannelNames = false;
 static uint16_t readIndex = 0;

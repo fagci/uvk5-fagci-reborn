@@ -3,7 +3,8 @@
 #include "fonts/NumbersStepanv3.h"
 #include "fonts/NumbersStepanv4.h"
 // #include "fonts/NumbersSoftAce6.h"
-#include "fonts/TomThumb.h"
+// #include "fonts/TomThumb.h"
+#include "fonts/Minecraft8.h"
 #include "fonts/muHeavy8ptBold.h"
 #include "fonts/muMatrix8ptRegular.h"
 #include <stdlib.h>
@@ -19,6 +20,7 @@
 
 static uint8_t cursor_x = 0, cursor_y = 0;
 
+static const GFXfont *fontSmall = &Minecraft_Rus_NEW4pt7b;
 static const GFXfont *fontBig = &dig_11;
 static const GFXfont *fontBiggest = &dig_14;
 
@@ -260,7 +262,7 @@ static void printString(const GFXfont *gfxFont, uint8_t x, uint8_t y,
 void PrintSmall(uint8_t x, uint8_t y, const char *pattern, ...) {
   va_list args;
   va_start(args, pattern);
-  printString(&TomThumb, x, y, true, 0, pattern, args);
+  printString(fontSmall, x, y, true, 0, pattern, args);
   va_end(args);
 }
 
@@ -268,7 +270,7 @@ void PrintSmallEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,
                   const char *pattern, ...) {
   va_list args;
   va_start(args, pattern);
-  printString(&TomThumb, x, y, color, posLCR, pattern, args);
+  printString(fontSmall, x, y, color, posLCR, pattern, args);
   va_end(args);
 }
 
