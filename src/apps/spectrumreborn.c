@@ -23,7 +23,7 @@ static const uint8_t NOISE_OPEN_DIFF = 14;
 
 static const uint8_t S_HEIGHT = 39;
 
-static const uint8_t SPECTRUM_Y = 0;
+static const uint8_t SPECTRUM_Y = 8;
 static const uint8_t S_BOTTOM = SPECTRUM_Y + S_HEIGHT;
 
 static uint16_t rssiHistory[DATA_LEN] = {0};
@@ -255,27 +255,27 @@ void SPECTRUM_render(void) {
   UI_ClearStatus();
   UI_ClearScreen();
 
-  PrintSmall(0, 0, currentBand->name);
+  PrintSmall(0, 5, currentBand->name);
 
-  UI_DrawTicks(0, DATA_LEN, 5, currentBand, false);
-  UI_FSmallest(currentBand->bounds.start, 0, 49);
-  UI_FSmallest(currentBand->bounds.end, 93, 49);
+  UI_DrawTicks(0, DATA_LEN, 6, currentBand, false);
+  UI_FSmallest(currentBand->bounds.start, 0, SPECTRUM_Y + S_HEIGHT + 8 + 5);
+  UI_FSmallest(currentBand->bounds.end, 93, SPECTRUM_Y + S_HEIGHT + 8 + 5);
 
   for (uint8_t xx = 0; xx < DATA_LEN; ++xx) {
     uint8_t yVal = ConvertDomain(rssiHistory[xx], vMin, vMax, 0, S_HEIGHT);
     DrawVLine(xx, S_BOTTOM - yVal, yVal, true);
     if (markers[xx]) {
-      DrawVLine(xx, 46, 2, true);
+      DrawVLine(xx, SPECTRUM_Y + S_HEIGHT + 6, 2, true);
     }
   }
 
-  DrawVLine(DATA_LEN - 1, 0, S_BOTTOM, true);
+  DrawVLine(DATA_LEN - 1, SPECTRUM_Y, S_BOTTOM, true);
 
   for (uint8_t i = 0; i < Clamp(LOOT_Size(), 0, 8); i++) {
     Loot *p = LOOT_Item(i);
     /* PrintSmall(DATA_LEN + 1, i * 6, "%c%u.%04u %us", p->open ? '>' : '
        ', p->f / 100000, p->f / 10 % 10000, p->duration / 1000); */
-    PrintSmall(DATA_LEN + 1, i * 6 + 5, "%c%u.%04u %u", p->open ? '>' : ' ',
+    PrintSmall(DATA_LEN + 1, i * 6 + 5 + 8, "%c%u.%04u %u", p->open ? '>' : ' ',
                p->vfo.fRX / 100000, p->vfo.fRX / 10 % 10000, p->ct);
   }
 }

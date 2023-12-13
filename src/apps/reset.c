@@ -57,7 +57,7 @@ static Preset defaultPresets[] = {
             {
                 .bounds = {8800000, 10800000},
                 .name = "Bcast FM",
-                .step = STEP_5_0kHz,
+                .step = STEP_100_0kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_NARROW,
                 .gainIndex = 90,
@@ -69,7 +69,7 @@ static Preset defaultPresets[] = {
             {
                 .bounds = {10800000, 11800000},
                 .name = "F5",
-                .step = STEP_100_0kHz,
+                .step = STEP_12_5kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,
                 .gainIndex = 90,
