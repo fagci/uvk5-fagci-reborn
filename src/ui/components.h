@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define BATTERY_X 115
+#define BATTERY_W 13
 
 typedef struct MenuItem {
   const char *name;

@@ -78,7 +78,7 @@ static void UpdateBattery() {
     if (showBattery) {
       UI_Battery(gBatteryDisplayLevel);
     } else {
-      memset(gFrameBuffer[0] + BATTERY_X, 0, 13);
+      memset(gFrameBuffer[0], 0, 13);
     }
     gRedrawScreen = true;
   }

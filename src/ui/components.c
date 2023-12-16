@@ -10,38 +10,15 @@
 static const uint8_t MENU_LINES_TO_SHOW = 6;
 
 void UI_Battery(uint8_t Level) {
-  const uint8_t START = BATTERY_X;
-  const uint8_t WORK_START = START + 2;
-  const uint8_t WORK_WIDTH = 10;
-  const uint8_t WORK_END = WORK_START + WORK_WIDTH;
-  uint8_t *pLine = gFrameBuffer[0];
+  memset(gFrameBuffer[0], 0, 13);
+  DrawRect(0, 0, 12, 5, C_FILL);
+  FillRect(1, 1, ConvertDomain(Level, 0, 5, 0, 10), 3, C_FILL);
+  DrawVLine(12, 1, 3, C_FILL);
 
-  pLine[START] = 0b000001110;
-  pLine[START + 1] = 0b000011111;
-  pLine[WORK_END] = 0b000011111;
-
-  Level <<= 1;
-
-  for (uint8_t i = 1; i <= WORK_WIDTH; ++i) {
-    pLine[WORK_END - i] = Level >= i ? 0b000011111 : 0b000010001;
-  }
-
-  // coz x2 earlier
-  if (Level > 10) {
-    pLine[WORK_START + 1] &= 0b11110111;
-    pLine[WORK_START + 2] &= 0b11110111;
-    pLine[WORK_START + 3] &= 0b11110111;
-    pLine[WORK_START + 4] &= 0b11110111;
-    pLine[WORK_START + 5] &= 0b11110111;
-
-    pLine[WORK_START + 4] &= 0b11111011;
-
-    pLine[WORK_START + 3] &= 0b11111101;
-    pLine[WORK_START + 4] &= 0b11111101;
-    pLine[WORK_START + 5] &= 0b11111101;
-    pLine[WORK_START + 6] &= 0b11111101;
-    pLine[WORK_START + 7] &= 0b11111101;
-    pLine[WORK_START + 8] &= 0b11111101;
+  if (Level > 5) {
+    DrawHLine(5, 1, 5, C_INVERT);
+    PutPixel(6, 2, C_INVERT);
+    DrawHLine(2, 3, 6, C_INVERT);
   }
 }
 

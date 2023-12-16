@@ -76,7 +76,7 @@ void APPS_init(AppType_t app) {
   for (uint8_t i = 0; i <= stackIndex; i++) {
     sprintf(String, "%s>%u", String, appsStack[i]);
   }
-  PrintSmall(0, 6, String);
+  PrintSmall(15, 5, String);
   // UI_PrintStringSmallest(apps[gCurrentApp].name, 0, 0, true, true);
   gRedrawScreen = true;
 

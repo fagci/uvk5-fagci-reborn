@@ -7,7 +7,7 @@ void VFO_init() {
   UI_ClearScreen();
 
   LOOT_Clear();
-  LOOT_AddVFO((VFO){40655000, .modulation = MOD_RAW});
+  LOOT_AddVFO((VFO){40655000, .modulation = MOD_FM});
   LOOT_AddVFO((VFO){123456700, 0, "Test CH 2", .modulation = MOD_BYP});
 
   gCurrentVfo = LOOT_Item(0)->vfo;
