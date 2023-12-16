@@ -9,7 +9,7 @@
 #include "scheduler.h"
 #include "settings.h"
 
-VFO gCurrentVfo;
+VFO *gCurrentVFO;
 
 // to use instead of predefined when we need to keep step, etc
 static Preset defaultPreset = {0};
@@ -107,12 +107,12 @@ static void onPresetUpdate() {
 }
 
 void RADIO_ToggleModulation() {
-  if (gCurrentVfo.modulation == MOD_RAW) {
-    gCurrentVfo.modulation = MOD_FM;
+  if (gCurrentVFO->modulation == MOD_RAW) {
+    gCurrentVFO->modulation = MOD_FM;
   } else {
-    ++gCurrentVfo.modulation;
+    ++gCurrentVFO->modulation;
   }
-  BK4819_SetModulation(gCurrentVfo.modulation);
+  BK4819_SetModulation(gCurrentVFO->modulation);
   onVfoUpdate();
 }
 
@@ -128,21 +128,21 @@ void RADIO_UpdateStep(bool inc) {
 }
 
 void RADIO_ToggleListeningBW() {
-  if (gCurrentVfo.bw == BK4819_FILTER_BW_NARROWER) {
-    gCurrentVfo.bw = BK4819_FILTER_BW_WIDE;
+  if (gCurrentVFO->bw == BK4819_FILTER_BW_NARROWER) {
+    gCurrentVFO->bw = BK4819_FILTER_BW_WIDE;
   } else {
-    ++gCurrentVfo.bw;
+    ++gCurrentVFO->bw;
   }
 
-  BK4819_SetFilterBandwidth(gCurrentVfo.bw);
+  BK4819_SetFilterBandwidth(gCurrentVFO->bw);
   onVfoUpdate();
 }
 
 void updatePresetFromCurrentVFO() {
   for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
     Preset *p = PRESETS_Item(i);
-    if (gCurrentVfo.fRX >= p->band.bounds.start &&
-        gCurrentVfo.fRX <= p->band.bounds.end) {
+    if (gCurrentVFO->fRX >= p->band.bounds.start &&
+        gCurrentVFO->fRX <= p->band.bounds.end) {
       gCurrentPreset = p;
       return;
     }
@@ -151,7 +151,7 @@ void updatePresetFromCurrentVFO() {
 }
 
 void RADIO_TuneTo(uint32_t f) {
-  gCurrentVfo.fRX = f;
+  gCurrentVFO->fRX = f;
   updatePresetFromCurrentVFO();
   BK4819_TuneTo(f);
   onVfoUpdate();
@@ -160,7 +160,7 @@ void RADIO_TuneTo(uint32_t f) {
 void RADIO_SaveCurrentVFO() {
   const uint16_t CURRENT_VFO_OFFSET =
       CHANNELS_OFFSET + gSettings.activeChannel * VFO_SIZE;
-  EEPROM_WriteBuffer(CURRENT_VFO_OFFSET, &gCurrentVfo, VFO_SIZE);
+  EEPROM_WriteBuffer(CURRENT_VFO_OFFSET, &gCurrentVFO, VFO_SIZE);
 }
 
 void RADIO_SaveCurrentPreset() {
@@ -173,12 +173,12 @@ void RADIO_SaveCurrentPreset() {
 void RADIO_LoadCurrentVFO() {
   const uint16_t CURRENT_VFO_OFFSET =
       CHANNELS_OFFSET + gSettings.activeChannel * VFO_SIZE;
-  EEPROM_ReadBuffer(CURRENT_VFO_OFFSET, &gCurrentVfo, VFO_SIZE);
+  EEPROM_ReadBuffer(CURRENT_VFO_OFFSET, &gCurrentVFO, VFO_SIZE);
   updatePresetFromCurrentVFO();
 }
 
 void RADIO_SetSquelch(uint8_t sq) {
-  BK4819_Squelch(gCurrentPreset->band.squelch = sq, gCurrentVfo.fRX);
+  BK4819_Squelch(gCurrentPreset->band.squelch = sq, gCurrentVFO->fRX);
   onPresetUpdate();
 }
 
@@ -195,10 +195,10 @@ void RADIO_SetGain(uint8_t gainIndex) {
 void RADIO_SetupByCurrentVFO() {
   updatePresetFromCurrentVFO();
   BK4819_SquelchType(gCurrentPreset->band.squelchType);
-  BK4819_Squelch(gCurrentPreset->band.squelch, gCurrentVfo.fRX);
-  BK4819_TuneTo(gCurrentVfo.fRX);
-  BK4819_SetFilterBandwidth(gCurrentVfo.bw);
-  BK4819_SetModulation(gCurrentVfo.modulation);
+  BK4819_Squelch(gCurrentPreset->band.squelch, gCurrentVFO->fRX);
+  BK4819_TuneTo(gCurrentVFO->fRX);
+  BK4819_SetFilterBandwidth(gCurrentVFO->bw);
+  BK4819_SetModulation(gCurrentVFO->modulation);
   BK4819_SetGain(gCurrentPreset->band.gainIndex);
 }
 

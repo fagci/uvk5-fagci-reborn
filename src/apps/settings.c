@@ -31,7 +31,7 @@ static void accept() {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_UPCONVERTER: {
-    uint32_t f = GetScreenF(gCurrentVfo.fRX);
+    uint32_t f = GetScreenF(gCurrentVFO->fRX);
     gSettings.upconverter = subMenuIndex;
     RADIO_TuneTo(GetTuneF(f));
     SETTINGS_Save();

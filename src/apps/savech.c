@@ -48,9 +48,9 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     gRedrawScreen = true;
     return true;
   case KEY_MENU:
-    strncpy(channelNames[currentChannelIndex], gCurrentVfo.name, 15);
+    strncpy(channelNames[currentChannelIndex], gCurrentVFO->name, 15);
     EEPROM_WriteBuffer(VFO_SIZE * currentChannelIndex + CHANNELS_OFFSET,
-                       &gCurrentVfo, VFO_SIZE);
+                       &gCurrentVFO, VFO_SIZE);
     gRedrawScreen = true;
     return true;
   case KEY_EXIT:

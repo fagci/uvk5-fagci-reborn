@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-extern VFO gCurrentVfo;
+extern VFO *gCurrentVFO;
 extern const char *upConverterFreqNames[3];
 extern bool gIsListening;
 

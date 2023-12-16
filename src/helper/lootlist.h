@@ -28,5 +28,7 @@ void LOOT_Standby();
 uint8_t LOOT_Size();
 void LOOT_Sort(bool (*compare)(Loot *a, Loot *b));
 Loot *LOOT_Item(uint8_t i);
+Loot *LOOT_Next();
+Loot *LOOT_Prev();
 
 #endif

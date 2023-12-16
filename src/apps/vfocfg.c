@@ -43,11 +43,11 @@ static void accept() {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_BW:
-    gCurrentVfo.bw = subMenuIndex;
+    gCurrentVFO->bw = subMenuIndex;
     RADIO_SaveCurrentVFO();
     break;
   case M_MODULATION:
-    gCurrentVfo.modulation = subMenuIndex;
+    gCurrentVFO->modulation = subMenuIndex;
     RADIO_SaveCurrentVFO();
     break;
   case M_STEP:
@@ -63,19 +63,19 @@ static char Output[16];
 static const char *getValue(Menu type) {
   switch (type) {
   case M_F_RX:
-    sprintf(Output, "%u.%05u", gCurrentVfo.fRX / 100000,
-            gCurrentVfo.fRX % 100000);
+    sprintf(Output, "%u.%05u", gCurrentVFO->fRX / 100000,
+            gCurrentVFO->fRX % 100000);
     return Output;
   case M_F_TX:
-    sprintf(Output, "%u.%05u", gCurrentVfo.fTX / 100000,
-            gCurrentVfo.fTX % 100000);
+    sprintf(Output, "%u.%05u", gCurrentVFO->fTX / 100000,
+            gCurrentVFO->fTX % 100000);
     return Output;
   case M_NAME:
-    return gCurrentVfo.name;
+    return gCurrentVFO->name;
   case M_BW:
-    return bwNames[gCurrentVfo.bw];
+    return bwNames[gCurrentVFO->bw];
   case M_MODULATION:
-    return modulationTypeOptions[gCurrentVfo.modulation];
+    return modulationTypeOptions[gCurrentVFO->modulation];
   case M_STEP:
     sprintf(Output, "%d.%02dKHz",
             StepFrequencyTable[gCurrentPreset->band.step] / 100,
@@ -113,7 +113,7 @@ static void showSubmenu(Menu menu) {
 }
 
 static void setTXF(uint32_t f) {
-  gCurrentVfo.fTX = f;
+  gCurrentVFO->fTX = f;
   RADIO_SaveCurrentVFO();
 }
 
@@ -147,7 +147,7 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     // RUN APPS HERE
     switch (item->type) {
     case M_NAME:
-      gTextinputText = gCurrentVfo.name;
+      gTextinputText = gCurrentVFO->name;
       APPS_run(APP_TEXTINPUT);
       return true;
     case M_F_RX:

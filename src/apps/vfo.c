@@ -7,11 +7,20 @@ void VFO_init() {
   UI_ClearScreen();
 
   LOOT_Clear();
-  LOOT_AddVFO((VFO){40655000, .modulation = MOD_FM});
-  LOOT_AddVFO((VFO){123456700, 0, "Test CH 2", .modulation = MOD_BYP});
 
-  gCurrentVfo = LOOT_Item(0)->vfo;
+  // Here will be all VFO marked channels.
+  // For now it is first two reserved channels
 
+  VFO vfo1 = {40655000, 0, "Med lenin", 0, MOD_FM, BK4819_FILTER_BW_WIDE};
+  VFO vfo2 = {40660000, 0, "Med kirov", 0, MOD_FM, BK4819_FILTER_BW_WIDE};
+
+  /* RADIO_LoadChannel(0, &vfo1);
+  RADIO_LoadChannel(1, &vfo2); */
+
+  LOOT_AddVFO(vfo1);
+  LOOT_AddVFO(vfo2);
+
+  gCurrentVFO = &LOOT_Next()->vfo;
   RADIO_SetupByCurrentVFO();
 }
 
@@ -26,9 +35,21 @@ void VFO_update() {
   }
 }
 
+void NextVFO() {}
+
 bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed) {
     return false;
+  }
+  switch (key) {
+  case KEY_2:
+    if (bKeyHeld) {
+      gCurrentVFO = &LOOT_Next()->vfo;
+      RADIO_SetupByCurrentVFO();
+      return true;
+    }
+  default:
+    break;
   }
   return false;
 }
@@ -45,7 +66,7 @@ void renderExample() {
 void render2VFOPart(uint8_t i) {
   uint8_t BASE = 24;
   Loot *item = LOOT_Item(i);
-  bool isActive = i == gSettings.activeChannel;
+  bool isActive = gCurrentVFO == &item->vfo;
 
   uint8_t bl = BASE + 32 * i;
 

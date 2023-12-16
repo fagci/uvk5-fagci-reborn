@@ -133,9 +133,9 @@ static void Intro() {
   if (PRESETS_Load()) {
     RADIO_LoadCurrentVFO();
 
-    BK4819_TuneTo(gCurrentVfo.fRX);
-    BK4819_Squelch(3, gCurrentVfo.fRX);
-    BK4819_SetModulation(gCurrentVfo.modulation);
+    BK4819_TuneTo(gCurrentVFO->fRX);
+    BK4819_Squelch(3, gCurrentVFO->fRX);
+    BK4819_SetModulation(gCurrentVFO->modulation);
 
     AddTasks();
     TaskRemove(Intro);

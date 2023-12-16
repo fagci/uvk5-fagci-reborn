@@ -56,14 +56,14 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
 
 static void UpdateCurrentFreqStill(bool inc) {
   const uint16_t offset = StepFrequencyTable[gCurrentPreset->band.step];
-  if (inc && gCurrentVfo.fRX < F_MAX) {
-    gCurrentVfo.fRX += offset;
-  } else if (!inc && gCurrentVfo.fRX > F_MIN) {
-    gCurrentVfo.fRX -= offset;
+  if (inc && gCurrentVFO->fRX < F_MAX) {
+    gCurrentVFO->fRX += offset;
+  } else if (!inc && gCurrentVFO->fRX > F_MIN) {
+    gCurrentVFO->fRX -= offset;
   } else {
     return;
   }
-  RADIO_TuneTo(gCurrentVfo.fRX);
+  RADIO_TuneTo(gCurrentVFO->fRX);
   gRedrawScreen = true;
 }
 
@@ -225,7 +225,7 @@ static void DrawRegs() {
 void STILL_render() {
   UI_ClearScreen();
   PrintSmall(0, 5, "%s", gCurrentPreset->band.name);
-  UI_FSmall(GetScreenF(gCurrentVfo.fRX));
-  UI_RSSIBar(rssi, gCurrentVfo.fRX, 3);
+  UI_FSmall(GetScreenF(gCurrentVFO->fRX));
+  UI_RSSIBar(rssi, gCurrentVFO->fRX, 3);
   DrawRegs();
 }

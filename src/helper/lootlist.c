@@ -5,6 +5,21 @@
 
 static Loot loot[LOOT_SIZE_MAX] = {0};
 static int8_t lootIndex = -1;
+static uint8_t activeLootIndex = -1;
+
+Loot *LOOT_Next() {
+  if (activeLootIndex < LOOT_Size() - 1) {
+    activeLootIndex++;
+  }
+  return &loot[activeLootIndex];
+}
+
+Loot *LOOT_Prev() {
+  if (activeLootIndex > 0) {
+    activeLootIndex--;
+  }
+  return &loot[activeLootIndex];
+}
 
 Loot *LOOT_Get(uint32_t f) {
   for (uint8_t i = 0; i < LOOT_Size(); ++i) {

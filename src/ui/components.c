@@ -48,14 +48,14 @@ void UI_RSSIBar(int16_t rssi, uint32_t f, uint8_t line) {
 
 void UI_FSmall(uint32_t f) {
   PrintSmallEx(LCD_WIDTH - 1, 15, 2, true,
-               modulationTypeOptions[gCurrentVfo.modulation]);
-  PrintSmallEx(LCD_WIDTH - 1, 21, 2, true, bwNames[gCurrentVfo.bw]);
+               modulationTypeOptions[gCurrentVFO->modulation]);
+  PrintSmallEx(LCD_WIDTH - 1, 21, 2, true, bwNames[gCurrentVFO->bw]);
 
   uint16_t step = StepFrequencyTable[gCurrentPreset->band.step];
 
   PrintSmall(0, 21, "%u.%02uk", step / 100, step % 100);
 
-  UI_FSmallest(gCurrentVfo.fRX, 32, 21);
+  UI_FSmallest(gCurrentVFO->fRX, 32, 21);
 
   PrintSmall(74, 21, "SQ:%u", gCurrentPreset->band.squelch);
 
