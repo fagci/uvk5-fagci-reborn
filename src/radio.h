@@ -7,6 +7,8 @@
 #include <stdint.h>
 
 extern VFO *gCurrentVFO;
+extern VFO gVFO[2];
+
 extern const char *upConverterFreqNames[3];
 extern bool gIsListening;
 

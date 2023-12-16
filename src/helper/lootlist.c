@@ -5,25 +5,10 @@
 
 static Loot loot[LOOT_SIZE_MAX] = {0};
 static int8_t lootIndex = -1;
-static uint8_t activeLootIndex = -1;
-
-Loot *LOOT_Next() {
-  if (activeLootIndex < LOOT_Size() - 1) {
-    activeLootIndex++;
-  }
-  return &loot[activeLootIndex];
-}
-
-Loot *LOOT_Prev() {
-  if (activeLootIndex > 0) {
-    activeLootIndex--;
-  }
-  return &loot[activeLootIndex];
-}
 
 Loot *LOOT_Get(uint32_t f) {
   for (uint8_t i = 0; i < LOOT_Size(); ++i) {
-    if ((&loot[i])->vfo.fRX == f) {
+    if ((&loot[i])->f == f) {
       return &loot[i];
     }
   }
@@ -38,7 +23,7 @@ Loot *LOOT_Add(uint32_t f) {
   if (LOOT_Size() < LOOT_SIZE_MAX) {
     lootIndex++;
     loot[lootIndex] = (Loot){
-        .vfo = (VFO){.fRX = f},
+        .f = f,
         .firstTime = elapsedMilliseconds,
         .lastTimeCheck = elapsedMilliseconds,
         .lastTimeOpen = elapsedMilliseconds,
@@ -50,16 +35,6 @@ Loot *LOOT_Add(uint32_t f) {
     return &loot[lootIndex];
   }
   return NULL;
-}
-
-Loot *LOOT_AddVFO(VFO vfo) {
-  Loot *p = LOOT_Get(vfo.fRX);
-  if (p) {
-    return p;
-  }
-  p = LOOT_Add(vfo.fRX);
-  p->vfo = vfo;
-  return p;
 }
 
 void LOOT_Clear() { lootIndex = -1; }
@@ -104,3 +79,26 @@ void LOOT_Sort(bool (*compare)(Loot *a, Loot *b)) {
 }
 
 Loot *LOOT_Item(uint8_t i) { return &loot[i]; }
+
+void LOOT_Update(Loot *msm) {
+  Loot *peak = LOOT_Get(msm->f);
+
+  if (peak == NULL && msm->open) {
+    peak = LOOT_Add(msm->f);
+  }
+
+  if (peak != NULL) {
+    peak->noise = msm->noise;
+    peak->rssi = msm->rssi;
+
+    if (peak->open) {
+      peak->duration += elapsedMilliseconds - peak->lastTimeCheck;
+    }
+    if (msm->open) {
+      BK4819_GetCxCSSScanResult(&(peak->cd), &(peak->ct));
+      peak->lastTimeOpen = elapsedMilliseconds;
+    }
+    peak->lastTimeCheck = elapsedMilliseconds;
+    peak->open = msm->open;
+  }
+}

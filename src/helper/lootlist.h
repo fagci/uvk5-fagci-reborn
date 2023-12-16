@@ -7,7 +7,7 @@
 #include <stdint.h>
 
 typedef struct {
-  VFO vfo;
+  uint32_t f;
   uint32_t firstTime;
   uint32_t lastTimeCheck;
   uint32_t lastTimeOpen;
@@ -22,13 +22,11 @@ typedef struct {
 bool LOOT_SortByLastOpenTime(Loot *a, Loot *b);
 Loot *LOOT_Get(uint32_t f);
 Loot *LOOT_Add(uint32_t f);
-Loot *LOOT_AddVFO(VFO vfo);
 void LOOT_Clear();
 void LOOT_Standby();
 uint8_t LOOT_Size();
 void LOOT_Sort(bool (*compare)(Loot *a, Loot *b));
 Loot *LOOT_Item(uint8_t i);
-Loot *LOOT_Next();
-Loot *LOOT_Prev();
+void LOOT_Update(Loot *msm);
 
 #endif

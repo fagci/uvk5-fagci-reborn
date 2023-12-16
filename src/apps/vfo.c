@@ -3,6 +3,8 @@
 #include "../scheduler.h"
 #include "../ui/graphics.h"
 
+static Loot msm = {0};
+
 void VFO_init() {
   UI_ClearScreen();
 
@@ -11,31 +13,57 @@ void VFO_init() {
   // Here will be all VFO marked channels.
   // For now it is first two reserved channels
 
-  VFO vfo1 = {40655000, 0, "Med lenin", 0, MOD_FM, BK4819_FILTER_BW_WIDE};
-  VFO vfo2 = {40660000, 0, "Med kirov", 0, MOD_FM, BK4819_FILTER_BW_WIDE};
+  gVFO[0] = (VFO){40655000, 0, "Med lenin", 0, MOD_FM, BK4819_FILTER_BW_WIDE};
+  gVFO[1] = (VFO){40660000, 0, "Med kirov", 0, MOD_FM, BK4819_FILTER_BW_WIDE};
 
-  /* RADIO_LoadChannel(0, &vfo1);
-  RADIO_LoadChannel(1, &vfo2); */
+  /* RADIO_LoadVFO(0, &gVFO[0]);
+  RADIO_LoadVFO(1, &gVFO[1]); */
 
-  LOOT_AddVFO(vfo1);
-  LOOT_AddVFO(vfo2);
+  for (uint8_t i = 0; i < 2; ++i) {
+    LOOT_Add(gVFO[i].fRX)->open = false;
+  }
 
-  gCurrentVFO = &LOOT_Next()->vfo;
+  gCurrentVFO = &gVFO[gSettings.activeChannel];
   RADIO_SetupByCurrentVFO();
 }
 
-bool lastListenState = false;
+static bool lastListenState = false;
+static uint32_t lastUpdate = 0;
 
 void VFO_update() {
-  bool listenState = BK4819_IsSquelchOpen();
-  if (listenState != lastListenState) {
+  msm.rssi = BK4819_GetRSSI();
+  msm.noise = BK4819_GetNoise();
+  msm.open = BK4819_IsSquelchOpen();
+  LOOT_Update(&msm);
+  if (msm.open != lastListenState) {
     gRedrawScreen = true;
-    lastListenState = listenState;
-    RADIO_ToggleRX(listenState);
+    lastListenState = msm.open;
+
+    RADIO_ToggleRX(msm.open);
+  }
+  if (elapsedMilliseconds - lastUpdate >= 1000) {
+    gRedrawScreen = true;
+    lastUpdate = elapsedMilliseconds;
   }
 }
 
-void NextVFO() {}
+VFO *NextVFO() {
+  if (gSettings.activeChannel < LOOT_Size() - 1) {
+    gSettings.activeChannel++;
+  } else {
+    gSettings.activeChannel = 0;
+  }
+  return &gVFO[gSettings.activeChannel];
+}
+
+VFO *PrevVFO() {
+  if (gSettings.activeChannel > 0) {
+    gSettings.activeChannel--;
+  } else {
+    gSettings.activeChannel = LOOT_Size() - 1;
+  }
+  return &gVFO[gSettings.activeChannel];
+}
 
 bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed) {
@@ -44,8 +72,10 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   switch (key) {
   case KEY_2:
     if (bKeyHeld) {
-      gCurrentVFO = &LOOT_Next()->vfo;
+      gCurrentVFO = NextVFO();
       RADIO_SetupByCurrentVFO();
+      LOOT_Standby();
+      msm.f = gCurrentVFO->fRX;
       return true;
     }
   default:
@@ -65,30 +95,36 @@ void renderExample() {
 
 void render2VFOPart(uint8_t i) {
   uint8_t BASE = 24;
-  Loot *item = LOOT_Item(i);
-  bool isActive = gCurrentVFO == &item->vfo;
+  VFO *vfo = &gVFO[i];
+  bool isActive = gCurrentVFO == vfo;
 
   uint8_t bl = BASE + 32 * i;
 
-  uint16_t fp1 = item->vfo.fRX / 100000;
-  uint16_t fp2 = item->vfo.fRX / 100 % 1000;
-  uint8_t fp3 = item->vfo.fRX % 100;
-  const char *mod = modulationTypeOptions[item->vfo.modulation];
+  uint16_t fp1 = vfo->fRX / 100000;
+  uint16_t fp2 = vfo->fRX / 100 % 1000;
+  uint8_t fp3 = vfo->fRX % 100;
+  const char *mod = modulationTypeOptions[vfo->modulation];
 
   if (isActive) {
     FillRect(0, bl - 13, 16, 7, C_FILL);
   }
 
-  if (item->vfo.name[0] < 32 || item->vfo.name[0] > 127) {
+  if (vfo->name[0] < 32 || vfo->name[0] > 127) {
     PrintBigDigitsEx(LCD_WIDTH - 19, bl, POS_R, C_FILL, "%4u.%03u", fp1, fp2);
     PrintMediumEx(LCD_WIDTH - 1, bl, POS_R, C_FILL, "%02u", fp3);
     PrintSmallEx(8, bl - 8, POS_C, C_INVERT, "VFO");
   } else {
-    PrintMediumBoldEx(LCD_WIDTH / 2, bl - 8, POS_C, C_FILL, item->vfo.name);
+    PrintMediumBoldEx(LCD_WIDTH / 2, bl - 8, POS_C, C_FILL, vfo->name);
     PrintMediumEx(LCD_WIDTH / 2, bl, POS_C, C_FILL, "%4u.%03u", fp1, fp2);
     PrintSmallEx(8, bl - 8, POS_C, C_INVERT, "MR");
   }
   PrintSmallEx(LCD_WIDTH - 1, bl - 8, POS_R, C_FILL, mod);
+
+  Loot *stats = LOOT_Item(i);
+  uint32_t est = (elapsedMilliseconds - stats->lastTimeOpen) / 1000;
+  PrintSmallEx(0, bl + 6, POS_L, C_FILL, "CT %d CD %d", stats->ct, stats->cd);
+  PrintSmallEx(LCD_WIDTH - 1, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,
+               est % 60, stats->duration / 1000);
 }
 
 void render2VFO() {
@@ -100,12 +136,12 @@ void render2VFO() {
 void render1VFO() {
   const uint8_t BASE = 38;
 
-  Loot *item = LOOT_Item(0);
+  VFO *vfo = &gVFO[0];
 
-  uint16_t fp1 = item->vfo.fRX / 100000;
-  uint16_t fp2 = item->vfo.fRX / 10 % 10000;
-  uint8_t fp3 = item->vfo.fRX % 100;
-  const char *mod = modulationTypeOptions[item->vfo.modulation];
+  uint16_t fp1 = vfo->fRX / 100000;
+  uint16_t fp2 = vfo->fRX / 10 % 10000;
+  uint8_t fp3 = vfo->fRX % 100;
+  const char *mod = modulationTypeOptions[vfo->modulation];
 
   PrintBiggestDigitsEx(LCD_WIDTH - 19, BASE, POS_R, C_FILL, "%4u.%03u", fp1,
                        fp2);

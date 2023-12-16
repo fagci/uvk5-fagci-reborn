@@ -10,6 +10,7 @@
 #include "settings.h"
 
 VFO *gCurrentVFO;
+VFO gVFO[2] = {0};
 
 // to use instead of predefined when we need to keep step, etc
 static Preset defaultPreset = {0};
