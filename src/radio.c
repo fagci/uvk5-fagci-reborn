@@ -193,6 +193,7 @@ void RADIO_SetGain(uint8_t gainIndex) {
 }
 
 void RADIO_SetupByCurrentVFO() {
+  updatePresetFromCurrentVFO();
   BK4819_SquelchType(gCurrentPreset->band.squelchType);
   BK4819_Squelch(gCurrentPreset->band.squelch, gCurrentVfo.fRX);
   BK4819_TuneTo(gCurrentVfo.fRX);

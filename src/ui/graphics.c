@@ -1,12 +1,9 @@
 #include "graphics.h"
-// #include "fonts/DSEG7_Classic_Mini_Regular_11.h"
 #include "fonts/NumbersStepanv3.h"
 #include "fonts/NumbersStepanv4.h"
-// #include "fonts/NumbersSoftAce6.h"
-#include "fonts/Minecraft8.h"
 #include "fonts/TomThumb.h"
 #include "fonts/muHeavy8ptBold.h"
-// #include "fonts/muMatrix8ptRegular.h"
+#include "fonts/muMatrix8ptRegular.h"
 #include <stdlib.h>
 
 #ifndef _swap_int16_t
@@ -21,7 +18,7 @@
 static uint8_t cursor_x = 0, cursor_y = 0;
 
 static const GFXfont *fontSmall = &TomThumb;
-static const GFXfont *fontMedium = &Minecraft_Rus_NEW4pt7b;
+static const GFXfont *fontMedium = &MuMatrix8ptRegular;
 static const GFXfont *fontMediumBold = &muHeavy8ptBold;
 static const GFXfont *fontBig = &dig_11;
 static const GFXfont *fontBiggest = &dig_14;
@@ -295,6 +292,14 @@ void PrintMediumBold(uint8_t x, uint8_t y, const char *pattern, ...) {
   va_list args;
   va_start(args, pattern);
   printString(fontMediumBold, x, y, true, 0, pattern, args);
+  va_end(args);
+}
+
+void PrintMediumBoldEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,
+                       const char *pattern, ...) {
+  va_list args;
+  va_start(args, pattern);
+  printString(fontMediumBold, x, y, color, posLCR, pattern, args);
   va_end(args);
 }
 

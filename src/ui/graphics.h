@@ -42,6 +42,8 @@ void PrintSmallEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,
                   const char *pattern, ...);
 void PrintMediumEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,
                    const char *pattern, ...);
+void PrintMediumBoldEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,
+                       const char *pattern, ...);
 void PrintBigDigitsEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,
                       const char *pattern, ...);
 void PrintBiggestDigitsEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,

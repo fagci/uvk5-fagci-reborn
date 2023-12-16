@@ -161,29 +161,6 @@ void Main(void) {
   BACKLIGHT_On();
   UpdateBattery();
 
-  /* uint32_t start = 65523760;
-
-  while(true) {
-  uint32_t now = elapsedMilliseconds + start;
-      UI_ClearScreen();
-      char c = (now / 1000)%2 ? ':' : ' ';
-      PrintBigDigits(32, 32, "%02u%c%02u%c%02u",(now / 1000 / 60 / 60) % 60 ,c,
-  (now / 1000 / 60) % 60, c, (now / 1000) % 60); ST7565_Blit();
-      SYSTEM_DelayMs(1000);
-  } */
-
-  /* PrintMediumEx(LCD_WIDTH - 1 - 18, 24, POS_R, C_FILL, "145.550");
-  PrintSmallEx(LCD_WIDTH - 1, 24, POS_R, C_FILL, "00");
-  PrintMediumEx(0, 24 + 12, POS_L, C_FILL, ">");
-  PrintMediumEx(LCD_WIDTH - 1 - 18, 24 + 12, POS_R, C_FILL, "446.006");
-  PrintSmallEx(LCD_WIDTH - 1, 24 + 12, POS_R, C_FILL, "25");
-  PrintMediumEx(LCD_WIDTH - 1 - 18, 24 + 24, POS_R, C_FILL, "145.550");
-  PrintSmallEx(LCD_WIDTH - 1, 24 + 24, POS_R, C_FILL, "25");
-  ST7565_Blit();
-
-  while (true) {
-  } */
-
   if (KEYBOARD_Poll() == KEY_EXIT) {
     APPS_run(APP_RESET);
     TaskAdd("Update", Update, 1, true);
