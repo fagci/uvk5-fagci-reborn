@@ -1,30 +1,27 @@
 #include "vfo.h"
 #include "../helper/lootlist.h"
+#include "../helper/presetlist.h"
 #include "../scheduler.h"
 #include "../ui/graphics.h"
+#include "apps.h"
+#include "finput.h"
 
 static Loot msm = {0};
 
 void VFO_init() {
   UI_ClearScreen();
 
+  RADIO_LoadCurrentVFO();
+
   LOOT_Clear();
-
-  // Here will be all VFO marked channels.
-  // For now it is first two reserved channels
-
-  gVFO[0] = (VFO){40655000, 0, "Med lenin", 0, MOD_FM, BK4819_FILTER_BW_WIDE};
-  gVFO[1] = (VFO){40660000, 0, "Med kirov", 0, MOD_FM, BK4819_FILTER_BW_WIDE};
-
-  /* RADIO_LoadVFO(0, &gVFO[0]);
-  RADIO_LoadVFO(1, &gVFO[1]); */
-
   for (uint8_t i = 0; i < 2; ++i) {
-    LOOT_Add(gVFO[i].fRX)->open = false;
+    Loot *item = LOOT_Add(gVFO[i].fRX);
+    item->open = false;
+    item->lastTimeOpen = 0;
   }
 
-  gCurrentVFO = &gVFO[gSettings.activeChannel];
-  RADIO_SetupByCurrentVFO();
+  RADIO_SetupByCurrentVFO(); // TODO: reread from EEPROM not needed maybe
+  gRedrawScreen = true;
 }
 
 static bool lastListenState = false;
@@ -34,7 +31,7 @@ void VFO_update() {
   msm.rssi = BK4819_GetRSSI();
   msm.noise = BK4819_GetNoise();
   msm.open = BK4819_IsSquelchOpen();
-  LOOT_Update(&msm);
+  // LOOT_Update(&msm);
   if (msm.open != lastListenState) {
     gRedrawScreen = true;
     lastListenState = msm.open;
@@ -69,17 +66,46 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed) {
     return false;
   }
-  switch (key) {
-  case KEY_2:
-    if (bKeyHeld) {
+  if (bKeyHeld) {
+    switch (key) {
+    case KEY_2:
       gCurrentVFO = NextVFO();
       RADIO_SetupByCurrentVFO();
       LOOT_Standby();
       msm.f = gCurrentVFO->fRX;
       return true;
+    default:
+      break;
     }
-  default:
-    break;
+  } else {
+    switch (key) {
+    case KEY_0:
+    case KEY_1:
+    case KEY_2:
+    case KEY_3:
+    case KEY_4:
+    case KEY_5:
+    case KEY_6:
+    case KEY_7:
+    case KEY_8:
+    case KEY_9:
+      gFInputCallback = RADIO_TuneToSave;
+      APPS_run(APP_FINPUT);
+      return true;
+    case KEY_F:
+      APPS_run(APP_VFO_CFG);
+      return true;
+    case KEY_UP:
+      RADIO_TuneTo(gCurrentVFO->fRX +
+                   StepFrequencyTable[gCurrentPreset->band.step]);
+      return true;
+    case KEY_DOWN:
+      RADIO_TuneTo(gCurrentVFO->fRX -
+                   StepFrequencyTable[gCurrentPreset->band.step]);
+      return true;
+    default:
+      break;
+    }
   }
   return false;
 }
@@ -107,11 +133,14 @@ void render2VFOPart(uint8_t i) {
 
   if (isActive) {
     FillRect(0, bl - 13, 16, 7, C_FILL);
+    if (msm.open) {
+      PrintSmallEx(0, bl, POS_C, C_INVERT, "RX");
+    }
   }
 
   if (vfo->name[0] < 32 || vfo->name[0] > 127) {
     PrintBigDigitsEx(LCD_WIDTH - 19, bl, POS_R, C_FILL, "%4u.%03u", fp1, fp2);
-    PrintMediumEx(LCD_WIDTH - 1, bl, POS_R, C_FILL, "%02u", fp3);
+    PrintMediumBoldEx(LCD_WIDTH - 1, bl, POS_R, C_FILL, "%02u", fp3);
     PrintSmallEx(8, bl - 8, POS_C, C_INVERT, "VFO");
   } else {
     PrintMediumBoldEx(LCD_WIDTH / 2, bl - 8, POS_C, C_FILL, vfo->name);
@@ -120,11 +149,13 @@ void render2VFOPart(uint8_t i) {
   }
   PrintSmallEx(LCD_WIDTH - 1, bl - 8, POS_R, C_FILL, mod);
 
-  Loot *stats = LOOT_Item(i);
-  uint32_t est = (elapsedMilliseconds - stats->lastTimeOpen) / 1000;
+  /* Loot *stats = LOOT_Item(i);
+  uint32_t est = stats->lastTimeOpen
+                     ? (elapsedMilliseconds - stats->lastTimeOpen) / 1000
+                     : 0;
   PrintSmallEx(0, bl + 6, POS_L, C_FILL, "CT %d CD %d", stats->ct, stats->cd);
   PrintSmallEx(LCD_WIDTH - 1, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,
-               est % 60, stats->duration / 1000);
+               est % 60, stats->duration / 1000); */
 }
 
 void render2VFO() {

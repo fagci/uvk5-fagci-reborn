@@ -184,7 +184,7 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     newScan = true;
     return true;
   case KEY_SIDE1:
-    LOOT_BlacklistLast();
+    msm.blacklist = true;
     return true;
   case KEY_5:
     return true;
@@ -260,9 +260,10 @@ void SPECTRUM_render(void) {
 
   for (uint8_t i = 0; i < Clamp(LOOT_Size(), 0, 8); i++) {
     Loot *p = LOOT_Item(i);
-    PrintSmall(DATA_LEN + 1, i * 6 + 5 + 8, "%c",
-               p->open ? '>' : (p->blacklist ? 'X' : ' '));
-    PrintSmall(DATA_LEN + 1 + 8, i * 6 + 5 + 8, "%u.%04u %u", p->f / 100000,
+    /* PrintSmall(DATA_LEN + 1, i * 6, "%c%u.%04u %us", p->open ? '>' : '
+       ', p->f / 100000, p->f / 10 % 10000, p->duration / 1000); */
+    PrintSmall(DATA_LEN + 1, i * 6 + 5 + 8, "%c%u.%04u %u",
+               p->open ? '>' : (p->blacklist ? 'X' : ' '), p->f / 100000,
                p->f / 10 % 10000, p->ct);
   }
 }

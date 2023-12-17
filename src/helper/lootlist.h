@@ -17,8 +17,10 @@ typedef struct {
   uint32_t cd;
   uint16_t ct;
   bool open;
+  bool blacklist;
 } Loot;
 
+void LOOT_BlacklistLast();
 bool LOOT_SortByLastOpenTime(Loot *a, Loot *b);
 Loot *LOOT_Get(uint32_t f);
 Loot *LOOT_Add(uint32_t f);

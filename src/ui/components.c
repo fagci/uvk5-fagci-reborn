@@ -7,7 +7,9 @@
 #include <stdarg.h>
 #include <string.h>
 
-static const uint8_t MENU_LINES_TO_SHOW = 6;
+static const uint8_t MENU_ITEM_H = 11;
+static const uint8_t MENU_Y = 8;
+static const uint8_t MENU_LINES_TO_SHOW = 5;
 
 void UI_Battery(uint8_t Level) {
   memset(gFrameBuffer[0], 0, 13);
@@ -66,32 +68,21 @@ void UI_FSmallest(uint32_t f, uint8_t x, uint8_t y) {
   PrintSmall(x, y, "%u.%05u", f / 100000, f % 100000);
 }
 
-void UI_DrawScrollBar(const uint16_t size, const uint16_t currentIndex,
-                      const uint8_t linesCount) {
-  uint8_t i;
-  const uint8_t scrollbarPosY =
-      ConvertDomain(currentIndex, 0, size, 0, linesCount * 8 - 3);
+void UI_DrawScrollBar(const uint16_t size, const uint16_t iCurrent,
+                      const uint8_t nLines) {
+  const uint8_t sbY =
+      ConvertDomain(iCurrent, 0, size, 0, nLines * MENU_ITEM_H - 3);
 
-  for (i = 0; i < linesCount; i++) {
-    gFrameBuffer[i][126] = 0xFF;
-  }
+  DrawVLine(LCD_WIDTH - 2, MENU_Y, LCD_HEIGHT - MENU_Y, C_FILL);
 
-  for (i = 0; i < 3; i++) {
-    PutPixel(127, scrollbarPosY + i, true);
-    PutPixel(125, scrollbarPosY + i, true);
-  }
+  FillRect(LCD_WIDTH - 3, MENU_Y + sbY, 3, 3, C_FILL);
 }
 
 void UI_ShowMenuItem(uint8_t line, const char *name, bool isCurrent) {
-  uint8_t *pLine = gFrameBuffer[line];
   if (isCurrent) {
-    pLine[0] = 0b01111111;
-    pLine[1] = 0b00111110;
-    pLine[2] = 0b00011100;
-    pLine[3] = 0b00001000;
-    PrintMediumBold(6, line * 8 + 6 + 12, name);
+    PrintMediumBold(6, MENU_Y + line * MENU_ITEM_H + 8, name);
   } else {
-    PrintMedium(6, line * 8 + 6 + 12, name);
+    PrintMedium(6, MENU_Y + line * MENU_ITEM_H + 8, name);
   }
 }
 

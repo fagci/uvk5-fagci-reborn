@@ -52,7 +52,7 @@ static void accept() {
     break;
   case M_STEP:
     gCurrentPreset->band.step = subMenuIndex;
-    RADIO_SaveCurrentVFO();
+    RADIO_SaveCurrentPreset();
     break;
   default:
     break;

@@ -8,6 +8,7 @@
 #include "inc/dp32g030/gpio.h"
 #include "scheduler.h"
 #include "settings.h"
+#include <string.h>
 
 VFO *gCurrentVFO;
 VFO gVFO[2] = {0};
@@ -145,6 +146,7 @@ void updatePresetFromCurrentVFO() {
     if (gCurrentVFO->fRX >= p->band.bounds.start &&
         gCurrentVFO->fRX <= p->band.bounds.end) {
       gCurrentPreset = p;
+      gSettings.activePreset = i;
       return;
     }
   }
@@ -152,29 +154,33 @@ void updatePresetFromCurrentVFO() {
 }
 
 void RADIO_TuneTo(uint32_t f) {
+  memset(gCurrentVFO->name, 0, sizeof(gCurrentVFO->name));
   gCurrentVFO->fRX = f;
   updatePresetFromCurrentVFO();
   BK4819_TuneTo(f);
   onVfoUpdate();
 }
 
+void RADIO_TuneToSave(uint32_t f) {
+  memset(gCurrentVFO->name, 0, sizeof(gCurrentVFO->name));
+  gCurrentVFO->fRX = f;
+  updatePresetFromCurrentVFO();
+  BK4819_TuneTo(f);
+  RADIO_SaveCurrentVFO();
+}
+
 void RADIO_SaveCurrentVFO() {
-  const uint16_t CURRENT_VFO_OFFSET =
-      CHANNELS_OFFSET + gSettings.activeChannel * VFO_SIZE;
-  EEPROM_WriteBuffer(CURRENT_VFO_OFFSET, &gCurrentVFO, VFO_SIZE);
+  RADIO_SaveChannel(gSettings.activeChannel, gCurrentVFO);
 }
 
 void RADIO_SaveCurrentPreset() {
-  int8_t index = PRESET_GetCurrentIndex();
-  if (index >= 0) {
-    RADIO_SavePreset(index, gCurrentPreset);
-  }
+  RADIO_SavePreset(gSettings.activePreset, gCurrentPreset);
 }
 
 void RADIO_LoadCurrentVFO() {
-  const uint16_t CURRENT_VFO_OFFSET =
-      CHANNELS_OFFSET + gSettings.activeChannel * VFO_SIZE;
-  EEPROM_ReadBuffer(CURRENT_VFO_OFFSET, &gCurrentVFO, VFO_SIZE);
+  RADIO_LoadChannel(0, &gVFO[0]);
+  RADIO_LoadChannel(1, &gVFO[1]);
+  gCurrentVFO = &gVFO[gSettings.activeChannel];
   updatePresetFromCurrentVFO();
 }
 
@@ -212,12 +218,20 @@ void RADIO_SetupBandParams(Band *b) {
   // BK4819_SetGain(b->gainIndex);
 }
 
+void RADIO_LoadUserChannel(uint16_t num, VFO *p) {
+  RADIO_LoadChannel(num + 2, p);
+}
+
+void RADIO_SaveUserChannel(uint16_t num, VFO *p) {
+  RADIO_SaveChannel(num + 2, p);
+}
+
 void RADIO_LoadChannel(uint16_t num, VFO *p) {
-  EEPROM_ReadBuffer(CHANNELS_OFFSET - num * VFO_SIZE, p, VFO_SIZE);
+  EEPROM_ReadBuffer(CHANNELS_OFFSET - (num + 1) * VFO_SIZE, p, VFO_SIZE);
 }
 
 void RADIO_SaveChannel(uint16_t num, VFO *p) {
-  EEPROM_WriteBuffer(CHANNELS_OFFSET - num * VFO_SIZE, p, VFO_SIZE);
+  EEPROM_WriteBuffer(CHANNELS_OFFSET - (num + 1) * VFO_SIZE, p, VFO_SIZE);
 }
 
 void RADIO_SavePreset(uint8_t num, Preset *p) {

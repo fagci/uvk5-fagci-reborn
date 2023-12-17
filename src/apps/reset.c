@@ -15,6 +15,11 @@ static bool settingsWrote = 0;
 static uint8_t buf[8];
 static uint16_t bytesWrote = 0;
 
+static VFO defaultVFOs[2] = {
+    (VFO){40655000, 0, "Med lenin", 0, MOD_FM, BK4819_FILTER_BW_WIDE},
+    (VFO){40660000, 0, "Med kirov", 0, MOD_FM, BK4819_FILTER_BW_WIDE},
+};
+
 static Preset defaultPresets[] = {
     (Preset){
         .band =
@@ -278,17 +283,23 @@ void RESET_Update() {
     EEPROM_WriteBuffer(bytesWrote, buf, 8);
     bytesWrote += 8;
   } else {
+    for (uint8_t i = 0; i < 2; i++) {
+      RADIO_SaveChannel(i, &defaultVFOs[i]);
+    }
     NVIC_SystemReset();
   }
   gRedrawScreen = true;
 }
 
 void RESET_Render() {
-  UI_ClearScreen();
-  PrintMedium(0, 2 * 8 + 12, "%u%", bytesWrote * 100 / 0x2000);
+  uint8_t progressX = ConvertDomain(bytesWrote, 0, 0x2000, 1, LCD_WIDTH - 2);
+  uint8_t POS_Y = LCD_HEIGHT / 2;
 
-  memset(gFrameBuffer[3], 0b00111100,
-         ConvertDomain(bytesWrote, 0, 0x2000, 0, LCD_WIDTH));
+  UI_ClearScreen();
+  DrawRect(0, POS_Y, LCD_WIDTH, 10, C_FILL);
+  FillRect(1, POS_Y, progressX, 10, C_FILL);
+  PrintMediumEx(LCD_WIDTH / 2, POS_Y + 8, POS_C, C_INVERT, "%u%",
+                bytesWrote * 100 / 0x2000);
 }
 
 bool RESET_key(KEY_Code_t k, bool p, bool h) { return false; }

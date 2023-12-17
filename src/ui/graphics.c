@@ -34,6 +34,9 @@ void UI_ClearScreen() {
 }
 
 void PutPixel(uint8_t x, uint8_t y, uint8_t fill) {
+  if (x >= LCD_WIDTH || y >= LCD_HEIGHT) {
+    return;
+  }
   if (fill == 1) {
     gFrameBuffer[y >> 3][x] |= 1 << (y & 7);
   } else if (fill == 2) {
