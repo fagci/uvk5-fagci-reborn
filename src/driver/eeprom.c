@@ -20,6 +20,9 @@
 #include "../driver/system.h"
 #include "../inc/dp32g030/gpio.h"
 
+bool gEepromWrite = false;
+bool gEepromRead = false;
+
 void EEPROM_ReadBuffer(uint16_t address, void *pBuffer, uint8_t size) {
   if (size == 0 || (address + size) > 0x2000) {
     return;
@@ -39,10 +42,10 @@ void EEPROM_ReadBuffer(uint16_t address, void *pBuffer, uint8_t size) {
   I2C_ReadBuffer(pBuffer, size);
 
   I2C_Stop();
+  gEepromRead = true;
 }
 
 void EEPROM_WriteBuffer(uint16_t address, const void *pBuffer, uint8_t size) {
-  GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
   for (uint8_t offset = 0; offset < size; offset += 8) {
     uint8_t rest = (size - offset);
     uint8_t n = rest > 8 ? 8 : rest;
@@ -59,5 +62,5 @@ void EEPROM_WriteBuffer(uint16_t address, const void *pBuffer, uint8_t size) {
 
     SYSTEM_DelayMs(10);
   }
-  GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
+  gEepromWrite = true;
 }

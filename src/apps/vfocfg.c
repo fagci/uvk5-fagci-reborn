@@ -22,6 +22,8 @@ typedef enum {
                 // uint8_t codeTx : 8;
                 // uint8_t codeTypeRx : 4;
                 // uint8_t codeTypeTx : 4;
+  M_SQ,
+  M_SQ_TYPE,
   M_SAVE,
 } VfoCfgMenu;
 
@@ -36,6 +38,8 @@ static MenuItem menu[] = {
     {"Step", M_STEP, ARRAY_SIZE(StepFrequencyTable)},
     {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions)},
     {"BW", M_BW, ARRAY_SIZE(bwNames)},
+    {"SQ type", M_SQ_TYPE, ARRAY_SIZE(sqTypeNames)},
+    {"SQ level", M_SQ, 10},
     {"Save", M_SAVE},
 };
 
@@ -52,6 +56,14 @@ static void accept() {
     break;
   case M_STEP:
     gCurrentPreset->band.step = subMenuIndex;
+    RADIO_SaveCurrentPreset();
+    break;
+  case M_SQ_TYPE:
+    gCurrentPreset->band.squelchType = subMenuIndex;
+    RADIO_SaveCurrentPreset();
+    break;
+  case M_SQ:
+    gCurrentPreset->band.squelch = subMenuIndex;
     RADIO_SaveCurrentPreset();
     break;
   default:
@@ -81,6 +93,11 @@ static const char *getValue(VfoCfgMenu type) {
             StepFrequencyTable[gCurrentPreset->band.step] / 100,
             StepFrequencyTable[gCurrentPreset->band.step] % 100);
     return Output;
+  case M_SQ_TYPE:
+    return sqTypeNames[gCurrentPreset->band.squelchType];
+  case M_SQ:
+    sprintf(Output, "%u", gCurrentPreset->band.squelch);
+    return Output;
   default:
     break;
   }
@@ -96,6 +113,14 @@ static void showStepValues() {
   UI_ShowItems(items, ARRAY_SIZE(StepFrequencyTable), subMenuIndex);
 }
 
+static void showSquelchValues() {
+  char items[10][16] = {0};
+  for (uint8_t i = 0; i < ARRAY_SIZE(items); ++i) {
+    sprintf(items[i], "%u", i);
+  }
+  UI_ShowItems(items, ARRAY_SIZE(items), subMenuIndex);
+}
+
 static void showSubmenu(VfoCfgMenu menu) {
   switch (menu) {
   case M_MODULATION:
@@ -106,6 +131,12 @@ static void showSubmenu(VfoCfgMenu menu) {
     return;
   case M_STEP:
     showStepValues();
+    return;
+  case M_SQ_TYPE:
+    SHOW_ITEMS(sqTypeNames);
+    return;
+  case M_SQ:
+    showSquelchValues();
     return;
   default:
     break;

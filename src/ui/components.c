@@ -163,6 +163,29 @@ void UI_DrawTicks(uint8_t x1, uint8_t x2, uint8_t line, Band *band,
   uint32_t bw = band->bounds.end - band->bounds.start;
   uint16_t stepsCount = bw / stepSize;
 
+  if (bw < 1000000) {
+  } else if (bw < 20000000) {
+    g1 = 500000;
+    g2 = 1000000;
+    g3 = 5000000;
+  } else if (bw < 50000000) {
+    g1 = 1000000;
+    g2 = 5000000;
+    g3 = 10000000;
+  } else if (bw < 100000000) {
+    g1 = 5000000;
+    g2 = 10000000;
+    g3 = 50000000;
+  } else if (bw < 500000000) {
+    g1 = 10000000;
+    g2 = 50000000;
+    g3 = 100000000;
+  } else {
+    g1 = 50000000;
+    g2 = 100000000;
+    g3 = 500000000;
+  }
+
   for (uint16_t i = 0; i < stepsCount; ++i) {
     uint8_t x = width * i / stepsCount;
     uint32_t f = band->bounds.start + i * stepSize;

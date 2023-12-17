@@ -21,9 +21,9 @@
 static const uint16_t U16_MAX = 65535;
 static const uint8_t NOISE_OPEN_DIFF = 14;
 
-static const uint8_t S_HEIGHT = 39;
+static const uint8_t S_HEIGHT = 32;
 
-static const uint8_t SPECTRUM_Y = 8;
+static const uint8_t SPECTRUM_Y = 16;
 static const uint8_t S_BOTTOM = SPECTRUM_Y + S_HEIGHT;
 
 static uint16_t rssiHistory[DATA_LEN] = {0};
@@ -239,29 +239,32 @@ void SPECTRUM_update(void) {
 }
 
 void SPECTRUM_render(void) {
-  const uint16_t rssiMin = Min(rssiHistory, x);
-  const uint16_t rssiMax = Max(rssiHistory, x);
+  UI_ClearScreen();
+  PrintSmall(0, SPECTRUM_Y - 2, currentBand->name);
+  DrawVLine(DATA_LEN - 1, SPECTRUM_Y, S_BOTTOM, C_FILL);
+
+  UI_DrawTicks(0, DATA_LEN, 6, currentBand, false);
+  UI_FSmallest(currentBand->bounds.start, 0, S_BOTTOM + 8 + 6);
+  UI_FSmallest(currentBand->bounds.end, 93, S_BOTTOM + 8 + 6);
+
+  if (!rssiHistory[DATA_LEN - 1]) {
+    PrintSmallEx(DATA_LEN / 2, SPECTRUM_Y + S_HEIGHT / 2, POS_C, C_FILL,
+                 "Collecting...");
+    return;
+  }
+
+  const uint16_t rssiMin = Min(rssiHistory, DATA_LEN);
+  const uint16_t rssiMax = Max(rssiHistory, DATA_LEN);
   const uint16_t vMin = rssiMin - 2;
   const uint16_t vMax = rssiMax + 20 + (rssiMax - rssiMin) / 2;
 
-  UI_ClearStatus();
-  UI_ClearScreen();
-
-  PrintSmall(0, 5, currentBand->name);
-
-  UI_DrawTicks(0, DATA_LEN, 6, currentBand, false);
-  UI_FSmallest(currentBand->bounds.start, 0, SPECTRUM_Y + S_HEIGHT + 8 + 6);
-  UI_FSmallest(currentBand->bounds.end, 93, SPECTRUM_Y + S_HEIGHT + 8 + 6);
-
   for (uint8_t xx = 0; xx < DATA_LEN; ++xx) {
     uint8_t yVal = ConvertDomain(rssiHistory[xx], vMin, vMax, 0, S_HEIGHT);
-    DrawVLine(xx, S_BOTTOM - yVal, yVal, true);
+    DrawVLine(xx, S_BOTTOM - yVal, yVal, C_FILL);
     if (markers[xx]) {
-      DrawVLine(xx, SPECTRUM_Y + S_HEIGHT + 6, 2, true);
+      DrawVLine(xx, S_BOTTOM + 6, 2, C_FILL);
     }
   }
-
-  DrawVLine(DATA_LEN - 1, SPECTRUM_Y, S_BOTTOM, true);
 
   LOOT_Sort(LOOT_SortByLastOpenTime);
 

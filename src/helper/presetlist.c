@@ -30,6 +30,7 @@ void PRESETS_SelectPresetRelative(bool next) {
       gSettings.activePreset = gSettings.presetsCount - 1;
     }
   }
+  gCurrentVFO->fRX = presets[gSettings.activePreset].band.bounds.start;
   SETTINGS_DelayedSave();
 }
 

@@ -20,12 +20,10 @@
 #include "settings.h"
 #include "ui/components.h"
 #include "ui/graphics.h"
+#include "ui/statusline.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-
-uint8_t previousBatteryLevel = 255;
-bool showBattery = true;
 
 void _putchar(char c) {}
 
@@ -64,26 +62,6 @@ static void onKey(KEY_Code_t key, bool pressed, bool hold) {
   }
 }
 
-static void UpdateBattery() {
-  BATTERY_UpdateBatteryInfo();
-  if (gBatteryDisplayLevel) {
-    if (previousBatteryLevel != gBatteryDisplayLevel) {
-      previousBatteryLevel = gBatteryDisplayLevel;
-      UI_Battery(gBatteryDisplayLevel);
-
-      gRedrawScreen = true;
-    }
-  } else {
-    showBattery = !showBattery;
-    if (showBattery) {
-      UI_Battery(gBatteryDisplayLevel);
-    } else {
-      memset(gFrameBuffer[0], 0, 13);
-    }
-    gRedrawScreen = true;
-  }
-}
-
 static void Update() {
   uint32_t now = elapsedMilliseconds;
   APPS_update();
@@ -93,6 +71,7 @@ static void Update() {
     return;
   }
   now = elapsedMilliseconds;
+  STATUSLINE_render();
   APPS_render();
   UART_printf("%u: APPS_render() took %ums\n", elapsedMilliseconds,
               elapsedMilliseconds - now);
@@ -104,6 +83,11 @@ static void Update() {
 
 static void Keys() { KEYBOARD_CheckKeys(onKey); }
 
+static void sysUpdate() {
+  STATUSLINE_update();
+  BACKLIGHT_Update();
+}
+
 // TODO:
 // - menu hold in still mode
 
@@ -113,10 +97,9 @@ static void Keys() { KEYBOARD_CheckKeys(onKey); }
 // }
 
 static void AddTasks() {
-  TaskAdd("BL", BACKLIGHT_Update, 1000, true);
-  TaskAdd("BAT", UpdateBattery, 1000, true);
+  TaskAdd("1s sys upd", sysUpdate, 1000, true);
 
-  APPS_run(APP_VFO);
+  APPS_run(APP_SPECTRUM);
   TaskAdd("Update", Update, 1, true);
   TaskAdd("Keys", Keys, 10, true);
 }
@@ -159,7 +142,6 @@ void Main(void) {
   BACKLIGHT_SetDuration(BL_TIME_VALUES[gSettings.backlight]);
   BACKLIGHT_SetBrightness(gSettings.brightness);
   BACKLIGHT_On();
-  UpdateBattery();
 
   if (KEYBOARD_Poll() == KEY_EXIT) {
     APPS_run(APP_RESET);

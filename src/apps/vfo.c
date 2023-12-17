@@ -33,17 +33,18 @@ void VFO_update() {
   msm.rssi = BK4819_GetRSSI();
   msm.noise = BK4819_GetNoise();
   msm.open = BK4819_IsSquelchOpen();
+
   if (msm.f != LOOT_Item(gSettings.activeChannel)->f) {
     LOOT_ReplaceItem(gSettings.activeChannel, msm.f);
   }
-  LOOT_Update(&msm);
-  if (msm.open != lastListenState) {
-    gRedrawScreen = true;
-    lastListenState = msm.open;
 
+  if (msm.open != lastListenState) {
+    lastListenState = msm.open;
     RADIO_ToggleRX(msm.open);
+    gRedrawScreen = true;
   }
   if (elapsedMilliseconds - lastUpdate >= 1000) {
+    LOOT_Update(&msm);
     gRedrawScreen = true;
     lastUpdate = elapsedMilliseconds;
   }
@@ -68,7 +69,7 @@ VFO *PrevVFO() {
 }
 
 bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  if (bKeyHeld) {
+  if (bKeyHeld && !bKeyPressed) {
     switch (key) {
     case KEY_2:
       gCurrentVFO = NextVFO();
@@ -79,7 +80,7 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     default:
       break;
     }
-  } else if (!bKeyPressed) {
+  } else if (!bKeyPressed || (bKeyPressed && bKeyHeld)) {
     switch (key) {
     case KEY_0:
     case KEY_1:
@@ -100,10 +101,12 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_UP:
       RADIO_TuneTo(gCurrentVFO->fRX +
                    StepFrequencyTable[gCurrentPreset->band.step]);
+      gRedrawScreen = true;
       return true;
     case KEY_DOWN:
       RADIO_TuneTo(gCurrentVFO->fRX -
                    StepFrequencyTable[gCurrentPreset->band.step]);
+      gRedrawScreen = true;
       return true;
     default:
       break;
@@ -147,7 +150,11 @@ static void render2VFOPart(uint8_t i) {
   uint32_t est = stats->lastTimeOpen
                      ? (elapsedMilliseconds - stats->lastTimeOpen) / 1000
                      : 0;
-  PrintSmallEx(0, bl + 6, POS_L, C_FILL, "CT %d CD %d", stats->ct, stats->cd);
+  if (stats->ct) {
+    PrintSmallEx(0, bl + 6, POS_L, C_FILL, "CT %d", stats->ct);
+  } else if (stats->cd) {
+    PrintSmallEx(0, bl + 6, POS_L, C_FILL, "CD %d", stats->cd);
+  }
   PrintSmallEx(LCD_WIDTH - 1, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,
                est % 60, stats->duration / 1000);
 }
@@ -181,5 +188,8 @@ void VFO_render() {
     render1VFO();
   } else if (sz == 2) {
     render2VFO();
+  } else {
+    PrintMediumEx(LCD_WIDTH / 2, LCD_HEIGHT / 2, POS_C, C_FILL,
+                  "%u VFO not impl", sz);
   }
 }

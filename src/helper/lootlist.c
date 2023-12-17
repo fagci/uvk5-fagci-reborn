@@ -1,7 +1,7 @@
 #include "lootlist.h"
 #include "../scheduler.h"
 
-#define LOOT_SIZE_MAX 64
+#define LOOT_SIZE_MAX 128
 
 static Loot loot[LOOT_SIZE_MAX] = {0};
 static int8_t lootIndex = -1;
@@ -123,7 +123,19 @@ void LOOT_Update(Loot *msm) {
       gLastActiveLoot = peak;
     }
     if (msm->open) {
-      BK4819_GetCxCSSScanResult(&(peak->cd), &(peak->ct));
+      uint32_t cd = 0;
+      uint16_t ct = 0;
+      BK4819_CssScanResult_t res = BK4819_GetCxCSSScanResult(&cd, &ct);
+      switch (res) {
+      case BK4819_CSS_RESULT_CDCSS:
+        peak->cd = cd;
+        break;
+      case BK4819_CSS_RESULT_CTCSS:
+        peak->ct = ct;
+        break;
+      default:
+        break;
+      }
       peak->lastTimeOpen = elapsedMilliseconds;
     }
     peak->lastTimeCheck = elapsedMilliseconds;
