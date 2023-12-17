@@ -88,14 +88,30 @@ void LOOT_Sort(bool (*compare)(Loot *a, Loot *b)) {
 
 Loot *LOOT_Item(uint8_t i) { return &loot[i]; }
 
+void LOOT_ReplaceItem(uint8_t i, uint32_t f) {
+  Loot *item = LOOT_Item(i);
+  item->f = f;
+  item->firstTime = elapsedMilliseconds;
+  item->lastTimeCheck = elapsedMilliseconds;
+  item->lastTimeOpen = elapsedMilliseconds;
+  item->duration = 0;
+  item->rssi = 0;
+  item->noise = 65535;
+}
+
 void LOOT_Update(Loot *msm) {
   Loot *peak = LOOT_Get(msm->f);
-  if (peak->blacklist) {
-    msm->open = false;
-  }
 
   if (peak == NULL && msm->open) {
     peak = LOOT_Add(msm->f);
+  }
+
+  if (peak == NULL) {
+    return;
+  }
+
+  if (peak->blacklist) {
+    msm->open = false;
   }
 
   if (peak != NULL) {

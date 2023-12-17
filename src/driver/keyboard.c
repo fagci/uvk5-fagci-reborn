@@ -149,7 +149,7 @@ bool gPttIsPressed;
 bool gPttWasReleased;
 uint8_t gPttDebounceCounter;
 
-static uint8_t gSerialConfigCountDown_500ms = 12;
+static uint8_t gSerialConfigCountDown_500ms = 0;
 static uint8_t KEY_DEBOUNCE = 2;
 static uint8_t KEY_REPEAT_DELAY = 40;
 static uint8_t KEY_REPEAT = 8;

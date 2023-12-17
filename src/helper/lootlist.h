@@ -30,5 +30,8 @@ uint8_t LOOT_Size();
 void LOOT_Sort(bool (*compare)(Loot *a, Loot *b));
 Loot *LOOT_Item(uint8_t i);
 void LOOT_Update(Loot *msm);
+void LOOT_ReplaceItem(uint8_t i, uint32_t f);
+
+extern Loot *gLastActiveLoot;
 
 #endif

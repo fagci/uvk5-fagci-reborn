@@ -28,10 +28,14 @@ static bool lastListenState = false;
 static uint32_t lastUpdate = 0;
 
 void VFO_update() {
+  msm.f = gCurrentVFO->fRX;
   msm.rssi = BK4819_GetRSSI();
   msm.noise = BK4819_GetNoise();
   msm.open = BK4819_IsSquelchOpen();
-  // LOOT_Update(&msm);
+  if (msm.f != LOOT_Item(gSettings.activeChannel)->f) {
+    LOOT_ReplaceItem(gSettings.activeChannel, msm.f);
+  }
+  LOOT_Update(&msm);
   if (msm.open != lastListenState) {
     gRedrawScreen = true;
     lastListenState = msm.open;
@@ -63,9 +67,6 @@ VFO *PrevVFO() {
 }
 
 bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  if (!bKeyPressed) {
-    return false;
-  }
   if (bKeyHeld) {
     switch (key) {
     case KEY_2:
@@ -77,7 +78,7 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     default:
       break;
     }
-  } else {
+  } else if(!bKeyPressed) {
     switch (key) {
     case KEY_0:
     case KEY_1:
@@ -110,61 +111,52 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void renderExample() {
-  const uint8_t BASE = 38;
-  PrintBigDigitsEx(LCD_WIDTH - 1 - 18, BASE, POS_R, C_FILL, "1234.567");
-  PrintMediumEx(LCD_WIDTH - 1 - 18, BASE + 8, POS_R, C_FILL, "123.456");
-  PrintSmallEx(LCD_WIDTH - 1, BASE + 8, POS_R, C_FILL, "78");
-  PrintSmallEx(LCD_WIDTH - 1, BASE - 10, POS_R, C_FILL, "WFM");
-  PrintMediumEx(LCD_WIDTH - 1, BASE, POS_R, C_FILL, "89");
-}
+static void render2VFOPart(uint8_t i) {
+  const uint8_t BASE = 24;
+  const uint8_t bl = BASE + 32 * i;
 
-void render2VFOPart(uint8_t i) {
-  uint8_t BASE = 24;
-  VFO *vfo = &gVFO[i];
-  bool isActive = gCurrentVFO == vfo;
+  const VFO *vfo = &gVFO[i];
+  const bool isActive = gCurrentVFO == vfo;
 
-  uint8_t bl = BASE + 32 * i;
-
-  uint16_t fp1 = vfo->fRX / 100000;
-  uint16_t fp2 = vfo->fRX / 100 % 1000;
-  uint8_t fp3 = vfo->fRX % 100;
+  const uint16_t fp1 = vfo->fRX / 100000;
+  const uint16_t fp2 = vfo->fRX / 100 % 1000;
+  const uint8_t fp3 = vfo->fRX % 100;
   const char *mod = modulationTypeOptions[vfo->modulation];
 
   if (isActive) {
-    FillRect(0, bl - 13, 16, 7, C_FILL);
+    FillRect(0, bl - 14, 16, 7, C_FILL);
     if (msm.open) {
-      PrintSmallEx(0, bl, POS_C, C_INVERT, "RX");
+      PrintMediumEx(0, bl, POS_L, C_INVERT, "RX");
     }
   }
 
   if (vfo->name[0] < 32 || vfo->name[0] > 127) {
     PrintBigDigitsEx(LCD_WIDTH - 19, bl, POS_R, C_FILL, "%4u.%03u", fp1, fp2);
     PrintMediumBoldEx(LCD_WIDTH - 1, bl, POS_R, C_FILL, "%02u", fp3);
-    PrintSmallEx(8, bl - 8, POS_C, C_INVERT, "VFO");
+    PrintSmallEx(8, bl - 9, POS_C, C_INVERT, "VFO");
   } else {
     PrintMediumBoldEx(LCD_WIDTH / 2, bl - 8, POS_C, C_FILL, vfo->name);
     PrintMediumEx(LCD_WIDTH / 2, bl, POS_C, C_FILL, "%4u.%03u", fp1, fp2);
-    PrintSmallEx(8, bl - 8, POS_C, C_INVERT, "MR");
+    PrintSmallEx(8, bl - 9, POS_C, C_INVERT, "MR");
   }
-  PrintSmallEx(LCD_WIDTH - 1, bl - 8, POS_R, C_FILL, mod);
+  PrintSmallEx(LCD_WIDTH - 1, bl - 9, POS_R, C_FILL, mod);
 
-  /* Loot *stats = LOOT_Item(i);
+  Loot *stats = LOOT_Item(i);
   uint32_t est = stats->lastTimeOpen
                      ? (elapsedMilliseconds - stats->lastTimeOpen) / 1000
                      : 0;
   PrintSmallEx(0, bl + 6, POS_L, C_FILL, "CT %d CD %d", stats->ct, stats->cd);
   PrintSmallEx(LCD_WIDTH - 1, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,
-               est % 60, stats->duration / 1000); */
+               est % 60, stats->duration / 1000);
 }
 
-void render2VFO() {
+static void render2VFO() {
   for (uint8_t i = 0; i < 2; ++i) {
     render2VFOPart(i);
   }
 }
 
-void render1VFO() {
+static void render1VFO() {
   const uint8_t BASE = 38;
 
   VFO *vfo = &gVFO[0];

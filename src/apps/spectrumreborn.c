@@ -201,6 +201,10 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_8:
     return true;
+  case KEY_PTT:
+    RADIO_TuneToSave(gLastActiveLoot->f);
+    APPS_run(APP_STILL);
+    return true;
   default:
     break;
   }
