@@ -3,7 +3,7 @@
 
 #include "../driver/keyboard.h"
 
-#define APPS_COUNT 12
+#define APPS_COUNT 13
 
 typedef enum {
   APP_NONE,
@@ -15,6 +15,7 @@ typedef enum {
   APP_RESET,
   APP_TEXTINPUT,
   APP_VFO_CFG,
+  APP_PRESET_CFG,
   APP_SAVECH,
   APP_SETTINGS,
   APP_VFO,

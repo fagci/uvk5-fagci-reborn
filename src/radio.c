@@ -33,6 +33,14 @@ const char *vfoStateNames[] = {
 };
 const char *powerNames[] = {"LOW", "MID", "HIGH"};
 const char *bwNames[3] = {"25k", "12.5k", "6.25k"};
+
+const SquelchType sqTypeValues[4] = {
+    SQUELCH_RSSI_NOISE_GLITCH,
+    SQUELCH_RSSI_GLITCH,
+    SQUELCH_RSSI_NOISE,
+    SQUELCH_RSSI,
+};
+const char *sqTypeNames[4] = {"RNG", "RG", "RN", "R"};
 const char *deviationNames[] = {"", "+", "-"};
 
 void RADIO_SetupRegisters() {

@@ -19,6 +19,8 @@ extern const char *vfoStateNames[];
 extern const char *powerNames[];
 extern const char *bwNames[3];
 extern const char *deviationNames[];
+extern const SquelchType sqTypeValues[4];
+extern const char *sqTypeNames[4];
 
 void RADIO_SetupRegisters();
 uint32_t GetScreenF(uint32_t f);

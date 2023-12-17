@@ -189,7 +189,7 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
 static void DrawRegs() {
   const uint8_t PAD_LEFT = 1;
-  const uint8_t PAD_TOP = 30;
+  const uint8_t PAD_TOP = 31;
   const uint8_t CELL_WIDTH = 31;
   const uint8_t CELL_HEIGHT = 16;
   uint8_t row = 0;
@@ -217,8 +217,8 @@ static void DrawRegs() {
       sprintf(String, "%u", BK4819_GetRegValue(rs));
     }
 
-    PrintSmallEx(textX, offsetY + 7, POS_C, C_INVERT, "%s", rs.name);
-    PrintSmallEx(textX, offsetY + CELL_HEIGHT - 3, POS_C, C_INVERT, String);
+    PrintSmallEx(textX, offsetY + 6, POS_C, C_INVERT, "%s", rs.name);
+    PrintSmallEx(textX, offsetY + CELL_HEIGHT - 4, POS_C, C_INVERT, String);
   }
 }
 

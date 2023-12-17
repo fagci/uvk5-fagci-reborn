@@ -3,6 +3,7 @@
 #include "../ui/graphics.h"
 #include "finput.h"
 #include "mainmenu.h"
+#include "presetcfg.h"
 #include "reset.h"
 #include "savech.h"
 #include "settings.h"
@@ -54,6 +55,8 @@ const App apps[APPS_COUNT] = {
     {"Text input", TEXTINPUT_init, TEXTINPUT_update, TEXTINPUT_render,
      TEXTINPUT_key, TEXTINPUT_deinit},
     {"VFO config", VFOCFG_init, VFOCFG_update, VFOCFG_render, VFOCFG_key},
+    {"Preset config", PRESETCFG_init, PRESETCFG_update, PRESETCFG_render,
+     PRESETCFG_key},
     {"Save to channel", SAVECH_init, SAVECH_update, SAVECH_render, SAVECH_key},
     {"Settings", SETTINGS_init, SETTINGS_update, SETTINGS_render, SETTINGS_key},
     {"VFO", VFO_init, VFO_update, VFO_render, VFO_key},

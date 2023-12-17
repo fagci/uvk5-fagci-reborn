@@ -186,6 +186,9 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_SIDE1:
     LOOT_BlacklistLast();
     return true;
+  case KEY_F:
+    APPS_run(APP_PRESET_CFG);
+    return true;
   case KEY_5:
     return true;
   case KEY_3:
