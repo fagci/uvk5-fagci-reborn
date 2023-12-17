@@ -24,27 +24,28 @@ void UI_Battery(uint8_t Level) {
   }
 }
 
-void UI_RSSIBar(int16_t rssi, uint32_t f, uint8_t line) {
-  const uint8_t BAR_LEFT_MARGIN = 24;
-  const uint8_t POS_Y = line * 8 + 1;
+void UI_RSSIBar(int16_t rssi, uint32_t f, uint8_t y) {
+  const uint8_t BAR_LEFT_MARGIN = 32;
+  const uint8_t BAR_BASE = y + 7;
 
   int dBm = Rssi2DBm(rssi);
   uint8_t s = DBm2S(dBm, f >= 3000000);
-  uint8_t *ln = gFrameBuffer[line];
 
-  memset(ln, 0, LCD_WIDTH);
+  FillRect(0, y, LCD_WIDTH, 8, C_CLEAR);
 
-  for (int i = BAR_LEFT_MARGIN, sv = 1; i < BAR_LEFT_MARGIN + s * 5;
-       i += 5, sv++) {
-    ln[i] = ln[i + 3] = 0b00111110;
-    ln[i + 1] = ln[i + 2] = sv > 9 ? 0b00100010 : 0b00111110;
+  for (uint8_t i = 0; i <= s; ++i) {
+    if (i > 9) {
+      FillRect(BAR_LEFT_MARGIN + i * 5, y + 2, 4, 6, C_FILL);
+    } else {
+      FillRect(BAR_LEFT_MARGIN + i * 5, y + 3, 4, 4, C_FILL);
+    }
   }
 
-  PrintMediumEx(LCD_WIDTH - 1, POS_Y + 5, 2, true, "%d", dBm);
+  PrintMediumEx(LCD_WIDTH - 1, BAR_BASE, 2, true, "%d", dBm);
   if (s < 10) {
-    PrintMedium(0, POS_Y + 5, "S%u", s);
+    PrintMedium(0, BAR_BASE, "S%u", s);
   } else {
-    PrintMedium(0, POS_Y + 5, "S9+%u0", s - 9);
+    PrintMedium(0, BAR_BASE, "S9+%u0", s - 9);
   }
 }
 

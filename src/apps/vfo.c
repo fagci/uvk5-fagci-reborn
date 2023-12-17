@@ -2,6 +2,7 @@
 #include "../helper/lootlist.h"
 #include "../helper/presetlist.h"
 #include "../scheduler.h"
+#include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "apps.h"
 #include "finput.h"
@@ -78,7 +79,7 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     default:
       break;
     }
-  } else if(!bKeyPressed) {
+  } else if (!bKeyPressed) {
     switch (key) {
     case KEY_0:
     case KEY_1:
@@ -127,6 +128,7 @@ static void render2VFOPart(uint8_t i) {
     FillRect(0, bl - 14, 16, 7, C_FILL);
     if (msm.open) {
       PrintMediumEx(0, bl, POS_L, C_INVERT, "RX");
+      UI_RSSIBar(msm.rssi, msm.f, 32);
     }
   }
 
