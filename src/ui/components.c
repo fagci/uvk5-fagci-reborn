@@ -135,61 +135,32 @@ void UI_ShowRangeItems(uint16_t size, uint16_t currentIndex) {
   UI_DrawScrollBar(size, currentIndex, MENU_LINES_TO_SHOW);
 }
 
-void UI_DrawTicks(uint8_t x1, uint8_t x2, uint8_t line, Band *band,
-                  bool centerMode) {
-  uint8_t width = (x2 - x1);
-  uint8_t center = x1 + (width >> 1);
-  uint8_t *pLine = gFrameBuffer[line];
-
-  if (centerMode) {
-    pLine[center - 2] |= 0x80;
-    pLine[center - 1] |= 0x80;
-    pLine[center] |= 0xff;
-    pLine[center + 1] |= 0x80;
-    pLine[center + 2] |= 0x80;
-  } else {
-    pLine[x1] |= 0xff;
-    pLine[x1 + 1] |= 0x80;
-    pLine[x2 - 2] |= 0x80;
-    pLine[x2 - 1] |= 0xff;
+void drawTicks(uint8_t x1, uint8_t x2, uint8_t y, uint32_t fs, uint32_t fe,
+               uint32_t div, uint8_t h) {
+  for (uint32_t f = fs - (fs % div) + div; f < fe; f += div) {
+    uint8_t x = ConvertDomain(f, fs, fe, x1, x2);
+    DrawVLine(x, y, h, C_FILL);
   }
+}
 
-  uint32_t g1 = 10000;
-  uint32_t g2 = 50000;
-  uint32_t g3 = 100000;
+void UI_DrawTicks(uint8_t x1, uint8_t x2, uint8_t y, Band *band) {
+  // TODO: automatic ticks size determination
 
-  uint16_t stepSize = StepFrequencyTable[band->step];
-  uint32_t bw = band->bounds.end - band->bounds.start;
-  uint16_t stepsCount = bw / stepSize;
+  uint32_t fs = band->bounds.start;
+  uint32_t fe = band->bounds.end;
+  uint32_t bw = fe - fs;
 
-  if (bw < 1000000) {
-  } else if (bw < 20000000) {
-    g1 = 500000;
-    g2 = 1000000;
-    g3 = 5000000;
-  } else if (bw < 50000000) {
-    g1 = 1000000;
-    g2 = 5000000;
-    g3 = 10000000;
-  } else if (bw < 100000000) {
-    g1 = 5000000;
-    g2 = 10000000;
-    g3 = 50000000;
-  } else if (bw < 500000000) {
-    g1 = 10000000;
-    g2 = 50000000;
-    g3 = 100000000;
+  if (bw > 5000000) {
+    drawTicks(x1, x2, y, fs, fe, 1000000, 3);
+    drawTicks(x1, x2, y, fs, fe, 500000, 2);
+  } else if (bw > 1000000) {
+    drawTicks(x1, x2, y, fs, fe, 500000, 3);
+    drawTicks(x1, x2, y, fs, fe, 100000, 2);
+  } else if (bw > 500000) {
+    drawTicks(x1, x2, y, fs, fe, 500000, 3);
+    drawTicks(x1, x2, y, fs, fe, 100000, 2);
   } else {
-    g1 = 50000000;
-    g2 = 100000000;
-    g3 = 500000000;
-  }
-
-  for (uint16_t i = 0; i < stepsCount; ++i) {
-    uint8_t x = width * i / stepsCount;
-    uint32_t f = band->bounds.start + i * stepSize;
-    (f % g1) < stepSize && (pLine[x] |= 0b00000001);
-    (f % g2) < stepSize && (pLine[x] |= 0b00000011);
-    (f % g3) < stepSize && (pLine[x] |= 0b00000111);
+    drawTicks(x1, x2, y, fs, fe, 100000, 3);
+    drawTicks(x1, x2, y, fs, fe, 50000, 2);
   }
 }

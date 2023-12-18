@@ -25,7 +25,7 @@ static Preset defaultPresets[] = {
         .band =
             {
                 .bounds = {1500000, 3000000},
-                .name = "F1",
+                .name = "15-30",
                 .step = STEP_5_0kHz,
                 .modulation = MOD_AM,
                 .bw = BK4819_FILTER_BW_NARROW,
@@ -39,7 +39,7 @@ static Preset defaultPresets[] = {
         .band =
             {
                 .bounds = {3000000, 7200000},
-                .name = "F2",
+                .name = "30-72",
                 .step = STEP_5_0kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_NARROW,
@@ -53,8 +53,8 @@ static Preset defaultPresets[] = {
         .band =
             {
                 .bounds = {7200000, 8800000},
-                .name = "F3",
-                .step = STEP_5_0kHz,
+                .name = "72-88",
+                .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_NARROW,
                 .gainIndex = 90,
@@ -81,7 +81,7 @@ static Preset defaultPresets[] = {
         .band =
             {
                 .bounds = {10800000, 11800000},
-                .name = "F5",
+                .name = "108-118",
                 .step = STEP_12_5kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,
@@ -109,9 +109,9 @@ static Preset defaultPresets[] = {
         .band =
             {
                 .bounds = {13500000, 14400000},
-                .name = "F6",
+                .name = "135-144",
                 .step = STEP_12_5kHz,
-                .modulation = MOD_AM,
+                .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_NARROW,
                 .gainIndex = 90,
                 .squelch = 3,
@@ -123,7 +123,7 @@ static Preset defaultPresets[] = {
         .band =
             {
                 .bounds = {14400000, 14800000},
-                .name = "F6",
+                .name = "2m HAM",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,
@@ -137,7 +137,7 @@ static Preset defaultPresets[] = {
         .band =
             {
                 .bounds = {14800000, 17400000},
-                .name = "F6",
+                .name = "148-174",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,
@@ -151,7 +151,7 @@ static Preset defaultPresets[] = {
         .band =
             {
                 .bounds = {17400000, VHF_UHF_BOUND},
-                .name = "F6",
+                .name = "174-BOUND",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,
@@ -165,7 +165,7 @@ static Preset defaultPresets[] = {
         .band =
             {
                 .bounds = {VHF_UHF_BOUND, 35000000},
-                .name = "F6",
+                .name = "BOUND-350",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,
@@ -179,7 +179,7 @@ static Preset defaultPresets[] = {
         .band =
             {
                 .bounds = {35000000, 40000000},
-                .name = "F6",
+                .name = "350-400",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,
@@ -192,8 +192,120 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {40000000, 47000000},
-                .name = "F6",
+                .bounds = {40000000, 43307500},
+                .name = "400-433",
+                .step = STEP_25_0kHz,
+                .modulation = MOD_FM,
+                .bw = BK4819_FILTER_BW_WIDE,
+                .gainIndex = 90,
+                .squelch = 3,
+                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            },
+        .allowTx = false,
+    },
+    (Preset){
+        .band =
+            {
+                .bounds = {43307500, 43477500},
+                .name = "LPD",
+                .step = STEP_25_0kHz,
+                .modulation = MOD_FM,
+                .bw = BK4819_FILTER_BW_WIDE,
+                .gainIndex = 90,
+                .squelch = 3,
+                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            },
+        .allowTx = true,
+    },
+    (Preset){
+        .band =
+            {
+                .bounds = {43477500, 44600000},
+                .name = "434.7-446",
+                .step = STEP_25_0kHz,
+                .modulation = MOD_FM,
+                .bw = BK4819_FILTER_BW_WIDE,
+                .gainIndex = 90,
+                .squelch = 3,
+                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            },
+        .allowTx = false,
+    },
+    (Preset){
+        .band =
+            {
+                .bounds = {44600000, 44620000},
+                .name = "PMR",
+                .step = STEP_6_25kHz,
+                .modulation = MOD_FM,
+                .bw = BK4819_FILTER_BW_WIDE,
+                .gainIndex = 90,
+                .squelch = 3,
+                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            },
+        .allowTx = true,
+    },
+    (Preset){
+        .band =
+            {
+                .bounds = {44620000, 46255000},
+                .name = "446-462",
+                .step = STEP_25_0kHz,
+                .modulation = MOD_FM,
+                .bw = BK4819_FILTER_BW_WIDE,
+                .gainIndex = 90,
+                .squelch = 3,
+                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            },
+        .allowTx = false,
+    },
+    (Preset){
+        .band =
+            {
+                .bounds = {46256250, 46272500},
+                .name = "FRS/GMR462",
+                .step = STEP_12_5kHz,
+                .modulation = MOD_FM,
+                .bw = BK4819_FILTER_BW_WIDE,
+                .gainIndex = 90,
+                .squelch = 3,
+                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            },
+        .allowTx = false,
+    },
+    (Preset){
+        .band =
+            {
+                .bounds = {46272500, 46756250},
+                .name = "462-467",
+                .step = STEP_12_5kHz,
+                .modulation = MOD_FM,
+                .bw = BK4819_FILTER_BW_WIDE,
+                .gainIndex = 90,
+                .squelch = 3,
+                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            },
+        .allowTx = false,
+    },
+    (Preset){
+        .band =
+            {
+                .bounds = {46756250, 46771250},
+                .name = "FRS/GMR467",
+                .step = STEP_12_5kHz,
+                .modulation = MOD_FM,
+                .bw = BK4819_FILTER_BW_WIDE,
+                .gainIndex = 90,
+                .squelch = 3,
+                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            },
+        .allowTx = false,
+    },
+    (Preset){
+        .band =
+            {
+                .bounds = {46770000, 47000000},
+                .name = "F12",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,
@@ -207,7 +319,21 @@ static Preset defaultPresets[] = {
         .band =
             {
                 .bounds = {47000000, 63000000},
-                .name = "F6",
+                .name = "F13",
+                .step = STEP_25_0kHz,
+                .modulation = MOD_FM,
+                .bw = BK4819_FILTER_BW_WIDE,
+                .gainIndex = 90,
+                .squelch = 3,
+                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            },
+        .allowTx = false,
+    },
+    (Preset){
+        .band =
+            {
+                .bounds = {47000000, 63000000},
+                .name = "F14",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,
@@ -221,7 +347,7 @@ static Preset defaultPresets[] = {
         .band =
             {
                 .bounds = {84000000, 130000000},
-                .name = "F6",
+                .name = "F15",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,

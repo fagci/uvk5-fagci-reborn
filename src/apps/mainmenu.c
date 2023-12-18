@@ -10,6 +10,7 @@
 
 typedef enum {
   M_NONE,
+  M_VFO,
   M_SPECTRUM,
   M_STILL,
   M_TASK_MANAGER,
@@ -25,6 +26,7 @@ typedef enum {
 static uint8_t menuIndex = 0;
 
 static const MenuItem menu[] = {
+    {"VFO", M_VFO},
     {"Spectrum", M_SPECTRUM},
     {"Still", M_STILL},
     {"Task manager", M_TASK_MANAGER},
@@ -55,6 +57,10 @@ bool MAINMENU_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_MENU:
     // RUN APPS HERE
     switch (item->type) {
+    case M_VFO:
+      APPS_exit();
+      APPS_run(APP_VFO);
+      return true;
     case M_SPECTRUM:
       APPS_exit();
       APPS_run(APP_SPECTRUM);

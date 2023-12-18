@@ -25,7 +25,12 @@ uint8_t gBatteryDisplayLevel;
 bool gChargingWithTypeC;
 uint16_t gBatteryCurrent = 0;
 
-const uint16_t BATTERY_CALIBRATION[6] = {1309, 1805, 1905, 1960, 2023, 2300};
+// calibrated
+// const uint16_t BATTERY_CALIBRATION[6] = {1307, 1806, 1904, 1957, 2023, 2300};
+
+// custom (mid from calibrated & max)
+const uint16_t BATTERY_CALIBRATION[6] = {1345, 1810, 1930, 2010, 2090, 2300};
+
 uint16_t voltages[4];
 
 void BATTERY_UpdateBatteryInfo() {

@@ -30,7 +30,6 @@ void UI_ShowMenuItem(uint8_t line, const char *name, bool isCurrent);
 void UI_ShowMenu(const MenuItem *items, uint8_t size, uint8_t currentIndex);
 void UI_ShowItems(char (*items)[16], uint16_t size, uint16_t currentIndex);
 void UI_ShowRangeItems(uint16_t size, uint16_t currentIndex);
-void UI_DrawTicks(uint8_t x1, uint8_t x2, uint8_t line, Band *band,
-                  bool centerMode);
+void UI_DrawTicks(uint8_t x1, uint8_t x2, uint8_t y, Band *band);
 
 #endif /* end of include guard: COMPONENTS_H */

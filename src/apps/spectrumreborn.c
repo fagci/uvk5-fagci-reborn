@@ -16,7 +16,7 @@
 #include <string.h>
 
 #define BLACKLIST_SIZE 32
-#define DATA_LEN 64
+#define DATA_LEN 84
 
 static const uint16_t U16_MAX = 65535;
 static const uint8_t NOISE_OPEN_DIFF = 14;
@@ -243,7 +243,7 @@ void SPECTRUM_render(void) {
   PrintSmall(0, SPECTRUM_Y - 2, currentBand->name);
   DrawVLine(DATA_LEN - 1, 8, LCD_HEIGHT - 8, C_FILL);
 
-  UI_DrawTicks(0, DATA_LEN, 7, currentBand, false);
+  UI_DrawTicks(0, DATA_LEN - 1, 56, currentBand);
 
   if (!rssiHistory[DATA_LEN - 1]) {
     PrintSmallEx(DATA_LEN / 2, SPECTRUM_Y + S_HEIGHT / 2, POS_C, C_FILL,
@@ -266,11 +266,13 @@ void SPECTRUM_render(void) {
 
   LOOT_Sort(LOOT_SortByLastOpenTime);
 
+  const uint8_t LOOT_BL = 13;
+
   for (uint8_t i = 0; i < Clamp(LOOT_Size(), 0, 8); i++) {
     Loot *p = LOOT_Item(i);
-    PrintSmall(DATA_LEN + 1, i * 6 + 5 + 8, "%c",
-               p->open ? '>' : (p->blacklist ? 'X' : ' '));
-    PrintSmall(DATA_LEN + 1 + 8, i * 6 + 5 + 8, "%u.%04u %u", p->f / 100000,
-               p->f / 10 % 10000, p->ct);
+    char mark = p->open ? '>' : (p->blacklist ? 'X' : ' ');
+    PrintSmall(DATA_LEN + 1, i * 6 + LOOT_BL, "%c", mark);
+    PrintSmallEx(LCD_WIDTH - 1, i * 6 + LOOT_BL, POS_R, C_FILL, "%u.%05u",
+                 p->f / 100000, p->f % 100000);
   }
 }
