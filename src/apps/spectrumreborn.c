@@ -21,7 +21,7 @@
 static const uint16_t U16_MAX = 65535;
 static const uint8_t NOISE_OPEN_DIFF = 14;
 
-static const uint8_t S_HEIGHT = 32;
+static const uint8_t S_HEIGHT = 40;
 
 static const uint8_t SPECTRUM_Y = 16;
 static const uint8_t S_BOTTOM = SPECTRUM_Y + S_HEIGHT;
@@ -241,11 +241,9 @@ void SPECTRUM_update(void) {
 void SPECTRUM_render(void) {
   UI_ClearScreen();
   PrintSmall(0, SPECTRUM_Y - 2, currentBand->name);
-  DrawVLine(DATA_LEN - 1, SPECTRUM_Y, S_BOTTOM, C_FILL);
+  DrawVLine(DATA_LEN - 1, 8, LCD_HEIGHT - 8, C_FILL);
 
-  UI_DrawTicks(0, DATA_LEN, 6, currentBand, false);
-  UI_FSmallest(currentBand->bounds.start, 0, S_BOTTOM + 8 + 6);
-  UI_FSmallest(currentBand->bounds.end, 93, S_BOTTOM + 8 + 6);
+  UI_DrawTicks(0, DATA_LEN, 7, currentBand, false);
 
   if (!rssiHistory[DATA_LEN - 1]) {
     PrintSmallEx(DATA_LEN / 2, SPECTRUM_Y + S_HEIGHT / 2, POS_C, C_FILL,

@@ -41,6 +41,9 @@ void STATUSLINE_update() {
 
 void STATUSLINE_render() {
   UI_ClearStatus();
+
+  DrawHLine(0, 7, LCD_WIDTH, C_FILL);
+
   if (showBattery) {
     UI_Battery(gBatteryDisplayLevel);
   }
