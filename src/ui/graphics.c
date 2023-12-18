@@ -417,44 +417,6 @@ static void drawCircleHelper(int16_t x0, int16_t y0, int16_t r,
   }
 }
 
-void DrawCircle(int16_t x0, int16_t y0, int16_t r, Color color) {
-  int16_t f = 1 - r;
-  int16_t ddF_x = 1;
-  int16_t ddF_y = -2 * r;
-  int16_t x = 0;
-  int16_t y = r;
-
-  PutPixel(x0, y0 + r, color);
-  PutPixel(x0, y0 - r, color);
-  PutPixel(x0 + r, y0, color);
-  PutPixel(x0 - r, y0, color);
-
-  while (x < y) {
-    if (f >= 0) {
-      y--;
-      ddF_y += 2;
-      f += ddF_y;
-    }
-    x++;
-    ddF_x += 2;
-    f += ddF_x;
-
-    PutPixel(x0 + x, y0 + y, color);
-    PutPixel(x0 - x, y0 + y, color);
-    PutPixel(x0 + x, y0 - y, color);
-    PutPixel(x0 - x, y0 - y, color);
-    PutPixel(x0 + y, y0 + x, color);
-    PutPixel(x0 - y, y0 + x, color);
-    PutPixel(x0 + y, y0 - x, color);
-    PutPixel(x0 - y, y0 - x, color);
-  }
-}
-
-void FillCircle(int16_t x0, int16_t y0, int16_t r, Color color) {
-  DrawVLine(x0, y0 - r, 2 * r + 1, color);
-  fillCircleHelper(x0, y0, r, 3, 0, color);
-}
-
 void DrawRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r,
                    Color color) {
   int16_t max_radius = ((w < h) ? w : h) / 2; // 1/2 minor axis

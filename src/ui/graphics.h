@@ -49,8 +49,6 @@ void PrintBigDigitsEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,
 void PrintBiggestDigitsEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,
                           const char *pattern, ...);
 
-void DrawCircle(int16_t x0, int16_t y0, int16_t r, Color color);
-void FillCircle(int16_t x0, int16_t y0, int16_t r, Color color);
 void DrawRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r,
                    Color color);
 void FillRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r,
