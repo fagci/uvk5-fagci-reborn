@@ -32,8 +32,8 @@ void UI_RSSIBar(int16_t rssi, uint32_t f, uint8_t y) {
 
   FillRect(0, y, LCD_WIDTH, 8, C_CLEAR);
 
-  for (uint8_t i = 0; i <= s; ++i) {
-    if (i > 9) {
+  for (uint8_t i = 0; i < s; ++i) {
+    if (i >= 9) {
       FillRect(BAR_LEFT_MARGIN + i * 5, y + 2, 4, 6, C_FILL);
     } else {
       FillRect(BAR_LEFT_MARGIN + i * 5, y + 3, 4, 4, C_FILL);

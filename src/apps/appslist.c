@@ -1,4 +1,4 @@
-#include "mainmenu.h"
+#include "appslist.h"
 #include "../driver/st7565.h"
 #include "../helper/measurements.h"
 #include "../misc.h"
@@ -32,14 +32,14 @@ static const MenuItem menu[] = {
     {"Task manager", M_TASK_MANAGER},
 };
 
-void MAINMENU_render() {
+void APPSLIST_render() {
   UI_ClearScreen();
   UI_ShowMenu(menu, ARRAY_SIZE(menu), menuIndex);
 }
 
-void MAINMENU_init() { gRedrawScreen = true; }
-void MAINMENU_update() {}
-bool MAINMENU_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+void APPSLIST_init() { gRedrawScreen = true; }
+void APPSLIST_update() {}
+bool APPSLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed || bKeyHeld) {
     return false;
   }

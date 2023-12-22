@@ -24,6 +24,9 @@
 #include "../misc.h"
 #include "bk4819-regs.h"
 
+#define BK4819_F_MIN 1600000
+#define BK4819_F_MAX 134000000
+
 static const uint16_t FSK_RogerTable[7] = {
     0xF1A2, 0x7446, 0x61A4, 0x6544, 0x4E8A, 0xE044, 0xEA84,
 };

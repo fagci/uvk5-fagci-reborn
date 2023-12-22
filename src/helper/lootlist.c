@@ -1,7 +1,7 @@
 #include "lootlist.h"
 #include "../scheduler.h"
 
-#define LOOT_SIZE_MAX 128
+#define LOOT_SIZE_MAX 32
 
 static Loot loot[LOOT_SIZE_MAX] = {0};
 static int8_t lootIndex = -1;

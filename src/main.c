@@ -37,26 +37,39 @@ void selfTest() {
     continue;
 }
 
+/*
+
+Запускается меню повторно
+
+Похоже потому что после запуска приложения ещё раз обрабатывается клавиша?
+
+*/
+
 static void onKey(KEY_Code_t key, bool pressed, bool hold) {
   if (key != KEY_INVALID) {
     BACKLIGHT_On();
     TaskTouch(BACKLIGHT_Update);
   }
+
   if (APPS_key(key, pressed, hold)) {
     gRedrawScreen = true;
     return;
   }
-  if (key == KEY_MENU && gCurrentApp != APP_SETTINGS &&
-      gCurrentApp != APP_MAINMENU) {
-    if (hold && pressed) {
-      APPS_run(APP_SETTINGS);
-      return;
-    }
-    if (!hold && !pressed) {
-      APPS_run(APP_MAINMENU);
-      return;
+
+  if (key == KEY_MENU) {
+    if (pressed) {
+      if (hold) {
+        APPS_run(APP_SETTINGS);
+        return;
+      }
+    } else {
+      if (!hold) {
+        APPS_run(APP_APPS_LIST);
+        return;
+      }
     }
   }
+
   if (key == KEY_SIDE2 && !hold && pressed) {
     GPIO_FlipBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
   }
@@ -84,6 +97,7 @@ static void Update() {
 static void Keys() { KEYBOARD_CheckKeys(onKey); }
 
 static void sysUpdate() {
+  Keys();
   STATUSLINE_update();
   BACKLIGHT_Update();
 }
@@ -99,7 +113,7 @@ static void sysUpdate() {
 static void AddTasks() {
   TaskAdd("1s sys upd", sysUpdate, 1000, true);
 
-  APPS_run(APP_SPECTRUM);
+  APPS_run(APP_STILL);
   TaskAdd("Update", Update, 1, true);
   TaskAdd("Keys", Keys, 10, true);
 }
@@ -120,8 +134,8 @@ static void Intro() {
     BK4819_Squelch(3, gCurrentVFO->fRX);
     BK4819_SetModulation(gCurrentVFO->modulation);
 
-    AddTasks();
     TaskRemove(Intro);
+    AddTasks();
   }
 }
 

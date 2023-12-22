@@ -2,7 +2,7 @@
 #include "../driver/st7565.h"
 #include "../ui/graphics.h"
 #include "finput.h"
-#include "mainmenu.h"
+#include "appslist.h"
 #include "presetcfg.h"
 #include "reset.h"
 #include "savech.h"
@@ -50,7 +50,7 @@ const App apps[APPS_COUNT] = {
     {"Still", STILL_init, NULL, STILL_render, STILL_key, STILL_deinit},
     {"Frequency input", FINPUT_init, NULL, FINPUT_render, FINPUT_key,
      FINPUT_deinit},
-    {"Main menu", MAINMENU_init, NULL, MAINMENU_render, MAINMENU_key},
+    {"Apps", APPSLIST_init, NULL, APPSLIST_render, APPSLIST_key},
     {"Reset", RESET_Init, RESET_Update, RESET_Render, RESET_key},
     {"Text input", TEXTINPUT_init, TEXTINPUT_update, TEXTINPUT_render,
      TEXTINPUT_key, TEXTINPUT_deinit},

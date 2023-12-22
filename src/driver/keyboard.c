@@ -187,9 +187,10 @@ void KEYBOARD_CheckKeys(void onKey(KEY_Code_t, bool, bool)) {
 
   // new key pressed
   if (gKeyReading0 != Key) {
-    if (gKeyReading0 != KEY_INVALID && Key != KEY_INVALID)
-      // key pressed without releasing previous key
+    // key pressed without releasing previous key
+    if (gKeyReading0 != KEY_INVALID && Key != KEY_INVALID) {
       onKey(gKeyReading1, false, gKeyBeingHeld);
+    }
 
     gKeyReading0 = Key;
     gDebounceCounter = 0;

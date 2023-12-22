@@ -111,7 +111,7 @@ bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_MENU:
     tempFreq = GetTuneF(tempFreq);
-    if (tempFreq >= F_MIN && tempFreq <= F_MAX && gFInputCallback) {
+    if (tempFreq <= F_MAX && gFInputCallback) {
       gFInputCallback(tempFreq);
     }
     gFInputCallback = NULL;
