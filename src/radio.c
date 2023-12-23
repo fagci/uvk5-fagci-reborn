@@ -13,9 +13,6 @@
 VFO *gCurrentVFO;
 VFO gVFO[2] = {0};
 
-// to use instead of predefined when we need to keep step, etc
-static Preset defaultPreset = {0};
-
 bool gIsListening = false;
 
 const uint16_t StepFrequencyTable[12] = {
@@ -148,23 +145,10 @@ void RADIO_ToggleListeningBW() {
   onVfoUpdate();
 }
 
-void updatePresetFromCurrentVFO() {
-  for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
-    Preset *p = PRESETS_Item(i);
-    if (gCurrentVFO->fRX >= p->band.bounds.start &&
-        gCurrentVFO->fRX <= p->band.bounds.end) {
-      gCurrentPreset = p;
-      gSettings.activePreset = i;
-      return;
-    }
-  }
-  gCurrentPreset = &defaultPreset; // TODO: make preset between near bands
-}
-
 void RADIO_TuneTo(uint32_t f) {
   memset(gCurrentVFO->name, 0, sizeof(gCurrentVFO->name));
   gCurrentVFO->fRX = f;
-  updatePresetFromCurrentVFO();
+  PRESET_SelectByFrequency(gCurrentVFO->fRX);
   BK4819_TuneTo(f);
   onVfoUpdate();
 }
@@ -172,7 +156,7 @@ void RADIO_TuneTo(uint32_t f) {
 void RADIO_TuneToSave(uint32_t f) {
   memset(gCurrentVFO->name, 0, sizeof(gCurrentVFO->name));
   gCurrentVFO->fRX = f;
-  updatePresetFromCurrentVFO();
+  PRESET_SelectByFrequency(gCurrentVFO->fRX);
   BK4819_TuneTo(f);
   RADIO_SaveCurrentVFO();
 }
@@ -189,7 +173,7 @@ void RADIO_LoadCurrentVFO() {
   RADIO_LoadChannel(0, &gVFO[0]);
   RADIO_LoadChannel(1, &gVFO[1]);
   gCurrentVFO = &gVFO[gSettings.activeChannel];
-  updatePresetFromCurrentVFO();
+  PRESET_SelectByFrequency(gCurrentVFO->fRX);
 }
 
 void RADIO_SetSquelch(uint8_t sq) {
@@ -208,7 +192,7 @@ void RADIO_SetGain(uint8_t gainIndex) {
 }
 
 void RADIO_SetupByCurrentVFO() {
-  updatePresetFromCurrentVFO();
+  PRESET_SelectByFrequency(gCurrentVFO->fRX);
   BK4819_SquelchType(gCurrentPreset->band.squelchType);
   BK4819_Squelch(gCurrentPreset->band.squelch, gCurrentVFO->fRX);
   BK4819_TuneTo(gCurrentVFO->fRX);

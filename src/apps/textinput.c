@@ -5,7 +5,7 @@
 #include "apps.h"
 #include <string.h>
 
-char *gTextinputText;
+char *gTextinputText = "";
 
 static char *letters[9] = {
     "",
@@ -171,25 +171,27 @@ bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   }
   return false;
 }
+
 void TEXTINPUT_render() {
   char String[8];
+  const uint8_t INPUT_Y = 8 + 14;
+  const uint8_t CHAR_W = 5;
 
   UI_ClearScreen();
 
-  for (uint8_t i = 8; i < LCD_WIDTH - 8; ++i) {
-    gFrameBuffer[2][i] = 0b00000001;
+  DrawHLine(8, INPUT_Y, LCD_WIDTH - 16, C_FILL);
+
+  for (size_t i = 0; i < strlen(inputField); ++i) {
+    PrintMedium(8 + i * (CHAR_W + 1), 8 + 12, "%c", inputField[i]);
   }
 
-  PrintMedium(8, 8 + 12, inputField);
-
-  const uint8_t CHAR_W = 6;
   uint8_t rowStrlen = 0;
   if (currentRow) {
     rowStrlen = strlen(currentRow);
   }
 
   if (coursorBlink) {
-    gFrameBuffer[1][8 + (inputIndex * (CHAR_W + 1)) - 1] = 127;
+    DrawVLine(8 + (inputIndex * (CHAR_W + 1)) - 1, INPUT_Y - 8, 7, C_FILL);
   }
 
   for (uint8_t y = 0; y < 3; y++) {
@@ -197,11 +199,10 @@ void TEXTINPUT_render() {
       const uint8_t idx = y * 3 + x;
       const uint8_t xPos = x * 43 + 1;
       const uint8_t line = y + 3;
+      const uint8_t yPos = line * 8 + 12;
 
-      PrintMedium(xPos, line * 8 + 12, "%u", idx + 1);
-      for (uint8_t j = 0; j < CHAR_W + 2; ++j) {
-        gFrameBuffer[line][xPos + j - 1] ^= 0xFF;
-      }
+      PrintMedium(xPos, yPos, "%u", idx + 1);
+      FillRect(xPos - 1, yPos - 6, 7, 8, C_INVERT);
 
       if (currentRow) {
         if (idx < rowStrlen) {

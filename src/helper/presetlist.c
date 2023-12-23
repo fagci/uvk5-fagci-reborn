@@ -5,6 +5,9 @@ Preset *gCurrentPreset;
 static Preset presets[32] = {0};
 static uint8_t loadedCount = 0;
 
+// to use instead of predefined when we need to keep step, etc
+static Preset defaultPreset = {0};
+
 bool PRESETS_Load() {
   if (loadedCount < gSettings.presetsCount) {
     RADIO_LoadPreset(loadedCount, &presets[loadedCount]);
@@ -30,15 +33,22 @@ void PRESETS_SelectPresetRelative(bool next) {
       gSettings.activePreset = gSettings.presetsCount - 1;
     }
   }
-  gCurrentVFO->fRX = presets[gSettings.activePreset].band.bounds.start;
+  gCurrentPreset = &presets[gSettings.activePreset];
+  gCurrentVFO->fRX = gCurrentPreset->band.bounds.start;
   SETTINGS_DelayedSave();
 }
 
-int8_t PRESET_GetCurrentIndex() {
-  for (uint8_t i = 0; i < gSettings.presetsCount; ++i) {
-    if (gCurrentPreset == &presets[i]) {
+int8_t PRESET_GetCurrentIndex() { return gSettings.activePreset; }
+
+int8_t PRESET_SelectByFrequency(uint32_t f) {
+  for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
+    Preset *p = PRESETS_Item(i);
+    if (f >= p->band.bounds.start && f <= p->band.bounds.end) {
+      gCurrentPreset = p;
+      gSettings.activePreset = i;
       return i;
     }
   }
+  gCurrentPreset = &defaultPreset; // TODO: make preset between near bands
   return -1;
 }

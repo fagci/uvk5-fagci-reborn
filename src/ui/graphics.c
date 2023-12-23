@@ -15,7 +15,7 @@
   }
 #endif
 
-static uint8_t cursor_x = 0, cursor_y = 0;
+Cursor cursor = {0, 0};
 
 static const GFXfont *fontSmall = &TomThumb;
 static const GFXfont *fontMedium = &MuMatrix8ptRegular;
@@ -218,8 +218,8 @@ static void getTextBounds(const char *str, int16_t x, int16_t y, int16_t *x1,
 void write(uint8_t c, uint8_t textsize_x, uint8_t textsize_y, bool wrap,
            Color color, uint8_t bg, const GFXfont *gfxFont) {
   if (c == '\n') {
-    cursor_x = 0;
-    cursor_y += (int16_t)textsize_y * gfxFont->yAdvance;
+    cursor.x = 0;
+    cursor.y += (int16_t)textsize_y * gfxFont->yAdvance;
   } else if (c != '\r') {
     uint8_t first = gfxFont->first;
     if ((c >= first) && (c <= gfxFont->last)) {
@@ -227,21 +227,21 @@ void write(uint8_t c, uint8_t textsize_x, uint8_t textsize_y, bool wrap,
       uint8_t w = glyph->width, h = glyph->height;
       if ((w > 0) && (h > 0)) { // Is there an associated bitmap?
         int16_t xo = glyph->xOffset;
-        if (wrap && ((cursor_x + textsize_x * (xo + w)) > LCD_WIDTH)) {
-          cursor_x = 0;
-          cursor_y += (int16_t)textsize_y * gfxFont->yAdvance;
+        if (wrap && ((cursor.x + textsize_x * (xo + w)) > LCD_WIDTH)) {
+          cursor.x = 0;
+          cursor.y += (int16_t)textsize_y * gfxFont->yAdvance;
         }
-        m_putchar(cursor_x, cursor_y, c, color, bg, textsize_x, textsize_y,
+        m_putchar(cursor.x, cursor.y, c, color, bg, textsize_x, textsize_y,
                   gfxFont);
       }
-      cursor_x += glyph->xAdvance * (int16_t)textsize_x;
+      cursor.x += glyph->xAdvance * (int16_t)textsize_x;
     }
   }
 }
 
 void moveTo(uint8_t x, uint8_t y) {
-  cursor_x = x;
-  cursor_y = y;
+  cursor.x = x;
+  cursor.y = y;
 }
 
 static void printString(const GFXfont *gfxFont, uint8_t x, uint8_t y,

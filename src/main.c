@@ -105,7 +105,7 @@ static void sysUpdate() {
 static void AddTasks() {
   TaskAdd("1s sys upd", sysUpdate, 1000, true);
 
-  APPS_run(APP_TASK_MANAGER);
+  APPS_run(APP_TEXTINPUT);
   TaskAdd("Update", Update, 1, true);
   TaskAdd("Keys", Keys, 10, true);
 }

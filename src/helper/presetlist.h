@@ -9,6 +9,7 @@ uint8_t PRESETS_Size();
 Preset *PRESETS_Item(uint8_t i);
 void PRESETS_SelectPresetRelative(bool next);
 int8_t PRESET_GetCurrentIndex();
+int8_t PRESET_SelectByFrequency(uint32_t f);
 
 extern Preset *gCurrentPreset;
 

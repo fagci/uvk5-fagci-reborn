@@ -108,11 +108,11 @@ bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_MENU:
     tempFreq = GetTuneF(tempFreq);
+    APPS_exit();
     if (tempFreq <= F_MAX && gFInputCallback) {
       gFInputCallback(tempFreq);
+      gFInputCallback = NULL;
     }
-    gFInputCallback = NULL;
-    APPS_exit();
     return true;
   default:
     break;

@@ -9,7 +9,8 @@
 #include <stdio.h>
 
 typedef enum {
-  M_BOUNDS,
+  M_START,
+  M_END,
   M_NAME,       // char name[16];
   M_STEP,       // uint8_t step : 8;
   M_MODULATION, // uint8_t modulation : 4;
@@ -17,7 +18,7 @@ typedef enum {
   M_SQ,
   M_SQ_TYPE,
   M_GAIN,
-  M_SAVE,
+  // M_SAVE,
 } PresetCfgMenu;
 
 static uint8_t menuIndex = 0;
@@ -25,7 +26,8 @@ static uint8_t subMenuIndex = 0;
 static bool isSubMenu = false;
 
 static MenuItem menu[] = {
-    {"Bounds", M_BOUNDS},
+    {"Start freq", M_START},
+    {"End freq", M_END},
     {"Name", M_NAME},
     {"Step", M_STEP, ARRAY_SIZE(StepFrequencyTable)},
     {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions)},
@@ -33,7 +35,7 @@ static MenuItem menu[] = {
     {"SQ level", M_SQ, 10},
     {"SQ type", M_SQ_TYPE, ARRAY_SIZE(sqTypeNames)},
     {"Gain", M_GAIN, ARRAY_SIZE(gainTable)},
-    {"Save", M_SAVE},
+    // {"Save", M_SAVE},
 };
 
 static void accept() {
@@ -73,9 +75,11 @@ static const char *getValue(PresetCfgMenu type) {
   uint32_t fs = gCurrentPreset->band.bounds.start;
   uint32_t fe = gCurrentPreset->band.bounds.end;
   switch (type) {
-  case M_BOUNDS:
-    sprintf(Output, "%lu.%03lu-%lu.%03lu", fs / 100000, fs / 100 % 1000,
-            fe / 100000, fe / 100 % 1000);
+  case M_START:
+    sprintf(Output, "%lu.%03lu", fs / 100000, fs / 100 % 1000);
+    return Output;
+  case M_END:
+    sprintf(Output, "%lu.%03lu", fe / 100000, fe / 100 % 1000);
     return Output;
   case M_NAME:
     return gCurrentPreset->band.name;
@@ -159,8 +163,7 @@ static void setUpperBound(uint32_t f) {
 
 static void setLowerBound(uint32_t f) {
   gCurrentPreset->band.bounds.start = f;
-  gFInputCallback = setUpperBound;
-  APPS_run(APP_FINPUT);
+  RADIO_SaveCurrentPreset();
 }
 
 void PRESETCFG_init() { gRedrawScreen = true; }
@@ -193,13 +196,17 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       gTextinputText = gCurrentVFO->name;
       APPS_run(APP_TEXTINPUT);
       return true;
-    case M_BOUNDS:
+    case M_START:
       gFInputCallback = setLowerBound;
       APPS_run(APP_FINPUT);
       return true;
-    case M_SAVE:
-      APPS_run(APP_SAVECH);
+    case M_END:
+      gFInputCallback = setUpperBound;
+      APPS_run(APP_FINPUT);
       return true;
+    /* case M_SAVE:
+      APPS_run(APP_SAVECH);
+      return true; */
     default:
       break;
     }
