@@ -5,6 +5,7 @@
 #include "../radio.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
+#include "../ui/statusline.h"
 #include "apps.h"
 #include "finput.h"
 #include "textinput.h"
@@ -220,7 +221,7 @@ void VFOCFG_render() {
   const MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {
     showSubmenu(item->type);
-    PrintSmall(0, 0, item->name);
+    STATUSLINE_SetText(item->name);
   } else {
     UI_ShowMenu(menu, ARRAY_SIZE(menu), menuIndex);
     PrintMediumEx(LCD_WIDTH / 2, LCD_HEIGHT - 2, POS_C, C_FILL,

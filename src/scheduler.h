@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define TASKS_MAX 32
+#define TASKS_MAX 64
 
 typedef volatile struct {
   const char *name;

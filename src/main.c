@@ -76,20 +76,22 @@ static void onKey(KEY_Code_t key, bool pressed, bool hold) {
   }
 }
 
-static void Update() {
-  APPS_update();
-  if (!gRedrawScreen) {
-    return;
-  }
+static void Render() {
   STATUSLINE_render();
   APPS_render();
   ST7565_Render();
 }
 
+static void Update() {
+  APPS_update();
+  if (gRedrawScreen) {
+    TaskAdd("Render", Render, 0, false);
+  }
+}
+
 static void Keys() { KEYBOARD_CheckKeys(onKey); }
 
 static void sysUpdate() {
-  Keys();
   STATUSLINE_update();
   BACKLIGHT_Update();
 }
@@ -103,11 +105,11 @@ static void sysUpdate() {
 // }
 
 static void AddTasks() {
-  TaskAdd("1s sys upd", sysUpdate, 1000, true);
+  APPS_run(APP_SPECTRUM);
 
-  APPS_run(APP_TEXTINPUT);
-  TaskAdd("Update", Update, 1, true);
   TaskAdd("Keys", Keys, 10, true);
+  TaskAdd("Update", Update, 1, true);
+  TaskAdd("1s sys upd", sysUpdate, 1000, true);
 }
 
 static uint8_t introIndex = 0;
@@ -152,13 +154,18 @@ void Main(void) {
   if (KEYBOARD_Poll() == KEY_EXIT) {
     APPS_run(APP_RESET);
     TaskAdd("Update", Update, 1, true);
+  } else if (KEYBOARD_Poll() == KEY_F) {
+    UART_ToggleLog(true);
+    TaskAdd("Intro", Intro, 2, true);
   } else if (KEYBOARD_Poll() == KEY_MENU) {
     // selfTest();
-    for (uint8_t i = 0; i < 6; ++i) {
+    for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
       Preset p = {};
       RADIO_LoadPreset(i, &p);
-      PrintSmall(0, 6 * i, "%u", p.band.bounds.start);
+      PrintSmall(i / 10 * 40, 6 * (i % 10) + 6, "%u - %u",
+                 p.band.bounds.start / 100000, p.band.bounds.end / 100000);
     }
+    ST7565_Blit();
   } else {
     TaskAdd("Intro", Intro, 2, true);
   }

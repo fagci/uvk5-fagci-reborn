@@ -23,6 +23,7 @@
 
 extern uint8_t UART_DMA_Buffer[256];
 extern uint8_t gUartData[1024];
+extern uint8_t UART_IsLogEnabled;
 
 void UART_Init(void);
 void UART_Send(const void *pBuffer, uint32_t Size);
@@ -32,5 +33,7 @@ void UART_LogSendText(const void *str);
 void UART_printf(const char *str, ...);
 uint16_t UART_HasData();
 void UART_ResetData();
+void UART_logf(uint8_t level, const char *pattern, ...);
+void UART_ToggleLog(bool on);
 
 #endif

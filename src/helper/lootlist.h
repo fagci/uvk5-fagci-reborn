@@ -11,11 +11,11 @@ typedef struct {
   uint32_t firstTime;
   uint32_t lastTimeCheck;
   uint32_t lastTimeOpen;
-  uint32_t duration;
-  uint16_t rssi;
-  uint16_t noise;
   uint32_t cd;
   uint16_t ct;
+  uint16_t duration;
+  uint16_t rssi;
+  uint16_t noise;
   bool open;
   bool blacklist;
 } Loot;

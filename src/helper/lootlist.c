@@ -1,7 +1,7 @@
 #include "lootlist.h"
 #include "../scheduler.h"
 
-#define LOOT_SIZE_MAX 16
+#define LOOT_SIZE_MAX 64
 
 static Loot loot[LOOT_SIZE_MAX] = {0};
 static int8_t lootIndex = -1;
@@ -114,33 +114,31 @@ void LOOT_Update(Loot *msm) {
     msm->open = false;
   }
 
-  if (peak != NULL) {
-    peak->noise = msm->noise;
-    peak->rssi = msm->rssi;
+  peak->noise = msm->noise;
+  peak->rssi = msm->rssi;
 
-    if (peak->open) {
-      peak->duration += elapsedMilliseconds - peak->lastTimeCheck;
-      gLastActiveLoot = peak;
-    }
-    if (msm->open) {
-      uint32_t cd = 0;
-      uint16_t ct = 0;
-      BK4819_CssScanResult_t res = BK4819_GetCxCSSScanResult(&cd, &ct);
-      switch (res) {
-      case BK4819_CSS_RESULT_CDCSS:
-        peak->cd = cd;
-        break;
-      case BK4819_CSS_RESULT_CTCSS:
-        peak->ct = ct;
-        break;
-      default:
-        break;
-      }
-      peak->lastTimeOpen = elapsedMilliseconds;
-    }
-    peak->lastTimeCheck = elapsedMilliseconds;
-    peak->open = msm->open;
+  if (peak->open) {
+    peak->duration += elapsedMilliseconds - peak->lastTimeCheck;
+    gLastActiveLoot = peak;
   }
+  if (msm->open) {
+    uint32_t cd = 0;
+    uint16_t ct = 0;
+    BK4819_CssScanResult_t res = BK4819_GetCxCSSScanResult(&cd, &ct);
+    switch (res) {
+    case BK4819_CSS_RESULT_CDCSS:
+      peak->cd = cd;
+      break;
+    case BK4819_CSS_RESULT_CTCSS:
+      peak->ct = ct;
+      break;
+    default:
+      break;
+    }
+    peak->lastTimeOpen = elapsedMilliseconds;
+  }
+  peak->lastTimeCheck = elapsedMilliseconds;
+  peak->open = msm->open;
 
   if (msm->blacklist) {
     peak->blacklist = true;

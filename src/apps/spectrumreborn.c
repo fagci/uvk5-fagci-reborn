@@ -11,6 +11,7 @@
 #include "../settings.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
+#include "../ui/statusline.h"
 #include "apps.h"
 #include "finput.h"
 #include <string.h>
@@ -19,7 +20,7 @@
 #define DATA_LEN 84
 
 static const uint16_t U16_MAX = 65535;
-static const uint8_t NOISE_OPEN_DIFF = 14;
+static const uint8_t NOISE_OPEN_DIFF = 16;
 
 static const uint8_t S_HEIGHT = 40;
 
@@ -28,8 +29,9 @@ static const uint8_t S_BOTTOM = SPECTRUM_Y + S_HEIGHT;
 
 static uint16_t rssiHistory[DATA_LEN] = {0};
 static uint16_t noiseHistory[DATA_LEN] = {0};
-static uint8_t x;
 static bool markers[DATA_LEN] = {0};
+
+static uint8_t x;
 
 static Band *currentBand;
 
@@ -47,6 +49,8 @@ static uint16_t noiseO = 0;
 static uint8_t msmDelay = 5;
 
 static uint16_t oldPresetIndex = 255;
+
+static bool bandFilled = false;
 
 static uint16_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 
@@ -98,11 +102,18 @@ static void updateMeasurements() {
   }
 }
 
+uint32_t lastRender = 0;
+
 static void writeRssi() {
   updateMeasurements();
 
+  if (msm.open != gIsListening) {
+    UART_logf(1, "[LISTEN] %u", msm.open);
+  }
+
   RADIO_ToggleRX(msm.open);
-  if (msm.open) {
+  if (msm.open || elapsedMilliseconds - lastRender >= 1000) {
+    lastRender = elapsedMilliseconds;
     gRedrawScreen = true;
     return;
   }
@@ -111,7 +122,7 @@ static void writeRssi() {
   currentStep++;
 }
 
-static void step() {
+static void setF() {
   msm.rssi = 0;
   msm.blacklist = false;
   msm.noise = U16_MAX;
@@ -121,13 +132,16 @@ static void step() {
     rssiHistory[lx] = 0;
     markers[lx] = false;
   }
-
+  // need to run when task activated =(
   BK4819_SetFrequency(msm.f);
   BK4819_WriteRegister(BK4819_REG_30, 0x200);
   BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
-
-  TaskAdd("Get RSSI", writeRssi, msmDelay, false)->priority = 0;
+  Task *t = TaskAdd("Get RSSI", writeRssi, msmDelay, false);
+  t->priority = 0;
+  t->active = 1;
 }
+
+static void step() { TaskAdd("Set F", setF, 0, false)->priority = 0; }
 
 static void startNewScan() {
   currentStep = 0;
@@ -150,6 +164,9 @@ static void startNewScan() {
     RADIO_SetupBandParams(currentBand);
     oldPresetIndex = gSettings.activePreset;
     gRedrawScreen = true;
+    bandFilled = false;
+  } else {
+    bandFilled = true;
   }
 }
 
@@ -184,6 +201,7 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_SIDE1:
     LOOT_BlacklistLast();
+    UART_logf(1, "=== BLACKLIST ===");
     return true;
   case KEY_F:
     APPS_run(APP_PRESET_CFG);
@@ -204,6 +222,12 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     RADIO_TuneToSave(gLastActiveLoot->f);
     APPS_run(APP_STILL);
     return true;
+  case KEY_1:
+    UART_ToggleLog(true);
+    return true;
+  case KEY_7:
+    UART_ToggleLog(false);
+    return true;
   default:
     break;
   }
@@ -218,7 +242,6 @@ void SPECTRUM_update(void) {
     newScan = false;
     startNewScan();
   }
-  // UART_printf("Spectrum update pass\n");
   if (gIsListening) {
     updateMeasurements();
     gRedrawScreen = true;
@@ -239,23 +262,23 @@ void SPECTRUM_update(void) {
 
 void SPECTRUM_render(void) {
   UI_ClearScreen();
-  PrintSmall(0, SPECTRUM_Y - 2, currentBand->name);
+  STATUSLINE_SetText(currentBand->name);
   DrawVLine(DATA_LEN - 1, 8, LCD_HEIGHT - 8, C_FILL);
 
   UI_DrawTicks(0, DATA_LEN - 1, 56, currentBand);
 
-  if (!rssiHistory[DATA_LEN - 1]) {
-    PrintSmallEx(DATA_LEN / 2, SPECTRUM_Y + S_HEIGHT / 2, POS_C, C_FILL,
-                 "Collecting...");
-    return;
-  }
+  const uint8_t xMax = bandFilled ? DATA_LEN - 1 : x;
 
-  const uint16_t rssiMin = Min(rssiHistory, DATA_LEN);
-  const uint16_t rssiMax = Max(rssiHistory, DATA_LEN);
+  const uint16_t rssiMin = Min(rssiHistory, xMax);
+  const uint16_t rssiMax = Max(rssiHistory, xMax);
   const uint16_t vMin = rssiMin - 2;
   const uint16_t vMax = rssiMax + 20 + (rssiMax - rssiMin) / 2;
 
-  for (uint8_t xx = 0; xx < DATA_LEN; ++xx) {
+  UART_logf(1,
+            "---------------------------> filled=%u xmax=%u, vmin=%u, vmax=%u",
+            bandFilled, xMax, vMin, vMax);
+
+  for (uint8_t xx = 0; xx < xMax; ++xx) {
     uint8_t yVal = ConvertDomain(rssiHistory[xx], vMin, vMax, 0, S_HEIGHT);
     DrawVLine(xx, S_BOTTOM - yVal, yVal, C_FILL);
     if (markers[xx]) {

@@ -1,6 +1,7 @@
 #include "statusline.h"
 #include "../driver/eeprom.h"
 #include "../driver/st7565.h"
+#include "../driver/uart.h"
 #include "../helper/battery.h"
 #include "../scheduler.h"
 #include "components.h"
@@ -20,10 +21,15 @@ static void eepromRWReset() {
 }
 
 void STATUSLINE_SetText(const char *pattern, ...) {
+  char statuslineTextNew[32] = {0};
   va_list args;
   va_start(args, pattern);
-  vsnprintf(statuslineText, 31, pattern, args);
+  vsnprintf(statuslineTextNew, 31, pattern, args);
   va_end(args);
+  if (strcmp(statuslineText, statuslineTextNew)) {
+    strncpy(statuslineText, statuslineTextNew, 31);
+    gRedrawScreen = true;
+  }
 }
 
 void STATUSLINE_update() {
@@ -44,7 +50,7 @@ void STATUSLINE_update() {
     lastEepromRead = gEepromRead;
     lastEepromWrite = gEepromWrite;
     gRedrawScreen = true;
-    TaskAdd("EEPROM RW-", eepromRWReset, 1000, false);
+    TaskAdd("EEPROM RW-", eepromRWReset, 500, false);
   }
 }
 
@@ -57,8 +63,12 @@ void STATUSLINE_render() {
     UI_Battery(gBatteryDisplayLevel);
   }
 
+  if (UART_IsLogEnabled) {
+    PrintSmallEx(LCD_WIDTH - 1 - 24, 5, POS_R, C_FILL, "D:%u", UART_IsLogEnabled);
+  }
+
   if (gEepromRead) {
-    PrintSmallEx(LCD_WIDTH - 1 - 4, 5, POS_R, C_FILL, "R");
+    PrintSmallEx(LCD_WIDTH - 1 - 6, 5, POS_R, C_FILL, "R");
   }
 
   if (gEepromWrite) {

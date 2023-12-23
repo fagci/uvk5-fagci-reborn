@@ -19,11 +19,12 @@
 #include "../inc/dp32g030/dma.h"
 #include "../inc/dp32g030/syscon.h"
 #include "../misc.h"
+#include "../scheduler.h"
 #include "system.h"
 #include "uart.h"
 #include <string.h>
 
-static bool UART_IsLogEnabled;
+uint8_t UART_IsLogEnabled = 0;
 uint8_t UART_DMA_Buffer[256];
 
 void UART_Init(void) {
@@ -104,11 +105,10 @@ void UART_LogSendText(const void *str) {
     UART_Send(str, strlen(str));
 }
 
-static char sendBuffer[1024 * 4] = {0};
+static char sendBuffer[1024 * 2] = {0};
 static uint32_t sendBufferIndex = 0;
 
 void UART_printf(const char *str, ...) {
-    // return;
   char text[256];
   int len;
 
@@ -120,12 +120,30 @@ void UART_printf(const char *str, ...) {
   memcpy(sendBuffer + sendBufferIndex, text, len);
   sendBufferIndex += len;
 
-  if (sendBufferIndex > 2048) {
+  if (sendBufferIndex > 1024) {
     UART_Send(sendBuffer, sendBufferIndex);
     sendBufferIndex = 0;
   }
-  /* return;
-  UART_Send(text, len); */
+}
+
+void UART_ToggleLog(bool on) {
+  if (on && UART_IsLogEnabled < 5) {
+    UART_IsLogEnabled++;
+  }
+  if (!on && UART_IsLogEnabled > 0) {
+    UART_IsLogEnabled--;
+  }
+}
+
+void UART_logf(uint8_t level, const char *pattern, ...) {
+  if (UART_IsLogEnabled >= level) {
+    char text[256];
+    va_list args;
+    va_start(args, pattern);
+    vsnprintf(text, sizeof(text), pattern, args);
+    va_end(args);
+    UART_printf("%u %s\n", elapsedMilliseconds, text);
+  }
 }
 
 #define DMA_INDEX(x, y) (((x) + (y)) % sizeof(UART_DMA_Buffer))
