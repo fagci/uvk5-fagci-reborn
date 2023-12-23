@@ -167,6 +167,8 @@ static void updateStats() {
   noiseO = noiseMax - NOISE_OPEN_DIFF;
 }
 
+void SPECTRUM_deinit() { RADIO_ToggleRX(false); }
+
 bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed) {
     return false;

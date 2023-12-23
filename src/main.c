@@ -37,14 +37,6 @@ void selfTest() {
     continue;
 }
 
-/*
-
-Запускается меню повторно
-
-Похоже потому что после запуска приложения ещё раз обрабатывается клавиша?
-
-*/
-
 static void onKey(KEY_Code_t key, bool pressed, bool hold) {
   if (key != KEY_INVALID) {
     BACKLIGHT_On();
@@ -56,22 +48,25 @@ static void onKey(KEY_Code_t key, bool pressed, bool hold) {
     return;
   }
 
-  if (key == KEY_MENU) {
-    if (pressed) {
-      if (hold) {
-        APPS_run(APP_SETTINGS);
-        return;
-      }
-    } else {
-      if (!hold) {
-        APPS_run(APP_APPS_LIST);
-        return;
-      }
-    }
-  }
-
   if (key == KEY_SIDE2 && !hold && pressed) {
     GPIO_FlipBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
+    return;
+  }
+
+  if (key != KEY_MENU) {
+    return;
+  }
+
+  if (pressed) {
+    if (hold) {
+      APPS_run(APP_SETTINGS);
+      return;
+    }
+  } else {
+    if (!hold) {
+      APPS_run(APP_APPS_LIST);
+      return;
+    }
   }
 }
 
@@ -113,7 +108,7 @@ static void sysUpdate() {
 static void AddTasks() {
   TaskAdd("1s sys upd", sysUpdate, 1000, true);
 
-  APPS_run(APP_STILL);
+  APPS_run(APP_TASK_MANAGER);
   TaskAdd("Update", Update, 1, true);
   TaskAdd("Keys", Keys, 10, true);
 }

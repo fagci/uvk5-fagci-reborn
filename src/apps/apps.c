@@ -1,8 +1,10 @@
 #include "apps.h"
 #include "../driver/st7565.h"
+#include "../ui/components.h"
 #include "../ui/graphics.h"
-#include "finput.h"
+#include "../ui/statusline.h"
 #include "appslist.h"
+#include "finput.h"
 #include "presetcfg.h"
 #include "reset.h"
 #include "savech.h"
@@ -74,13 +76,14 @@ bool APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 }
 void APPS_init(AppType_t app) {
   char String[16] = "";
+  char appnameShort[3];
   gCurrentApp = app;
-  UI_ClearStatus();
   for (uint8_t i = 0; i <= stackIndex; i++) {
-    sprintf(String, "%s>%u", String, appsStack[i]);
+    strncpy(appnameShort, apps[appsStack[i]].name, 2);
+    sprintf(String, "%s>%s", String, appnameShort);
   }
-  PrintSmall(15, 5, String);
-  // UI_PrintStringSmallest(apps[gCurrentApp].name, 0, 0, true, true);
+  STATUSLINE_SetText(String);
+  // STATUSLINE_SetText(apps[gCurrentApp].name);
   gRedrawScreen = true;
 
   if (apps[app].init) {

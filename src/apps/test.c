@@ -9,29 +9,42 @@ void TEST_Init() {}
 
 void TEST_Update() { gRedrawScreen = true; }
 
-void TEST_Render() {
-  char String[16];
+static uint32_t counter = 1024;
+static bool kp = false;
+static bool kh = false;
+static KEY_Code_t key = KEY_INVALID;
 
+void TEST_Render() {
   UI_ClearScreen();
 
   for (uint8_t i = 0; i < TASKS_MAX; i++) {
     if (tasks[i].handler) {
-      sprintf(String, "%u(%s): %u", i, tasks[i].name, tasks[i].countdown);
-      PrintSmall(i / 8 * 64, i % 8 * 6, String);
+      PrintSmall((i / 8) * 64, i % 8 * 6 + 8 + 5, "%u(%s): %u", i,
+                 tasks[i].name, tasks[i].countdown);
     }
   }
+
+  PrintMedium(0, 42, "Key:%u, P:%u, H:%u, V:%lu", key, kp, kh, counter);
 }
 
 bool TEST_key(KEY_Code_t k, bool p, bool h) {
-  if (!p) {
-    return false;
-  }
+  kh = h;
+  kp = p;
+  key = k;
   switch (k) {
   case KEY_EXIT:
     APPS_exit();
     return true;
+  case KEY_UP:
+    counter++;
+    return true;
+  case KEY_DOWN:
+    counter--;
+    return true;
+  case KEY_MENU:
+    return false;
   default:
     break;
   }
-  return false;
+  return true;
 }

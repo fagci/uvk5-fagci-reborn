@@ -84,6 +84,7 @@ void STILL_init() {
 void STILL_deinit() {
   TaskRemove(update);
   TaskRemove(render);
+  RADIO_ToggleRX(false);
 }
 
 bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
@@ -224,7 +225,7 @@ static void DrawRegs() {
 
 void STILL_render() {
   UI_ClearScreen();
-  PrintSmall(BATTERY_W + 1, 5, "%s", gCurrentPreset->band.name);
+  // PrintSmall(BATTERY_W + 1, 5, "%s", gCurrentPreset->band.name);
   UI_FSmall(GetScreenF(gCurrentVFO->fRX));
   UI_RSSIBar(rssi, gCurrentVFO->fRX, 23);
   DrawRegs();

@@ -13,8 +13,17 @@ static bool showBattery = true;
 static bool lastEepromRead = false;
 static bool lastEepromWrite = false;
 
+static char statuslineText[32] = {0};
+
 static void eepromRWReset() {
   lastEepromRead = lastEepromWrite = gEepromRead = gEepromWrite = false;
+}
+
+void STATUSLINE_SetText(const char *pattern, ...) {
+  va_list args;
+  va_start(args, pattern);
+  vsnprintf(statuslineText, 31, pattern, args);
+  va_end(args);
 }
 
 void STATUSLINE_update() {
@@ -54,5 +63,9 @@ void STATUSLINE_render() {
 
   if (gEepromWrite) {
     PrintSmallEx(LCD_WIDTH - 1, 5, POS_R, C_FILL, "W");
+  }
+
+  if (statuslineText[0] >= 32) {
+    PrintSmall(BATTERY_W + 1, 5, statuslineText);
   }
 }

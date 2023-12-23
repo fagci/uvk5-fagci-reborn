@@ -77,6 +77,8 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       LOOT_Standby();
       msm.f = gCurrentVFO->fRX;
       return true;
+    case KEY_EXIT:
+      return true;
     default:
       break;
     }
@@ -95,18 +97,19 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       gFInputCallback = RADIO_TuneToSave;
       APPS_run(APP_FINPUT);
       return true;
-    case KEY_F:
-      APPS_run(APP_VFO_CFG);
-      return true;
     case KEY_UP:
       RADIO_TuneTo(gCurrentVFO->fRX +
                    StepFrequencyTable[gCurrentPreset->band.step]);
-      gRedrawScreen = true;
       return true;
     case KEY_DOWN:
       RADIO_TuneTo(gCurrentVFO->fRX -
                    StepFrequencyTable[gCurrentPreset->band.step]);
-      gRedrawScreen = true;
+      return true;
+    case KEY_F:
+      APPS_run(APP_VFO_CFG);
+      return true;
+    case KEY_EXIT:
+      APPS_exit();
       return true;
     default:
       break;
