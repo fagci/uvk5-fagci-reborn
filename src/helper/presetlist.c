@@ -2,7 +2,7 @@
 #include "../settings.h"
 
 Preset *gCurrentPreset;
-static Preset presets[64] = {0};
+static Preset presets[32] = {0};
 static uint8_t loadedCount = 0;
 
 bool PRESETS_Load() {

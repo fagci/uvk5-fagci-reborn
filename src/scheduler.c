@@ -61,15 +61,15 @@ void TasksUpdate(void) {
   for (uint8_t i = 0; i < tasksCount; ++i) {
     Task *task = &tasks[i];
     if (task->handler && !task->countdown && task->priority == 0) {
-      uint32_t now = elapsedMilliseconds;
+      // uint32_t now = elapsedMilliseconds;
       task->handler();
-      UART_printf("%u: %s() took %ums\n", elapsedMilliseconds, task->name,
-                  elapsedMilliseconds - now);
+      /* UART_printf("%u: %s() took %ums\n", elapsedMilliseconds, task->name,
+                  elapsedMilliseconds - now); */
       prioritized = true;
       if (task->continuous) {
         task->countdown = task->interval;
       } else {
-        UART_printf("%u: TaskRemove(%s)\n", elapsedMilliseconds, task->name);
+        // UART_printf("%u: TaskRemove(%s)\n", elapsedMilliseconds, task->name);
         TaskRemove(task->handler);
       }
     }
@@ -79,14 +79,14 @@ void TasksUpdate(void) {
   for (uint8_t i = 0; i < tasksCount; ++i) {
     Task *task = &tasks[i];
     if (task->handler && !task->countdown && task->priority != 0) {
-      uint32_t now = elapsedMilliseconds;
+      // uint32_t now = elapsedMilliseconds;
       task->handler();
-      UART_printf("%u: %s() took %ums\n", elapsedMilliseconds, task->name,
-                  elapsedMilliseconds - now);
+      /* UART_printf("%u: %s() took %ums\n", elapsedMilliseconds, task->name,
+                  elapsedMilliseconds - now); */
       if (task->continuous) {
         task->countdown = task->interval;
       } else {
-        UART_printf("%u: TaskRemove(%s)\n", elapsedMilliseconds, task->name);
+        // UART_printf("%u: TaskRemove(%s)\n", elapsedMilliseconds, task->name);
         TaskRemove(task->handler);
       }
     }

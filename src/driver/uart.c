@@ -108,7 +108,7 @@ static char sendBuffer[1024 * 4] = {0};
 static uint32_t sendBufferIndex = 0;
 
 void UART_printf(const char *str, ...) {
-    return;
+    // return;
   char text[256];
   int len;
 
@@ -124,8 +124,8 @@ void UART_printf(const char *str, ...) {
     UART_Send(sendBuffer, sendBufferIndex);
     sendBufferIndex = 0;
   }
-  return;
-  UART_Send(text, len);
+  /* return;
+  UART_Send(text, len); */
 }
 
 #define DMA_INDEX(x, y) (((x) + (y)) % sizeof(UART_DMA_Buffer))

@@ -105,10 +105,12 @@ void APPS_deinit(void) {
     apps[gCurrentApp].deinit();
   }
 }
+#include "../driver/uart.h"
 void APPS_run(AppType_t app) {
   if (appsStack[stackIndex] == app) {
     return;
   }
+  UART_printf("menu up, run app %s\n", apps[app].name);
   if (pushApp(app)) {
     APPS_deinit();
     APPS_init(app);
