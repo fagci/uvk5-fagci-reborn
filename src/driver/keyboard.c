@@ -164,7 +164,7 @@ void KEYBOARD_CheckKeys(void onKey(KEY_Code_t, bool, bool)) {
     if (GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) ||
         gSerialConfigCountDown_500ms > 0) {
       if (++gPttDebounceCounter >= 3 || gSerialConfigCountDown_500ms > 0) {
-        // onKey(KEY_PTT, false, false);
+        onKey(KEY_PTT, false, false);
         gPttIsPressed = false;
         if (gKeyReading1 != KEY_INVALID)
           gPttWasReleased = true;
@@ -190,7 +190,7 @@ void KEYBOARD_CheckKeys(void onKey(KEY_Code_t, bool, bool)) {
   if (gKeyReading0 != Key) {
     // key pressed without releasing previous key
     if (gKeyReading0 != KEY_INVALID && Key != KEY_INVALID) {
-      // onKey(gKeyReading1, false, gKeyBeingHeld);
+      onKey(gKeyReading1, false, gKeyBeingHeld);
     }
 
     gKeyReading0 = Key;
@@ -209,7 +209,6 @@ void KEYBOARD_CheckKeys(void onKey(KEY_Code_t, bool, bool)) {
         // process last button released event
         onKey(gKeyReading1, false, gKeyBeingHeld);
         gKeyReading1 = KEY_INVALID;
-        gKeyBeingHeld = false;
       }
     } else { // process new key pressed
       gKeyReading1 = Key;
@@ -244,59 +243,5 @@ void KEYBOARD_CheckKeys(void onKey(KEY_Code_t, bool, bool)) {
       return;
 
     gDebounceCounter = KEY_REPEAT_DELAY + 1;
-  }
-}
-
-#define KEY_DEBOUNCE_TIME 50UL
-#define KEY_LONGPRESS_TIME 1000UL
-#define KEY_LONGPRESS_REPEAT_TIME 1000UL
-
-static KEY_Code_t lastKeyDown = KEY_INVALID;
-static uint32_t keydownDebounced = 0;
-static uint32_t keyholdDebounced = 0;
-static bool isKeyHold = false;
-static bool isKeyDown = false;
-static bool isKeyDownProcessed = false;
-
-static void setTimeout(uint32_t *t, uint32_t time) {
-  *t = elapsedMilliseconds + time;
-}
-
-static bool checkTimeout(uint32_t *t) { return *t >= elapsedMilliseconds; }
-
-void KEYBOARD_CheckKeys2(void (*onKey)(KEY_Code_t, bool, bool)) {
-  KEY_Code_t key = KEYBOARD_Poll();
-
-  // nothing changed
-  if (key == lastKeyDown) {
-    isKeyDown = checkTimeout(&keydownDebounced);
-    isKeyHold = checkTimeout(&keyholdDebounced);
-    // valid keydown && debounced
-    if (key != KEY_INVALID && isKeyDown) {
-      if (isKeyHold) {
-        onKey(key, true, true);
-        setTimeout(&keyholdDebounced, KEY_LONGPRESS_REPEAT_TIME);
-      } else if (!isKeyDownProcessed) {
-        onKey(key, true, false);
-        isKeyDownProcessed = true;
-      }
-    }
-    return;
-  }
-
-  // release key
-  if (key == KEY_INVALID && lastKeyDown != KEY_INVALID) {
-    onKey(lastKeyDown, false, false);
-    lastKeyDown = key;
-    return;
-  }
-
-  // new key
-  if (key != lastKeyDown) {
-    lastKeyDown = key;
-    isKeyDownProcessed = false;
-    setTimeout(&keydownDebounced, KEY_DEBOUNCE_TIME);
-    setTimeout(&keyholdDebounced, KEY_LONGPRESS_TIME);
-    return;
   }
 }

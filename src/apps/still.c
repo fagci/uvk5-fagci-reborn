@@ -88,9 +88,6 @@ void STILL_deinit() {
 }
 
 bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  if (!bKeyPressed) {
-    return false;
-  }
   if (menuState) {
     switch (key) {
     case KEY_1:

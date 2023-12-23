@@ -65,7 +65,7 @@ static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
 static void updateMeasurements() {
   msm.rssi = BK4819_GetRSSI();
   msm.noise = BK4819_GetNoise();
-  UART_printf("%u: Got rssi\n", elapsedMilliseconds);
+  // UART_printf("%u: Got rssi\n", elapsedMilliseconds);
 
   if (gIsListening) {
     noiseO -= NOISE_OPEN_DIFF;
@@ -170,9 +170,6 @@ static void updateStats() {
 void SPECTRUM_deinit() { RADIO_ToggleRX(false); }
 
 bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
-  if (!bKeyPressed) {
-    return false;
-  }
   switch (Key) {
   case KEY_EXIT:
     APPS_exit();
@@ -221,7 +218,7 @@ void SPECTRUM_update(void) {
     newScan = false;
     startNewScan();
   }
-  UART_printf("Spectrum update pass\n");
+  // UART_printf("Spectrum update pass\n");
   if (gIsListening) {
     updateMeasurements();
     gRedrawScreen = true;

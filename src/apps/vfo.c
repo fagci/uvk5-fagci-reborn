@@ -69,7 +69,7 @@ VFO *PrevVFO() {
 }
 
 bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  if (bKeyHeld && !bKeyPressed) {
+  if (bKeyHeld) {
     switch (key) {
     case KEY_2:
       gCurrentVFO = NextVFO();
@@ -82,7 +82,7 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     default:
       break;
     }
-  } else if (!bKeyPressed || (bKeyPressed && bKeyHeld)) {
+  } else {
     switch (key) {
     case KEY_0:
     case KEY_1:

@@ -428,4 +428,4 @@ void RESET_Render() {
                 bytesWrote * 100 / 0x2000);
 }
 
-bool RESET_key(KEY_Code_t k, bool p, bool h) { return false; }
+bool RESET_key(KEY_Code_t k, bool p, bool h) { return true; }

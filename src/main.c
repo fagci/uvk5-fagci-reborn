@@ -37,21 +37,21 @@ void selfTest() {
     continue;
 }
 
+// NOTE: Important!
+// If app runs app on keypress, keyup passed to next app
+// Common practice:
+//
+// keypress (up)
+// keyhold
 static void onKey(KEY_Code_t key, bool pressed, bool hold) {
-  UART_printf("%u key %u %u %u\n", elapsedMilliseconds, key, pressed, hold);
   if (key != KEY_INVALID) {
     BACKLIGHT_On();
     TaskTouch(BACKLIGHT_Update);
   }
 
-  if (APPS_key(key, pressed, hold)) {
-    UART_printf("%u app %s processed key\n", elapsedMilliseconds,
-                apps[gCurrentApp].name);
+  if ((hold || !pressed) && APPS_key(key, pressed, hold)) {
     gRedrawScreen = true;
     return;
-  } else {
-    UART_printf("%u app %s NOT processed key\n", elapsedMilliseconds,
-                apps[gCurrentApp].name);
   }
 
   if (key == KEY_SIDE2 && !hold && pressed) {
@@ -70,7 +70,6 @@ static void onKey(KEY_Code_t key, bool pressed, bool hold) {
     }
   } else {
     if (!hold) {
-      UART_printf("%u menu up, run app\n", elapsedMilliseconds);
       APPS_run(APP_APPS_LIST);
       return;
     }
@@ -78,22 +77,13 @@ static void onKey(KEY_Code_t key, bool pressed, bool hold) {
 }
 
 static void Update() {
-  // uint32_t now = elapsedMilliseconds;
   APPS_update();
-  /* UART_printf("%u: APPS_update() took %ums\n", elapsedMilliseconds,
-              elapsedMilliseconds - now); */
   if (!gRedrawScreen) {
     return;
   }
-  // now = elapsedMilliseconds;
   STATUSLINE_render();
   APPS_render();
-  /* UART_printf("%u: APPS_render() took %ums\n", elapsedMilliseconds,
-              elapsedMilliseconds - now); */
-  // now = elapsedMilliseconds;
   ST7565_Render();
-  /* UART_printf("%u: ST7565_Render() took %ums\n", elapsedMilliseconds,
-              elapsedMilliseconds - now); */
 }
 
 static void Keys() { KEYBOARD_CheckKeys(onKey); }

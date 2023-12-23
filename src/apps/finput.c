@@ -79,9 +79,6 @@ void FINPUT_init() {
 void FINPUT_deinit() { TaskRemove(dotBlinkFn); }
 
 bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  if (!bKeyPressed || bKeyHeld) {
-    return false;
-  }
   switch (key) {
   case KEY_0:
   case KEY_1:

@@ -79,9 +79,6 @@ void TEXTINPUT_init() { TaskAdd("Coursor blink", blink, 250, true); }
 void TEXTINPUT_deinit() { TaskRemove(blink); }
 void TEXTINPUT_update() {}
 bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  if (!bKeyPressed || bKeyHeld) {
-    return false;
-  }
   switch (key) {
   case KEY_1:
   case KEY_2:

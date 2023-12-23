@@ -118,9 +118,6 @@ static void setInitialSubmenuIndex() {
 void SETTINGS_init() { gRedrawScreen = true; }
 void SETTINGS_update() {}
 bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  if (!bKeyPressed || bKeyHeld) {
-    return false;
-  }
   const MenuItem *item = &menu[menuIndex];
   const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
   const uint8_t SUBMENU_SIZE = item->size;

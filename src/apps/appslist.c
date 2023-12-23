@@ -40,9 +40,6 @@ void APPSLIST_render() {
 void APPSLIST_init() { gRedrawScreen = true; }
 void APPSLIST_update() {}
 bool APPSLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  if (bKeyPressed || bKeyHeld) {
-    return false;
-  }
   const MenuItem *item = &menu[menuIndex];
   const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
   switch (key) {
