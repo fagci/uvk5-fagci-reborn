@@ -36,10 +36,14 @@ bool TEST_key(KEY_Code_t k, bool p, bool h) {
     APPS_exit();
     return true;
   case KEY_UP:
-    counter++;
+    if (!p) {
+      counter++;
+    }
     return true;
   case KEY_DOWN:
-    counter--;
+    if (!p) {
+      counter--;
+    }
     return true;
   case KEY_MENU:
     return false;

@@ -76,13 +76,9 @@ bool APPSLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     default:
       return true;
     }
-    gRedrawScreen = true;
-    gRedrawScreen = true;
     return true;
   case KEY_EXIT:
     APPS_exit();
-    gRedrawScreen = true;
-    gRedrawScreen = true;
     return true;
   default:
     break;
