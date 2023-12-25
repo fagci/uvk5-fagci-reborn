@@ -20,7 +20,9 @@
 #define DATA_LEN 84
 
 static const uint16_t U16_MAX = 65535;
-static const uint8_t NOISE_OPEN_DIFF = 16;
+
+// TODO: use as variable
+static const uint8_t NOISE_OPEN_DIFF = 18; // was 14
 
 static const uint8_t S_HEIGHT = 40;
 
@@ -68,6 +70,7 @@ static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
 
 static void updateMeasurements() {
   msm.rssi = BK4819_GetRSSI();
+  UART_logf(1, "[SPECTRUM] got RSSI for %u (%u)", msm.f, msm.rssi);
   msm.noise = BK4819_GetNoise();
   // UART_printf("%u: Got rssi\n", elapsedMilliseconds);
 
@@ -132,16 +135,25 @@ static void setF() {
     rssiHistory[lx] = 0;
     markers[lx] = false;
   }
-  // need to run when task activated =(
+  // need to run when task activated, coz of another tasks exists between
   BK4819_SetFrequency(msm.f);
   BK4819_WriteRegister(BK4819_REG_30, 0x200);
   BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
+  UART_logf(1, "[SPECTRUM] F set %u", msm.f);
+  SYSTEM_DelayMs(msmDelay); // (X_X)
+  writeRssi();
+
+  /* TaskRemove(writeRssi);
   Task *t = TaskAdd("Get RSSI", writeRssi, msmDelay, false);
   t->priority = 0;
-  t->active = 1;
+  t->active = 1; */
 }
 
-static void step() { TaskAdd("Set F", setF, 0, false)->priority = 0; }
+static void step() {
+  /* TaskRemove(setF);
+  TaskAdd("Set F", setF, 0, false)->priority = 0; */
+  setF();
+}
 
 static void startNewScan() {
   currentStep = 0;
@@ -173,7 +185,7 @@ static void startNewScan() {
 void SPECTRUM_init(void) {
   newScan = true;
 
-  resetRssiHistory();
+  // resetRssiHistory();
   step();
 }
 
@@ -182,6 +194,7 @@ static void updateStats() {
   const uint16_t noiseMax = Max(noiseHistory, x);
   rssiO = noiseFloor;
   noiseO = noiseMax - NOISE_OPEN_DIFF;
+  UART_logf(1, "[SPECTRUM] update stats Nf:%u Nmax:%u", noiseFloor, noiseMax);
 }
 
 void SPECTRUM_deinit() { RADIO_ToggleRX(false); }
@@ -205,6 +218,9 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_F:
     APPS_run(APP_PRESET_CFG);
+    return true;
+  case KEY_STAR:
+    APPS_run(APP_LOOT_LIST);
     return true;
   case KEY_5:
     return true;
@@ -260,6 +276,20 @@ void SPECTRUM_update(void) {
   step();
 }
 
+static int RssiMin(uint16_t *array, uint8_t n) {
+  uint8_t min = array[0];
+  for (uint8_t i = 1; i < n; ++i) {
+    if (array[i] == 0) {
+      UART_logf(1, "MIN=0 at %i", i);
+      continue;
+    }
+    if (array[i] < min) {
+      min = array[i];
+    }
+  }
+  return min;
+}
+
 void SPECTRUM_render(void) {
   UI_ClearScreen();
   STATUSLINE_SetText(currentBand->name);
@@ -269,7 +299,7 @@ void SPECTRUM_render(void) {
 
   const uint8_t xMax = bandFilled ? DATA_LEN - 1 : x;
 
-  const uint16_t rssiMin = Min(rssiHistory, xMax);
+  const uint16_t rssiMin = RssiMin(rssiHistory, xMax);
   const uint16_t rssiMax = Max(rssiHistory, xMax);
   const uint16_t vMin = rssiMin - 2;
   const uint16_t vMax = rssiMax + 20 + (rssiMax - rssiMin) / 2;

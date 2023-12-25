@@ -105,11 +105,11 @@ static void sysUpdate() {
 // }
 
 static void AddTasks() {
-  APPS_run(APP_SPECTRUM);
-
   TaskAdd("Keys", Keys, 10, true);
   TaskAdd("Update", Update, 1, true);
   TaskAdd("1s sys upd", sysUpdate, 1000, true);
+
+  APPS_run(APP_SPECTRUM);
 }
 
 static uint8_t introIndex = 0;
@@ -155,7 +155,7 @@ void Main(void) {
     APPS_run(APP_RESET);
     TaskAdd("Update", Update, 1, true);
   } else if (KEYBOARD_Poll() == KEY_F) {
-    UART_ToggleLog(true);
+    UART_IsLogEnabled = 5;
     TaskAdd("Intro", Intro, 2, true);
   } else if (KEYBOARD_Poll() == KEY_MENU) {
     // selfTest();

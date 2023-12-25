@@ -1,4 +1,5 @@
 #include "presetcfg.h"
+#include "../helper/measurements.h"
 #include "../helper/presetlist.h"
 #include "../misc.h"
 #include "../ui/components.h"
@@ -175,19 +176,17 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   switch (key) {
   case KEY_UP:
     if (isSubMenu) {
-      subMenuIndex = subMenuIndex == 0 ? SUBMENU_SIZE - 1 : subMenuIndex - 1;
+      IncDec8(&subMenuIndex, 0, SUBMENU_SIZE, -1);
     } else {
-      menuIndex = menuIndex == 0 ? MENU_SIZE - 1 : menuIndex - 1;
+      IncDec8(&menuIndex, 0, MENU_SIZE, -1);
     }
-    gRedrawScreen = true;
     return true;
   case KEY_DOWN:
     if (isSubMenu) {
-      subMenuIndex = subMenuIndex == SUBMENU_SIZE - 1 ? 0 : subMenuIndex + 1;
+      IncDec8(&subMenuIndex, 0, SUBMENU_SIZE, 1);
     } else {
-      menuIndex = menuIndex == MENU_SIZE - 1 ? 0 : menuIndex + 1;
+      IncDec8(&menuIndex, 0, MENU_SIZE, 1);
     }
-    gRedrawScreen = true;
     return true;
   case KEY_MENU:
     // RUN APPS HERE
@@ -216,8 +215,6 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     } else {
       isSubMenu = true;
     }
-    gRedrawScreen = true;
-    gRedrawScreen = true;
     return true;
   case KEY_EXIT:
     if (isSubMenu) {
@@ -225,8 +222,6 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     } else {
       APPS_exit();
     }
-    gRedrawScreen = true;
-    gRedrawScreen = true;
     return true;
   default:
     break;

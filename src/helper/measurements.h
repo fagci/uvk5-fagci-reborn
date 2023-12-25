@@ -20,5 +20,6 @@ int Min(uint16_t *array, uint8_t n);
 int Max(uint16_t *array, uint8_t n);
 uint16_t Mean(uint16_t *array, uint8_t n);
 uint16_t Std(uint16_t *data, uint8_t n);
+void IncDec8(uint8_t *val, uint8_t min, uint8_t max, int8_t inc);
 
 #endif /* end of include guard: MEASUREMENTS_H */

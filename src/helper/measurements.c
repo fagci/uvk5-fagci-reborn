@@ -102,3 +102,11 @@ uint16_t Std(uint16_t *data, uint8_t n) {
   }
   return Sqrt(sumDev / n);
 }
+
+void IncDec8(uint8_t *val, uint8_t min, uint8_t max, int8_t inc) {
+  if (inc > 0) {
+    *val = *val == max - inc ? min : *val + inc;
+  } else {
+    *val = *val > min ? *val + inc : max + inc;
+  }
+}

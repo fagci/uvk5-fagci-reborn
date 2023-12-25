@@ -5,6 +5,7 @@
 #include "../ui/statusline.h"
 #include "appslist.h"
 #include "finput.h"
+#include "lootlist.h"
 #include "presetcfg.h"
 #include "reset.h"
 #include "savech.h"
@@ -53,6 +54,7 @@ const App apps[APPS_COUNT] = {
     {"Frequency input", FINPUT_init, NULL, FINPUT_render, FINPUT_key,
      FINPUT_deinit},
     {"Apps", APPSLIST_init, NULL, APPSLIST_render, APPSLIST_key},
+    {"Loot", LOOTLIST_init, NULL, LOOTLIST_render, LOOTLIST_key},
     {"Reset", RESET_Init, RESET_Update, RESET_Render, RESET_key},
     {"Text input", TEXTINPUT_init, TEXTINPUT_update, TEXTINPUT_render,
      TEXTINPUT_key, TEXTINPUT_deinit},

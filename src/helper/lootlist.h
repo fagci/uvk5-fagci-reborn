@@ -6,6 +6,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define LOOT_SIZE_MAX 64
+
 typedef struct {
   uint32_t f;
   uint32_t firstTime;

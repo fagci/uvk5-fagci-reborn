@@ -1,7 +1,6 @@
 #include "lootlist.h"
+#include "../driver/uart.h"
 #include "../scheduler.h"
-
-#define LOOT_SIZE_MAX 64
 
 static Loot loot[LOOT_SIZE_MAX] = {0};
 static int8_t lootIndex = -1;
@@ -104,6 +103,7 @@ void LOOT_Update(Loot *msm) {
 
   if (peak == NULL && msm->open) {
     peak = LOOT_Add(msm->f);
+    UART_logf(1, "[LOOT] %u", msm->f);
   }
 
   if (peak == NULL) {

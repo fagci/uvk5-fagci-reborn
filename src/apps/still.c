@@ -9,6 +9,7 @@
 #include "../scheduler.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
+#include "../ui/statusline.h"
 #include "apps.h"
 #include "finput.h"
 
@@ -156,23 +157,19 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_SIDE1:
     monitorMode = !monitorMode;
-    gRedrawScreen = true;
     return true;
   case KEY_SIDE2:
     // ToggleBacklight();
     return true;
   case KEY_8:
     if (!bKeyHeld) {
-      menuState =
-          menuState == ARRAY_SIZE(registerSpecs) - 1 ? 1 : menuState + 1;
-      gRedrawScreen = true;
+      IncDec8(&menuState, 1, ARRAY_SIZE(registerSpecs), 1);
       return true;
     }
     break;
   case KEY_EXIT:
     if (menuState) {
       menuState = 0;
-      gRedrawScreen = true;
       return true;
     }
     APPS_exit();
@@ -182,7 +179,6 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     break;
   }
   return false;
-  gRedrawScreen = true;
 }
 
 static void DrawRegs() {
@@ -222,7 +218,7 @@ static void DrawRegs() {
 
 void STILL_render() {
   UI_ClearScreen();
-  // PrintSmall(BATTERY_W + 1, 5, "%s", gCurrentPreset->band.name);
+  STATUSLINE_SetText(gCurrentPreset->band.name);
   UI_FSmall(GetScreenF(gCurrentVFO->fRX));
   UI_RSSIBar(rssi, gCurrentVFO->fRX, 23);
   DrawRegs();

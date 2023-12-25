@@ -44,12 +44,10 @@ bool APPSLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
   switch (key) {
   case KEY_UP:
-    menuIndex = menuIndex == 0 ? MENU_SIZE - 1 : menuIndex - 1;
-    gRedrawScreen = true;
+    IncDec8(&menuIndex, 0, MENU_SIZE, -1);
     return true;
   case KEY_DOWN:
-    menuIndex = menuIndex == MENU_SIZE - 1 ? 0 : menuIndex + 1;
-    gRedrawScreen = true;
+    IncDec8(&menuIndex, 0, MENU_SIZE, 1);
     return true;
   case KEY_MENU:
     // RUN APPS HERE

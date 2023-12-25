@@ -1,6 +1,7 @@
 #include "settings.h"
 #include "../driver/backlight.h"
 #include "../driver/st7565.h"
+#include "../helper/measurements.h"
 #include "../misc.h"
 #include "../radio.h"
 #include "../settings.h"
@@ -124,21 +125,19 @@ bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   switch (key) {
   case KEY_UP:
     if (isSubMenu) {
-      subMenuIndex = subMenuIndex == 0 ? SUBMENU_SIZE - 1 : subMenuIndex - 1;
+      IncDec8(&subMenuIndex, 0, SUBMENU_SIZE, -1);
       onSubChange();
     } else {
-      menuIndex = menuIndex == 0 ? MENU_SIZE - 1 : menuIndex - 1;
+      IncDec8(&menuIndex, 0, MENU_SIZE, -1);
     }
-    gRedrawScreen = true;
     return true;
   case KEY_DOWN:
     if (isSubMenu) {
-      subMenuIndex = subMenuIndex == SUBMENU_SIZE - 1 ? 0 : subMenuIndex + 1;
+      IncDec8(&subMenuIndex, 0, SUBMENU_SIZE, 1);
       onSubChange();
     } else {
-      menuIndex = menuIndex == MENU_SIZE - 1 ? 0 : menuIndex + 1;
+      IncDec8(&menuIndex, 0, MENU_SIZE, 1);
     }
-    gRedrawScreen = true;
     return true;
   case KEY_MENU:
     // RUN APPS HERE
@@ -156,12 +155,10 @@ bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       isSubMenu = true;
       setInitialSubmenuIndex();
     }
-    gRedrawScreen = true;
     return true;
   case KEY_EXIT:
     if (isSubMenu) {
       isSubMenu = false;
-      gRedrawScreen = true;
     } else {
       APPS_exit();
     }
