@@ -4,6 +4,8 @@
 #include "driver/eeprom.h"
 #include "driver/gpio.h"
 #include "driver/system.h"
+#include "driver/uart.h"
+#include "external/printf/printf.h"
 #include "helper/presetlist.h"
 #include "inc/dp32g030/gpio.h"
 #include "scheduler.h"
@@ -109,8 +111,8 @@ static void onVfoUpdate() {
 }
 
 static void onPresetUpdate() {
-  TaskRemove(RADIO_SaveCurrentPreset);
-  TaskAdd("Preset save", RADIO_SaveCurrentPreset, 5000, false);
+  TaskRemove(PRESETS_SaveCurrent);
+  TaskAdd("Preset save", PRESETS_SaveCurrent, 5000, false);
 }
 
 void RADIO_ToggleModulation() {
@@ -154,19 +156,16 @@ void RADIO_TuneTo(uint32_t f) {
 }
 
 void RADIO_TuneToSave(uint32_t f) {
-  memset(gCurrentVFO->name, 0, sizeof(gCurrentVFO->name));
+  UART_logf(1, "TUNETOSAVE: %u", f);
+  sprintf(gCurrentVFO->name, "");
   gCurrentVFO->fRX = f;
   PRESET_SelectByFrequency(gCurrentVFO->fRX);
   BK4819_TuneTo(f);
-  RADIO_SaveCurrentVFO();
+  // RADIO_SaveCurrentVFO();
 }
 
 void RADIO_SaveCurrentVFO() {
   RADIO_SaveChannel(gSettings.activeChannel, gCurrentVFO);
-}
-
-void RADIO_SaveCurrentPreset() {
-  RADIO_SavePreset(gSettings.activePreset, gCurrentPreset);
 }
 
 void RADIO_LoadCurrentVFO() {
@@ -207,7 +206,7 @@ void RADIO_SetupBandParams(Band *b) {
   BK4819_Squelch(b->squelch, b->bounds.start);
   BK4819_SetFilterBandwidth(b->bw);
   BK4819_SetModulation(b->modulation);
-  // BK4819_SetGain(b->gainIndex);
+  BK4819_SetGain(b->gainIndex);
 }
 
 void RADIO_LoadUserChannel(uint16_t num, VFO *p) {
@@ -224,12 +223,4 @@ void RADIO_LoadChannel(uint16_t num, VFO *p) {
 
 void RADIO_SaveChannel(uint16_t num, VFO *p) {
   EEPROM_WriteBuffer(CHANNELS_OFFSET - (num + 1) * VFO_SIZE, p, VFO_SIZE);
-}
-
-void RADIO_SavePreset(uint8_t num, Preset *p) {
-  EEPROM_WriteBuffer(BANDS_OFFSET + num * PRESET_SIZE, p, PRESET_SIZE);
-}
-
-void RADIO_LoadPreset(uint8_t num, Preset *p) {
-  EEPROM_ReadBuffer(BANDS_OFFSET + num * PRESET_SIZE, p, PRESET_SIZE);
 }

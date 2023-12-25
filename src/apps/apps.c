@@ -7,6 +7,7 @@
 #include "finput.h"
 #include "lootlist.h"
 #include "presetcfg.h"
+#include "presetlist.h"
 #include "reset.h"
 #include "savech.h"
 #include "settings.h"
@@ -55,6 +56,7 @@ const App apps[APPS_COUNT] = {
      FINPUT_deinit},
     {"Apps", APPSLIST_init, NULL, APPSLIST_render, APPSLIST_key},
     {"Loot", LOOTLIST_init, NULL, LOOTLIST_render, LOOTLIST_key},
+    {"Presets", PRESETLIST_init, NULL, PRESETLIST_render, PRESETLIST_key},
     {"Reset", RESET_Init, RESET_Update, RESET_Render, RESET_key},
     {"Text input", TEXTINPUT_init, TEXTINPUT_update, TEXTINPUT_render,
      TEXTINPUT_key, TEXTINPUT_deinit},
@@ -88,8 +90,8 @@ void APPS_init(AppType_t app) {
   // STATUSLINE_SetText(apps[gCurrentApp].name);
   gRedrawScreen = true;
 
-  if (apps[app].init) {
-    apps[app].init();
+  if (apps[gCurrentApp].init) {
+    apps[gCurrentApp].init();
   }
 }
 void APPS_update(void) {
@@ -115,7 +117,7 @@ void APPS_run(AppType_t app) {
   if (pushApp(app)) {
     APPS_deinit();
     APPS_init(app);
-    switch (app) {
+    /* switch (app) {
     case APP_SPECTRUM:
     case APP_STILL:
     case APP_VFO:
@@ -125,7 +127,7 @@ void APPS_run(AppType_t app) {
       break;
     default:
       break;
-    }
+    } */
   }
 }
 void APPS_exit() {

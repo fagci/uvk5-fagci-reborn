@@ -92,8 +92,6 @@ void UI_ShowMenu(const MenuItem *items, uint8_t size, uint8_t currentIndex) {
       size < MENU_LINES_TO_SHOW ? size : MENU_LINES_TO_SHOW;
   const uint8_t offset = Clamp(currentIndex - 2, 0, size - maxItems);
 
-  memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
-
   for (uint8_t i = 0; i < maxItems; ++i) {
     uint8_t itemIndex = i + offset;
     const MenuItem *item = &items[itemIndex];
@@ -108,8 +106,6 @@ void UI_ShowItems(char (*items)[16], uint16_t size, uint16_t currentIndex) {
       size < MENU_LINES_TO_SHOW ? size : MENU_LINES_TO_SHOW;
   const uint16_t offset = Clamp(currentIndex - 2, 0, size - maxItems);
 
-  memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
-
   for (uint16_t i = 0; i < maxItems; ++i) {
     uint16_t itemIndex = i + offset;
     UI_ShowMenuItem(i, items[itemIndex], currentIndex == itemIndex);
@@ -123,8 +119,6 @@ void UI_ShowRangeItems(uint16_t size, uint16_t currentIndex) {
   const uint16_t maxItems =
       size < MENU_LINES_TO_SHOW ? size : MENU_LINES_TO_SHOW;
   const uint16_t offset = Clamp(currentIndex - 2, 0, size - maxItems);
-
-  memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
 
   for (uint16_t i = 0; i < maxItems; ++i) {
     uint16_t itemIndex = i + offset;

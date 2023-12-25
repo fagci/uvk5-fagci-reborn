@@ -219,8 +219,13 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_F:
     APPS_run(APP_PRESET_CFG);
     return true;
+  case KEY_0:
+    APPS_run(APP_PRESETS_LIST);
+    return true;
   case KEY_STAR:
+    UART_logf(1, "[SPECTRUM] (1) %u presets", PRESETS_Size());
     APPS_run(APP_LOOT_LIST);
+    UART_logf(1, "[SPECTRUM] (2) %u presets", PRESETS_Size());
     return true;
   case KEY_5:
     return true;

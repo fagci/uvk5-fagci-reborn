@@ -44,27 +44,27 @@ static void accept() {
   switch (item->type) {
   case M_BW:
     gCurrentPreset->band.bw = subMenuIndex;
-    RADIO_SaveCurrentPreset();
+    PRESETS_SaveCurrent();
     break;
   case M_MODULATION:
     gCurrentPreset->band.modulation = subMenuIndex;
-    RADIO_SaveCurrentPreset();
+    PRESETS_SaveCurrent();
     break;
   case M_STEP:
     gCurrentPreset->band.step = subMenuIndex;
-    RADIO_SaveCurrentPreset();
+    PRESETS_SaveCurrent();
     break;
   case M_SQ_TYPE:
     gCurrentPreset->band.squelchType = subMenuIndex;
-    RADIO_SaveCurrentPreset();
+    PRESETS_SaveCurrent();
     break;
   case M_SQ:
     gCurrentPreset->band.squelch = subMenuIndex;
-    RADIO_SaveCurrentPreset();
+    PRESETS_SaveCurrent();
     break;
   case M_GAIN:
     gCurrentPreset->band.gainIndex = subMenuIndex;
-    RADIO_SaveCurrentPreset();
+    PRESETS_SaveCurrent();
     break;
   default:
     break;
@@ -129,7 +129,7 @@ static void showGainValues() {
   for (uint8_t i = 0; i < ARRAY_SIZE(gainTable); ++i) {
     sprintf(items[i], "%ddB%s", gainTable[i].gainDb, i == 90 ? "(def)" : "");
   }
-  UI_ShowItems(items, ARRAY_SIZE(StepFrequencyTable), subMenuIndex);
+  UI_ShowItems(items, ARRAY_SIZE(gainTable), subMenuIndex);
 }
 
 static void showSubmenu(PresetCfgMenu menu) {
@@ -159,12 +159,12 @@ static void showSubmenu(PresetCfgMenu menu) {
 
 static void setUpperBound(uint32_t f) {
   gCurrentPreset->band.bounds.end = f;
-  RADIO_SaveCurrentPreset();
+  PRESETS_SaveCurrent();
 }
 
 static void setLowerBound(uint32_t f) {
   gCurrentPreset->band.bounds.start = f;
-  RADIO_SaveCurrentPreset();
+  PRESETS_SaveCurrent();
 }
 
 void PRESETCFG_init() { gRedrawScreen = true; }

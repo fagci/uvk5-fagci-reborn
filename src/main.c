@@ -154,14 +154,18 @@ void Main(void) {
   if (KEYBOARD_Poll() == KEY_EXIT) {
     APPS_run(APP_RESET);
     TaskAdd("Update", Update, 1, true);
+  } else if (KEYBOARD_Poll() == KEY_STAR) {
+    gSettings.presetsCount = 24;
+    SETTINGS_Save();
   } else if (KEYBOARD_Poll() == KEY_F) {
     UART_IsLogEnabled = 5;
     TaskAdd("Intro", Intro, 2, true);
   } else if (KEYBOARD_Poll() == KEY_MENU) {
     // selfTest();
+    PrintMediumEx(LCD_WIDTH - 1, 7, POS_R, C_FILL, "%u", PRESETS_Size());
     for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
       Preset p = {};
-      RADIO_LoadPreset(i, &p);
+      PRESETS_LoadPreset(i, &p);
       PrintSmall(i / 10 * 40, 6 * (i % 10) + 6, "%u - %u",
                  p.band.bounds.start / 100000, p.band.bounds.end / 100000);
     }

@@ -3,6 +3,7 @@
 #include "../driver/st7565.h"
 #include "../driver/system.h"
 #include "../helper/measurements.h"
+#include "../helper/presetlist.h"
 #include "../radio.h"
 #include "../settings.h"
 #include "../ui/graphics.h"
@@ -263,7 +264,7 @@ static Preset defaultPresets[] = {
         .band =
             {
                 .bounds = {46256250, 46272500},
-                .name = "FRS/GMR462",
+                .name = "FRS/GM462",
                 .step = STEP_12_5kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,
@@ -291,7 +292,7 @@ static Preset defaultPresets[] = {
         .band =
             {
                 .bounds = {46756250, 46771250},
-                .name = "FRS/GMR467",
+                .name = "FRS/GM467",
                 .step = STEP_12_5kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,
@@ -401,7 +402,7 @@ void RESET_Update() {
     bytesWrote += sizeof(Settings);
   } else if (presetsWrote < ARRAY_SIZE(defaultPresets)) {
     SETTINGS_Save();
-    RADIO_SavePreset(presetsWrote, &defaultPresets[presetsWrote]);
+    PRESETS_SavePreset(presetsWrote, &defaultPresets[presetsWrote]);
     presetsWrote++;
     bytesWrote += sizeof(Preset);
   } else if (bytesWrote < 0x2000) {

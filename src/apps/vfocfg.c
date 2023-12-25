@@ -58,15 +58,15 @@ static void accept() {
     break;
   case M_STEP:
     gCurrentPreset->band.step = subMenuIndex;
-    RADIO_SaveCurrentPreset();
+    PRESETS_SaveCurrent();
     break;
   case M_SQ_TYPE:
     gCurrentPreset->band.squelchType = subMenuIndex;
-    RADIO_SaveCurrentPreset();
+    PRESETS_SaveCurrent();
     break;
   case M_SQ:
     gCurrentPreset->band.squelch = subMenuIndex;
-    RADIO_SaveCurrentPreset();
+    PRESETS_SaveCurrent();
     break;
   default:
     break;
