@@ -197,7 +197,8 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     // RUN APPS HERE
     switch (item->type) {
     case M_NAME:
-      gTextinputText = gCurrentVFO->name;
+      gTextinputText = gCurrentPreset->band.name;
+      gTextInputSize = 9;
       APPS_run(APP_TEXTINPUT);
       return true;
     case M_START:

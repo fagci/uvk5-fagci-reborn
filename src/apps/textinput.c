@@ -6,6 +6,7 @@
 #include <string.h>
 
 char *gTextinputText = "";
+uint8_t gTextInputSize = 15;
 
 static char *letters[9] = {
     "",
@@ -50,8 +51,6 @@ static char inputField[16] = {0};
 static uint8_t inputIndex = 0;
 static bool coursorBlink = true;
 
-static const uint8_t MAX_LEN = 15;
-
 static void blink() {
   coursorBlink = !coursorBlink;
   gRedrawScreen = true;
@@ -64,6 +63,7 @@ static void insert(char c) {
   }
   inputField[inputIndex++] = c;
 }
+
 static void backspace() {
   if (inputField[inputIndex] != '\0') {
     inputIndex--;
@@ -90,7 +90,7 @@ bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_8:
   case KEY_9:
     if (currentSet == numbers) {
-      if (strlen(inputField) < MAX_LEN) {
+      if (strlen(inputField) < gTextInputSize) {
         insert(key - KEY_0 + '0');
       }
       gRedrawScreen = true;
@@ -98,7 +98,7 @@ bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     }
     if (currentRow) {
       if (key - KEY_1 < strlen(currentRow)) {
-        if (strlen(inputField) < MAX_LEN) {
+        if (strlen(inputField) < gTextInputSize) {
           insert(currentRow[key - KEY_1]);
         }
         currentRow = NULL;
@@ -107,7 +107,7 @@ bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     }
     if (key == KEY_1) {
-      if (strlen(inputField) < MAX_LEN) {
+      if (strlen(inputField) < gTextInputSize) {
         insert(' ');
       }
     } else {
@@ -176,12 +176,16 @@ void TEXTINPUT_render() {
   char String[8];
   const uint8_t INPUT_Y = 8 + 14;
   const uint8_t CHAR_W = 5;
+  const size_t charCount = strlen(inputField);
 
   UI_ClearScreen();
 
   DrawHLine(8, INPUT_Y, LCD_WIDTH - 16, C_FILL);
 
-  for (size_t i = 0; i < strlen(inputField); ++i) {
+  PrintSmallEx(LCD_WIDTH - 8, INPUT_Y + 5, POS_R, C_FILL, "%u/%u", charCount,
+               gTextInputSize);
+
+  for (size_t i = 0; i < charCount; ++i) {
     PrintMedium(8 + i * (CHAR_W + 1), 8 + 12, "%c", inputField[i]);
   }
 

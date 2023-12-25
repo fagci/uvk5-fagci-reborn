@@ -185,6 +185,7 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     switch (item->type) {
     case M_NAME:
       gTextinputText = gCurrentVFO->name;
+      gTextInputSize = 15;
       APPS_run(APP_TEXTINPUT);
       return true;
     case M_F_RX:

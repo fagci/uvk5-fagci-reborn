@@ -117,7 +117,7 @@ void APPS_run(AppType_t app) {
   if (pushApp(app)) {
     APPS_deinit();
     APPS_init(app);
-    /* switch (app) {
+    switch (app) {
     case APP_SPECTRUM:
     case APP_STILL:
     case APP_VFO:
@@ -127,7 +127,7 @@ void APPS_run(AppType_t app) {
       break;
     default:
       break;
-    } */
+    }
   }
 }
 void APPS_exit() {

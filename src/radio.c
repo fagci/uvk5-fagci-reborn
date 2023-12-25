@@ -161,7 +161,7 @@ void RADIO_TuneToSave(uint32_t f) {
   gCurrentVFO->fRX = f;
   PRESET_SelectByFrequency(gCurrentVFO->fRX);
   BK4819_TuneTo(f);
-  // RADIO_SaveCurrentVFO();
+  RADIO_SaveCurrentVFO();
 }
 
 void RADIO_SaveCurrentVFO() {
