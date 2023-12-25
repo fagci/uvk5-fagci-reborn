@@ -24,9 +24,7 @@ void PRESETS_SaveCurrent() {
   }
 }
 
-uint8_t PRESETS_Size() {
-  return gSettings.presetsCount;
-}
+uint8_t PRESETS_Size() { return gSettings.presetsCount; }
 
 Preset *PRESETS_Item(uint8_t i) { return &presets[i]; }
 
@@ -51,15 +49,19 @@ void PRESETS_SelectPresetRelative(bool next) {
 
 int8_t PRESET_GetCurrentIndex() { return gSettings.activePreset; }
 
+int8_t PRESET_Select(int8_t i) {
+  gCurrentPreset = &presets[i];
+  gSettings.activePreset = i;
+  return i;
+}
+
 int8_t PRESET_SelectByFrequency(uint32_t f) {
   UART_logf(1, "Choosing from %u presets", gSettings.presetsCount);
   for (uint8_t i = 0; i < gSettings.presetsCount; ++i) {
     FRange *range = &presets[i].band.bounds;
     UART_logf(1, "%u <= %u <= %u", range->start, f, range->end);
     if (f >= range->start && f <= range->end) {
-      gCurrentPreset = &presets[i];
-      gSettings.activePreset = i;
-      return i;
+      return PRESET_Select(i);
     }
   }
   gCurrentPreset = &defaultPreset; // TODO: make preset between near bands

@@ -7,6 +7,7 @@
 #include "../settings.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
+#include "../ui/statusline.h"
 #include "apps.h"
 #include <string.h>
 
@@ -191,9 +192,10 @@ void SETTINGS_render() {
   const MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {
     showSubmenu(item->type);
-    PrintSmall(0, 0, item->name);
+    STATUSLINE_SetText(item->name);
   } else {
     UI_ShowMenu(getMenuItemText, ARRAY_SIZE(menu), menuIndex);
-    PrintMedium(1, 6 * 8 + 12, getValue(item->type));
+    PrintMediumEx(LCD_WIDTH / 2, 6 * 8 + 12, POS_C, C_FILL,
+                  getValue(item->type));
   }
 }

@@ -28,7 +28,10 @@ void PRESETLIST_render() {
   UI_ShowMenu(getPresetText, PRESETS_Size(), menuIndex);
 }
 
-void PRESETLIST_init() { gRedrawScreen = true; }
+void PRESETLIST_init() {
+  gRedrawScreen = true;
+  menuIndex = gSettings.activePreset;
+}
 void PRESETLIST_update() {}
 bool PRESETLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   // const Preset *item = PRESETS_Item(menuIndex);
@@ -44,8 +47,12 @@ bool PRESETLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     APPS_exit();
     return true;
   case KEY_PTT:
-    gSettings.activePreset = menuIndex;
+    PRESET_Select(menuIndex);
     APPS_run(APP_SPECTRUM);
+    return true;
+  case KEY_MENU:
+    PRESET_Select(menuIndex);
+    APPS_run(APP_PRESET_CFG);
     return true;
   default:
     break;

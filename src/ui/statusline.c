@@ -18,6 +18,7 @@ static char statuslineText[32] = {0};
 
 static void eepromRWReset() {
   lastEepromRead = lastEepromWrite = gEepromRead = gEepromWrite = false;
+  gRedrawScreen = true;
 }
 
 void STATUSLINE_SetText(const char *pattern, ...) {
@@ -63,8 +64,15 @@ void STATUSLINE_render() {
     UI_Battery(gBatteryDisplayLevel);
   }
 
+  if (gSettings.upconverter) {
+    FillRect(LCD_WIDTH - 45, 2, 6, 4, C_FILL);
+    DrawVLine(LCD_WIDTH - 44, 0, 2, C_FILL);
+    DrawVLine(LCD_WIDTH - 41, 1, 1, C_FILL);
+  }
+
   if (UART_IsLogEnabled) {
-    PrintSmallEx(LCD_WIDTH - 1 - 24, 5, POS_R, C_FILL, "D:%u", UART_IsLogEnabled);
+    PrintSmallEx(LCD_WIDTH - 1 - 24, 5, POS_R, C_FILL, "D:%u",
+                 UART_IsLogEnabled);
   }
 
   if (gEepromRead) {

@@ -66,6 +66,14 @@ bool LOOT_SortByLastOpenTime(Loot *a, Loot *b) {
   return a->lastTimeOpen < b->lastTimeOpen;
 }
 
+bool LOOT_SortByDuration(Loot *a, Loot *b) { return a->duration < b->duration; }
+
+bool LOOT_SortByF(Loot *a, Loot *b) { return a->f > b->f; }
+
+bool LOOT_SortByBlacklist(Loot *a, Loot *b) {
+  return a->blacklist < b->blacklist;
+}
+
 static void Sort(Loot *items, uint16_t n, bool (*compare)(Loot *a, Loot *b)) {
   for (uint16_t i = 0; i < n - 1; i++) {
     bool swapped = false;

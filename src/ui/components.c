@@ -8,7 +8,6 @@
 #include <string.h>
 
 static const uint8_t MENU_ITEM_H = 11;
-static const uint8_t MENU_Y = 8;
 static const uint8_t MENU_LINES_TO_SHOW = 4;
 
 void UI_Battery(uint8_t Level) {
@@ -100,6 +99,19 @@ void UI_ShowMenu(void (*getItemText)(uint16_t index, char *name), uint8_t size,
   }
 
   UI_DrawScrollBar(size, currentIndex, MENU_LINES_TO_SHOW);
+}
+
+void UI_ShowMenuEx(void (*showItem)(uint16_t i, bool isCurrent), uint8_t size,
+                   uint8_t currentIndex, uint8_t linesMax) {
+  const uint8_t maxItems = size < linesMax ? size : linesMax;
+  const uint8_t offset = Clamp(currentIndex - 2, 0, size - maxItems);
+
+  for (uint8_t i = 0; i < maxItems; ++i) {
+    uint8_t itemIndex = i + offset;
+    showItem(i, currentIndex == itemIndex);
+  }
+
+  UI_DrawScrollBar(size, currentIndex, linesMax);
 }
 
 void drawTicks(uint8_t x1, uint8_t x2, uint8_t y, uint32_t fs, uint32_t fe,

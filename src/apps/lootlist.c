@@ -8,26 +8,51 @@
 #include "../radio.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
+#include "../ui/statusline.h"
 #include "apps.h"
 #include <string.h>
 
 static uint8_t menuIndex = 0;
+static const uint8_t MENU_ITEM_H = 15;
+static enum {
+  SORT_LOT,
+  SORT_DUR,
+  SORT_BL,
+  SORT_F,
+} sortType;
+static char *sortNames[] = {
+    "last open time",
+    "duration",
+    "blacklist",
+    "frequency",
+};
 
-static void getLootItemText(uint16_t i, char *name) {
+static void getLootItem(uint16_t i, bool isCurrent) {
   Loot *item = LOOT_Item(i);
   uint32_t f = item->f;
-  sprintf(name, "%u.%05u", f / 100000, f % 100000);
+  const uint8_t y = 8 + i * MENU_ITEM_H;
+  if (isCurrent) {
+    FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
+  }
+  PrintMediumEx(6, y + 7, POS_L, C_INVERT, "%u.%05u", f / 100000, f % 100000);
+  PrintSmallEx(LCD_WIDTH - 6, y + 7, POS_R, C_INVERT, "%us",
+               item->duration / 1000);
+  PrintSmallEx(6, y + 7 + 6, POS_L, C_INVERT, "CT:%u CD:%u R:%u N:%u", item->ct,
+               item->cd, item->rssi, item->noise);
+  if (item->blacklist) {
+    DrawHLine(2, y + 5, LCD_WIDTH - 4, C_INVERT);
+  }
 }
 
 void LOOTLIST_render() {
   UI_ClearScreen();
-  UI_ShowMenu(getLootItemText, LOOT_Size(), menuIndex);
+  UI_ShowMenuEx(getLootItem, LOOT_Size(), menuIndex, 4);
 }
 
 void LOOTLIST_init() { gRedrawScreen = true; }
 void LOOTLIST_update() {}
 bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  const Loot *item = LOOT_Item(menuIndex);
+  Loot *item = LOOT_Item(menuIndex);
   const uint8_t MENU_SIZE = LOOT_Size();
   switch (key) {
   case KEY_UP:
@@ -42,6 +67,29 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_PTT:
     RADIO_TuneToSave(item->f);
     APPS_run(APP_STILL);
+    return true;
+  case KEY_1:
+    LOOT_Sort(LOOT_SortByLastOpenTime);
+    sortType = SORT_LOT;
+    STATUSLINE_SetText("By %s", sortNames[sortType]);
+    return true;
+  case KEY_2:
+    LOOT_Sort(LOOT_SortByDuration);
+    sortType = SORT_DUR;
+    STATUSLINE_SetText("By %s", sortNames[sortType]);
+    return true;
+  case KEY_3:
+    LOOT_Sort(LOOT_SortByBlacklist);
+    sortType = SORT_BL;
+    STATUSLINE_SetText("By %s", sortNames[sortType]);
+    return true;
+  case KEY_4:
+    LOOT_Sort(LOOT_SortByF);
+    sortType = SORT_F;
+    STATUSLINE_SetText("By %s", sortNames[sortType]);
+    return true;
+  case KEY_SIDE1:
+    item->blacklist = !item->blacklist;
     return true;
   default:
     break;

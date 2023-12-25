@@ -23,7 +23,6 @@ typedef struct {
 } Loot;
 
 void LOOT_BlacklistLast();
-bool LOOT_SortByLastOpenTime(Loot *a, Loot *b);
 Loot *LOOT_Get(uint32_t f);
 Loot *LOOT_Add(uint32_t f);
 void LOOT_Clear();
@@ -33,6 +32,11 @@ void LOOT_Sort(bool (*compare)(Loot *a, Loot *b));
 Loot *LOOT_Item(uint8_t i);
 void LOOT_Update(Loot *msm);
 void LOOT_ReplaceItem(uint8_t i, uint32_t f);
+
+bool LOOT_SortByLastOpenTime(Loot *a, Loot *b);
+bool LOOT_SortByDuration(Loot *a, Loot *b);
+bool LOOT_SortByF(Loot *a, Loot *b);
+bool LOOT_SortByBlacklist(Loot *a, Loot *b);
 
 extern Loot *gLastActiveLoot;
 
