@@ -13,21 +13,18 @@
 
 static uint8_t menuIndex = 0;
 
-void LOOTLIST_render() {
-  UI_ClearScreen();
-  char items[LOOT_SIZE_MAX][16] = {0};
-  for (uint8_t i = 0; i < LOOT_Size(); ++i) {
-    Loot *item = LOOT_Item(i);
-    uint32_t f = item->f;
-    snprintf(items[i], 15, "%u.%05u", f / 100000, f % 100000);
-  }
-  UI_ShowItems(items, LOOT_Size(), menuIndex);
+static void getLootItemText(uint16_t i, char *name) {
+  Loot *item = LOOT_Item(i);
+  uint32_t f = item->f;
+  sprintf(name, "%u.%05u", f / 100000, f % 100000);
 }
 
-void LOOTLIST_init() {
-  gRedrawScreen = true;
-  UART_logf(1, "[LOOTLIST] (0) %u presets", PRESETS_Size());
+void LOOTLIST_render() {
+  UI_ClearScreen();
+  UI_ShowMenu(getLootItemText, LOOT_Size(), menuIndex);
 }
+
+void LOOTLIST_init() { gRedrawScreen = true; }
 void LOOTLIST_update() {}
 bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   const Loot *item = LOOT_Item(menuIndex);
@@ -43,9 +40,7 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     APPS_exit();
     return true;
   case KEY_PTT:
-    UART_logf(1, "[LOOTLIST] (1) %u presets", PRESETS_Size());
     RADIO_TuneToSave(item->f);
-    UART_logf(1, "[LOOTLIST] (2) %u presets", PRESETS_Size());
     APPS_run(APP_STILL);
     return true;
   default:

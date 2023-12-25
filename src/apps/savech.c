@@ -5,7 +5,7 @@
 #include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "apps.h"
-#include <string.h>
+#include <stdio.h>
 
 static uint16_t currentChannelIndex = 0;
 
@@ -14,6 +14,10 @@ static uint16_t currentChannelIndex = 0;
 static char channelNames[CHANNELS_COUNT][16];
 static bool gotChannelNames = false;
 static uint16_t readIndex = 0;
+
+static void getChannelName(uint16_t i, char *name) {
+  strncpy(name, channelNames[i], 31);
+}
 
 void SAVECH_init() { gotChannelNames = false; }
 void SAVECH_update() {
@@ -62,12 +66,12 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 void SAVECH_render() {
   UI_ClearScreen();
   if (gotChannelNames) {
-    UI_ShowItems(channelNames, CHANNELS_COUNT, currentChannelIndex);
+    UI_ShowMenu(getChannelName, CHANNELS_COUNT, currentChannelIndex);
     PrintMedium(0, 6 * 8 + 12, "%u", currentChannelIndex + 1);
   } else {
     char pb[] = "-\\|/";
     PrintMedium(4, 0 + 12, "Reading");
     PrintMedium(4, 2 * 8 + 12, "channels");
-    PrintMedium(72, 2*8+12, "%c", pb[readIndex & 3]);
+    PrintMedium(72, 2 * 8 + 12, "%c", pb[readIndex & 3]);
   }
 }

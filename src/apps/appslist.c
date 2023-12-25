@@ -16,13 +16,6 @@ typedef enum {
   M_TASK_MANAGER,
 } Menu;
 
-#define ITEMS(value)                                                           \
-  for (uint8_t i = 0; i < ARRAY_SIZE(value); ++i) {                            \
-    strncpy(items[i], value[i], 15);                                           \
-  }                                                                            \
-  size = ARRAY_SIZE(value);                                                    \
-  type = MT_ITEMS;
-
 static uint8_t menuIndex = 0;
 
 static const MenuItem menu[] = {
@@ -32,9 +25,13 @@ static const MenuItem menu[] = {
     {"Task manager", M_TASK_MANAGER},
 };
 
+static void getMenuItemText(uint16_t index, char *name) {
+  strncpy(name, menu[index].name, 31);
+}
+
 void APPSLIST_render() {
   UI_ClearScreen();
-  UI_ShowMenu(menu, ARRAY_SIZE(menu), menuIndex);
+  UI_ShowMenu(getMenuItemText, ARRAY_SIZE(menu), menuIndex);
 }
 
 void APPSLIST_init() { gRedrawScreen = true; }

@@ -8,6 +8,7 @@
 #include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "apps.h"
+#include <string.h>
 
 typedef enum {
   M_NONE,
@@ -67,17 +68,33 @@ static const char *getValue(Menu type) {
   return "";
 }
 
+static void getMenuItemText(uint16_t index, char *name) {
+  strncpy(name, menu[index].name, 31);
+}
+
+static void getBrightnessLevelText(uint16_t index, char *name) {
+  sprintf(name, "%u", index);
+}
+
+static void getUCTypeText(uint16_t index, char *name) {
+  strncpy(name, upConverterFreqNames[index], 31);
+}
+
+static void getBacklightTimeText(uint16_t index, char *name) {
+  strncpy(name, BL_TIME_NAMES[index], 31);
+}
+
 static void showSubmenu(Menu menuType) {
   const MenuItem *item = &menu[menuIndex];
   switch (menuType) {
   case M_UPCONVERTER:
-    SHOW_ITEMS(upConverterFreqNames);
+    UI_ShowMenu(getUCTypeText, ARRAY_SIZE(upConverterFreqNames), subMenuIndex);
     break;
   case M_BL_TIME:
-    SHOW_ITEMS(BL_TIME_NAMES);
+    UI_ShowMenu(getBacklightTimeText, ARRAY_SIZE(BL_TIME_NAMES), subMenuIndex);
     break;
   case M_BRIGHTNESS:
-    UI_ShowRangeItems(item->size, subMenuIndex);
+    UI_ShowMenu(getBrightnessLevelText, item->size, subMenuIndex);
     break;
   default:
     break;
@@ -176,7 +193,7 @@ void SETTINGS_render() {
     showSubmenu(item->type);
     PrintSmall(0, 0, item->name);
   } else {
-    UI_ShowMenu(menu, ARRAY_SIZE(menu), menuIndex);
+    UI_ShowMenu(getMenuItemText, ARRAY_SIZE(menu), menuIndex);
     PrintMedium(1, 6 * 8 + 12, getValue(item->type));
   }
 }

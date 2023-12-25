@@ -86,44 +86,17 @@ void UI_ShowMenuItem(uint8_t line, const char *name, bool isCurrent) {
   }
 }
 
-void UI_ShowMenu(const MenuItem *items, uint8_t size, uint8_t currentIndex) {
-
+void UI_ShowMenu(void (*getItemText)(uint16_t index, char *name), uint8_t size,
+                 uint8_t currentIndex) {
   const uint8_t maxItems =
       size < MENU_LINES_TO_SHOW ? size : MENU_LINES_TO_SHOW;
   const uint8_t offset = Clamp(currentIndex - 2, 0, size - maxItems);
+  char name[32] = {0};
 
   for (uint8_t i = 0; i < maxItems; ++i) {
     uint8_t itemIndex = i + offset;
-    const MenuItem *item = &items[itemIndex];
-    UI_ShowMenuItem(i, item->name, currentIndex == itemIndex);
-  }
-
-  UI_DrawScrollBar(size, currentIndex, MENU_LINES_TO_SHOW);
-}
-
-void UI_ShowItems(char (*items)[16], uint16_t size, uint16_t currentIndex) {
-  const uint16_t maxItems =
-      size < MENU_LINES_TO_SHOW ? size : MENU_LINES_TO_SHOW;
-  const uint16_t offset = Clamp(currentIndex - 2, 0, size - maxItems);
-
-  for (uint16_t i = 0; i < maxItems; ++i) {
-    uint16_t itemIndex = i + offset;
-    UI_ShowMenuItem(i, items[itemIndex], currentIndex == itemIndex);
-  }
-
-  UI_DrawScrollBar(size, currentIndex, MENU_LINES_TO_SHOW);
-}
-
-void UI_ShowRangeItems(uint16_t size, uint16_t currentIndex) {
-  char String[8];
-  const uint16_t maxItems =
-      size < MENU_LINES_TO_SHOW ? size : MENU_LINES_TO_SHOW;
-  const uint16_t offset = Clamp(currentIndex - 2, 0, size - maxItems);
-
-  for (uint16_t i = 0; i < maxItems; ++i) {
-    uint16_t itemIndex = i + offset;
-    sprintf(String, "%u", itemIndex);
-    UI_ShowMenuItem(i, String, currentIndex == itemIndex);
+    getItemText(itemIndex, name);
+    UI_ShowMenuItem(i, name, currentIndex == itemIndex);
   }
 
   UI_DrawScrollBar(size, currentIndex, MENU_LINES_TO_SHOW);

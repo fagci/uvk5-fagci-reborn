@@ -1,7 +1,7 @@
 #include "vfocfg.h"
 #include "../driver/st7565.h"
-#include "../helper/presetlist.h"
 #include "../helper/measurements.h"
+#include "../helper/presetlist.h"
 #include "../misc.h"
 #include "../radio.h"
 #include "../ui/components.h"
@@ -106,39 +106,48 @@ static const char *getValue(VfoCfgMenu type) {
   return "";
 }
 
-static void showStepValues() {
-  char items[ARRAY_SIZE(StepFrequencyTable)][16] = {0};
-  for (uint8_t i = 0; i < ARRAY_SIZE(StepFrequencyTable); ++i) {
-    sprintf(items[i], "%d.%02dKHz", StepFrequencyTable[i] / 100,
-            StepFrequencyTable[i] % 100);
-  }
-  UI_ShowItems(items, ARRAY_SIZE(StepFrequencyTable), subMenuIndex);
+static void getMenuItemText(uint16_t index, char *name) {
+  strncpy(name, menu[index].name, 31);
 }
 
-static void showSquelchValues() {
-  char items[10][16] = {0};
-  for (uint8_t i = 0; i < ARRAY_SIZE(items); ++i) {
-    sprintf(items[i], "%u", i);
-  }
-  UI_ShowItems(items, ARRAY_SIZE(items), subMenuIndex);
+static void getStepText(uint16_t i, char *name) {
+  sprintf(name, "%d.%02dKHz", StepFrequencyTable[i] / 100,
+          StepFrequencyTable[i] % 100);
+}
+
+static void getSquelchValueText(uint16_t i, char *name) {
+  sprintf(name, "%u", i);
+}
+
+static void getModulationTypeText(uint16_t index, char *name) {
+  strncpy(name, modulationTypeOptions[index], 31);
+}
+
+static void getBWName(uint16_t index, char *name) {
+  strncpy(name, bwNames[index], 31);
+}
+
+static void getSQTypeName(uint16_t index, char *name) {
+  strncpy(name, sqTypeNames[index], 31);
 }
 
 static void showSubmenu(VfoCfgMenu menu) {
   switch (menu) {
   case M_MODULATION:
-    SHOW_ITEMS(modulationTypeOptions);
+    UI_ShowMenu(getModulationTypeText, ARRAY_SIZE(modulationTypeOptions),
+                subMenuIndex);
     return;
   case M_BW:
-    SHOW_ITEMS(bwNames);
+    UI_ShowMenu(getBWName, ARRAY_SIZE(bwNames), subMenuIndex);
     return;
   case M_STEP:
-    showStepValues();
+    UI_ShowMenu(getStepText, ARRAY_SIZE(StepFrequencyTable), subMenuIndex);
     return;
   case M_SQ_TYPE:
-    SHOW_ITEMS(sqTypeNames);
+    UI_ShowMenu(getSQTypeName, ARRAY_SIZE(sqTypeNames), subMenuIndex);
     return;
   case M_SQ:
-    showSquelchValues();
+    UI_ShowMenu(getSquelchValueText, 10, subMenuIndex);
     return;
   default:
     break;
@@ -218,7 +227,7 @@ void VFOCFG_render() {
     showSubmenu(item->type);
     STATUSLINE_SetText(item->name);
   } else {
-    UI_ShowMenu(menu, ARRAY_SIZE(menu), menuIndex);
+    UI_ShowMenu(getMenuItemText, ARRAY_SIZE(menu), menuIndex);
     PrintMediumEx(LCD_WIDTH / 2, LCD_HEIGHT - 2, POS_C, C_FILL,
                   getValue(item->type));
   }

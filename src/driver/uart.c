@@ -105,7 +105,7 @@ void UART_LogSendText(const void *str) {
     UART_Send(str, strlen(str));
 }
 
-static char sendBuffer[1024 * 2] = {0};
+static char sendBuffer[1024] = {0};
 static uint32_t sendBufferIndex = 0;
 
 void UART_printf(const char *str, ...) {
@@ -120,7 +120,7 @@ void UART_printf(const char *str, ...) {
   memcpy(sendBuffer + sendBufferIndex, text, len);
   sendBufferIndex += len;
 
-  if (sendBufferIndex > 1024) {
+  if (sendBufferIndex > 512) {
     UART_Send(sendBuffer, sendBufferIndex);
     sendBufferIndex = 0;
   }

@@ -61,13 +61,4 @@ void DrawRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r,
 void FillRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r,
                    Color color);
 
-#define SHOW_ITEMS(value)                                                      \
-  do {                                                                         \
-    char items[ARRAY_SIZE(value)][16] = {0};                                   \
-    for (uint8_t i = 0; i < ARRAY_SIZE(value); ++i) {                          \
-      strncpy(items[i], value[i], 15);                                         \
-    }                                                                          \
-    UI_ShowItems(items, ARRAY_SIZE(value), subMenuIndex);                      \
-  } while (0)
-
 #endif /* end of include guard: GRAPHICS_H */
