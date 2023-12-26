@@ -14,9 +14,8 @@ static uint16_t chCount = 0;
 static void getChannelName(uint16_t i, char *name) {
   VFO ch;
   CHANNELS_LoadUser(i, &ch);
-  char *chName = ch.name;
-  if (chName[0] > 32 && chName[0] < 127) {
-    strncpy(name, chName, 31);
+  if (IsReadable(ch.name)) {
+    strncpy(name, ch.name, 31);
   } else {
     sprintf(name, "CH-%u", i + 1);
   }
@@ -26,6 +25,7 @@ void SAVECH_init() { chCount = CHANNELS_GetCountMax(); }
 void SAVECH_update() {}
 
 bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  VFO ch;
   switch (key) {
   case KEY_UP:
     IncDec16(&currentChannelIndex, 0, chCount, -1);
@@ -34,13 +34,15 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     IncDec16(&currentChannelIndex, 0, chCount, 1);
     return true;
   case KEY_MENU:
-    /* strncpy(channelNames[currentChannelIndex], gCurrentVFO->name, 15);
-    EEPROM_WriteBuffer(VFO_SIZE * currentChannelIndex + CHANNELS_OFFSET,
-                       &gCurrentVFO, VFO_SIZE);
-    gRedrawScreen = true; */
+    CHANNELS_SaveCurrentVFO(currentChannelIndex);
     return true;
   case KEY_EXIT:
     APPS_exit();
+    return true;
+  case KEY_PTT:
+    CHANNELS_LoadUser(currentChannelIndex, &ch);
+    RADIO_TuneToSave(ch.fRX);
+    APPS_run(APP_STILL);
     return true;
   default:
     break;

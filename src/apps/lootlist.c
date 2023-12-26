@@ -169,6 +169,10 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_9:
     exportLootList();
     return true;
+  case KEY_5:
+    gCurrentVFO->fRX = item->f;
+    APPS_run(APP_SAVECH);
+    return true;
   default:
     break;
   }

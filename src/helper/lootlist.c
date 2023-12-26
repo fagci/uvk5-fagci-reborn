@@ -63,7 +63,7 @@ static void swap(Loot *a, Loot *b) {
 }
 
 bool LOOT_SortByLastOpenTime(Loot *a, Loot *b) {
-  return a->lastTimeOpen > b->lastTimeOpen;
+  return a->lastTimeOpen < b->lastTimeOpen;
 }
 
 bool LOOT_SortByDuration(Loot *a, Loot *b) { return a->duration > b->duration; }

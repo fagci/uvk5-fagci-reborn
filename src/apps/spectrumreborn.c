@@ -21,7 +21,7 @@
 static const uint16_t U16_MAX = 65535;
 
 // TODO: use as variable
-static const uint8_t NOISE_OPEN_DIFF = 14;
+static uint8_t noiseOpenDiff = 14;
 
 static const uint8_t S_HEIGHT = 40;
 
@@ -74,9 +74,9 @@ static void updateMeasurements() {
   // UART_printf("%u: Got rssi\n", elapsedMilliseconds);
 
   if (gIsListening) {
-    noiseO -= NOISE_OPEN_DIFF;
+    noiseO -= noiseOpenDiff;
     msm.open = isSquelchOpen();
-    noiseO += NOISE_OPEN_DIFF;
+    noiseO += noiseOpenDiff;
   } else {
     msm.open = isSquelchOpen();
   }
@@ -192,7 +192,7 @@ static void updateStats() {
   const uint16_t noiseFloor = Std(rssiHistory, x);
   const uint16_t noiseMax = Max(noiseHistory, x);
   rssiO = noiseFloor;
-  noiseO = noiseMax - NOISE_OPEN_DIFF;
+  noiseO = noiseMax - noiseOpenDiff;
   UART_logf(1, "[SPECTRUM] update stats Nf:%u Nmax:%u", noiseFloor, noiseMax);
 }
 
@@ -227,14 +227,16 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_5:
     return true;
   case KEY_3:
-    msmDelay++;
+    IncDec8(&msmDelay, 0, 20, 1);
     return true;
   case KEY_9:
-    msmDelay--;
+    IncDec8(&msmDelay, 0, 20, -1);
     return true;
   case KEY_2:
+    IncDec8(&noiseOpenDiff, 2, 40, 1);
     return true;
   case KEY_8:
+    IncDec8(&noiseOpenDiff, 2, 40, -1);
     return true;
   case KEY_PTT:
     RADIO_TuneToSave(gLastActiveLoot->f);
@@ -318,7 +320,7 @@ void SPECTRUM_render(void) {
     }
   }
 
-  LOOT_Sort(LOOT_SortByLastOpenTime, true);
+  LOOT_Sort(LOOT_SortByLastOpenTime, false);
 
   const uint8_t LOOT_BL = 13;
 
@@ -339,4 +341,7 @@ void SPECTRUM_render(void) {
     PrintSmallEx(LCD_WIDTH - 1, ybl, POS_R, C_FILL, "%u.%05u", p->f / 100000,
                  p->f % 100000);
   }
+
+  PrintSmallEx(0, SPECTRUM_Y - 3, POS_L, C_FILL, "%u", noiseOpenDiff);
+  PrintSmallEx(DATA_LEN - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "%ums", msmDelay);
 }

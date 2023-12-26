@@ -157,8 +157,7 @@ void RADIO_TuneTo(uint32_t f) {
 }
 
 void RADIO_TuneToSave(uint32_t f) {
-  UART_logf(1, "TUNETOSAVE: %u", f);
-  sprintf(gCurrentVFO->name, "");
+  gCurrentVFO->name[0] = '\0';
   gCurrentVFO->fRX = f;
   PRESET_SelectByFrequency(gCurrentVFO->fRX);
   BK4819_TuneTo(f);
