@@ -85,15 +85,15 @@ void UI_ShowMenuItem(uint8_t line, const char *name, bool isCurrent) {
   }
 }
 
-void UI_ShowMenu(void (*getItemText)(uint16_t index, char *name), uint8_t size,
-                 uint8_t currentIndex) {
-  const uint8_t maxItems =
+void UI_ShowMenu(void (*getItemText)(uint16_t index, char *name), uint16_t size,
+                 uint16_t currentIndex) {
+  const uint16_t maxItems =
       size < MENU_LINES_TO_SHOW ? size : MENU_LINES_TO_SHOW;
-  const uint8_t offset = Clamp(currentIndex - 2, 0, size - maxItems);
+  const uint16_t offset = Clamp(currentIndex - 2, 0, size - maxItems);
   char name[32] = {0};
 
-  for (uint8_t i = 0; i < maxItems; ++i) {
-    uint8_t itemIndex = i + offset;
+  for (uint16_t i = 0; i < maxItems; ++i) {
+    uint16_t itemIndex = i + offset;
     getItemText(itemIndex, name);
     UI_ShowMenuItem(i, name, currentIndex == itemIndex);
   }
@@ -102,12 +102,12 @@ void UI_ShowMenu(void (*getItemText)(uint16_t index, char *name), uint8_t size,
 }
 
 void UI_ShowMenuEx(void (*showItem)(uint16_t i, uint16_t index, bool isCurrent),
-                   uint8_t size, uint8_t currentIndex, uint8_t linesMax) {
-  const uint8_t maxItems = size < linesMax ? size : linesMax;
-  const uint8_t offset = Clamp(currentIndex - 2, 0, size - maxItems);
+                   uint16_t size, uint16_t currentIndex, uint16_t linesMax) {
+  const uint16_t maxItems = size < linesMax ? size : linesMax;
+  const uint16_t offset = Clamp(currentIndex - 2, 0, size - maxItems);
 
-  for (uint8_t i = 0; i < maxItems; ++i) {
-    uint8_t itemIndex = i + offset;
+  for (uint16_t i = 0; i < maxItems; ++i) {
+    uint16_t itemIndex = i + offset;
     showItem(i, itemIndex, currentIndex == itemIndex);
   }
 

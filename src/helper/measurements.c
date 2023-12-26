@@ -110,3 +110,11 @@ void IncDec8(uint8_t *val, uint8_t min, uint8_t max, int8_t inc) {
     *val = *val > min ? *val + inc : max + inc;
   }
 }
+
+void IncDec16(uint16_t *val, uint16_t min, uint16_t max, int16_t inc) {
+  if (inc > 0) {
+    *val = *val == max - inc ? min : *val + inc;
+  } else {
+    *val = *val > min ? *val + inc : max + inc;
+  }
+}

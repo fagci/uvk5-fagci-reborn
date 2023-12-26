@@ -6,6 +6,7 @@
 #include "driver/system.h"
 #include "driver/uart.h"
 #include "external/printf/printf.h"
+#include "helper/channels.h"
 #include "helper/presetlist.h"
 #include "inc/dp32g030/gpio.h"
 #include "scheduler.h"
@@ -165,12 +166,12 @@ void RADIO_TuneToSave(uint32_t f) {
 }
 
 void RADIO_SaveCurrentVFO() {
-  RADIO_SaveChannel(gSettings.activeChannel, gCurrentVFO);
+  CHANNELS_Save(gSettings.activeChannel, gCurrentVFO);
 }
 
 void RADIO_LoadCurrentVFO() {
-  RADIO_LoadChannel(0, &gVFO[0]);
-  RADIO_LoadChannel(1, &gVFO[1]);
+  CHANNELS_Load(0, &gVFO[0]);
+  CHANNELS_Load(1, &gVFO[1]);
   gCurrentVFO = &gVFO[gSettings.activeChannel];
   PRESET_SelectByFrequency(gCurrentVFO->fRX);
 }
@@ -207,20 +208,4 @@ void RADIO_SetupBandParams(Band *b) {
   BK4819_SetFilterBandwidth(b->bw);
   BK4819_SetModulation(b->modulation);
   BK4819_SetGain(b->gainIndex);
-}
-
-void RADIO_LoadUserChannel(uint16_t num, VFO *p) {
-  RADIO_LoadChannel(num + 2, p);
-}
-
-void RADIO_SaveUserChannel(uint16_t num, VFO *p) {
-  RADIO_SaveChannel(num + 2, p);
-}
-
-void RADIO_LoadChannel(uint16_t num, VFO *p) {
-  EEPROM_ReadBuffer(CHANNELS_OFFSET - (num + 1) * VFO_SIZE, p, VFO_SIZE);
-}
-
-void RADIO_SaveChannel(uint16_t num, VFO *p) {
-  EEPROM_WriteBuffer(CHANNELS_OFFSET - (num + 1) * VFO_SIZE, p, VFO_SIZE);
 }

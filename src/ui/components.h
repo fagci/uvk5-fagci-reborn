@@ -29,10 +29,10 @@ void UI_FSmallest(uint32_t f, uint8_t x, uint8_t y);
 void UI_DrawScrollBar(const uint16_t size, const uint16_t currentIndex,
                       const uint8_t linesCount);
 void UI_ShowMenuItem(uint8_t line, const char *name, bool isCurrent);
-void UI_ShowMenu(void (*getItemText)(uint16_t index, char *name), uint8_t size,
-                 uint8_t currentIndex);
+void UI_ShowMenu(void (*getItemText)(uint16_t index, char *name), uint16_t size,
+                 uint16_t currentIndex);
 void UI_ShowMenuEx(void (*showItem)(uint16_t i, uint16_t index, bool isCurrent),
-                   uint8_t size, uint8_t currentIndex, uint8_t linesMax);
+                   uint16_t size, uint16_t currentIndex, uint16_t linesMax);
 void UI_DrawTicks(uint8_t x1, uint8_t x2, uint8_t y, Band *band);
 
 #endif /* end of include guard: COMPONENTS_H */

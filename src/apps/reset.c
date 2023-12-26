@@ -2,6 +2,7 @@
 #include "../driver/eeprom.h"
 #include "../driver/st7565.h"
 #include "../driver/system.h"
+#include "../helper/channels.h"
 #include "../helper/measurements.h"
 #include "../helper/presetlist.h"
 #include "../radio.h"
@@ -495,7 +496,7 @@ void RESET_Update() {
     bytesWrote += 8;
   } else {
     for (uint8_t i = 0; i < 2; i++) {
-      RADIO_SaveChannel(i, &defaultVFOs[i]);
+      CHANNELS_Save(i, &defaultVFOs[i]);
     }
     NVIC_SystemReset();
   }

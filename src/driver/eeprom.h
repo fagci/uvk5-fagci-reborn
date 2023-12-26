@@ -20,6 +20,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define EEPROM_SIZE 8196
+
 extern bool gEepromRead;
 extern bool gEepromWrite;
 
