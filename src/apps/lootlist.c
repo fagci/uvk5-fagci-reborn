@@ -6,6 +6,7 @@
 #include "../helper/presetlist.h"
 #include "../misc.h"
 #include "../radio.h"
+#include "../scheduler.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/statusline.h"
@@ -15,13 +16,20 @@
 static uint8_t menuIndex = 0;
 static const uint8_t MENU_ITEM_H = 15;
 static const uint8_t MENU_ITEM_H_SHORT = 9;
-static enum {
+
+typedef enum {
   SORT_LOT,
   SORT_DUR,
   SORT_BL,
   SORT_F,
-} sortType = SORT_LOT;
-static bool shortList = false;
+} Sort;
+
+bool (*sortings[])(Loot *a, Loot *b) = {
+    LOOT_SortByLastOpenTime,
+    LOOT_SortByDuration,
+    LOOT_SortByBlacklist,
+    LOOT_SortByF,
+};
 
 static char *sortNames[] = {
     "last open time",
@@ -29,6 +37,11 @@ static char *sortNames[] = {
     "blacklist",
     "frequency",
 };
+
+Sort sortType = SORT_LOT;
+
+static bool shortList = true;
+static bool sortRev = false;
 
 static void exportLootList() {
   UART_printf("--- 8< ---\n");
@@ -59,6 +72,9 @@ static void getLootItem(uint16_t i, uint16_t index, bool isCurrent) {
   if (item->blacklist) {
     DrawHLine(2, y + 5, LCD_WIDTH - 4, C_INVERT);
   }
+  if (item->goodKnown) {
+    PrintSmallEx(1, y + 5, POS_L, C_INVERT, "*");
+  }
 }
 
 static void getLootItemShort(uint16_t i, uint16_t index, bool isCurrent) {
@@ -66,12 +82,15 @@ static void getLootItemShort(uint16_t i, uint16_t index, bool isCurrent) {
   uint32_t f = item->f;
   const uint8_t x = LCD_WIDTH - 6;
   const uint8_t y = 9 + i * MENU_ITEM_H_SHORT;
+  const uint32_t ago = (elapsedMilliseconds - item->lastTimeOpen) / 1000;
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H_SHORT, C_FILL);
   }
   PrintMediumEx(6, y + 7, POS_L, C_INVERT, "%u.%05u", f / 100000, f % 100000);
   switch (sortType) {
   case SORT_LOT:
+    PrintSmallEx(x, y + 7, POS_R, C_INVERT, "%u:%02u", ago / 60, ago % 60);
+    break;
   case SORT_DUR:
   case SORT_BL:
   case SORT_F:
@@ -81,6 +100,20 @@ static void getLootItemShort(uint16_t i, uint16_t index, bool isCurrent) {
   if (item->blacklist) {
     DrawHLine(2, y + 5, LCD_WIDTH - 4, C_INVERT);
   }
+  if (item->goodKnown) {
+    PrintSmallEx(1, y + 5, POS_L, C_INVERT, "*");
+  }
+}
+
+static void sort(Sort type) {
+  if (sortType == type) {
+    sortRev = !sortRev;
+  } else {
+    sortRev = true;
+  }
+  LOOT_Sort(sortings[type], sortRev);
+  sortType = type;
+  STATUSLINE_SetText("By %s %s", sortNames[sortType], sortRev ? "desc" : "asc");
 }
 
 void LOOTLIST_render() {
@@ -109,27 +142,22 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     APPS_run(APP_STILL);
     return true;
   case KEY_1:
-    LOOT_Sort(LOOT_SortByLastOpenTime);
-    sortType = SORT_LOT;
-    STATUSLINE_SetText("By %s", sortNames[sortType]);
+    sort(SORT_LOT);
     return true;
   case KEY_2:
-    LOOT_Sort(LOOT_SortByDuration);
-    sortType = SORT_DUR;
-    STATUSLINE_SetText("By %s", sortNames[sortType]);
+    sort(SORT_DUR);
     return true;
   case KEY_3:
-    LOOT_Sort(LOOT_SortByBlacklist);
-    sortType = SORT_BL;
-    STATUSLINE_SetText("By %s", sortNames[sortType]);
+    sort(SORT_BL);
     return true;
   case KEY_4:
-    LOOT_Sort(LOOT_SortByF);
-    sortType = SORT_F;
-    STATUSLINE_SetText("By %s", sortNames[sortType]);
+    sort(SORT_F);
     return true;
   case KEY_SIDE1:
     item->blacklist = !item->blacklist;
+    return true;
+  case KEY_SIDE2:
+    item->goodKnown = !item->goodKnown;
     return true;
   case KEY_7:
     shortList = !shortList;

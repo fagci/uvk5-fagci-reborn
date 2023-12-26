@@ -22,7 +22,7 @@
 #include <stdint.h>
 
 extern uint8_t UART_DMA_Buffer[256];
-extern uint8_t gUartData[1024];
+extern uint8_t gUartData[512];
 extern uint8_t UART_IsLogEnabled;
 
 void UART_Init(void);

@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define LOOT_SIZE_MAX 64
+#define LOOT_SIZE_MAX 128
 
 typedef struct {
   uint32_t f;
@@ -20,6 +20,7 @@ typedef struct {
   uint16_t noise;
   bool open;
   bool blacklist;
+  bool goodKnown;
 } Loot;
 
 void LOOT_BlacklistLast();
@@ -28,10 +29,11 @@ Loot *LOOT_Add(uint32_t f);
 void LOOT_Clear();
 void LOOT_Standby();
 uint8_t LOOT_Size();
-void LOOT_Sort(bool (*compare)(Loot *a, Loot *b));
 Loot *LOOT_Item(uint8_t i);
 void LOOT_Update(Loot *msm);
 void LOOT_ReplaceItem(uint8_t i, uint32_t f);
+
+void LOOT_Sort(bool (*compare)(Loot *a, Loot *b), bool reverse);
 
 bool LOOT_SortByLastOpenTime(Loot *a, Loot *b);
 bool LOOT_SortByDuration(Loot *a, Loot *b);

@@ -63,22 +63,23 @@ static void swap(Loot *a, Loot *b) {
 }
 
 bool LOOT_SortByLastOpenTime(Loot *a, Loot *b) {
-  return a->lastTimeOpen < b->lastTimeOpen;
+  return a->lastTimeOpen > b->lastTimeOpen;
 }
 
-bool LOOT_SortByDuration(Loot *a, Loot *b) { return a->duration < b->duration; }
+bool LOOT_SortByDuration(Loot *a, Loot *b) { return a->duration > b->duration; }
 
 bool LOOT_SortByF(Loot *a, Loot *b) { return a->f > b->f; }
 
 bool LOOT_SortByBlacklist(Loot *a, Loot *b) {
-  return a->blacklist < b->blacklist;
+  return a->blacklist > b->blacklist;
 }
 
-static void Sort(Loot *items, uint16_t n, bool (*compare)(Loot *a, Loot *b)) {
+static void Sort(Loot *items, uint16_t n, bool (*compare)(Loot *a, Loot *b),
+                 bool reverse) {
   for (uint16_t i = 0; i < n - 1; i++) {
     bool swapped = false;
     for (uint16_t j = 0; j < n - i - 1; j++) {
-      if (compare(&items[j], &items[j + 1])) {
+      if (compare(&items[j], &items[j + 1]) ^ reverse) {
         swap(&items[j], &items[j + 1]);
         swapped = true;
       }
@@ -89,8 +90,8 @@ static void Sort(Loot *items, uint16_t n, bool (*compare)(Loot *a, Loot *b)) {
   }
 }
 
-void LOOT_Sort(bool (*compare)(Loot *a, Loot *b)) {
-  Sort(loot, LOOT_Size(), compare);
+void LOOT_Sort(bool (*compare)(Loot *a, Loot *b), bool reverse) {
+  Sort(loot, LOOT_Size(), compare, reverse);
 }
 
 Loot *LOOT_Item(uint8_t i) { return &loot[i]; }
@@ -118,7 +119,7 @@ void LOOT_Update(Loot *msm) {
     return;
   }
 
-  if (peak->blacklist) {
+  if (peak->blacklist || peak->goodKnown) {
     msm->open = false;
   }
 

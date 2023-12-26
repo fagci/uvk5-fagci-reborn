@@ -16,13 +16,12 @@
 #include "finput.h"
 #include <string.h>
 
-#define BLACKLIST_SIZE 32
 #define DATA_LEN 84
 
 static const uint16_t U16_MAX = 65535;
 
 // TODO: use as variable
-static const uint8_t NOISE_OPEN_DIFF = 18; // was 14
+static const uint8_t NOISE_OPEN_DIFF = 14;
 
 static const uint8_t S_HEIGHT = 40;
 
@@ -319,7 +318,7 @@ void SPECTRUM_render(void) {
     }
   }
 
-  LOOT_Sort(LOOT_SortByLastOpenTime);
+  LOOT_Sort(LOOT_SortByLastOpenTime, true);
 
   const uint8_t LOOT_BL = 13;
 

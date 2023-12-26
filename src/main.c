@@ -54,7 +54,7 @@ static void onKey(KEY_Code_t key, bool pressed, bool hold) {
     return;
   }
 
-  if (key == KEY_SIDE2 && !hold && pressed) {
+  if (key == KEY_SIDE2 && !hold && !pressed) {
     GPIO_FlipBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
     return;
   }

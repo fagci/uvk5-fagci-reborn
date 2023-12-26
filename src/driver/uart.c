@@ -105,7 +105,7 @@ void UART_LogSendText(const void *str) {
     UART_Send(str, strlen(str));
 }
 
-static char sendBuffer[1024] = {0};
+static char sendBuffer[512] = {0};
 static uint32_t sendBufferIndex = 0;
 
 void UART_flush() {
@@ -114,7 +114,7 @@ void UART_flush() {
 }
 
 void UART_printf(const char *str, ...) {
-  char text[256];
+  char text[128];
   int len;
 
   va_list va;
@@ -125,7 +125,7 @@ void UART_printf(const char *str, ...) {
   memcpy(sendBuffer + sendBufferIndex, text, len);
   sendBufferIndex += len;
 
-  if (sendBufferIndex > 512) {
+  if (sendBufferIndex >= 384) {
     UART_flush();
   }
 }
@@ -141,7 +141,7 @@ void UART_ToggleLog(bool on) {
 
 void UART_logf(uint8_t level, const char *pattern, ...) {
   if (UART_IsLogEnabled >= level) {
-    char text[256];
+    char text[128];
     va_list args;
     va_start(args, pattern);
     vsnprintf(text, sizeof(text), pattern, args);
@@ -153,7 +153,7 @@ void UART_logf(uint8_t level, const char *pattern, ...) {
 #define DMA_INDEX(x, y) (((x) + (y)) % sizeof(UART_DMA_Buffer))
 
 static uint16_t write_index = 0;
-uint8_t gUartData[1024] = {0};
+uint8_t gUartData[512] = {0};
 static uint16_t bufIndex = 0;
 static uint8_t countdown = 0;
 
@@ -169,12 +169,6 @@ uint16_t UART_HasData() {
   }
 
   uint16_t n = 0;
-
-  // UART_printf("write_index: %u, DmaLength: %u\n", write_index, DmaLength);
-
-  /* UART_printf("--- BUFFER ---\n");
-  UART_Send(UART_DMA_Buffer, sizeof(UART_DMA_Buffer));
-  UART_printf("\n--- END BUFFER ---\n"); */
 
   if (write_index > DmaLength) { // end of buffer
     n = 256 - write_index;
