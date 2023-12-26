@@ -70,7 +70,7 @@ static void getLootItem(uint16_t i, uint16_t index, bool isCurrent) {
   PrintSmallEx(6, y + 7 + 6, POS_L, C_INVERT, "CT:%u CD:%u R:%u N:%u", item->ct,
                item->cd, item->rssi, item->noise);
   if (item->blacklist) {
-    DrawHLine(2, y + 5, LCD_WIDTH - 4, C_INVERT);
+    PrintSmallEx(1, y + 5, POS_L, C_INVERT, "X");
   }
   if (item->goodKnown) {
     PrintSmallEx(1, y + 5, POS_L, C_INVERT, "*");
@@ -98,7 +98,7 @@ static void getLootItemShort(uint16_t i, uint16_t index, bool isCurrent) {
     break;
   }
   if (item->blacklist) {
-    DrawHLine(2, y + 5, LCD_WIDTH - 4, C_INVERT);
+    PrintSmallEx(1, y + 5, POS_L, C_INVERT, "X");
   }
   if (item->goodKnown) {
     PrintSmallEx(1, y + 5, POS_L, C_INVERT, "*");
@@ -109,7 +109,7 @@ static void sort(Sort type) {
   if (sortType == type) {
     sortRev = !sortRev;
   } else {
-    sortRev = true;
+    sortRev = type == SORT_DUR;
   }
   LOOT_Sort(sortings[type], sortRev);
   sortType = type;
@@ -122,7 +122,11 @@ void LOOTLIST_render() {
                 menuIndex, shortList ? 6 : 3);
 }
 
-void LOOTLIST_init() { gRedrawScreen = true; }
+void LOOTLIST_init() {
+  gRedrawScreen = true;
+  sortType = SORT_F;
+  sort(SORT_LOT);
+}
 void LOOTLIST_update() {}
 bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   Loot *item = LOOT_Item(menuIndex);
