@@ -17,10 +17,10 @@ VFO gVFO[2] = {0};
 
 bool gIsListening = false;
 
-const uint16_t StepFrequencyTable[12] = {
+const uint16_t StepFrequencyTable[14] = {
     1,   10,  50,  100,
 
-    250, 500, 625, 833, 1000, 1250, 2500, 10000,
+    250, 500, 625, 833, 1000, 1250, 2500, 10000, 12500, 20000,
 };
 
 const uint32_t upConverterValues[3] = {0, 5000000, 12500000};

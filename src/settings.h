@@ -19,6 +19,8 @@ typedef enum {
   STEP_12_5kHz,
   STEP_25_0kHz,
   STEP_100_0kHz,
+  STEP_125_0kHz,
+  STEP_200_0kHz,
 } Step;
 
 typedef enum {

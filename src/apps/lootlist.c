@@ -14,12 +14,15 @@
 
 static uint8_t menuIndex = 0;
 static const uint8_t MENU_ITEM_H = 15;
+static const uint8_t MENU_ITEM_H_SHORT = 9;
 static enum {
   SORT_LOT,
   SORT_DUR,
   SORT_BL,
   SORT_F,
-} sortType;
+} sortType = SORT_LOT;
+static bool shortList = false;
+
 static char *sortNames[] = {
     "last open time",
     "duration",
@@ -27,10 +30,24 @@ static char *sortNames[] = {
     "frequency",
 };
 
-static void getLootItem(uint16_t i, bool isCurrent) {
-  Loot *item = LOOT_Item(i);
+static void exportLootList() {
+  UART_printf("--- 8< ---\n");
+  UART_printf("F,duration,ct,cd,rssi,noise\n");
+  for (uint8_t i = 0; i < LOOT_Size(); ++i) {
+    Loot *v = LOOT_Item(i);
+    if (!v->blacklist) {
+      UART_printf("%u.%05u,%u,%u,%u,%u,%u\n", v->f / 100000, v->f % 100000,
+                  v->duration, v->ct, v->cd, v->rssi, v->noise);
+    }
+  }
+  UART_printf("--- >8 ---\n");
+  UART_flush();
+}
+
+static void getLootItem(uint16_t i, uint16_t index, bool isCurrent) {
+  Loot *item = LOOT_Item(index);
   uint32_t f = item->f;
-  const uint8_t y = 8 + i * MENU_ITEM_H;
+  const uint8_t y = 9 + i * MENU_ITEM_H;
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
   }
@@ -44,9 +61,32 @@ static void getLootItem(uint16_t i, bool isCurrent) {
   }
 }
 
+static void getLootItemShort(uint16_t i, uint16_t index, bool isCurrent) {
+  Loot *item = LOOT_Item(index);
+  uint32_t f = item->f;
+  const uint8_t x = LCD_WIDTH - 6;
+  const uint8_t y = 9 + i * MENU_ITEM_H_SHORT;
+  if (isCurrent) {
+    FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H_SHORT, C_FILL);
+  }
+  PrintMediumEx(6, y + 7, POS_L, C_INVERT, "%u.%05u", f / 100000, f % 100000);
+  switch (sortType) {
+  case SORT_LOT:
+  case SORT_DUR:
+  case SORT_BL:
+  case SORT_F:
+    PrintSmallEx(x, y + 7, POS_R, C_INVERT, "%us", item->duration / 1000);
+    break;
+  }
+  if (item->blacklist) {
+    DrawHLine(2, y + 5, LCD_WIDTH - 4, C_INVERT);
+  }
+}
+
 void LOOTLIST_render() {
   UI_ClearScreen();
-  UI_ShowMenuEx(getLootItem, LOOT_Size(), menuIndex, 4);
+  UI_ShowMenuEx(shortList ? getLootItemShort : getLootItem, LOOT_Size(),
+                menuIndex, shortList ? 6 : 3);
 }
 
 void LOOTLIST_init() { gRedrawScreen = true; }
@@ -90,6 +130,12 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_SIDE1:
     item->blacklist = !item->blacklist;
+    return true;
+  case KEY_7:
+    shortList = !shortList;
+    return true;
+  case KEY_9:
+    exportLootList();
     return true;
   default:
     break;

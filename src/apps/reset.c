@@ -25,7 +25,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {1500000, 3000000},
+                .bounds = {1500000, 2999500},
                 .name = "15-30",
                 .step = STEP_5_0kHz,
                 .modulation = MOD_AM,
@@ -39,7 +39,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {3000000, 7200000},
+                .bounds = {3000000, 7199500},
                 .name = "30-72",
                 .step = STEP_5_0kHz,
                 .modulation = MOD_FM,
@@ -53,7 +53,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {7200000, 8800000},
+                .bounds = {7200000, 8797500},
                 .name = "72-88",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -67,7 +67,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {8800000, 10800000},
+                .bounds = {8800000, 10790000},
                 .name = "Bcast FM",
                 .step = STEP_100_0kHz,
                 .modulation = MOD_FM,
@@ -81,7 +81,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {10800000, 11800000},
+                .bounds = {10800000, 11798750},
                 .name = "108-118",
                 .step = STEP_12_5kHz,
                 .modulation = MOD_FM,
@@ -95,7 +95,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {11800000, 13500000},
+                .bounds = {11800000, 13498750},
                 .name = "Air",
                 .step = STEP_12_5kHz,
                 .modulation = MOD_AM,
@@ -109,7 +109,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {13500000, 14400000},
+                .bounds = {13500000, 14398750},
                 .name = "135-144",
                 .step = STEP_12_5kHz,
                 .modulation = MOD_FM,
@@ -123,7 +123,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {14400000, 14800000},
+                .bounds = {14400000, 14797500},
                 .name = "2m HAM",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -137,7 +137,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {14800000, 17400000},
+                .bounds = {14800000, 17397500},
                 .name = "148-174",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -151,7 +151,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {17400000, VHF_UHF_BOUND},
+                .bounds = {17400000, VHF_UHF_BOUND - 2500},
                 .name = "174-BOUND",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -165,7 +165,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {VHF_UHF_BOUND, 35000000},
+                .bounds = {VHF_UHF_BOUND, 34997500},
                 .name = "BOUND-350",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -179,7 +179,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {35000000, 40000000},
+                .bounds = {35000000, 39997500},
                 .name = "350-400",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -193,7 +193,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {40000000, 43307500},
+                .bounds = {40000000, 43305000},
                 .name = "400-433",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -221,7 +221,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {43477500, 44600000},
+                .bounds = {43480000, 44597500},
                 .name = "434.7-446",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -235,7 +235,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {44600000, 44620000},
+                .bounds = {44600000, 44618750},
                 .name = "PMR",
                 .step = STEP_6_25kHz,
                 .modulation = MOD_FM,
@@ -277,7 +277,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {46272500, 46756250},
+                .bounds = {46273750, 46756250},
                 .name = "462-467",
                 .step = STEP_12_5kHz,
                 .modulation = MOD_FM,
@@ -305,8 +305,8 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {46770000, 47000000},
-                .name = "F12",
+                .bounds = {46775000, 46997500},
+                .name = "468-470",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,
@@ -319,8 +319,8 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {47000000, 63000000},
-                .name = "F13",
+                .bounds = {47000000, 62997500},
+                .name = "470-630",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,
@@ -333,8 +333,8 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {47000000, 63000000},
-                .name = "F14",
+                .bounds = {63000000, 83997500},
+                .name = "630-840",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,
@@ -347,8 +347,92 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {84000000, 130000000},
-                .name = "F15",
+                .bounds = {84000000, 86297500},
+                .name = "840-863",
+                .step = STEP_25_0kHz,
+                .modulation = MOD_FM,
+                .bw = BK4819_FILTER_BW_WIDE,
+                .gainIndex = 90,
+                .squelch = 3,
+                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            },
+        .allowTx = false,
+    },
+    (Preset){
+        .band =
+            {
+                .bounds = {86300000, 86987200},
+                .name = "LORA",
+                .step = STEP_125_0kHz,
+                .modulation = MOD_FM,
+                .bw = BK4819_FILTER_BW_WIDE,
+                .gainIndex = 90,
+                .squelch = 3,
+                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            },
+        .allowTx = false,
+    },
+    (Preset){
+        .band =
+            {
+                .bounds = {87000000, 88997500},
+                .name = "870-890",
+                .step = STEP_25_0kHz,
+                .modulation = MOD_FM,
+                .bw = BK4819_FILTER_BW_WIDE,
+                .gainIndex = 90,
+                .squelch = 3,
+                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            },
+        .allowTx = false,
+    },
+    (Preset){
+        .band =
+            {
+                .bounds = {89000000, 95980000},
+                .name = "GSM-900",
+                .step = STEP_200_0kHz,
+                .modulation = MOD_FM,
+                .bw = BK4819_FILTER_BW_WIDE,
+                .gainIndex = 90,
+                .squelch = 3,
+                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            },
+        .allowTx = false,
+    },
+    (Preset){
+        .band =
+            {
+                .bounds = {96000000, 125997500},
+                .name = "960-1260",
+                .step = STEP_25_0kHz,
+                .modulation = MOD_FM,
+                .bw = BK4819_FILTER_BW_WIDE,
+                .gainIndex = 90,
+                .squelch = 3,
+                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            },
+        .allowTx = false,
+    },
+    (Preset){
+        .band =
+            {
+                .bounds = {126000000, 129997500},
+                .name = "23cm HAM",
+                .step = STEP_25_0kHz,
+                .modulation = MOD_FM,
+                .bw = BK4819_FILTER_BW_WIDE,
+                .gainIndex = 90,
+                .squelch = 3,
+                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            },
+        .allowTx = false,
+    },
+    (Preset){
+        .band =
+            {
+                .bounds = {126000000, 134000000},
+                .name = "1300-1340",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,

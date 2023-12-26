@@ -35,5 +35,6 @@ uint16_t UART_HasData();
 void UART_ResetData();
 void UART_logf(uint8_t level, const char *pattern, ...);
 void UART_ToggleLog(bool on);
+void UART_flush();
 
 #endif

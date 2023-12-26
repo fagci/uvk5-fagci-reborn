@@ -323,11 +323,21 @@ void SPECTRUM_render(void) {
 
   const uint8_t LOOT_BL = 13;
 
+  uint8_t ni = 0;
   for (uint8_t i = 0; i < Clamp(LOOT_Size(), 0, 8); i++) {
     Loot *p = LOOT_Item(i);
-    char mark = p->open ? '>' : (p->blacklist ? 'X' : ' ');
-    PrintSmall(DATA_LEN + 1, i * 6 + LOOT_BL, "%c", mark);
-    PrintSmallEx(LCD_WIDTH - 1, i * 6 + LOOT_BL, POS_R, C_FILL, "%u.%05u",
-                 p->f / 100000, p->f % 100000);
+    if (p->blacklist) {
+      continue;
+    }
+
+    const uint8_t ybl = ni * 6 + LOOT_BL;
+    ni++;
+
+    if (p->open) {
+      PrintSmall(DATA_LEN + 1, ybl, ">");
+    }
+
+    PrintSmallEx(LCD_WIDTH - 1, ybl, POS_R, C_FILL, "%u.%05u", p->f / 100000,
+                 p->f % 100000);
   }
 }

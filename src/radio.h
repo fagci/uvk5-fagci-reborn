@@ -12,7 +12,7 @@ extern VFO gVFO[2];
 extern const char *upConverterFreqNames[3];
 extern bool gIsListening;
 
-extern const uint16_t StepFrequencyTable[12];
+extern const uint16_t StepFrequencyTable[14];
 
 extern const char *modulationTypeOptions[5];
 extern const char *vfoStateNames[];
