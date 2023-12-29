@@ -21,7 +21,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define VHF_UHF_BOUND 28000000
+#define VHF_UHF_BOUND 24000000
 #define F_MIN 0
 #define F_MAX 130000000
 

@@ -1,6 +1,7 @@
 #include "presetlist.h"
 #include "../driver/eeprom.h"
 #include "../driver/uart.h"
+#include "../helper/measurements.h"
 #include "../settings.h"
 
 Preset *gCurrentPreset;
@@ -29,19 +30,9 @@ uint8_t PRESETS_Size() { return gSettings.presetsCount; }
 Preset *PRESETS_Item(uint8_t i) { return &presets[i]; }
 
 void PRESETS_SelectPresetRelative(bool next) {
-  if (next) {
-    if (gSettings.activePreset < gSettings.presetsCount - 1) {
-      gSettings.activePreset++;
-    } else {
-      gSettings.activePreset = 0;
-    }
-  } else {
-    if (gSettings.activePreset > 0) {
-      gSettings.activePreset--;
-    } else {
-      gSettings.activePreset = gSettings.presetsCount - 1;
-    }
-  }
+  uint8_t activePreset = gSettings.activePreset;
+  IncDec8(&activePreset, 0, gSettings.presetsCount, next ? 1 : -1);
+  gSettings.activePreset = activePreset;
   gCurrentPreset = &presets[gSettings.activePreset];
   gCurrentVFO->fRX = gCurrentPreset->band.bounds.start;
   SETTINGS_DelayedSave();

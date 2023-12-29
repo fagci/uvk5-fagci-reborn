@@ -56,6 +56,8 @@ static bool bandFilled = false;
 static uint16_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 
 static void resetRssiHistory() {
+  rssiO = U16_MAX;
+  noiseO = 0;
   for (uint8_t x = 0; x < DATA_LEN; ++x) {
     rssiHistory[x] = 0;
     noiseHistory[x] = 0;
@@ -154,6 +156,14 @@ static void step() {
   setF();
 }
 
+static void updateStats() {
+  const uint16_t noiseFloor = Std(rssiHistory, x);
+  const uint16_t noiseMax = Max(noiseHistory, x);
+  rssiO = noiseFloor;
+  noiseO = noiseMax - noiseOpenDiff;
+  UART_logf(1, "[SPECTRUM] update stats Nf:%u Nmax:%u", noiseFloor, noiseMax);
+}
+
 static void startNewScan() {
   currentStep = 0;
   currentBand = &PRESETS_Item(gSettings.activePreset)->band;
@@ -188,14 +198,6 @@ void SPECTRUM_init(void) {
   step();
 }
 
-static void updateStats() {
-  const uint16_t noiseFloor = Std(rssiHistory, x);
-  const uint16_t noiseMax = Max(noiseHistory, x);
-  rssiO = noiseFloor;
-  noiseO = noiseMax - noiseOpenDiff;
-  UART_logf(1, "[SPECTRUM] update stats Nf:%u Nmax:%u", noiseFloor, noiseMax);
-}
-
 void SPECTRUM_deinit() { RADIO_ToggleRX(false); }
 
 bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
@@ -213,7 +215,9 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_SIDE1:
     LOOT_BlacklistLast();
-    UART_logf(1, "=== BLACKLIST ===");
+    return true;
+  case KEY_SIDE2:
+    LOOT_GoodKnownLast();
     return true;
   case KEY_F:
     APPS_run(APP_PRESET_CFG);
@@ -228,15 +232,23 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_3:
     IncDec8(&msmDelay, 0, 20, 1);
+    resetRssiHistory();
+    newScan = true;
     return true;
   case KEY_9:
     IncDec8(&msmDelay, 0, 20, -1);
+    resetRssiHistory();
+    newScan = true;
     return true;
   case KEY_2:
     IncDec8(&noiseOpenDiff, 2, 40, 1);
+    resetRssiHistory();
+    newScan = true;
     return true;
   case KEY_8:
     IncDec8(&noiseOpenDiff, 2, 40, -1);
+    resetRssiHistory();
+    newScan = true;
     return true;
   case KEY_PTT:
     RADIO_TuneToSave(gLastActiveLoot->f);

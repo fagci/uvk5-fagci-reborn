@@ -13,6 +13,12 @@ void LOOT_BlacklistLast() {
   }
 }
 
+void LOOT_GoodKnownLast() {
+  if (gLastActiveLoot) {
+    gLastActiveLoot->goodKnown = true;
+  }
+}
+
 Loot *LOOT_Get(uint32_t f) {
   for (uint8_t i = 0; i < LOOT_Size(); ++i) {
     if ((&loot[i])->f == f) {

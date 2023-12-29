@@ -123,8 +123,7 @@ bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 void FINPUT_render() {
   UI_ClearScreen();
 
-  uint8_t dotIndex =
-      freqInputDotIndex == 0 ? freqInputIndex : freqInputDotIndex;
+  uint8_t dotIndex = freqInputDotIndex ? freqInputDotIndex : freqInputIndex;
 
   const uint8_t charWidth = 12;
   const uint8_t BASE_X = 16;
@@ -153,7 +152,8 @@ void FINPUT_render() {
     i = dotIndex + 1;
     while (i < freqInputIndex && i < dotIndex + 4) {
       const uint8_t Digit = freqInputArr[i];
-      PrintBigDigits(BASE_X + i * charWidth, BASE_Y, "%c", '0' + Digit);
+      PrintBigDigits(BASE_X + (4 + i - dotIndex) * charWidth - 6, BASE_Y, "%c",
+                     '0' + Digit);
       i++;
     }
   }
@@ -162,9 +162,9 @@ void FINPUT_render() {
   if (freqInputDotIndex) {
     uint8_t hz = freqInputIndex - freqInputDotIndex;
     if (hz > 3) {
-      String[0] = hz > 4 ? freqInputArr[freqInputDotIndex + 4] : 11;
-      String[1] = hz > 5 ? freqInputArr[freqInputDotIndex + 5] : 11;
-      PrintMediumEx(LCD_WIDTH - 1, BASE_Y, POS_R, C_FILL, String);
+      String[0] = hz > 4 ? '0' + freqInputArr[freqInputDotIndex + 4] : ' ';
+      String[1] = hz > 5 ? '0' + freqInputArr[freqInputDotIndex + 5] : ' ';
+      PrintMediumEx(LCD_WIDTH - 1 - 18, BASE_Y, POS_L, C_FILL, String);
     }
   }
 }
