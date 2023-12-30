@@ -3,6 +3,7 @@
 #include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/statusline.h"
+#include "about.h"
 #include "appslist.h"
 #include "finput.h"
 #include "lootlist.h"
@@ -48,10 +49,7 @@ static AppType_t peek() {
 }
 
 const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
-    APP_VFO,
-    APP_SPECTRUM,
-    APP_PRESETS_LIST,
-    APP_TASK_MANAGER,
+    APP_VFO, APP_SPECTRUM, APP_PRESETS_LIST, APP_TASK_MANAGER, APP_ABOUT,
 };
 
 const App apps[APPS_COUNT] = {
@@ -73,6 +71,7 @@ const App apps[APPS_COUNT] = {
     {"Save to channel", SAVECH_init, SAVECH_update, SAVECH_render, SAVECH_key},
     {"Settings", SETTINGS_init, SETTINGS_update, SETTINGS_render, SETTINGS_key},
     {"VFO", VFO_init, VFO_update, VFO_render, VFO_key},
+    {"ABOUT", ABOUT_Init, ABOUT_Update, ABOUT_Render, ABOUT_key, ABOUT_Deinit},
     // {"Scanlist", NULL, SCANLIST_update, SCANLIST_render, SCANLIST_key},
     /* {"A to B scanner", ABSCANNER_init, ABSCANNER_update, ABSCANNER_render,
      ABSCANNER_key}, */
