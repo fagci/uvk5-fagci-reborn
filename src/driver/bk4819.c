@@ -371,9 +371,10 @@ void BK4819_SetCTCSSFrequency(uint32_t FreqControlWord) {
                                               << BK4819_REG_07_SHIFT_FREQUENCY);
 }
 
-void BK4819_Set55HzTailDetection(void) {
-  // CTC2 Frequency Control Word = round_nearest(25391 / 55) = 462
-  BK4819_WriteRegister(BK4819_REG_07, (1U << 13) | 462);
+void BK4819_SetTailDetection(const uint32_t freq_10Hz) {
+  BK4819_WriteRegister(BK4819_REG_07,
+                       BK4819_REG_07_MODE_CTC2 | ((253910 + (freq_10Hz / 2)) /
+                                                  freq_10Hz)); // with rounding
 }
 
 void BK4819_EnableVox(uint16_t VoxEnableThreshold,
@@ -1073,4 +1074,11 @@ void BK4819_ResetRSSI() {
 
 void BK4819_SetGain(uint8_t gainIndex) {
   BK4819_WriteRegister(BK4819_REG_13, gainTable[gainIndex].regValue);
+}
+
+void BK4819_HandleInterrupts(void (*handler)(uint16_t intStatus)) {
+  while (BK4819_ReadRegister(BK4819_REG_0C) & 1u) {
+    BK4819_WriteRegister(BK4819_REG_02, 0);
+    handler(BK4819_ReadRegister(BK4819_REG_02));
+  }
 }

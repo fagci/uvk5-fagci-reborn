@@ -482,6 +482,7 @@ void RESET_Update() {
         .activeChannel = 0,
         .activePreset = 22,
         .presetsCount = ARRAY_SIZE(defaultPresets),
+        .backlightOnSquelch = BL_SQL_ON,
     };
     settingsWrote = true;
     bytesWrote += sizeof(Settings);

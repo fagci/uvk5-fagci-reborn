@@ -69,6 +69,12 @@ static Loot msm = {0};
 
 static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
 
+static void handleInt(uint16_t intStatus) {
+  if (intStatus & BK4819_REG_02_CxCSS_TAIL) {
+    msm.open = false;
+  }
+}
+
 static void updateMeasurements() {
   msm.rssi = BK4819_GetRSSI();
   UART_logf(1, "[SPECTRUM] got RSSI for %u (%u)", msm.f, msm.rssi);
@@ -81,6 +87,12 @@ static void updateMeasurements() {
     noiseO += noiseOpenDiff;
   } else {
     msm.open = isSquelchOpen();
+  }
+
+  if (elapsedMilliseconds - msm.lastTimeCheck < 500) {
+    msm.open = false;
+  } else {
+    BK4819_HandleInterrupts(handleInt);
   }
 
   LOOT_Update(&msm);
@@ -110,10 +122,6 @@ uint32_t lastRender = 0;
 
 static void writeRssi() {
   updateMeasurements();
-
-  if (msm.open != gIsListening) {
-    UART_logf(1, "[LISTEN] %u", msm.open);
-  }
 
   RADIO_ToggleRX(msm.open);
   if (msm.open || elapsedMilliseconds - lastRender >= 1000) {
@@ -193,12 +201,16 @@ static void startNewScan() {
 
 void SPECTRUM_init(void) {
   newScan = true;
+  RADIO_EnableToneDetection();
 
   // resetRssiHistory();
   step();
 }
 
-void SPECTRUM_deinit() { RADIO_ToggleRX(false); }
+void SPECTRUM_deinit() {
+  BK4819_WriteRegister(BK4819_REG_3F, 0); // disable interrupts
+  RADIO_ToggleRX(false);
+}
 
 bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   switch (Key) {

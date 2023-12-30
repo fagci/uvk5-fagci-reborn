@@ -37,5 +37,6 @@ void RADIO_SetSquelch(uint8_t sq);
 void RADIO_SetGain(uint8_t gainIndex);
 void RADIO_SetupByCurrentVFO();
 void RADIO_SetupBandParams(Band *b);
+void RADIO_EnableToneDetection();
 
 #endif /* end of include guard: RADIO_H */

@@ -11,31 +11,32 @@
 #include "finput.h"
 
 static Loot msm = {0};
-
-void VFO_init() {
-  UI_ClearScreen();
-
-  RADIO_LoadCurrentVFO();
-
-  LOOT_Clear();
-  for (uint8_t i = 0; i < 2; ++i) {
-    Loot *item = LOOT_Add(gVFO[i].fRX);
-    item->open = false;
-    item->lastTimeOpen = 0;
-  }
-
-  RADIO_SetupByCurrentVFO(); // TODO: reread from EEPROM not needed maybe
-  gRedrawScreen = true;
-}
+static bool monitorMode = false;
 
 static bool lastListenState = false;
 static uint32_t lastUpdate = 0;
+static uint32_t lastClose = 0;
 
-void VFO_update() {
+static void handleInt(uint16_t intStatus) {
+  if (intStatus & BK4819_REG_02_CxCSS_TAIL) {
+    msm.open = false;
+    lastClose = elapsedMilliseconds;
+  }
+}
+
+static void update() {
   msm.f = gCurrentVFO->fRX;
   msm.rssi = BK4819_GetRSSI();
   msm.noise = BK4819_GetNoise();
-  msm.open = BK4819_IsSquelchOpen();
+  msm.open = monitorMode || BK4819_IsSquelchOpen();
+
+  if (!monitorMode) {
+    if (elapsedMilliseconds - lastClose < 250) {
+      msm.open = false;
+    } else {
+      BK4819_HandleInterrupts(handleInt);
+    }
+  }
 
   if (msm.f != LOOT_Item(gSettings.activeChannel)->f) {
     LOOT_ReplaceItem(gSettings.activeChannel, msm.f);
@@ -52,6 +53,38 @@ void VFO_update() {
     lastUpdate = elapsedMilliseconds;
   }
 }
+
+static void render() { gRedrawScreen = true; }
+
+void VFO_init() {
+  UI_ClearScreen();
+
+  RADIO_LoadCurrentVFO();
+  RADIO_EnableToneDetection();
+
+  LOOT_Clear();
+  for (uint8_t i = 0; i < 2; ++i) {
+    Loot *item = LOOT_Add(gVFO[i].fRX);
+    item->open = false;
+    item->lastTimeOpen = 0;
+  }
+
+  RADIO_SetupByCurrentVFO(); // TODO: reread from EEPROM not needed maybe
+  gRedrawScreen = true;
+
+  TaskAdd("Update still", update, 10, true);
+  TaskAdd("Redraw still", render, 1000, true);
+}
+
+void VFO_deinit() {
+  TaskRemove(update);
+  TaskRemove(render);
+  RADIO_ToggleRX(false);
+  LOOT_Clear();
+  BK4819_WriteRegister(BK4819_REG_3F, 0); // disable interrupts
+}
+
+void VFO_update() {}
 
 VFO *NextVFO() {
   if (gSettings.activeChannel < LOOT_Size() - 1) {
@@ -178,6 +211,9 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_F:
       APPS_run(APP_VFO_CFG);
       return true;
+    case KEY_SIDE1:
+      monitorMode = !monitorMode;
+      return true;
     case KEY_EXIT:
       APPS_exit();
       return true;
@@ -228,7 +264,7 @@ static void render2VFOPart(uint8_t i) {
     PrintSmallEx(0, bl + 6, POS_L, C_FILL, "CT:%u.%uHz",
                  CTCSS_Options[stats->ct] / 10, CTCSS_Options[stats->ct] % 10);
   } else if (stats->cd != 0xFF) {
-    PrintSmallEx(0, bl + 6, POS_L, C_FILL, "DCS:D%03oN",
+    PrintSmallEx(0, bl + 6, POS_L, C_FILL, "D%03oN(fake)",
                  DCS_Options[stats->cd]);
   }
   PrintSmallEx(LCD_WIDTH - 1, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,

@@ -29,6 +29,12 @@ typedef enum {
   UPCONVERTER_125M,
 } UpconverterTypes;
 
+typedef enum {
+  BL_SQL_OFF,
+  BL_SQL_ON,
+  BL_SQL_OPEN,
+} BacklightOnSquelchMode;
+
 typedef struct {
   uint8_t squelch : 4;
   uint8_t scrambler : 4;
@@ -53,7 +59,8 @@ typedef struct {
   uint8_t brightness : 4;
   uint8_t contrast : 4;
   AppType_t mainApp : 4;
-  uint8_t reserved1 : 4;
+  BacklightOnSquelchMode backlightOnSquelch : 2;
+  uint8_t reserved1 : 2;
   uint16_t activeChannel : 10;
   uint8_t activePreset : 6;
   uint8_t presetsCount : 8;
@@ -118,6 +125,7 @@ typedef struct { // 29 bytes
 extern Settings gSettings;
 extern uint8_t BL_TIME_VALUES[7];
 extern const char *BL_TIME_NAMES[7];
+extern const char *BL_SQL_MODE_NAMES[3];
 
 void SETTINGS_Save();
 void SETTINGS_Load();

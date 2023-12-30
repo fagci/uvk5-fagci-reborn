@@ -17,6 +17,7 @@ typedef enum {
   M_MAIN_APP,
   M_BRIGHTNESS,
   M_BL_TIME,
+  M_BL_SQL,
   M_RESET,
 } Menu;
 
@@ -29,6 +30,7 @@ static const MenuItem menu[] = {
     {"Main app", M_MAIN_APP, ARRAY_SIZE(appsAvailableToRun)},
     {"Brightness", M_BRIGHTNESS, 16},
     {"BL time", M_BL_TIME, ARRAY_SIZE(BL_TIME_VALUES)},
+    {"BL SQL mode", M_BL_SQL, ARRAY_SIZE(BL_SQL_MODE_NAMES)},
     {"EEPROM reset", M_RESET},
 };
 
@@ -43,6 +45,10 @@ static void accept() {
   }; break;
   case M_MAIN_APP:
     gSettings.mainApp = appsAvailableToRun[subMenuIndex];
+    SETTINGS_Save();
+    break;
+  case M_BL_SQL:
+    gSettings.backlightOnSquelch = subMenuIndex;
     SETTINGS_Save();
     break;
   case M_BRIGHTNESS:
@@ -69,6 +75,8 @@ static const char *getValue(Menu type) {
     return apps[gSettings.mainApp].name;
   case M_BL_TIME:
     return BL_TIME_NAMES[gSettings.backlight];
+  case M_BL_SQL:
+    return BL_SQL_MODE_NAMES[gSettings.backlightOnSquelch];
   case M_UPCONVERTER:
     return upConverterFreqNames[gSettings.upconverter];
   default:
@@ -93,6 +101,10 @@ static void getBacklightTimeText(uint16_t index, char *name) {
   strncpy(name, BL_TIME_NAMES[index], 31);
 }
 
+static void getBacklightSQLModeText(uint16_t index, char *name) {
+  strncpy(name, BL_SQL_MODE_NAMES[index], 31);
+}
+
 static void getMainAppText(uint16_t index, char *name) {
   strncpy(name, apps[appsAvailableToRun[index]].name, 31);
 }
@@ -108,6 +120,10 @@ static void showSubmenu(Menu menuType) {
     break;
   case M_BL_TIME:
     UI_ShowMenu(getBacklightTimeText, ARRAY_SIZE(BL_TIME_NAMES), subMenuIndex);
+    break;
+  case M_BL_SQL:
+    UI_ShowMenu(getBacklightSQLModeText, ARRAY_SIZE(BL_SQL_MODE_NAMES),
+                subMenuIndex);
     break;
   case M_BRIGHTNESS:
     UI_ShowMenu(getBrightnessLevelText, item->size, subMenuIndex);
@@ -139,6 +155,9 @@ static void setInitialSubmenuIndex() {
     break;
   case M_BL_TIME:
     subMenuIndex = gSettings.backlight;
+    break;
+  case M_BL_SQL:
+    subMenuIndex = gSettings.backlightOnSquelch;
     break;
   case M_UPCONVERTER:
     subMenuIndex = gSettings.upconverter;

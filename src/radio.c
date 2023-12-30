@@ -1,5 +1,6 @@
 #include "radio.h"
 #include "driver/audio.h"
+#include "driver/backlight.h"
 #include "driver/bk4819.h"
 #include "driver/eeprom.h"
 #include "driver/gpio.h"
@@ -98,11 +99,17 @@ void RADIO_ToggleRX(bool on) {
     BK4819_ToggleAFBit(true);
     SYSTEM_DelayMs(10);
     AUDIO_ToggleSpeaker(true);
+    if (gSettings.backlightOnSquelch != BL_SQL_OFF) {
+      BACKLIGHT_On();
+    }
   } else {
     AUDIO_ToggleSpeaker(false);
     SYSTEM_DelayMs(10);
     BK4819_ToggleAFDAC(false);
     BK4819_ToggleAFBit(false);
+    if (gSettings.backlightOnSquelch == BL_SQL_OPEN) {
+      BACKLIGHT_Toggle(false);
+    }
   }
 }
 
@@ -208,3 +215,10 @@ void RADIO_SetupByCurrentVFO() {
 
   BK4819_TuneTo(gCurrentVFO->fRX);
 }
+
+void RADIO_EnableToneDetection() {
+  BK4819_SetCTCSSFrequency(670);
+  BK4819_SetTailDetection(550);
+  BK4819_WriteRegister(BK4819_REG_3F, BK4819_REG_3F_CxCSS_TAIL);
+}
+

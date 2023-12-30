@@ -2,6 +2,7 @@
 #include "../driver/audio.h"
 #include "../driver/bk4819.h"
 #include "../driver/st7565.h"
+#include "../helper/lootlist.h"
 #include "../helper/measurements.h"
 #include "../helper/presetlist.h"
 #include "../misc.h"
@@ -15,8 +16,9 @@
 
 static uint8_t menuState = 0;
 static bool monitorMode = false;
+static uint32_t lastClose = 0;
+static Loot msm = {0};
 
-static uint16_t rssi = 0;
 static char String[16];
 
 static const RegisterSpec registerSpecs[] = {
@@ -68,15 +70,39 @@ static void UpdateCurrentFreqStill(bool inc) {
   gRedrawScreen = true;
 }
 
+static void handleInt(uint16_t intStatus) {
+  if (intStatus & BK4819_REG_02_CxCSS_TAIL) {
+    msm.open = false;
+    lastClose = elapsedMilliseconds;
+  }
+}
+
 static void update() {
-  rssi = BK4819_GetRSSI();
-  RADIO_ToggleRX(monitorMode || BK4819_IsSquelchOpen());
+  msm.f = gCurrentVFO->fRX;
+  msm.rssi = BK4819_GetRSSI();
+  msm.noise = BK4819_GetNoise();
+  msm.open = monitorMode || BK4819_IsSquelchOpen();
+
+  if (!monitorMode) {
+    if (elapsedMilliseconds - lastClose < 250) {
+      msm.open = false;
+    } else {
+      BK4819_HandleInterrupts(handleInt);
+    }
+  }
+
+  if (msm.f != LOOT_Item(gSettings.activeChannel)->f) {
+    LOOT_ReplaceItem(gSettings.activeChannel, msm.f);
+  }
+
+  RADIO_ToggleRX(monitorMode || msm.open);
 }
 
 static void render() { gRedrawScreen = true; }
 
 void STILL_init() {
   RADIO_SetupByCurrentVFO();
+  RADIO_EnableToneDetection();
 
   TaskAdd("Update still", update, 10, true);
   TaskAdd("Redraw still", render, 1000, true);
@@ -86,6 +112,7 @@ void STILL_deinit() {
   TaskRemove(update);
   TaskRemove(render);
   RADIO_ToggleRX(false);
+  BK4819_WriteRegister(BK4819_REG_3F, 0); // disable interrupts
 }
 
 bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
@@ -218,6 +245,6 @@ void STILL_render() {
   UI_ClearScreen();
   STATUSLINE_SetText(gCurrentPreset->band.name);
   UI_FSmall(GetScreenF(gCurrentVFO->fRX));
-  UI_RSSIBar(rssi, gCurrentVFO->fRX, 23);
+  UI_RSSIBar(msm.rssi, gCurrentVFO->fRX, 23);
   DrawRegs();
 }

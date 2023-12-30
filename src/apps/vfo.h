@@ -9,5 +9,6 @@ void VFO_init();
 void VFO_update();
 bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
 void VFO_render();
+void VFO_deinit();
 
 #endif /* end of include guard: VFO_APP_H */
