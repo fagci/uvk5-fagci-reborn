@@ -12,11 +12,13 @@ Preset *PRESETS_Item(uint8_t i);
 void PRESETS_SelectPresetRelative(bool next);
 int8_t PRESET_GetCurrentIndex();
 int8_t PRESET_Select(int8_t i);
+Preset *PRESET_ByFrequency(uint32_t f);
 int8_t PRESET_SelectByFrequency(uint32_t f);
 void PRESETS_SavePreset(uint8_t num, Preset *p);
 void PRESETS_LoadPreset(uint8_t num, Preset *p);
 void PRESETS_SaveCurrent();
 
+extern Preset defaultPreset;
 extern Preset *gCurrentPreset;
 
 #endif /* end of include guard: PRESETLIST_HELPER_H */

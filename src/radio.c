@@ -149,10 +149,9 @@ void RADIO_ToggleListeningBW() {
 }
 
 void RADIO_TuneTo(uint32_t f) {
-  memset(gCurrentVFO->name, 0, sizeof(gCurrentVFO->name));
+  gCurrentVFO->name[0] = '\0';
   gCurrentVFO->fRX = f;
-  PRESET_SelectByFrequency(gCurrentVFO->fRX);
-  BK4819_TuneTo(f);
+  RADIO_SetupByCurrentVFO();
   onVfoUpdate();
 }
 

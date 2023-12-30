@@ -12,5 +12,6 @@ void CHANNELS_SaveUser(uint16_t num, VFO *p);
 VFO *CHANNELS_Get(uint16_t i);
 bool CHANNELS_LoadBuf();
 void CHANNELS_SaveCurrentVFO(uint16_t i);
+uint16_t CHANNELS_Next(bool next);
 
 #endif /* end of include guard: CHANNELS_H */

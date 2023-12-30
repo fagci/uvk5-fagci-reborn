@@ -21,6 +21,45 @@ void CHANNELS_Save(uint16_t num, VFO *p) {
   EEPROM_WriteBuffer(CHANNELS_OFFSET - (num + 1) * VFO_SIZE, p, VFO_SIZE);
 }
 
+bool CHANNELS_Existing(uint16_t i) {
+  char *nameChar = "\0";
+  EEPROM_ReadBuffer(CHANNELS_OFFSET - (i + 3) * VFO_SIZE + 4 + 4, nameChar, 1);
+  return IsReadable(nameChar);
+}
+
+uint16_t CHANNELS_Next(bool next) {
+  uint16_t i = gSettings.activeChannel;
+  uint16_t max = CHANNELS_GetCountMax();
+  if (next) {
+    for (; i < max; ++i) {
+      if (CHANNELS_Existing(i)) {
+        gSettings.activeChannel = i;
+        return i;
+      }
+    }
+    for (i = 0; i < gSettings.activeChannel; ++i) {
+      if (CHANNELS_Existing(i)) {
+        gSettings.activeChannel = i;
+        return i;
+      }
+    }
+  } else {
+    for (; i > 0; --i) {
+      if (CHANNELS_Existing(i)) {
+        gSettings.activeChannel = i;
+        return i;
+      }
+    }
+    for (i = max - 1; i > gSettings.activeChannel; --i) {
+      if (CHANNELS_Existing(i)) {
+        gSettings.activeChannel = i;
+        return i;
+      }
+    }
+  }
+  return gSettings.activeChannel;
+}
+
 void CHANNELS_LoadUser(uint16_t num, VFO *p) { CHANNELS_Load(num + 2, p); }
 
 void CHANNELS_SaveUser(uint16_t num, VFO *p) { CHANNELS_Save(num + 2, p); }

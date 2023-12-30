@@ -3,13 +3,14 @@
 #include "../driver/uart.h"
 #include "../helper/measurements.h"
 #include "../settings.h"
+#include <stddef.h>
 
 Preset *gCurrentPreset;
 static Preset presets[PRESETS_SIZE_MAX] = {0};
 static uint8_t loadedCount = 0;
 
 // to use instead of predefined when we need to keep step, etc
-static Preset defaultPreset = {.band = (Band){.name = "default"}};
+Preset defaultPreset = {.band = (Band){.name = "default"}};
 
 void PRESETS_SavePreset(uint8_t num, Preset *p) {
   EEPROM_WriteBuffer(BANDS_OFFSET + num * PRESET_SIZE, p, PRESET_SIZE);
@@ -57,6 +58,16 @@ int8_t PRESET_SelectByFrequency(uint32_t f) {
   }
   gCurrentPreset = &defaultPreset; // TODO: make preset between near bands
   return -1;
+}
+
+Preset *PRESET_ByFrequency(uint32_t f) {
+  for (uint8_t i = 0; i < gSettings.presetsCount; ++i) {
+    FRange *range = &presets[i].band.bounds;
+    if (f >= range->start && f <= range->end) {
+      return &presets[i];
+    }
+  }
+  return &defaultPreset;
 }
 
 bool PRESETS_Load() {

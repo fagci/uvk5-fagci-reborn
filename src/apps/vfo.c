@@ -1,5 +1,7 @@
 #include "vfo.h"
+#include "../helper/channels.h"
 #include "../helper/lootlist.h"
+#include "../helper/measurements.h"
 #include "../helper/presetlist.h"
 #include "../scheduler.h"
 #include "../ui/components.h"
@@ -68,6 +70,40 @@ VFO *PrevVFO() {
   return &gVFO[gSettings.activeChannel];
 }
 
+static void nextFreq(bool next) {
+  int8_t dir = next ? 1 : -1;
+
+  bool isMRMode = IsReadable(gCurrentVFO->name);
+  if (isMRMode) {
+    uint16_t idx = CHANNELS_Next(next);
+    CHANNELS_LoadUser(idx, gCurrentVFO);
+    return;
+  }
+
+  Preset *nextPreset = PRESET_ByFrequency(gCurrentVFO->fRX + dir);
+  if (nextPreset != gCurrentPreset && nextPreset != &defaultPreset) {
+    if (next) {
+      RADIO_TuneTo(nextPreset->band.bounds.start);
+    } else {
+      RADIO_TuneTo(nextPreset->band.bounds.end);
+    }
+    return;
+  }
+  RADIO_TuneTo(gCurrentVFO->fRX +
+               StepFrequencyTable[nextPreset->band.step] * dir);
+}
+
+static void toggleVfoMR() {
+  bool isMRMode = IsReadable(gCurrentVFO->name);
+  if (isMRMode) {
+    gCurrentVFO->name[0] = '\0';
+    return;
+  }
+  uint16_t idx = CHANNELS_Next(0);
+  CHANNELS_LoadUser(idx, gCurrentVFO);
+  return;
+}
+
 static bool repeatHeld = false;
 
 bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
@@ -76,15 +112,13 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   }
 
   // up-down keys
-  if (bKeyPressed) {
+  if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (key) {
     case KEY_UP:
-      RADIO_TuneTo(gCurrentVFO->fRX +
-                   StepFrequencyTable[gCurrentPreset->band.step]);
+      nextFreq(true);
       return true;
     case KEY_DOWN:
-      RADIO_TuneTo(gCurrentVFO->fRX -
-                   StepFrequencyTable[gCurrentPreset->band.step]);
+      nextFreq(false);
       return true;
     default:
       break;
@@ -102,6 +136,21 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       msm.f = gCurrentVFO->fRX;
       return true;
     case KEY_EXIT:
+      return true;
+    case KEY_3:
+      toggleVfoMR();
+      return true;
+    case KEY_1:
+      RADIO_UpdateStep(true);
+      return true;
+    case KEY_7:
+      RADIO_UpdateStep(false);
+      return true;
+    case KEY_0:
+      RADIO_ToggleModulation();
+      return true;
+    case KEY_6:
+      RADIO_ToggleListeningBW();
       return true;
     default:
       break;
@@ -142,7 +191,7 @@ static void render2VFOPart(uint8_t i) {
   const uint8_t BASE = 24;
   const uint8_t bl = BASE + 32 * i;
 
-  const VFO *vfo = &gVFO[i];
+  VFO *vfo = &gVFO[i];
   const bool isActive = gCurrentVFO == vfo;
 
   const uint16_t fp1 = vfo->fRX / 100000;
@@ -151,21 +200,22 @@ static void render2VFOPart(uint8_t i) {
   const char *mod = modulationTypeOptions[vfo->modulation];
 
   if (isActive) {
-    FillRect(0, bl - 14, 16, 7, C_FILL);
+    FillRect(0, bl - 14, 32, 7, C_FILL);
     if (msm.open) {
       PrintMediumEx(0, bl, POS_L, C_INVERT, "RX");
       UI_RSSIBar(msm.rssi, msm.f, 32);
     }
   }
 
-  if (vfo->name[0] < 32 || vfo->name[0] > 127) {
-    PrintBigDigitsEx(LCD_WIDTH - 19, bl, POS_R, C_FILL, "%4u.%03u", fp1, fp2);
-    PrintMediumBoldEx(LCD_WIDTH - 1, bl, POS_R, C_FILL, "%02u", fp3);
-    PrintSmallEx(8, bl - 9, POS_C, C_INVERT, "VFO");
-  } else {
+  if (IsReadable(vfo->name)) {
     PrintMediumBoldEx(LCD_WIDTH / 2, bl - 8, POS_C, C_FILL, vfo->name);
     PrintMediumEx(LCD_WIDTH / 2, bl, POS_C, C_FILL, "%4u.%03u", fp1, fp2);
-    PrintSmallEx(8, bl - 9, POS_C, C_INVERT, "MR");
+    PrintSmallEx(16, bl - 9, POS_C, C_INVERT, "MR %03u",
+                 gSettings.activeChannel);
+  } else {
+    PrintBigDigitsEx(LCD_WIDTH - 19, bl, POS_R, C_FILL, "%4u.%03u", fp1, fp2);
+    PrintMediumBoldEx(LCD_WIDTH - 1, bl, POS_R, C_FILL, "%02u", fp3);
+    PrintSmallEx(16, bl - 9, POS_C, C_INVERT, "VFO");
   }
   PrintSmallEx(LCD_WIDTH - 1, bl - 9, POS_R, C_FILL, mod);
 

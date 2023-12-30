@@ -114,11 +114,9 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   switch (key) {
   case KEY_1:
     RADIO_UpdateStep(true);
-    gRedrawScreen = true;
     return true;
   case KEY_7:
     RADIO_UpdateStep(false);
-    gRedrawScreen = true;
     return true;
   case KEY_3:
     gCurrentPreset->band.squelch++;
