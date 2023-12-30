@@ -14,6 +14,7 @@
 typedef enum {
   M_NONE,
   M_UPCONVERTER,
+  M_MAIN_APP,
   M_BRIGHTNESS,
   M_BL_TIME,
   M_RESET,
@@ -24,7 +25,8 @@ static uint8_t subMenuIndex = 0;
 static bool isSubMenu = false;
 
 static const MenuItem menu[] = {
-    {"Upconverter", M_UPCONVERTER, 3},
+    {"Upconverter", M_UPCONVERTER, ARRAY_SIZE(upConverterFreqNames)},
+    {"Main app", M_MAIN_APP, ARRAY_SIZE(appsAvailableToRun)},
     {"Brightness", M_BRIGHTNESS, 16},
     {"BL time", M_BL_TIME, ARRAY_SIZE(BL_TIME_VALUES)},
     {"EEPROM reset", M_RESET},
@@ -39,6 +41,10 @@ static void accept() {
     RADIO_TuneTo(GetTuneF(f));
     SETTINGS_Save();
   }; break;
+  case M_MAIN_APP:
+    gSettings.mainApp = appsAvailableToRun[subMenuIndex];
+    SETTINGS_Save();
+    break;
   case M_BRIGHTNESS:
     gSettings.brightness = subMenuIndex;
     SETTINGS_Save();
@@ -59,6 +65,8 @@ static const char *getValue(Menu type) {
   case M_BRIGHTNESS:
     sprintf(Output, "%u", gSettings.brightness);
     return Output;
+  case M_MAIN_APP:
+    return apps[gSettings.mainApp].name;
   case M_BL_TIME:
     return BL_TIME_NAMES[gSettings.backlight];
   case M_UPCONVERTER:
@@ -85,11 +93,18 @@ static void getBacklightTimeText(uint16_t index, char *name) {
   strncpy(name, BL_TIME_NAMES[index], 31);
 }
 
+static void getMainAppText(uint16_t index, char *name) {
+  strncpy(name, apps[appsAvailableToRun[index]].name, 31);
+}
+
 static void showSubmenu(Menu menuType) {
   const MenuItem *item = &menu[menuIndex];
   switch (menuType) {
   case M_UPCONVERTER:
     UI_ShowMenu(getUCTypeText, ARRAY_SIZE(upConverterFreqNames), subMenuIndex);
+    break;
+  case M_MAIN_APP:
+    UI_ShowMenu(getMainAppText, ARRAY_SIZE(apps), subMenuIndex);
     break;
   case M_BL_TIME:
     UI_ShowMenu(getBacklightTimeText, ARRAY_SIZE(BL_TIME_NAMES), subMenuIndex);
@@ -169,7 +184,7 @@ bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     if (isSubMenu) {
       accept();
       isSubMenu = false;
-    } else {
+    } else if (!bKeyHeld) {
       isSubMenu = true;
       setInitialSubmenuIndex();
     }

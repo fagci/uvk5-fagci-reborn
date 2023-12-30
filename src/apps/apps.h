@@ -4,6 +4,7 @@
 #include "../driver/keyboard.h"
 
 #define APPS_COUNT 15
+#define RUN_APPS_COUNT 4
 
 typedef enum {
   APP_NONE,
@@ -37,6 +38,7 @@ typedef struct App {
 extern const App apps[APPS_COUNT];
 extern AppType_t gPreviousApp;
 extern AppType_t gCurrentApp;
+extern const AppType_t appsAvailableToRun[RUN_APPS_COUNT];
 
 bool APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
 void APPS_init(AppType_t app);

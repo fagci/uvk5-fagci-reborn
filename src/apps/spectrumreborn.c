@@ -337,7 +337,7 @@ void SPECTRUM_render(void) {
   const uint8_t LOOT_BL = 13;
 
   uint8_t ni = 0;
-  for (uint8_t i = 0; i < Clamp(LOOT_Size(), 0, 8); i++) {
+  for (uint8_t i = 0; ni < 8 && i < LOOT_Size(); i++) {
     Loot *p = LOOT_Item(i);
     if (p->blacklist) {
       continue;
@@ -348,6 +348,8 @@ void SPECTRUM_render(void) {
 
     if (p->open) {
       PrintSmall(DATA_LEN + 1, ybl, ">");
+    } else if (p->goodKnown) {
+      PrintSmall(DATA_LEN + 1, ybl, "*");
     }
 
     PrintSmallEx(LCD_WIDTH - 1, ybl, POS_R, C_FILL, "%u.%05u", p->f / 100000,

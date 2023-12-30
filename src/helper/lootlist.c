@@ -50,6 +50,13 @@ Loot *LOOT_Add(uint32_t f) {
   return NULL;
 }
 
+void LOOT_Remove(uint8_t i) {
+  for (uint8_t _i = i; _i < LOOT_Size() - 1; ++_i) {
+    loot[_i] = loot[_i + 1];
+  }
+  lootIndex--;
+}
+
 void LOOT_Clear() { lootIndex = -1; }
 
 uint8_t LOOT_Size() { return lootIndex + 1; }

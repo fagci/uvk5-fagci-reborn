@@ -68,8 +68,32 @@ VFO *PrevVFO() {
   return &gVFO[gSettings.activeChannel];
 }
 
+static bool repeatHeld = false;
+
 bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  if (bKeyHeld) {
+  if (!bKeyPressed) {
+    repeatHeld = false;
+  }
+
+  // up-down keys
+  if (bKeyPressed) {
+    switch (key) {
+    case KEY_UP:
+      RADIO_TuneTo(gCurrentVFO->fRX +
+                   StepFrequencyTable[gCurrentPreset->band.step]);
+      return true;
+    case KEY_DOWN:
+      RADIO_TuneTo(gCurrentVFO->fRX -
+                   StepFrequencyTable[gCurrentPreset->band.step]);
+      return true;
+    default:
+      break;
+    }
+  }
+
+  // long held
+  if (bKeyHeld && bKeyPressed && !repeatHeld) {
+    repeatHeld = true;
     switch (key) {
     case KEY_2:
       gCurrentVFO = NextVFO();
@@ -82,7 +106,10 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     default:
       break;
     }
-  } else {
+  }
+
+  // Simple keypress
+  if (!bKeyPressed && !bKeyHeld) {
     switch (key) {
     case KEY_0:
     case KEY_1:
@@ -96,14 +123,7 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_9:
       gFInputCallback = RADIO_TuneToSave;
       APPS_run(APP_FINPUT);
-      return true;
-    case KEY_UP:
-      RADIO_TuneTo(gCurrentVFO->fRX +
-                   StepFrequencyTable[gCurrentPreset->band.step]);
-      return true;
-    case KEY_DOWN:
-      RADIO_TuneTo(gCurrentVFO->fRX -
-                   StepFrequencyTable[gCurrentPreset->band.step]);
+      APPS_key(key, bKeyPressed, bKeyHeld);
       return true;
     case KEY_F:
       APPS_run(APP_VFO_CFG);

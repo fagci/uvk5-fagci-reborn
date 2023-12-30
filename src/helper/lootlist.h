@@ -27,6 +27,7 @@ void LOOT_BlacklistLast();
 void LOOT_GoodKnownLast();
 Loot *LOOT_Get(uint32_t f);
 Loot *LOOT_Add(uint32_t f);
+void LOOT_Remove(uint8_t i);
 void LOOT_Clear();
 void LOOT_Standby();
 uint8_t LOOT_Size();

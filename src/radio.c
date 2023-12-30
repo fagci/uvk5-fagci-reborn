@@ -190,16 +190,6 @@ void RADIO_SetGain(uint8_t gainIndex) {
   onPresetUpdate();
 }
 
-void RADIO_SetupByCurrentVFO() {
-  PRESET_SelectByFrequency(gCurrentVFO->fRX);
-  BK4819_SquelchType(gCurrentPreset->band.squelchType);
-  BK4819_Squelch(gCurrentPreset->band.squelch, gCurrentVFO->fRX);
-  BK4819_TuneTo(gCurrentVFO->fRX);
-  BK4819_SetFilterBandwidth(gCurrentVFO->bw);
-  BK4819_SetModulation(gCurrentVFO->modulation);
-  BK4819_SetGain(gCurrentPreset->band.gainIndex);
-}
-
 void RADIO_SetupBandParams(Band *b) {
   BK4819_SelectFilter(b->bounds.start);
   BK4819_SquelchType(b->squelchType);
@@ -207,4 +197,15 @@ void RADIO_SetupBandParams(Band *b) {
   BK4819_SetFilterBandwidth(b->bw);
   BK4819_SetModulation(b->modulation);
   BK4819_SetGain(b->gainIndex);
+}
+
+void RADIO_SetupByCurrentVFO() {
+  PRESET_SelectByFrequency(gCurrentVFO->fRX);
+
+  RADIO_SetupBandParams(&gCurrentPreset->band);
+
+  gCurrentVFO->modulation = gCurrentPreset->band.modulation;
+  gCurrentVFO->bw = gCurrentPreset->band.bw;
+
+  BK4819_TuneTo(gCurrentVFO->fRX);
 }

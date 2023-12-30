@@ -47,6 +47,13 @@ static AppType_t peek() {
   return APP_NONE;
 }
 
+const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
+    APP_VFO,
+    APP_SPECTRUM,
+    APP_PRESETS_LIST,
+    APP_TASK_MANAGER,
+};
+
 const App apps[APPS_COUNT] = {
     {"None"},
     {"Test", TEST_Init, TEST_Update, TEST_Render, TEST_key},
@@ -69,7 +76,6 @@ const App apps[APPS_COUNT] = {
     // {"Scanlist", NULL, SCANLIST_update, SCANLIST_render, SCANLIST_key},
     /* {"A to B scanner", ABSCANNER_init, ABSCANNER_update, ABSCANNER_render,
      ABSCANNER_key}, */
-
 };
 
 bool APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
@@ -117,17 +123,6 @@ void APPS_run(AppType_t app) {
   if (pushApp(app)) {
     APPS_deinit();
     APPS_init(app);
-    switch (app) {
-    case APP_SPECTRUM:
-    case APP_STILL:
-    case APP_VFO:
-      if (gSettings.mainApp != app) {
-        SETTINGS_Save();
-      }
-      break;
-    default:
-      break;
-    }
   }
 }
 void APPS_exit() {

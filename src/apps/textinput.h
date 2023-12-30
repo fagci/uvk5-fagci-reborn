@@ -13,5 +13,6 @@ void TEXTINPUT_deinit();
 
 extern char *gTextinputText;
 extern uint8_t gTextInputSize;
+extern void (*gTextInputCallback)(void);
 
 #endif /* end of include guard: TEXTINPUT_H */

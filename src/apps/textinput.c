@@ -7,6 +7,7 @@
 
 char *gTextinputText = "";
 uint8_t gTextInputSize = 15;
+void (*gTextInputCallback)(void);
 
 static char *letters[9] = {
     "",
@@ -75,7 +76,11 @@ static void backspace() {
   }
 }
 
-void TEXTINPUT_init() { TaskAdd("Coursor blink", blink, 250, true); }
+void TEXTINPUT_init() {
+  strncpy(inputField, gTextinputText, 15);
+  inputIndex = strlen(inputField);
+  TaskAdd("Coursor blink", blink, 250, true);
+}
 void TEXTINPUT_deinit() { TaskRemove(blink); }
 void TEXTINPUT_update() {}
 bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
@@ -163,7 +168,11 @@ bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     gRedrawScreen = true;
     return true;
   case KEY_MENU:
-    strncpy(gTextinputText, inputField, 16);
+    strncpy(gTextinputText, inputField, gTextInputSize);
+    if (gTextInputCallback) {
+      gTextInputCallback();
+      gTextInputCallback = NULL;
+    }
     APPS_exit();
     return true;
   default:

@@ -49,6 +49,10 @@ static void onKey(KEY_Code_t key, bool pressed, bool hold) {
     TaskTouch(BACKLIGHT_Update);
   }
 
+  // apps needed this events:
+  // - keyup (!pressed)
+  // - keyhold pressed (hold && pressed)
+  // - keyup hold (hold && !pressed)
   if ((hold || !pressed) && APPS_key(key, pressed, hold)) {
     gRedrawScreen = true;
     return;
@@ -109,7 +113,7 @@ static void AddTasks() {
   TaskAdd("Update", Update, 1, true);
   TaskAdd("1s sys upd", sysUpdate, 1000, true);
 
-  APPS_run(APP_SPECTRUM);
+  APPS_run(gSettings.mainApp);
 }
 
 static uint8_t introIndex = 0;

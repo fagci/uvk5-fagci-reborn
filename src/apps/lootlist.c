@@ -173,6 +173,9 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     gCurrentVFO->fRX = item->f;
     APPS_run(APP_SAVECH);
     return true;
+  case KEY_0:
+    LOOT_Remove(menuIndex);
+    return true;
   default:
     break;
   }

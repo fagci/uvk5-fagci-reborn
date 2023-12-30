@@ -172,6 +172,33 @@ static void setLowerBound(uint32_t f) {
   PRESETS_SaveCurrent();
 }
 
+static void setInitialSubmenuIndex() {
+  const MenuItem *item = &menu[menuIndex];
+  switch (item->type) {
+  case M_STEP:
+    subMenuIndex = gCurrentPreset->band.step;
+    break;
+  case M_MODULATION:
+    subMenuIndex = gCurrentPreset->band.modulation;
+    break;
+  case M_BW:
+    subMenuIndex = gCurrentPreset->band.bw;
+    break;
+  case M_SQ:
+    subMenuIndex = gCurrentPreset->band.squelch;
+    break;
+  case M_SQ_TYPE:
+    subMenuIndex = gCurrentPreset->band.squelchType;
+    break;
+  case M_GAIN:
+    subMenuIndex = gCurrentPreset->band.gainIndex;
+    break;
+  default:
+    subMenuIndex = 0;
+    break;
+  }
+}
+
 void PRESETCFG_init() { gRedrawScreen = true; }
 void PRESETCFG_update() {}
 bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
@@ -197,8 +224,9 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     // RUN APPS HERE
     switch (item->type) {
     case M_NAME:
-      gTextinputText = gCurrentPreset->band.name;
       gTextInputSize = 9;
+      gTextinputText = gCurrentPreset->band.name;
+      gTextInputCallback = PRESETS_SaveCurrent;
       APPS_run(APP_TEXTINPUT);
       return true;
     case M_START:
@@ -220,6 +248,7 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       isSubMenu = false;
     } else {
       isSubMenu = true;
+      setInitialSubmenuIndex();
     }
     return true;
   case KEY_EXIT:
