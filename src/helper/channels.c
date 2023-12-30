@@ -1,5 +1,6 @@
 #include "channels.h"
 #include "../driver/eeprom.h"
+#include "../driver/uart.h"
 #include "../external/printf/printf.h"
 #include "../helper/measurements.h"
 #include "../radio.h"
@@ -22,14 +23,20 @@ void CHANNELS_Save(uint16_t num, VFO *p) {
 }
 
 bool CHANNELS_Existing(uint16_t i) {
-  char *nameChar = "\0";
-  EEPROM_ReadBuffer(CHANNELS_OFFSET - (i + 3) * VFO_SIZE + 4 + 4, nameChar, 1);
-  return IsReadable(nameChar);
+  VFO v;
+  uint16_t addr = CHANNELS_OFFSET - ((i + 3) * VFO_SIZE);
+  EEPROM_ReadBuffer(addr, &v, 4 + 4 + 1);
+  return IsReadable(v.name);
 }
 
 uint16_t CHANNELS_Next(bool next) {
-  uint16_t i = gSettings.activeChannel;
+
+  uint16_t si = gSettings.activeChannel;
   uint16_t max = CHANNELS_GetCountMax();
+  IncDec16(&si, 0, max, next ? 1 : -1);
+  int16_t i = si;
+  UART_printf("Next CH (i:%u/%u)\n", i, max);
+  UART_flush();
   if (next) {
     for (; i < max; ++i) {
       if (CHANNELS_Existing(i)) {
@@ -44,7 +51,7 @@ uint16_t CHANNELS_Next(bool next) {
       }
     }
   } else {
-    for (; i > 0; --i) {
+    for (; i >= 0; --i) {
       if (CHANNELS_Existing(i)) {
         gSettings.activeChannel = i;
         return i;

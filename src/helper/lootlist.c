@@ -1,4 +1,5 @@
 #include "lootlist.h"
+#include "../dcs.h"
 #include "../driver/uart.h"
 #include "../scheduler.h"
 
@@ -44,6 +45,8 @@ Loot *LOOT_Add(uint32_t f) {
         .rssi = 0,
         .noise = 65535,
         .open = true, // as we add it when open
+        .ct = 0xFF,
+        .cd = 0xFF,
     };
     return &loot[lootIndex];
   }
@@ -118,51 +121,60 @@ void LOOT_ReplaceItem(uint8_t i, uint32_t f) {
   item->duration = 0;
   item->rssi = 0;
   item->noise = 65535;
+  item->ct = 0xFF;
+  item->cd = 0xFF;
 }
 
 void LOOT_Update(Loot *msm) {
-  Loot *peak = LOOT_Get(msm->f);
+  Loot *loot = LOOT_Get(msm->f);
 
-  if (peak == NULL && msm->open) {
-    peak = LOOT_Add(msm->f);
+  if (loot == NULL && msm->open) {
+    loot = LOOT_Add(msm->f);
     UART_logf(1, "[LOOT] %u", msm->f);
   }
 
-  if (peak == NULL) {
+  if (loot == NULL) {
     return;
   }
 
-  if (peak->blacklist || peak->goodKnown) {
+  if (loot->blacklist || loot->goodKnown) {
     msm->open = false;
   }
 
-  peak->noise = msm->noise;
-  peak->rssi = msm->rssi;
+  loot->noise = msm->noise;
+  loot->rssi = msm->rssi;
 
-  if (peak->open) {
-    peak->duration += elapsedMilliseconds - peak->lastTimeCheck;
-    gLastActiveLoot = peak;
+  if (loot->open) {
+    loot->duration += elapsedMilliseconds - loot->lastTimeCheck;
+    gLastActiveLoot = loot;
   }
   if (msm->open) {
     uint32_t cd = 0;
     uint16_t ct = 0;
+    uint8_t Code = 0;
     BK4819_CssScanResult_t res = BK4819_GetCxCSSScanResult(&cd, &ct);
     switch (res) {
     case BK4819_CSS_RESULT_CDCSS:
-      peak->cd = cd;
+      Code = DCS_GetCdcssCode(cd);
+      if (Code != 0xFF) {
+        loot->cd = Code;
+      }
       break;
     case BK4819_CSS_RESULT_CTCSS:
-      peak->ct = ct;
+      Code = DCS_GetCtcssCode(ct);
+      if (Code != 0xFF) {
+        loot->ct = Code;
+      }
       break;
     default:
       break;
     }
-    peak->lastTimeOpen = elapsedMilliseconds;
+    loot->lastTimeOpen = elapsedMilliseconds;
   }
-  peak->lastTimeCheck = elapsedMilliseconds;
-  peak->open = msm->open;
+  loot->lastTimeCheck = elapsedMilliseconds;
+  loot->open = msm->open;
 
   if (msm->blacklist) {
-    peak->blacklist = true;
+    loot->blacklist = true;
   }
 }

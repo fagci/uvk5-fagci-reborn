@@ -1,4 +1,5 @@
 #include "vfo.h"
+#include "../dcs.h"
 #include "../helper/channels.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
@@ -200,7 +201,7 @@ static void render2VFOPart(uint8_t i) {
   const char *mod = modulationTypeOptions[vfo->modulation];
 
   if (isActive) {
-    FillRect(0, bl - 14, 32, 7, C_FILL);
+    FillRect(0, bl - 14, 28, 7, C_FILL);
     if (msm.open) {
       PrintMediumEx(0, bl, POS_L, C_INVERT, "RX");
       UI_RSSIBar(msm.rssi, msm.f, 32);
@@ -210,12 +211,12 @@ static void render2VFOPart(uint8_t i) {
   if (IsReadable(vfo->name)) {
     PrintMediumBoldEx(LCD_WIDTH / 2, bl - 8, POS_C, C_FILL, vfo->name);
     PrintMediumEx(LCD_WIDTH / 2, bl, POS_C, C_FILL, "%4u.%03u", fp1, fp2);
-    PrintSmallEx(16, bl - 9, POS_C, C_INVERT, "MR %03u",
-                 gSettings.activeChannel);
+    PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "MR %03u",
+                 gSettings.activeChannel + 1);
   } else {
     PrintBigDigitsEx(LCD_WIDTH - 19, bl, POS_R, C_FILL, "%4u.%03u", fp1, fp2);
     PrintMediumBoldEx(LCD_WIDTH - 1, bl, POS_R, C_FILL, "%02u", fp3);
-    PrintSmallEx(16, bl - 9, POS_C, C_INVERT, "VFO");
+    PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "VFO");
   }
   PrintSmallEx(LCD_WIDTH - 1, bl - 9, POS_R, C_FILL, mod);
 
@@ -223,10 +224,12 @@ static void render2VFOPart(uint8_t i) {
   uint32_t est = stats->lastTimeOpen
                      ? (elapsedMilliseconds - stats->lastTimeOpen) / 1000
                      : 0;
-  if (stats->ct) {
-    PrintSmallEx(0, bl + 6, POS_L, C_FILL, "CT %d", stats->ct);
-  } else if (stats->cd) {
-    PrintSmallEx(0, bl + 6, POS_L, C_FILL, "CD %d", stats->cd);
+  if (stats->ct != 0xFF) {
+    PrintSmallEx(0, bl + 6, POS_L, C_FILL, "CT:%u.%uHz",
+                 CTCSS_Options[stats->ct] / 10, CTCSS_Options[stats->ct] % 10);
+  } else if (stats->cd != 0xFF) {
+    PrintSmallEx(0, bl + 6, POS_L, C_FILL, "DCS:D%03oN",
+                 DCS_Options[stats->cd]);
   }
   PrintSmallEx(LCD_WIDTH - 1, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,
                est % 60, stats->duration / 1000);

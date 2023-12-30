@@ -1,4 +1,5 @@
 #include "lootlist.h"
+#include "../dcs.h"
 #include "../driver/st7565.h"
 #include "../driver/uart.h"
 #include "../helper/lootlist.h"
@@ -67,8 +68,17 @@ static void getLootItem(uint16_t i, uint16_t index, bool isCurrent) {
   PrintMediumEx(6, y + 7, POS_L, C_INVERT, "%u.%05u", f / 100000, f % 100000);
   PrintSmallEx(LCD_WIDTH - 6, y + 7, POS_R, C_INVERT, "%us",
                item->duration / 1000);
-  PrintSmallEx(6, y + 7 + 6, POS_L, C_INVERT, "CT:%u CD:%u R:%u N:%u", item->ct,
-               item->cd, item->rssi, item->noise);
+
+  PrintSmallEx(6, y + 7 + 6, POS_L, C_INVERT, "R:%03u N:%03u", item->rssi,
+               item->noise);
+  if (item->cd != 0xFF) {
+    PrintSmallEx(6 + 55, y + 7 + 6, POS_L, C_INVERT, "DCS:D%03oN",
+                 DCS_Options[item->cd]);
+  }
+  if (item->ct != 0xFF) {
+    PrintSmallEx(6 + 55, y + 7 + 6, POS_L, C_INVERT, "CT:%u.%uHz",
+                 CTCSS_Options[item->ct] / 10, CTCSS_Options[item->ct] % 10);
+  }
   if (item->blacklist) {
     PrintSmallEx(1, y + 5, POS_L, C_INVERT, "X");
   }
