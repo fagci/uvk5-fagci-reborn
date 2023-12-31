@@ -13,5 +13,6 @@ VFO *CHANNELS_Get(uint16_t i);
 bool CHANNELS_LoadBuf();
 void CHANNELS_SaveCurrentVFO(uint16_t i);
 uint16_t CHANNELS_Next(bool next);
+void CHANNELS_Delete(uint16_t i);
 
 #endif /* end of include guard: CHANNELS_H */

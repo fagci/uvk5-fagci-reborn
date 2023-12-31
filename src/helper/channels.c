@@ -30,7 +30,6 @@ bool CHANNELS_Existing(uint16_t i) {
 }
 
 uint16_t CHANNELS_Next(bool next) {
-
   uint16_t si = gSettings.activeChannel;
   uint16_t max = CHANNELS_GetCountMax();
   IncDec16(&si, 0, max, next ? 1 : -1);
@@ -77,4 +76,9 @@ void CHANNELS_SaveCurrentVFO(uint16_t i) {
             gCurrentVFO->fRX % 100000);
   }
   CHANNELS_SaveUser(i, gCurrentVFO);
+}
+
+void CHANNELS_Delete(uint16_t i) {
+  VFO v = {0};
+  CHANNELS_SaveUser(i, &v);
 }

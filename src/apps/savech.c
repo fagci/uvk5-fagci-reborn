@@ -39,6 +39,9 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_EXIT:
     APPS_exit();
     return true;
+  case KEY_0:
+    CHANNELS_Delete(currentChannelIndex);
+    return true;
   case KEY_PTT:
     CHANNELS_LoadUser(currentChannelIndex, &ch);
     RADIO_TuneToSave(ch.fRX);

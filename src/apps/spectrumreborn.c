@@ -69,11 +69,11 @@ static Loot msm = {0};
 
 static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
 
-static void handleInt(uint16_t intStatus) {
+/* static void handleInt(uint16_t intStatus) {
   if (intStatus & BK4819_REG_02_CxCSS_TAIL) {
     msm.open = false;
   }
-}
+} */
 
 static void updateMeasurements() {
   msm.rssi = BK4819_GetRSSI();
@@ -88,12 +88,12 @@ static void updateMeasurements() {
   } else {
     msm.open = isSquelchOpen();
   }
-
+/*
   if (elapsedMilliseconds - msm.lastTimeCheck < 500) {
     msm.open = false;
   } else {
     BK4819_HandleInterrupts(handleInt);
-  }
+  } */
 
   LOOT_Update(&msm);
 
