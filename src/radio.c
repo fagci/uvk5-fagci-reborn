@@ -9,6 +9,7 @@
 #include "external/printf/printf.h"
 #include "helper/channels.h"
 #include "helper/presetlist.h"
+#include "helper/vfos.h"
 #include "inc/dp32g030/gpio.h"
 #include "scheduler.h"
 #include "settings.h"
@@ -16,8 +17,13 @@
 
 VFO *gCurrentVFO;
 VFO gVFO[2] = {0};
+char *gVFONames[2] = {
+    "VFO 1",
+    "VFO 2",
+};
 
 bool gIsListening = false;
+bool gMonitorMode = false;
 
 const uint16_t StepFrequencyTable[14] = {
     1,   10,  50,  100,
@@ -156,28 +162,26 @@ void RADIO_ToggleListeningBW() {
 }
 
 void RADIO_TuneTo(uint32_t f) {
-  gCurrentVFO->name[0] = '\0';
+  gCurrentVFO->isMrMode = false;
   gCurrentVFO->fRX = f;
   RADIO_SetupByCurrentVFO();
   onVfoUpdate();
 }
 
 void RADIO_TuneToSave(uint32_t f) {
-  gCurrentVFO->name[0] = '\0';
+  gCurrentVFO->isMrMode = false;
   gCurrentVFO->fRX = f;
   PRESET_SelectByFrequency(gCurrentVFO->fRX);
   BK4819_TuneTo(f);
   RADIO_SaveCurrentVFO();
 }
 
-void RADIO_SaveCurrentVFO() {
-  CHANNELS_Save(gSettings.activeChannel, gCurrentVFO);
-}
+void RADIO_SaveCurrentVFO() { VFOS_Save(gSettings.activeVFO, gCurrentVFO); }
 
 void RADIO_LoadCurrentVFO() {
-  CHANNELS_Load(0, &gVFO[0]);
-  CHANNELS_Load(1, &gVFO[1]);
-  gCurrentVFO = &gVFO[gSettings.activeChannel];
+  VFOS_Load(0, &gVFO[0]);
+  VFOS_Load(1, &gVFO[1]);
+  gCurrentVFO = &gVFO[gSettings.activeVFO];
   PRESET_SelectByFrequency(gCurrentVFO->fRX);
 }
 

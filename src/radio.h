@@ -8,9 +8,11 @@
 
 extern VFO *gCurrentVFO;
 extern VFO gVFO[2];
+extern char *gVFONames[2];
 
 extern const char *upConverterFreqNames[3];
 extern bool gIsListening;
+extern bool gMonitorMode;
 
 extern const uint16_t StepFrequencyTable[14];
 

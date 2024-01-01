@@ -1,5 +1,6 @@
 #include "vfo.h"
 #include "../dcs.h"
+#include "../helper/adapter.h"
 #include "../helper/channels.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
@@ -11,13 +12,11 @@
 #include "finput.h"
 
 static Loot msm = {0};
-static bool monitorMode = false;
 
 static bool lastOpenState = false;
 static uint32_t lastUpdate = 0;
 static uint32_t lastClose = 0;
 
-static uint8_t currentVfoNum = 0;
 static uint8_t vfoCount = 2;
 
 static bool repeatHeld = false;
@@ -42,8 +41,7 @@ static void update() {
   msm.f = gCurrentVFO->fRX;
   msm.rssi = BK4819_GetRSSI();
   msm.noise = BK4819_GetNoise();
-  // msm.open = monitorMode || BK4819_IsSquelchOpen();
-  if (monitorMode) {
+  if (gMonitorMode) {
     msm.open = true;
   } else {
     BK4819_HandleInterrupts(handleInt);
@@ -53,7 +51,7 @@ static void update() {
   }
 
   if (msm.f != loot->f) {
-    LOOT_ReplaceItem(currentVfoNum, msm.f);
+    LOOT_ReplaceItem(gSettings.activeVFO, msm.f);
   }
 
   RADIO_ToggleRX(msm.open);
@@ -87,7 +85,7 @@ void VFO_init() {
 
   TaskAdd("Update still", update, 10, true);
   TaskAdd("Redraw still", render, 1000, true);
-  loot = LOOT_Item(currentVfoNum);
+  loot = LOOT_Item(gSettings.activeVFO);
   gRedrawScreen = true;
 }
 
@@ -102,19 +100,22 @@ void VFO_deinit() {
 void VFO_update() {}
 
 VFO *NextVFO(bool next) {
-  IncDec8(&currentVfoNum, 0, LOOT_Size(), next ? 1 : -1);
-  loot = LOOT_Item(currentVfoNum);
-  gSettings.activeChannel = currentVfoNum;
-  return &gVFO[currentVfoNum];
+  gSettings.activeVFO = !gSettings.activeVFO;
+  loot = LOOT_Item(gSettings.activeVFO);
+  return &gVFO[gSettings.activeVFO];
 }
 
 static void nextFreq(bool next) {
   int8_t dir = next ? 1 : -1;
 
-  bool isMRMode = IsReadable(gCurrentVFO->name);
-  if (isMRMode) {
-    uint16_t idx = CHANNELS_Next(next);
-    CHANNELS_LoadUser(idx, gCurrentVFO);
+  if (gCurrentVFO->isMrMode) {
+    int16_t idx = CHANNELS_Next(gCurrentVFO->channel, next);
+    if (idx > -1) {
+      CH ch;
+      CHANNELS_Load(idx, &ch);
+      CH2VFO(&ch, gCurrentVFO);
+      gCurrentVFO->channel = idx;
+    }
     return;
   }
 
@@ -132,14 +133,15 @@ static void nextFreq(bool next) {
 }
 
 static void toggleVfoMR() {
-  bool isMRMode = IsReadable(gCurrentVFO->name);
-  if (isMRMode) {
-    gCurrentVFO->name[0] = '\0';
+  if (gCurrentVFO->isMrMode) {
+    gCurrentVFO->isMrMode = false;
     return;
   }
-  uint16_t idx = CHANNELS_Next(0);
-  CHANNELS_LoadUser(idx, gCurrentVFO);
-  return;
+  gCurrentVFO->isMrMode = true;
+  CH ch;
+  CHANNELS_Load(gCurrentVFO->channel, &ch);
+  CH2VFO(&ch, gCurrentVFO);
+  strncpy(gVFONames[gSettings.activeVFO], ch.name, 9);
 }
 
 bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
@@ -217,8 +219,8 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       APPS_run(APP_VFO_CFG);
       return true;
     case KEY_SIDE1:
-      monitorMode = !monitorMode;
-      msm.open = monitorMode;
+      gMonitorMode = !gMonitorMode;
+      msm.open = gMonitorMode;
       return true;
     case KEY_EXIT:
       APPS_exit();
@@ -231,7 +233,7 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 static void render2VFOPart(uint8_t i) {
-  const uint8_t BASE = 24;
+  const uint8_t BASE = 21;
   const uint8_t bl = BASE + 32 * i;
 
   VFO *vfo = &gVFO[i];
@@ -244,24 +246,24 @@ static void render2VFOPart(uint8_t i) {
   const char *mod = modulationTypeOptions[p->band.modulation];
 
   if (isActive) {
-    FillRect(0, bl - 14, 28, 7, C_FILL);
+    FillRect(0, bl - 13, 28, 7, C_FILL);
     if (msm.open) {
       PrintMediumEx(0, bl, POS_L, C_INVERT, "RX");
       UI_RSSIBar(msm.rssi, msm.f, 32);
     }
   }
 
-  if (IsReadable(vfo->name)) {
-    PrintMediumBoldEx(LCD_WIDTH / 2, bl - 8, POS_C, C_FILL, vfo->name);
+  if (gCurrentVFO->isMrMode) {
+    PrintMediumBoldEx(LCD_WIDTH / 2, bl - 8, POS_C, C_FILL, gVFONames[i]);
     PrintMediumEx(LCD_WIDTH / 2, bl, POS_C, C_FILL, "%4u.%03u", fp1, fp2);
-    PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "MR %03u",
-                 gSettings.activeChannel + 1);
+    PrintSmallEx(14, bl - 8, POS_C, C_INVERT, "MR %03u",
+                 gCurrentVFO->channel + 1);
   } else {
     PrintBigDigitsEx(LCD_WIDTH - 19, bl, POS_R, C_FILL, "%4u.%03u", fp1, fp2);
     PrintMediumBoldEx(LCD_WIDTH - 1, bl, POS_R, C_FILL, "%02u", fp3);
-    PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "VFO");
+    PrintSmallEx(14, bl - 8, POS_C, C_INVERT, "VFO");
   }
-  PrintSmallEx(LCD_WIDTH - 1, bl - 9, POS_R, C_FILL, mod);
+  PrintSmallEx(LCD_WIDTH - 1, bl - 8, POS_R, C_FILL, mod);
 
   Loot *stats = LOOT_Item(i);
   uint32_t est = stats->lastTimeOpen
@@ -277,8 +279,8 @@ static void render2VFOPart(uint8_t i) {
   PrintSmallEx(LCD_WIDTH - 1, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,
                est % 60, stats->duration / 1000);
 
-  PrintSmallEx(LCD_WIDTH - 18, bl - 12, POS_R, C_FILL, "SQ %d",
-               gCurrentPreset->band.squelch);
+  /* PrintSmallEx(LCD_WIDTH - 18, bl - 12, POS_R, C_FILL, "SQ %d",
+               gCurrentPreset->band.squelch); */
 }
 
 static void render2VFO() {
@@ -290,12 +292,12 @@ static void render2VFO() {
 static void render1VFO() {
   const uint8_t BASE = 38;
 
-  VFO *vfo = &gVFO[currentVfoNum];
-  Preset *p = PRESET_ByFrequency(vfo->fRX);
+  VFO *ch = &gVFO[gSettings.activeVFO];
+  Preset *p = PRESET_ByFrequency(ch->fRX);
 
-  uint16_t fp1 = vfo->fRX / 100000;
-  uint16_t fp2 = vfo->fRX / 10 % 10000;
-  uint8_t fp3 = vfo->fRX % 100;
+  uint16_t fp1 = ch->fRX / 100000;
+  uint16_t fp2 = ch->fRX / 10 % 10000;
+  uint8_t fp3 = ch->fRX % 100;
   const char *mod = modulationTypeOptions[p->band.modulation];
 
   PrintBiggestDigitsEx(LCD_WIDTH - 19, BASE, POS_R, C_FILL, "%4u.%03u", fp1,

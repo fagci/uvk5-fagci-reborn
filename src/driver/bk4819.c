@@ -181,6 +181,7 @@ void BK4819_Init(void) {
   gBK4819_GpioOutState = 0x9000;
   BK4819_WriteRegister(BK4819_REG_33, 0x9000);
   BK4819_WriteRegister(BK4819_REG_3F, 0);
+
 }
 
 void BK4819_WriteU8(uint8_t Data) {

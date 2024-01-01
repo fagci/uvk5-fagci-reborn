@@ -60,25 +60,40 @@ typedef struct {
   uint8_t contrast : 4;
   AppType_t mainApp : 4;
   BacklightOnSquelchMode backlightOnSquelch : 2;
-  uint8_t reserved1 : 2;
-  uint16_t activeChannel : 10;
+  uint8_t activeVFO : 1;
+  uint8_t reserved1 : 1;
+  uint16_t reserved2 : 10;
   uint8_t activePreset : 6;
   uint8_t presetsCount : 8;
 } __attribute__((packed)) Settings;
 
-typedef struct {                 // 24 bytes
-  uint32_t fRX;                  // 4
-  uint32_t fTX;                  // 4
-  char name[10];                 // 10
-  uint8_t memoryBanks : 8;       // 1
-  ModulationType modulation : 4; // 1
+typedef struct { // 24 bytes
+  uint32_t fRX;  // 4
+  uint32_t fTX;  // 4
+  char name[10]; // 10
+  ModulationType modulation : 4;
   BK4819_FilterBandwidth_t bw : 2;
   uint8_t power : 2;
+  uint8_t memoryBanks : 8; // 1
+  uint8_t codeRx : 8;      // 1
+  uint8_t codeTx : 8;      // 1
   uint8_t codeTypeRx : 4;
   uint8_t codeTypeTx : 4; // 1
-  uint8_t codeRx : 8;     // 1
-  uint8_t codeTx : 8;     // 1
-  uint8_t reserved : 8;   // 1
+  uint8_t reserved : 6;   // 1
+} __attribute__((packed)) CH;
+
+typedef struct { // 24 bytes
+  uint32_t fRX;  // 4
+  uint32_t fTX;  // 4
+  ModulationType modulation : 4;
+  BK4819_FilterBandwidth_t bw : 2;
+  uint8_t power : 2;
+  uint8_t codeRx : 8; // 1
+  uint8_t codeTx : 8; // 1
+  uint8_t codeTypeRx : 4;
+  uint8_t codeTypeTx : 4; // 1
+  int16_t channel : 12;   // 1
+  bool isMrMode : 1;
 } __attribute__((packed)) VFO;
 
 typedef struct { // 8 bytes
@@ -117,9 +132,10 @@ typedef struct { // 29 bytes
 #define SETTINGS_SIZE sizeof(Settings)
 
 #define PRESET_SIZE sizeof(Preset)
+#define CH_SIZE sizeof(CH)
 #define VFO_SIZE sizeof(VFO)
 
-#define BANDS_OFFSET sizeof(Settings)
+#define PRESETS_OFFSET sizeof(Settings)
 #define CHANNELS_OFFSET 0x2000
 
 extern Settings gSettings;

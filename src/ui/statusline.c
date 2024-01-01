@@ -70,20 +70,16 @@ void STATUSLINE_render() {
     DrawVLine(LCD_WIDTH - 41, 1, 1, C_FILL);
   }
 
+  PrintSmallEx(LCD_WIDTH - 1, 5, POS_R, C_FILL,
+               "%c%c%c",                 //
+               gMonitorMode ? 'M' : ' ', // monitor mode
+               gEepromRead ? 'R' : ' ',  // eeprom r
+               gEepromWrite ? 'W' : ' '  // eeprom w
+  );
+
   if (UART_IsLogEnabled) {
-    PrintSmallEx(LCD_WIDTH - 1 - 24, 5, POS_R, C_FILL, "D:%u",
-                 UART_IsLogEnabled);
-  }
-
-  if (gEepromRead) {
-    PrintSmallEx(LCD_WIDTH - 1 - 6, 5, POS_R, C_FILL, "R");
-  }
-
-  if (gEepromWrite) {
-    PrintSmallEx(LCD_WIDTH - 1, 5, POS_R, C_FILL, "W");
-  }
-
-  if (statuslineText[0] >= 32) {
+    PrintSmall(BATTERY_W + 1, 5, statuslineText, "D:%u", UART_IsLogEnabled);
+  } else if (statuslineText[0] >= 32) {
     PrintSmall(BATTERY_W + 1, 5, statuslineText);
   }
 }

@@ -28,8 +28,8 @@
 void _putchar(char c) {}
 
 void selfTest() {
-  PrintSmall(0, 0, "PRS O:%u SZ:%u", BANDS_OFFSET, PRESET_SIZE);
-  PrintSmall(0, 6, "CHN O:%u SZ:%u", CHANNELS_OFFSET, VFO_SIZE);
+  PrintSmall(0, 0, "PRS O:%u SZ:%u", PRESETS_OFFSET, PRESET_SIZE);
+  PrintSmall(0, 6, "CHN O:%u SZ:%u", CHANNELS_OFFSET, CH_SIZE);
   PrintSmall(0, 18, "SET O:%u SZ:%u", SETTINGS_OFFSET, SETTINGS_SIZE);
   ST7565_Blit();
 

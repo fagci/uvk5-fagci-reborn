@@ -5,6 +5,7 @@
 #include "../helper/channels.h"
 #include "../helper/measurements.h"
 #include "../helper/presetlist.h"
+#include "../helper/vfos.h"
 #include "../radio.h"
 #include "../settings.h"
 #include "../ui/graphics.h"
@@ -13,13 +14,14 @@
 #include <string.h>
 
 static uint8_t presetsWrote = 0;
+static uint8_t vfosWrote = 0;
 static bool settingsWrote = 0;
 static uint8_t buf[8];
 static uint16_t bytesWrote = 0;
 
 static VFO defaultVFOs[2] = {
-    (VFO){14550000, 0, "", 0, MOD_FM, BK4819_FILTER_BW_WIDE},
-    (VFO){43307500, 0, "", 0, MOD_FM, BK4819_FILTER_BW_WIDE},
+    (VFO){14550000},
+    (VFO){43307500},
 };
 
 static Preset defaultPresets[] = {
@@ -479,13 +481,17 @@ void RESET_Update() {
         .contrast = 0,
         .mainApp = APP_STILL,
         .reserved1 = 0,
-        .activeChannel = 0,
+        .activeVFO = 0,
         .activePreset = 22,
         .presetsCount = ARRAY_SIZE(defaultPresets),
         .backlightOnSquelch = BL_SQL_ON,
     };
     settingsWrote = true;
     bytesWrote += sizeof(Settings);
+  } else if (vfosWrote < ARRAY_SIZE(defaultVFOs)) {
+    VFOS_Save(vfosWrote, &defaultVFOs[vfosWrote]);
+    vfosWrote++;
+    bytesWrote += sizeof(VFO);
   } else if (presetsWrote < ARRAY_SIZE(defaultPresets)) {
     SETTINGS_Save();
     PRESETS_SavePreset(presetsWrote, &defaultPresets[presetsWrote]);
@@ -496,9 +502,6 @@ void RESET_Update() {
     EEPROM_WriteBuffer(bytesWrote, buf, 8);
     bytesWrote += 8;
   } else {
-    for (uint8_t i = 0; i < 2; i++) {
-      CHANNELS_Save(i, &defaultVFOs[i]);
-    }
     NVIC_SystemReset();
   }
   gRedrawScreen = true;

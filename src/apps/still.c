@@ -15,7 +15,6 @@
 #include "finput.h"
 
 static uint8_t menuState = 0;
-static bool monitorMode = false;
 static uint32_t lastClose = 0;
 static Loot msm = {0};
 
@@ -89,9 +88,9 @@ static void update() {
   msm.f = gCurrentVFO->fRX;
   msm.rssi = BK4819_GetRSSI();
   msm.noise = BK4819_GetNoise();
-  // msm.open = monitorMode || BK4819_IsSquelchOpen();
+  // msm.open = gMonitorMode || BK4819_IsSquelchOpen();
 
-  if (monitorMode) {
+  if (gMonitorMode) {
     msm.open = true;
   } else {
     BK4819_HandleInterrupts(handleInt);
@@ -100,8 +99,8 @@ static void update() {
     }
   }
 
-  if (msm.f != LOOT_Item(gSettings.activeChannel)->f) {
-    LOOT_ReplaceItem(gSettings.activeChannel, msm.f);
+  if (msm.f != LOOT_Item(gCurrentVFO->channel)->f) {
+    LOOT_ReplaceItem(gCurrentVFO->channel, msm.f);
   }
 
   RADIO_ToggleRX(msm.open);
@@ -194,7 +193,7 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     RADIO_ToggleListeningBW();
     return true;
   case KEY_SIDE1:
-    monitorMode = !monitorMode;
+    gMonitorMode = !gMonitorMode;
     return true;
   case KEY_SIDE2:
     // ToggleBacklight();
@@ -211,8 +210,8 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     }
     APPS_exit();
-    monitorMode = false;
-    msm.open = monitorMode;
+    gMonitorMode = false;
+    msm.open = gMonitorMode;
     return true;
   default:
     break;

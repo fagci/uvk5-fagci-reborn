@@ -1,19 +1,24 @@
 #include "savech.h"
 #include "../driver/eeprom.h"
 #include "../driver/st7565.h"
+#include "../helper/adapter.h"
 #include "../helper/channels.h"
 #include "../helper/measurements.h"
+#include "../helper/presetlist.h"
+#include "../helper/vfos.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "apps.h"
+#include "textinput.h"
 #include <stdio.h>
 
 static uint16_t currentChannelIndex = 0;
 static uint16_t chCount = 0;
+static char *tempName = "";
 
 static void getChannelName(uint16_t i, char *name) {
-  VFO ch;
-  CHANNELS_LoadUser(i, &ch);
+  CH ch;
+  CHANNELS_Load(i, &ch);
   if (IsReadable(ch.name)) {
     strncpy(name, ch.name, 31);
   } else {
@@ -21,11 +26,18 @@ static void getChannelName(uint16_t i, char *name) {
   }
 }
 
+static void saveNamed() {
+  CH ch;
+  VFO2CH(gCurrentVFO, &ch);
+  strncpy(ch.name, tempName, 9);
+  CHANNELS_Save(currentChannelIndex, &ch);
+}
+
 void SAVECH_init() { chCount = CHANNELS_GetCountMax(); }
 void SAVECH_update() {}
 
 bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  VFO ch;
+  CH ch;
   switch (key) {
   case KEY_UP:
     IncDec16(&currentChannelIndex, 0, chCount, -1);
@@ -34,7 +46,12 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     IncDec16(&currentChannelIndex, 0, chCount, 1);
     return true;
   case KEY_MENU:
-    CHANNELS_SaveCurrentVFO(currentChannelIndex);
+    sprintf(tempName, "%lu.%lu", gCurrentVFO->fRX / 100000,
+            gCurrentVFO->fRX % 100000);
+    gTextinputText = tempName;
+    gTextInputSize = 9;
+    gTextInputCallback = saveNamed;
+    APPS_run(APP_TEXTINPUT);
     return true;
   case KEY_EXIT:
     APPS_exit();
@@ -43,7 +60,7 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     CHANNELS_Delete(currentChannelIndex);
     return true;
   case KEY_PTT:
-    CHANNELS_LoadUser(currentChannelIndex, &ch);
+    CHANNELS_Load(currentChannelIndex, &ch);
     RADIO_TuneToSave(ch.fRX);
     APPS_run(APP_STILL);
     return true;

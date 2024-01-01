@@ -33,7 +33,7 @@ static const MenuItem menu[] = {
     {"BL time", M_BL_TIME, ARRAY_SIZE(BL_TIME_VALUES)},
     {"BL SQL mode", M_BL_SQL, ARRAY_SIZE(BL_SQL_MODE_NAMES)},
     {"Beep", M_BEEP, 2},
-    {"EEPROM reset", M_RESET},
+    {"EEPROM reset", M_RESET, 2},
 };
 
 static void accept() {
@@ -65,6 +65,11 @@ static void accept() {
     gSettings.beep = subMenuIndex;
     SETTINGS_Save();
     break;
+  case M_RESET:
+    if (subMenuIndex) {
+      APPS_run(APP_RESET);
+    }
+    break;
   default:
     break;
   }
@@ -73,6 +78,7 @@ static void accept() {
 char Output[16];
 
 const char *onOff[] = {"Off", "On"};
+const char *yesNo[] = {"No", "Yes"};
 
 static const char *getValue(Menu type) {
   switch (type) {
@@ -119,6 +125,10 @@ static void getMainAppText(uint16_t index, char *name) {
   strncpy(name, apps[appsAvailableToRun[index]].name, 31);
 }
 
+static void getYesNoText(uint16_t index, char *name) {
+  strncpy(name, yesNo[index], 31);
+}
+
 static void getOnOffText(uint16_t index, char *name) {
   strncpy(name, onOff[index], 31);
 }
@@ -144,6 +154,9 @@ static void showSubmenu(Menu menuType) {
     break;
   case M_BEEP:
     UI_ShowMenu(getOnOffText, item->size, subMenuIndex);
+    break;
+  case M_RESET:
+    UI_ShowMenu(getYesNoText, item->size, subMenuIndex);
     break;
   default:
     break;
@@ -217,9 +230,6 @@ bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_MENU:
     // RUN APPS HERE
     switch (item->type) {
-    case M_RESET:
-      APPS_run(APP_RESET);
-      return true;
     default:
       break;
     }

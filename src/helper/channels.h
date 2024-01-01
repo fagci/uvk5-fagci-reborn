@@ -5,14 +5,11 @@
 #include <stdint.h>
 
 uint16_t CHANNELS_GetCountMax();
-void CHANNELS_Load(uint16_t num, VFO *p);
-void CHANNELS_Save(uint16_t num, VFO *p);
-void CHANNELS_LoadUser(uint16_t num, VFO *p);
-void CHANNELS_SaveUser(uint16_t num, VFO *p);
-VFO *CHANNELS_Get(uint16_t i);
+void CHANNELS_Load(uint16_t num, CH *p);
+void CHANNELS_Save(uint16_t num, CH *p);
+CH *CHANNELS_Get(uint16_t i);
 bool CHANNELS_LoadBuf();
-void CHANNELS_SaveCurrentVFO(uint16_t i);
-uint16_t CHANNELS_Next(bool next);
+int16_t CHANNELS_Next(int16_t base, bool next);
 void CHANNELS_Delete(uint16_t i);
 
 #endif /* end of include guard: CHANNELS_H */

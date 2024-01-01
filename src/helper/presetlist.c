@@ -13,11 +13,11 @@ static uint8_t loadedCount = 0;
 Preset defaultPreset = {.band = (Band){.name = "default"}};
 
 void PRESETS_SavePreset(uint8_t num, Preset *p) {
-  EEPROM_WriteBuffer(BANDS_OFFSET + num * PRESET_SIZE, p, PRESET_SIZE);
+  EEPROM_WriteBuffer(PRESETS_OFFSET + num * PRESET_SIZE, p, PRESET_SIZE);
 }
 
 void PRESETS_LoadPreset(uint8_t num, Preset *p) {
-  EEPROM_ReadBuffer(BANDS_OFFSET + num * PRESET_SIZE, p, PRESET_SIZE);
+  EEPROM_ReadBuffer(PRESETS_OFFSET + num * PRESET_SIZE, p, PRESET_SIZE);
 }
 
 void PRESETS_SaveCurrent() {

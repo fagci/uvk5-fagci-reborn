@@ -14,7 +14,6 @@
 typedef enum {
   M_F_RX, // uint32_t fRX : 32;
   M_F_TX, // uint32_t fTX : 32;
-  M_NAME, // char name[16];
   // uint8_t memoryBanks : 8;
   M_STEP,       // uint8_t step : 8;
   M_MODULATION, // uint8_t modulation : 4;
@@ -36,7 +35,6 @@ static bool isSubMenu = false;
 static MenuItem menu[] = {
     {"RX freq", M_F_RX},
     {"TX freq", M_F_TX},
-    {"Name", M_NAME},
     {"Step", M_STEP, ARRAY_SIZE(StepFrequencyTable)},
     {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions)},
     {"BW", M_BW, ARRAY_SIZE(bwNames)},
@@ -108,12 +106,10 @@ static const char *getValue(VfoCfgMenu type) {
     sprintf(Output, "%u.%05u", gCurrentVFO->fTX / 100000,
             gCurrentVFO->fTX % 100000);
     return Output;
-  case M_NAME:
-    return gCurrentVFO->name;
   case M_BW:
-    return bwNames[gCurrentVFO->bw];
+    return bwNames[gCurrentPreset->band.bw];
   case M_MODULATION:
-    return modulationTypeOptions[gCurrentVFO->modulation];
+    return modulationTypeOptions[gCurrentPreset->band.modulation];
   case M_STEP:
     sprintf(Output, "%d.%02dKHz",
             StepFrequencyTable[gCurrentPreset->band.step] / 100,
@@ -207,11 +203,6 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_MENU:
     // RUN APPS HERE
     switch (item->type) {
-    case M_NAME:
-      gTextinputText = gCurrentVFO->name;
-      gTextInputSize = 15;
-      APPS_run(APP_TEXTINPUT);
-      return true;
     case M_F_RX:
       gFInputCallback = RADIO_TuneTo;
       APPS_run(APP_FINPUT);
