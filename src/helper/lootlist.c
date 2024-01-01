@@ -29,10 +29,12 @@ Loot *LOOT_Get(uint32_t f) {
   return NULL;
 }
 
-Loot *LOOT_Add(uint32_t f) {
-  Loot *p = LOOT_Get(f);
-  if (p) {
-    return p;
+Loot *LOOT_AddEx(uint32_t f, bool reuse) {
+  if (reuse) {
+    Loot *p = LOOT_Get(f);
+    if (p) {
+      return p;
+    }
   }
   if (LOOT_Size() < LOOT_SIZE_MAX) {
     lootIndex++;
@@ -53,11 +55,15 @@ Loot *LOOT_Add(uint32_t f) {
   return NULL;
 }
 
+Loot *LOOT_Add(uint32_t f) { return LOOT_AddEx(f, true); }
+
 void LOOT_Remove(uint8_t i) {
-  for (uint8_t _i = i; _i < LOOT_Size() - 1; ++_i) {
-    loot[_i] = loot[_i + 1];
+  if (LOOT_Size()) {
+    for (uint8_t _i = i; _i < LOOT_Size() - 1; ++_i) {
+      loot[_i] = loot[_i + 1];
+    }
+    lootIndex--;
   }
-  lootIndex--;
 }
 
 void LOOT_Clear() { lootIndex = -1; }
@@ -125,14 +131,7 @@ void LOOT_ReplaceItem(uint8_t i, uint32_t f) {
   item->cd = 0xFF;
 }
 
-void LOOT_Update(Loot *msm) {
-  Loot *loot = LOOT_Get(msm->f);
-
-  if (loot == NULL && msm->open) {
-    loot = LOOT_Add(msm->f);
-    UART_logf(1, "[LOOT] %u", msm->f);
-  }
-
+void LOOT_UpdateEx(Loot *loot, Loot *msm) {
   if (loot == NULL) {
     return;
   }
@@ -177,4 +176,15 @@ void LOOT_Update(Loot *msm) {
   if (msm->blacklist) {
     loot->blacklist = true;
   }
+}
+
+void LOOT_Update(Loot *msm) {
+  Loot *loot = LOOT_Get(msm->f);
+
+  if (loot == NULL && msm->open) {
+    loot = LOOT_Add(msm->f);
+    UART_logf(1, "[LOOT] %u", msm->f);
+  }
+
+  LOOT_UpdateEx(loot, msm);
 }

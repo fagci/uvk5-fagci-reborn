@@ -124,13 +124,13 @@ static void onPresetUpdate() {
 }
 
 void RADIO_ToggleModulation() {
-  if (gCurrentVFO->modulation == MOD_RAW) {
-    gCurrentVFO->modulation = MOD_FM;
+  if (gCurrentPreset->band.modulation == MOD_RAW) {
+    gCurrentPreset->band.modulation = MOD_FM;
   } else {
-    ++gCurrentVFO->modulation;
+    ++gCurrentPreset->band.modulation;
   }
-  BK4819_SetModulation(gCurrentVFO->modulation);
-  onVfoUpdate();
+  BK4819_SetModulation(gCurrentPreset->band.modulation);
+  onPresetUpdate();
 }
 
 void RADIO_UpdateStep(bool inc) {
@@ -145,14 +145,14 @@ void RADIO_UpdateStep(bool inc) {
 }
 
 void RADIO_ToggleListeningBW() {
-  if (gCurrentVFO->bw == BK4819_FILTER_BW_NARROWER) {
-    gCurrentVFO->bw = BK4819_FILTER_BW_WIDE;
+  if (gCurrentPreset->band.bw == BK4819_FILTER_BW_NARROWER) {
+    gCurrentPreset->band.bw = BK4819_FILTER_BW_WIDE;
   } else {
-    ++gCurrentVFO->bw;
+    ++gCurrentPreset->band.bw;
   }
 
-  BK4819_SetFilterBandwidth(gCurrentVFO->bw);
-  onVfoUpdate();
+  BK4819_SetFilterBandwidth(gCurrentPreset->band.bw);
+  onPresetUpdate();
 }
 
 void RADIO_TuneTo(uint32_t f) {
@@ -219,6 +219,7 @@ void RADIO_SetupByCurrentVFO() {
 void RADIO_EnableToneDetection() {
   BK4819_SetCTCSSFrequency(670);
   BK4819_SetTailDetection(550);
-  BK4819_WriteRegister(BK4819_REG_3F, BK4819_REG_3F_CxCSS_TAIL);
+  BK4819_WriteRegister(BK4819_REG_3F, BK4819_REG_3F_CxCSS_TAIL |
+                                          BK4819_REG_3F_SQUELCH_LOST |
+                                          BK4819_REG_3F_SQUELCH_FOUND);
 }
-

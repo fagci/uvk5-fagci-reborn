@@ -54,6 +54,8 @@ static void onKey(KEY_Code_t key, bool pressed, bool hold) {
   // - keyhold pressed (hold && pressed)
   // - keyup hold (hold && !pressed)
   if ((hold || !pressed) && APPS_key(key, pressed, hold)) {
+    if (gSettings.beep)
+      AUDIO_PlayTone(1000, 20);
     gRedrawScreen = true;
     return;
   }
@@ -126,6 +128,8 @@ static void Intro() {
   PrintSmall(96, 46, "by fagci");
   ST7565_Blit();
   if (PRESETS_Load()) {
+    if (gSettings.beep)
+      AUDIO_PlayTone(1400, 50);
     RADIO_LoadCurrentVFO();
 
     BK4819_TuneTo(gCurrentVFO->fRX);
@@ -133,6 +137,8 @@ static void Intro() {
     BK4819_SetModulation(gCurrentVFO->modulation);
 
     TaskRemove(Intro);
+    if (gSettings.beep)
+      AUDIO_PlayTone(1400, 50);
     AddTasks();
   }
 }

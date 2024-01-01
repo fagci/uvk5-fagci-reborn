@@ -201,14 +201,14 @@ static void startNewScan() {
 
 void SPECTRUM_init(void) {
   newScan = true;
-  RADIO_EnableToneDetection();
+  // RADIO_EnableToneDetection();
 
   // resetRssiHistory();
   step();
 }
 
 void SPECTRUM_deinit() {
-  BK4819_WriteRegister(BK4819_REG_3F, 0); // disable interrupts
+  // BK4819_WriteRegister(BK4819_REG_3F, 0); // disable interrupts
   RADIO_ToggleRX(false);
 }
 

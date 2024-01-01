@@ -13,11 +13,25 @@
 static Loot msm = {0};
 static bool monitorMode = false;
 
-static bool lastListenState = false;
+static bool lastOpenState = false;
 static uint32_t lastUpdate = 0;
 static uint32_t lastClose = 0;
 
+static uint8_t currentVfoNum = 0;
+static uint8_t vfoCount = 2;
+
+static bool repeatHeld = false;
+
+static Loot *loot;
+
 static void handleInt(uint16_t intStatus) {
+  if (intStatus & BK4819_REG_02_SQUELCH_LOST) {
+    msm.open = true;
+  }
+  if (intStatus & BK4819_REG_02_SQUELCH_FOUND) {
+    msm.open = false;
+    lastClose = elapsedMilliseconds;
+  }
   if (intStatus & BK4819_REG_02_CxCSS_TAIL) {
     msm.open = false;
     lastClose = elapsedMilliseconds;
@@ -28,52 +42,53 @@ static void update() {
   msm.f = gCurrentVFO->fRX;
   msm.rssi = BK4819_GetRSSI();
   msm.noise = BK4819_GetNoise();
-  msm.open = monitorMode || BK4819_IsSquelchOpen();
-
-  if (!monitorMode) {
+  // msm.open = monitorMode || BK4819_IsSquelchOpen();
+  if (monitorMode) {
+    msm.open = true;
+  } else {
+    BK4819_HandleInterrupts(handleInt);
     if (elapsedMilliseconds - lastClose < 250) {
       msm.open = false;
-    } else {
-      BK4819_HandleInterrupts(handleInt);
     }
   }
 
-  if (msm.f != LOOT_Item(gSettings.activeChannel)->f) {
-    LOOT_ReplaceItem(gSettings.activeChannel, msm.f);
+  if (msm.f != loot->f) {
+    LOOT_ReplaceItem(currentVfoNum, msm.f);
   }
 
-  if (msm.open != lastListenState) {
-    lastListenState = msm.open;
-    RADIO_ToggleRX(msm.open);
-    gRedrawScreen = true;
-  }
+  RADIO_ToggleRX(msm.open);
   if (elapsedMilliseconds - lastUpdate >= 1000) {
-    LOOT_Update(&msm);
+    LOOT_UpdateEx(loot, &msm);
     gRedrawScreen = true;
     lastUpdate = elapsedMilliseconds;
+  }
+  if (msm.open != lastOpenState) {
+    lastOpenState = msm.open;
+    gRedrawScreen = true;
   }
 }
 
 static void render() { gRedrawScreen = true; }
 
 void VFO_init() {
-  UI_ClearScreen();
+  repeatHeld = false;
 
   RADIO_LoadCurrentVFO();
   RADIO_EnableToneDetection();
 
   LOOT_Clear();
   for (uint8_t i = 0; i < 2; ++i) {
-    Loot *item = LOOT_Add(gVFO[i].fRX);
+    Loot *item = LOOT_AddEx(gVFO[i].fRX, false);
     item->open = false;
     item->lastTimeOpen = 0;
   }
 
   RADIO_SetupByCurrentVFO(); // TODO: reread from EEPROM not needed maybe
-  gRedrawScreen = true;
 
   TaskAdd("Update still", update, 10, true);
   TaskAdd("Redraw still", render, 1000, true);
+  loot = LOOT_Item(currentVfoNum);
+  gRedrawScreen = true;
 }
 
 void VFO_deinit() {
@@ -86,22 +101,11 @@ void VFO_deinit() {
 
 void VFO_update() {}
 
-VFO *NextVFO() {
-  if (gSettings.activeChannel < LOOT_Size() - 1) {
-    gSettings.activeChannel++;
-  } else {
-    gSettings.activeChannel = 0;
-  }
-  return &gVFO[gSettings.activeChannel];
-}
-
-VFO *PrevVFO() {
-  if (gSettings.activeChannel > 0) {
-    gSettings.activeChannel--;
-  } else {
-    gSettings.activeChannel = LOOT_Size() - 1;
-  }
-  return &gVFO[gSettings.activeChannel];
+VFO *NextVFO(bool next) {
+  IncDec8(&currentVfoNum, 0, LOOT_Size(), next ? 1 : -1);
+  loot = LOOT_Item(currentVfoNum);
+  gSettings.activeChannel = currentVfoNum;
+  return &gVFO[currentVfoNum];
 }
 
 static void nextFreq(bool next) {
@@ -138,8 +142,6 @@ static void toggleVfoMR() {
   return;
 }
 
-static bool repeatHeld = false;
-
 bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed) {
     repeatHeld = false;
@@ -164,7 +166,7 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     repeatHeld = true;
     switch (key) {
     case KEY_2:
-      gCurrentVFO = NextVFO();
+      gCurrentVFO = NextVFO(true);
       RADIO_SetupByCurrentVFO();
       LOOT_Standby();
       msm.f = gCurrentVFO->fRX;
@@ -185,6 +187,9 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_6:
       RADIO_ToggleListeningBW();
+      return true;
+    case KEY_5:
+      vfoCount = vfoCount == 1 ? 2 : 1;
       return true;
     default:
       break;
@@ -213,6 +218,7 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_SIDE1:
       monitorMode = !monitorMode;
+      msm.open = monitorMode;
       return true;
     case KEY_EXIT:
       APPS_exit();
@@ -229,12 +235,13 @@ static void render2VFOPart(uint8_t i) {
   const uint8_t bl = BASE + 32 * i;
 
   VFO *vfo = &gVFO[i];
+  Preset *p = PRESET_ByFrequency(vfo->fRX);
   const bool isActive = gCurrentVFO == vfo;
 
   const uint16_t fp1 = vfo->fRX / 100000;
   const uint16_t fp2 = vfo->fRX / 100 % 1000;
   const uint8_t fp3 = vfo->fRX % 100;
-  const char *mod = modulationTypeOptions[vfo->modulation];
+  const char *mod = modulationTypeOptions[p->band.modulation];
 
   if (isActive) {
     FillRect(0, bl - 14, 28, 7, C_FILL);
@@ -269,6 +276,9 @@ static void render2VFOPart(uint8_t i) {
   }
   PrintSmallEx(LCD_WIDTH - 1, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,
                est % 60, stats->duration / 1000);
+
+  PrintSmallEx(LCD_WIDTH - 18, bl - 12, POS_R, C_FILL, "SQ %d",
+               gCurrentPreset->band.squelch);
 }
 
 static void render2VFO() {
@@ -280,12 +290,13 @@ static void render2VFO() {
 static void render1VFO() {
   const uint8_t BASE = 38;
 
-  VFO *vfo = &gVFO[0];
+  VFO *vfo = &gVFO[currentVfoNum];
+  Preset *p = PRESET_ByFrequency(vfo->fRX);
 
   uint16_t fp1 = vfo->fRX / 100000;
   uint16_t fp2 = vfo->fRX / 10 % 10000;
   uint8_t fp3 = vfo->fRX % 100;
-  const char *mod = modulationTypeOptions[vfo->modulation];
+  const char *mod = modulationTypeOptions[p->band.modulation];
 
   PrintBiggestDigitsEx(LCD_WIDTH - 19, BASE, POS_R, C_FILL, "%4u.%03u", fp1,
                        fp2);
@@ -295,13 +306,12 @@ static void render1VFO() {
 
 void VFO_render() {
   UI_ClearScreen();
-  uint8_t sz = LOOT_Size();
-  if (sz == 1) {
+  if (vfoCount == 1) {
     render1VFO();
-  } else if (sz == 2) {
+  } else if (vfoCount == 2) {
     render2VFO();
   } else {
     PrintMediumEx(LCD_WIDTH / 2, LCD_HEIGHT / 2, POS_C, C_FILL,
-                  "%u VFO not impl", sz);
+                  "%u VFO not impl", vfoCount);
   }
 }

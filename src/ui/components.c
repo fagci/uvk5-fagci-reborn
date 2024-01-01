@@ -49,8 +49,8 @@ void UI_RSSIBar(int16_t rssi, uint32_t f, uint8_t y) {
 
 void UI_FSmall(uint32_t f) {
   PrintSmallEx(LCD_WIDTH - 1, 15, 2, true,
-               modulationTypeOptions[gCurrentVFO->modulation]);
-  PrintSmallEx(LCD_WIDTH - 1, 21, 2, true, bwNames[gCurrentVFO->bw]);
+               modulationTypeOptions[gCurrentPreset->band.modulation]);
+  PrintSmallEx(LCD_WIDTH - 1, 21, 2, true, bwNames[gCurrentPreset->band.bw]);
 
   uint16_t step = StepFrequencyTable[gCurrentPreset->band.step];
 

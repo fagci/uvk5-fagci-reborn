@@ -54,7 +54,6 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   }
 
   BK4819_SetRegValue(s, v);
-  gRedrawScreen = true;
 }
 
 static void UpdateCurrentFreqStill(bool inc) {
@@ -71,23 +70,33 @@ static void UpdateCurrentFreqStill(bool inc) {
 }
 
 static void handleInt(uint16_t intStatus) {
+  if (intStatus & BK4819_REG_02_SQUELCH_LOST) {
+    msm.open = true;
+  }
+  if (intStatus & BK4819_REG_02_SQUELCH_FOUND) {
+    msm.open = false;
+    lastClose = elapsedMilliseconds;
+  }
   if (intStatus & BK4819_REG_02_CxCSS_TAIL) {
     msm.open = false;
     lastClose = elapsedMilliseconds;
   }
 }
 
+static bool lastOpenState = false;
+
 static void update() {
   msm.f = gCurrentVFO->fRX;
   msm.rssi = BK4819_GetRSSI();
   msm.noise = BK4819_GetNoise();
-  msm.open = monitorMode || BK4819_IsSquelchOpen();
+  // msm.open = monitorMode || BK4819_IsSquelchOpen();
 
-  if (!monitorMode) {
+  if (monitorMode) {
+    msm.open = true;
+  } else {
+    BK4819_HandleInterrupts(handleInt);
     if (elapsedMilliseconds - lastClose < 250) {
       msm.open = false;
-    } else {
-      BK4819_HandleInterrupts(handleInt);
     }
   }
 
@@ -95,7 +104,11 @@ static void update() {
     LOOT_ReplaceItem(gSettings.activeChannel, msm.f);
   }
 
-  RADIO_ToggleRX(monitorMode || msm.open);
+  RADIO_ToggleRX(msm.open);
+  if (lastOpenState != msm.open) {
+    lastOpenState = msm.open;
+    gRedrawScreen = true;
+  }
 }
 
 static void render() { gRedrawScreen = true; }
@@ -199,6 +212,7 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     }
     APPS_exit();
     monitorMode = false;
+    msm.open = monitorMode;
     return true;
   default:
     break;

@@ -18,6 +18,7 @@ typedef enum {
   M_BRIGHTNESS,
   M_BL_TIME,
   M_BL_SQL,
+  M_BEEP,
   M_RESET,
 } Menu;
 
@@ -31,6 +32,7 @@ static const MenuItem menu[] = {
     {"Brightness", M_BRIGHTNESS, 16},
     {"BL time", M_BL_TIME, ARRAY_SIZE(BL_TIME_VALUES)},
     {"BL SQL mode", M_BL_SQL, ARRAY_SIZE(BL_SQL_MODE_NAMES)},
+    {"Beep", M_BEEP, 2},
     {"EEPROM reset", M_RESET},
 };
 
@@ -59,12 +61,18 @@ static void accept() {
     gSettings.backlight = subMenuIndex;
     SETTINGS_Save();
     break;
+  case M_BEEP:
+    gSettings.beep = subMenuIndex;
+    SETTINGS_Save();
+    break;
   default:
     break;
   }
 }
 
 char Output[16];
+
+const char *onOff[] = {"Off", "On"};
 
 static const char *getValue(Menu type) {
   switch (type) {
@@ -79,6 +87,8 @@ static const char *getValue(Menu type) {
     return BL_SQL_MODE_NAMES[gSettings.backlightOnSquelch];
   case M_UPCONVERTER:
     return upConverterFreqNames[gSettings.upconverter];
+  case M_BEEP:
+    return onOff[gSettings.beep];
   default:
     break;
   }
@@ -109,6 +119,10 @@ static void getMainAppText(uint16_t index, char *name) {
   strncpy(name, apps[appsAvailableToRun[index]].name, 31);
 }
 
+static void getOnOffText(uint16_t index, char *name) {
+  strncpy(name, onOff[index], 31);
+}
+
 static void showSubmenu(Menu menuType) {
   const MenuItem *item = &menu[menuIndex];
   switch (menuType) {
@@ -127,6 +141,9 @@ static void showSubmenu(Menu menuType) {
     break;
   case M_BRIGHTNESS:
     UI_ShowMenu(getBrightnessLevelText, item->size, subMenuIndex);
+    break;
+  case M_BEEP:
+    UI_ShowMenu(getOnOffText, item->size, subMenuIndex);
     break;
   default:
     break;
@@ -161,6 +178,12 @@ static void setInitialSubmenuIndex() {
     break;
   case M_UPCONVERTER:
     subMenuIndex = gSettings.upconverter;
+    break;
+  case M_BEEP:
+    subMenuIndex = gSettings.beep;
+    break;
+  case M_MAIN_APP:
+    subMenuIndex = gSettings.mainApp;
     break;
   default:
     subMenuIndex = 0;

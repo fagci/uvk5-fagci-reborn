@@ -18,8 +18,8 @@ static uint8_t buf[8];
 static uint16_t bytesWrote = 0;
 
 static VFO defaultVFOs[2] = {
-    (VFO){40655000, 0, "Med lenin", 0, MOD_FM, BK4819_FILTER_BW_WIDE},
-    (VFO){40660000, 0, "Med kirov", 0, MOD_FM, BK4819_FILTER_BW_WIDE},
+    (VFO){14550000, 0, "", 0, MOD_FM, BK4819_FILTER_BW_WIDE},
+    (VFO){43307500, 0, "", 0, MOD_FM, BK4819_FILTER_BW_WIDE},
 };
 
 static Preset defaultPresets[] = {

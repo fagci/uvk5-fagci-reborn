@@ -70,10 +70,37 @@ static void ST7565_FillScreen(uint8_t Value) {
   SPI_ToggleMasterMode(&SPI0->CR, true);
 }
 
+static void fix() {
+  SPI_ToggleMasterMode(&SPI0->CR, false);
+
+  ST7565_WriteByte(0xA2); // bias 9
+
+  ST7565_WriteByte(0xC0); // COM normal
+
+  ST7565_WriteByte(0xA1); // reverse ADC
+
+  ST7565_WriteByte(0xA6); // normal screen
+
+  ST7565_WriteByte(0xA4); // all points normal
+
+  ST7565_WriteByte(0x24); // ???
+
+  ST7565_WriteByte(0x81); //
+  ST7565_WriteByte(31);   // brightness 0 ~ 63
+
+  ST7565_WriteByte(0x40); // start line ?
+  ST7565_WriteByte(0xAF); // display on ?
+
+  SPI_WaitForUndocumentedTxFifoStatusBit();
+
+  SPI_ToggleMasterMode(&SPI0->CR, true);
+}
+
 void ST7565_Blit(void) {
   uint8_t Line;
   uint8_t Column;
 
+  fix();
   SPI_ToggleMasterMode(&SPI0->CR, false);
   ST7565_WriteByte(0x40);
 

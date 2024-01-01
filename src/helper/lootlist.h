@@ -26,12 +26,14 @@ typedef struct {
 void LOOT_BlacklistLast();
 void LOOT_GoodKnownLast();
 Loot *LOOT_Get(uint32_t f);
+Loot *LOOT_AddEx(uint32_t f, bool reuse);
 Loot *LOOT_Add(uint32_t f);
 void LOOT_Remove(uint8_t i);
 void LOOT_Clear();
 void LOOT_Standby();
 uint8_t LOOT_Size();
 Loot *LOOT_Item(uint8_t i);
+void LOOT_UpdateEx(Loot *loot, Loot *msm);
 void LOOT_Update(Loot *msm);
 void LOOT_ReplaceItem(uint8_t i, uint32_t f);
 

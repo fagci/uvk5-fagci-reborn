@@ -45,6 +45,30 @@ static MenuItem menu[] = {
     {"Save", M_SAVE},
 };
 
+static void setInitialSubmenuIndex() {
+  const MenuItem *item = &menu[menuIndex];
+  switch (item->type) {
+  case M_BW:
+    subMenuIndex = gCurrentVFO->bw;
+    break;
+  case M_MODULATION:
+    subMenuIndex = gCurrentVFO->modulation;
+    break;
+  case M_STEP:
+    subMenuIndex = gCurrentPreset->band.step;
+    break;
+  case M_SQ_TYPE:
+    subMenuIndex = gCurrentPreset->band.squelchType;
+    break;
+  case M_SQ:
+    subMenuIndex = gCurrentPreset->band.squelch;
+    break;
+  default:
+    subMenuIndex = 0;
+    break;
+  }
+}
+
 static void accept() {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
@@ -207,6 +231,7 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       isSubMenu = false;
     } else {
       isSubMenu = true;
+      setInitialSubmenuIndex();
     }
     return true;
   case KEY_EXIT:
