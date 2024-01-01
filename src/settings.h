@@ -128,14 +128,15 @@ typedef struct { // 29 bytes
   uint8_t c : 8;
 } __attribute__((packed)) Preset;
 
-#define SETTINGS_OFFSET 0
+#define SETTINGS_OFFSET (0)
 #define SETTINGS_SIZE sizeof(Settings)
 
 #define PRESET_SIZE sizeof(Preset)
 #define CH_SIZE sizeof(CH)
 #define VFO_SIZE sizeof(VFO)
 
-#define PRESETS_OFFSET sizeof(Settings)
+#define VFOS_OFFSET (SETTINGS_OFFSET + SETTINGS_SIZE)
+#define PRESETS_OFFSET (VFOS_OFFSET + VFO_SIZE * 2)
 #define CHANNELS_OFFSET 0x2000
 
 extern Settings gSettings;

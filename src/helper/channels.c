@@ -8,19 +8,19 @@
 #include <string.h>
 
 static uint16_t presetsSizeBytes() {
-  return gSettings.presetsCount * PRESET_SIZE + PRESETS_OFFSET;
+  return gSettings.presetsCount * PRESET_SIZE;
 }
 
 uint16_t CHANNELS_GetCountMax() {
-  return (EEPROM_SIZE - presetsSizeBytes()) / CH_SIZE - 2; // 2 VFO
+  return (EEPROM_SIZE - PRESETS_OFFSET - presetsSizeBytes()) / CH_SIZE;
 }
 
 void CHANNELS_Load(uint16_t num, CH *p) {
-  EEPROM_ReadBuffer(VFOS_OFFSET - (num + 1) * CH_SIZE, p, CH_SIZE);
+  EEPROM_ReadBuffer(CHANNELS_OFFSET - (num + 1) * CH_SIZE, p, CH_SIZE);
 }
 
 void CHANNELS_Save(uint16_t num, CH *p) {
-  EEPROM_WriteBuffer(VFOS_OFFSET - (num + 1) * CH_SIZE, p, CH_SIZE);
+  EEPROM_WriteBuffer(CHANNELS_OFFSET - (num + 1) * CH_SIZE, p, CH_SIZE);
 }
 
 bool CHANNELS_Existing(uint16_t i) {

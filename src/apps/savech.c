@@ -14,7 +14,7 @@
 
 static uint16_t currentChannelIndex = 0;
 static uint16_t chCount = 0;
-static char *tempName = "";
+static char tempName[9] = {0};
 
 static void getChannelName(uint16_t i, char *name) {
   CH ch;
@@ -46,9 +46,9 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     IncDec16(&currentChannelIndex, 0, chCount, 1);
     return true;
   case KEY_MENU:
-    sprintf(tempName, "%lu.%lu", gCurrentVFO->fRX / 100000,
-            gCurrentVFO->fRX % 100000);
     gTextinputText = tempName;
+    snprintf(gTextinputText, 9, "%lu.%lu", gCurrentVFO->fRX / 100000,
+             gCurrentVFO->fRX % 100000);
     gTextInputSize = 9;
     gTextInputCallback = saveNamed;
     APPS_run(APP_TEXTINPUT);

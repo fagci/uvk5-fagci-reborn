@@ -253,11 +253,10 @@ static void render2VFOPart(uint8_t i) {
     }
   }
 
-  if (gCurrentVFO->isMrMode) {
+  if (vfo->isMrMode) {
     PrintMediumBoldEx(LCD_WIDTH / 2, bl - 8, POS_C, C_FILL, gVFONames[i]);
     PrintMediumEx(LCD_WIDTH / 2, bl, POS_C, C_FILL, "%4u.%03u", fp1, fp2);
-    PrintSmallEx(14, bl - 8, POS_C, C_INVERT, "MR %03u",
-                 gCurrentVFO->channel + 1);
+    PrintSmallEx(14, bl - 8, POS_C, C_INVERT, "MR %03u", vfo->channel + 1);
   } else {
     PrintBigDigitsEx(LCD_WIDTH - 19, bl, POS_R, C_FILL, "%4u.%03u", fp1, fp2);
     PrintMediumBoldEx(LCD_WIDTH - 1, bl, POS_R, C_FILL, "%02u", fp3);
@@ -292,12 +291,12 @@ static void render2VFO() {
 static void render1VFO() {
   const uint8_t BASE = 38;
 
-  VFO *ch = &gVFO[gSettings.activeVFO];
-  Preset *p = PRESET_ByFrequency(ch->fRX);
+  VFO *vfo = &gVFO[gSettings.activeVFO];
+  Preset *p = PRESET_ByFrequency(vfo->fRX);
 
-  uint16_t fp1 = ch->fRX / 100000;
-  uint16_t fp2 = ch->fRX / 10 % 10000;
-  uint8_t fp3 = ch->fRX % 100;
+  uint16_t fp1 = vfo->fRX / 100000;
+  uint16_t fp2 = vfo->fRX / 10 % 10000;
+  uint8_t fp3 = vfo->fRX % 100;
   const char *mod = modulationTypeOptions[p->band.modulation];
 
   PrintBiggestDigitsEx(LCD_WIDTH - 19, BASE, POS_R, C_FILL, "%4u.%03u", fp1,

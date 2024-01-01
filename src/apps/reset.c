@@ -20,8 +20,20 @@ static uint8_t buf[8];
 static uint16_t bytesWrote = 0;
 
 static VFO defaultVFOs[2] = {
-    (VFO){14550000},
-    (VFO){43307500},
+    (VFO){
+        .fRX = 14550000,
+        .channel = 0,
+        .isMrMode = false,
+        .bw = BK4819_FILTER_BW_WIDE,
+        .modulation = MOD_FM,
+    },
+    (VFO){
+        .fRX = 43307500,
+        .channel = 0,
+        .isMrMode = false,
+        .bw = BK4819_FILTER_BW_WIDE,
+        .modulation = MOD_FM,
+    },
 };
 
 static Preset defaultPresets[] = {
@@ -449,6 +461,7 @@ static Preset defaultPresets[] = {
 
 void RESET_Init() {
   presetsWrote = 0;
+  vfosWrote = 0;
   bytesWrote = 0;
   settingsWrote = false;
   memset(buf, 0xFF, sizeof(buf));
