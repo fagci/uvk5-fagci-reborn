@@ -110,14 +110,7 @@ static void nextFreq(bool next) {
   int8_t dir = next ? 1 : -1;
 
   if (gCurrentVFO->isMrMode) {
-    int16_t idx = CHANNELS_Next(gCurrentVFO->channel, next);
-    if (idx > -1) {
-      CH ch;
-      gCurrentVFO->channel = idx;
-      CHANNELS_Load(gCurrentVFO->channel, &ch);
-      CH2VFO(&ch, gCurrentVFO);
-      strncpy(gVFONames[gSettings.activeVFO], ch.name, 9);
-    }
+    RADIO_NextCH(next);
     return;
   }
 
@@ -139,21 +132,7 @@ static void toggleVfoMR() {
     gCurrentVFO->isMrMode = false;
     return;
   }
-  CH ch;
-  int16_t i = gCurrentVFO->channel;
-  CHANNELS_Load(gCurrentVFO->channel, &ch);
-  if (!IsReadable(ch.name)) {
-    i = CHANNELS_Next(gCurrentVFO->channel, true);
-    if (i > -1) {
-      gCurrentVFO->channel = i;
-      CHANNELS_Load(gCurrentVFO->channel, &ch);
-    }
-  }
-  if (IsReadable(ch.name)) {
-    CH2VFO(&ch, gCurrentVFO);
-    strncpy(gVFONames[gSettings.activeVFO], ch.name, 9);
-    gCurrentVFO->isMrMode = true;
-  }
+  RADIO_NextCH(true);
 }
 
 bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {

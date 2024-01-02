@@ -40,5 +40,6 @@ void RADIO_SetGain(uint8_t gainIndex);
 void RADIO_SetupByCurrentVFO();
 void RADIO_SetupBandParams(Band *b);
 void RADIO_EnableToneDetection();
+void RADIO_NextCH(bool next);
 
 #endif /* end of include guard: RADIO_H */

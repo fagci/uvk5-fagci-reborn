@@ -7,6 +7,7 @@
 #include "driver/system.h"
 #include "driver/uart.h"
 #include "external/printf/printf.h"
+#include "helper/adapter.h"
 #include "helper/channels.h"
 #include "helper/presetlist.h"
 #include "helper/vfos.h"
@@ -223,4 +224,40 @@ void RADIO_EnableToneDetection() {
   BK4819_WriteRegister(BK4819_REG_3F, BK4819_REG_3F_CxCSS_TAIL |
                                           BK4819_REG_3F_SQUELCH_LOST |
                                           BK4819_REG_3F_SQUELCH_FOUND);
+}
+
+void RADIO_VfoLoadCH() {
+  CH ch;
+  CHANNELS_Load(gCurrentVFO->channel, &ch);
+  CH2VFO(&ch, gCurrentVFO);
+  strncpy(gVFONames[gSettings.activeVFO], ch.name, 9);
+  gCurrentVFO->isMrMode = true;
+}
+
+void RADIO_NextCH(bool next) {
+  int16_t i;
+  if (gCurrentVFO->isMrMode) {
+    i = CHANNELS_Next(gCurrentVFO->channel, next);
+    if (i > -1) {
+      gCurrentVFO->channel = i;
+      RADIO_VfoLoadCH();
+    }
+  } else {
+    CH ch;
+    i = gCurrentVFO->channel;
+
+    if (!CHANNELS_Existing(gCurrentVFO->channel)) {
+      i = CHANNELS_Next(gCurrentVFO->channel, true);
+      if (i == -1) {
+        return;
+      }
+    }
+
+    gCurrentVFO->channel = i;
+    CHANNELS_Load(gCurrentVFO->channel, &ch);
+    CH2VFO(&ch, gCurrentVFO);
+    strncpy(gVFONames[gSettings.activeVFO], ch.name, 9);
+    gCurrentVFO->isMrMode = true;
+    VFOS_Save(gSettings.activeVFO, gCurrentVFO);
+  }
 }
