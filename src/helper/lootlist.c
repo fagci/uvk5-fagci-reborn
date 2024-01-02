@@ -118,17 +118,21 @@ void LOOT_Sort(bool (*compare)(Loot *a, Loot *b), bool reverse) {
 
 Loot *LOOT_Item(uint8_t i) { return &loot[i]; }
 
+void LOOT_Replace(Loot *loot, uint32_t f) {
+  loot->f = f;
+  loot->firstTime = elapsedMilliseconds;
+  loot->lastTimeCheck = elapsedMilliseconds;
+  loot->lastTimeOpen = elapsedMilliseconds;
+  loot->duration = 0;
+  loot->rssi = 0;
+  loot->noise = 65535;
+  loot->ct = 0xFF;
+  loot->cd = 0xFF;
+}
+
 void LOOT_ReplaceItem(uint8_t i, uint32_t f) {
   Loot *item = LOOT_Item(i);
-  item->f = f;
-  item->firstTime = elapsedMilliseconds;
-  item->lastTimeCheck = elapsedMilliseconds;
-  item->lastTimeOpen = elapsedMilliseconds;
-  item->duration = 0;
-  item->rssi = 0;
-  item->noise = 65535;
-  item->ct = 0xFF;
-  item->cd = 0xFF;
+  LOOT_Replace(item, f);
 }
 
 void LOOT_UpdateEx(Loot *loot, Loot *msm) {

@@ -39,7 +39,7 @@ bool gRxIdleMode;
 const uint8_t DTMF_COEFFS[] = {111, 107, 103, 98, 80,  71,  58,  44,
                                65,  55,  37,  23, 228, 203, 181, 159};
 
-const uint8_t SQ[2][6][11] = {
+/* const uint8_t SQ[2][6][11] = {
     {
         {0, 10, 62, 66, 74, 75, 92, 95, 98, 170, 252},
         {0, 5, 60, 64, 72, 70, 89, 92, 95, 166, 250},
@@ -55,7 +55,26 @@ const uint8_t SQ[2][6][11] = {
         {255, 70, 59, 54, 46, 45, 37, 34, 25, 27, 25},
         {255, 90, 150, 140, 120, 10, 8, 7, 6, 32, 32},
         {255, 100, 135, 135, 116, 15, 12, 11, 10, 30, 30},
-    }};
+    }}; */
+
+const uint8_t SQ[2][6][11] = {
+    {
+        {0, 10, 44, 52, 58, 66, 72, 80, 88, 94, 102},
+        {0, 5, 38, 46, 54, 62, 68, 76, 84, 92, 100},
+        {255, 90, 53, 48, 44, 40, 36, 32, 28, 24, 20},
+        {255, 100, 56, 52, 47, 43, 39, 35, 31, 27, 23},
+        {255, 90, 32, 24, 20, 17, 14, 11, 8, 3, 2},
+        {255, 100, 30, 21, 17, 14, 11, 8, 5, 5, 4},
+    },
+    {
+        {0, 36, 77, 82, 88, 94, 100, 106, 112, 118, 123},
+        {0, 40, 70, 76, 82, 88, 94, 102, 108, 114, 120},
+        {255, 65, 58, 52, 46, 41, 37, 33, 28, 24, 22},
+        {255, 70, 65, 57, 51, 45, 41, 37, 32, 28, 25},
+        {255, 90, 32, 23, 18, 15, 10, 9, 8, 7, 4},
+        {255, 100, 60, 45, 30, 20, 15, 13, 12, 11, 8},
+    },
+};
 
 const uint16_t BWRegValues[3] = {0x3028, 0x4048, 0x0018};
 
@@ -181,7 +200,6 @@ void BK4819_Init(void) {
   gBK4819_GpioOutState = 0x9000;
   BK4819_WriteRegister(BK4819_REG_33, 0x9000);
   BK4819_WriteRegister(BK4819_REG_3F, 0);
-
 }
 
 void BK4819_WriteU8(uint8_t Data) {
@@ -434,7 +452,7 @@ void BK4819_SetupSquelch(uint8_t SquelchOpenRSSIThresh,
                          uint8_t SquelchOpenGlitchThresh) {
   BK4819_WriteRegister(BK4819_REG_70, 0);
   BK4819_WriteRegister(BK4819_REG_4D, 0xA000 | SquelchCloseGlitchThresh);
-  BK4819_WriteRegister(BK4819_REG_4E, SquelchOpenGlitchThresh);
+  BK4819_WriteRegister(BK4819_REG_4E, 0x6F00 | SquelchOpenGlitchThresh);
   BK4819_WriteRegister(BK4819_REG_4F,
                        (SquelchCloseNoiseThresh << 8) | SquelchOpenNoiseThresh);
   BK4819_WriteRegister(BK4819_REG_78,
@@ -445,8 +463,8 @@ void BK4819_SetupSquelch(uint8_t SquelchOpenRSSIThresh,
 
 void BK4819_Squelch(uint8_t sql, uint32_t f) {
   uint8_t band = f > VHF_UHF_BOUND ? 1 : 0;
-  BK4819_SetupSquelch(SQ[band][sql][0], SQ[band][sql][1], SQ[band][sql][2],
-                      SQ[band][sql][3], SQ[band][sql][4], SQ[band][sql][5]);
+  BK4819_SetupSquelch(SQ[band][0][sql], SQ[band][1][sql], SQ[band][2][sql],
+                      SQ[band][3][sql], SQ[band][4][sql], SQ[band][5][sql]);
 }
 
 void BK4819_SquelchType(SquelchType t) {

@@ -35,6 +35,7 @@ uint8_t LOOT_Size();
 Loot *LOOT_Item(uint8_t i);
 void LOOT_UpdateEx(Loot *loot, Loot *msm);
 void LOOT_Update(Loot *msm);
+void LOOT_Replace(Loot *loot, uint32_t f);
 void LOOT_ReplaceItem(uint8_t i, uint32_t f);
 
 void LOOT_Sort(bool (*compare)(Loot *a, Loot *b), bool reverse);

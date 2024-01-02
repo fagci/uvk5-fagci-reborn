@@ -25,23 +25,25 @@ static bool repeatHeld = false;
 static Loot *loot;
 
 static void handleInt(uint16_t intStatus) {
-  if (intStatus & BK4819_REG_02_SQUELCH_LOST) {
-    msm.open = true;
-  }
   if (intStatus & BK4819_REG_02_SQUELCH_FOUND) {
     msm.open = false;
     lastClose = elapsedMilliseconds;
+  }
+  if (intStatus & BK4819_REG_02_SQUELCH_LOST) {
+    msm.open = true;
   }
   if (intStatus & BK4819_REG_02_CxCSS_TAIL) {
     msm.open = false;
     lastClose = elapsedMilliseconds;
   }
+  UART_flush();
 }
 
 static void update() {
   msm.f = gCurrentVFO->fRX;
   msm.rssi = BK4819_GetRSSI();
   msm.noise = BK4819_GetNoise();
+
   if (gMonitorMode) {
     msm.open = true;
   } else {
@@ -52,7 +54,7 @@ static void update() {
   }
 
   if (msm.f != loot->f) {
-    LOOT_ReplaceItem(gSettings.activeVFO, msm.f);
+    LOOT_Replace(loot, msm.f);
   }
 
   RADIO_ToggleRX(msm.open);
@@ -84,8 +86,8 @@ void VFO_init() {
 
   RADIO_SetupByCurrentVFO(); // TODO: reread from EEPROM not needed maybe
 
-  TaskAdd("Update still", update, 10, true);
-  TaskAdd("Redraw still", render, 1000, true);
+  TaskAdd("Update VFO", update, 10, true);
+  TaskAdd("Redraw VFO", render, 1000, true);
   loot = LOOT_Item(gSettings.activeVFO);
   gRedrawScreen = true;
 }
@@ -99,12 +101,6 @@ void VFO_deinit() {
 }
 
 void VFO_update() {}
-
-VFO *NextVFO(bool next) {
-  gSettings.activeVFO = !gSettings.activeVFO;
-  loot = LOOT_Item(gSettings.activeVFO);
-  return &gVFO[gSettings.activeVFO];
-}
 
 static void nextFreq(bool next) {
   int8_t dir = next ? 1 : -1;
@@ -125,14 +121,6 @@ static void nextFreq(bool next) {
   }
   RADIO_TuneTo(gCurrentVFO->fRX +
                StepFrequencyTable[nextPreset->band.step] * dir);
-}
-
-static void toggleVfoMR() {
-  if (gCurrentVFO->isMrMode) {
-    gCurrentVFO->isMrMode = false;
-    return;
-  }
-  RADIO_NextCH(true);
 }
 
 bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
@@ -159,15 +147,15 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     repeatHeld = true;
     switch (key) {
     case KEY_2:
-      gCurrentVFO = NextVFO(true);
-      RADIO_SetupByCurrentVFO();
       LOOT_Standby();
+      RADIO_NextVFO(true);
       msm.f = gCurrentVFO->fRX;
+      loot = LOOT_Item(gSettings.activeVFO);
       return true;
     case KEY_EXIT:
       return true;
     case KEY_3:
-      toggleVfoMR();
+      RADIO_ToggleVfoMR();
       return true;
     case KEY_1:
       RADIO_UpdateStep(true);
@@ -229,7 +217,7 @@ static void render2VFOPart(uint8_t i) {
 
   VFO *vfo = &gVFO[i];
   Preset *p = PRESET_ByFrequency(vfo->fRX);
-  const bool isActive = gCurrentVFO == vfo;
+  const bool isActive = gSettings.activeVFO == i;
 
   const uint16_t fp1 = vfo->fRX / 100000;
   const uint16_t fp2 = vfo->fRX / 100 % 1000;

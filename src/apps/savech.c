@@ -47,7 +47,7 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_MENU:
     gTextinputText = tempName;
-    snprintf(gTextinputText, 9, "%lu.%lu", gCurrentVFO->fRX / 100000,
+    snprintf(gTextinputText, 9, "%lu.%05lu", gCurrentVFO->fRX / 100000,
              gCurrentVFO->fRX % 100000);
     gTextInputSize = 9;
     gTextInputCallback = saveNamed;

@@ -35,31 +35,25 @@ int16_t CHANNELS_Next(int16_t base, bool next) {
   uint16_t max = CHANNELS_GetCountMax();
   IncDecI16(&si, 0, max, next ? 1 : -1);
   int16_t i = si;
-  UART_printf("Next CH (i:%u/%u)\n", i, max);
-  UART_flush();
   if (next) {
     for (; i < max; ++i) {
       if (CHANNELS_Existing(i)) {
-        UART_printf("Existing1 %u\n", i);
         return i;
       }
     }
     for (i = 0; i < base; ++i) {
       if (CHANNELS_Existing(i)) {
-        UART_printf("Existing2 %u\n", i);
         return i;
       }
     }
   } else {
     for (; i >= 0; --i) {
       if (CHANNELS_Existing(i)) {
-        UART_printf("Existing3 %u\n", i);
         return i;
       }
     }
     for (i = max - 1; i > base; --i) {
       if (CHANNELS_Existing(i)) {
-        UART_printf("Existing4 %u\n", i);
         return i;
       }
     }

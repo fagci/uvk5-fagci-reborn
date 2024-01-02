@@ -76,8 +76,9 @@ void RADIO_SetupRegisters() {
   BK4819_DisableVox();
   BK4819_DisableDTMF();
 
-  BK4819_WriteRegister(BK4819_REG_3F, BK4819_REG_3F_SQUELCH_FOUND |
-                                          BK4819_REG_3F_SQUELCH_LOST);
+  BK4819_WriteRegister(BK4819_REG_3F, 0);
+  /* BK4819_WriteRegister(BK4819_REG_3F, BK4819_REG_3F_SQUELCH_FOUND |
+                                          BK4819_REG_3F_SQUELCH_LOST); */
   BK4819_WriteRegister(0x40, (BK4819_ReadRegister(0x40) & ~(0b11111111111)) |
                                  0b10110101010);
 }
@@ -176,9 +177,22 @@ void RADIO_TuneToSave(uint32_t f) {
 
 void RADIO_SaveCurrentVFO() { VFOS_Save(gSettings.activeVFO, gCurrentVFO); }
 
+static void RADIO_VfoLoadCH(uint8_t i) {
+  CH ch;
+  CHANNELS_Load(gVFO[i].channel, &ch);
+  CH2VFO(&ch, &gVFO[i]);
+  strncpy(gVFONames[i], ch.name, 9);
+  gVFO[i].isMrMode = true;
+}
+
 void RADIO_LoadCurrentVFO() {
-  VFOS_Load(0, &gVFO[0]);
-  VFOS_Load(1, &gVFO[1]);
+  for (uint8_t i = 0; i < 2; ++i) {
+    VFOS_Load(i, &gVFO[i]);
+    if (gVFO[i].isMrMode) {
+      RADIO_VfoLoadCH(i);
+    }
+  }
+
   gCurrentVFO = &gVFO[gSettings.activeVFO];
   PRESET_SelectByFrequency(gCurrentVFO->fRX);
 }
@@ -226,21 +240,13 @@ void RADIO_EnableToneDetection() {
                                           BK4819_REG_3F_SQUELCH_FOUND);
 }
 
-void RADIO_VfoLoadCH() {
-  CH ch;
-  CHANNELS_Load(gCurrentVFO->channel, &ch);
-  CH2VFO(&ch, gCurrentVFO);
-  strncpy(gVFONames[gSettings.activeVFO], ch.name, 9);
-  gCurrentVFO->isMrMode = true;
-}
-
 void RADIO_NextCH(bool next) {
   int16_t i;
   if (gCurrentVFO->isMrMode) {
     i = CHANNELS_Next(gCurrentVFO->channel, next);
     if (i > -1) {
       gCurrentVFO->channel = i;
-      RADIO_VfoLoadCH();
+      RADIO_VfoLoadCH(gSettings.activeVFO);
     }
   } else {
     CH ch;
@@ -260,4 +266,20 @@ void RADIO_NextCH(bool next) {
     gCurrentVFO->isMrMode = true;
     VFOS_Save(gSettings.activeVFO, gCurrentVFO);
   }
+}
+
+void RADIO_NextVFO(bool next) {
+  gSettings.activeVFO = !gSettings.activeVFO;
+  gCurrentVFO = &gVFO[gSettings.activeVFO];
+  RADIO_SetupByCurrentVFO();
+  SETTINGS_Save();
+}
+
+void RADIO_ToggleVfoMR() {
+  if (gCurrentVFO->isMrMode) {
+    gCurrentVFO->isMrMode = false;
+  } else {
+    RADIO_NextCH(true);
+  }
+  RADIO_SaveCurrentVFO();
 }

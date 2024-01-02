@@ -137,17 +137,16 @@ static void showSubmenu(Menu menuType) {
   const MenuItem *item = &menu[menuIndex];
   switch (menuType) {
   case M_UPCONVERTER:
-    UI_ShowMenu(getUCTypeText, ARRAY_SIZE(upConverterFreqNames), subMenuIndex);
+    UI_ShowMenu(getUCTypeText, item->size, subMenuIndex);
     break;
   case M_MAIN_APP:
-    UI_ShowMenu(getMainAppText, ARRAY_SIZE(apps), subMenuIndex);
+    UI_ShowMenu(getMainAppText, item->size, subMenuIndex);
     break;
   case M_BL_TIME:
-    UI_ShowMenu(getBacklightTimeText, ARRAY_SIZE(BL_TIME_NAMES), subMenuIndex);
+    UI_ShowMenu(getBacklightTimeText, item->size, subMenuIndex);
     break;
   case M_BL_SQL:
-    UI_ShowMenu(getBacklightSQLModeText, ARRAY_SIZE(BL_SQL_MODE_NAMES),
-                subMenuIndex);
+    UI_ShowMenu(getBacklightSQLModeText, item->size, subMenuIndex);
     break;
   case M_BRIGHTNESS:
     UI_ShowMenu(getBrightnessLevelText, item->size, subMenuIndex);
@@ -179,6 +178,7 @@ static void onSubChange() {
 
 static void setInitialSubmenuIndex() {
   const MenuItem *item = &menu[menuIndex];
+  uint8_t i = 0;
   switch (item->type) {
   case M_BRIGHTNESS:
     subMenuIndex = gSettings.brightness;
@@ -196,7 +196,12 @@ static void setInitialSubmenuIndex() {
     subMenuIndex = gSettings.beep;
     break;
   case M_MAIN_APP:
-    subMenuIndex = gSettings.mainApp;
+    for (i = 0; i < ARRAY_SIZE(appsAvailableToRun); ++i) {
+      if (appsAvailableToRun[i] == gSettings.mainApp) {
+        subMenuIndex = i;
+        break;
+      }
+    }
     break;
   default:
     subMenuIndex = 0;
