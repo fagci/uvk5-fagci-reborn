@@ -11,14 +11,14 @@ static const uint8_t MENU_ITEM_H = 11;
 static const uint8_t MENU_LINES_TO_SHOW = 4;
 
 void UI_Battery(uint8_t Level) {
-  DrawRect(0, 1, 12, 5, C_FILL);
-  FillRect(1, 2, ConvertDomain(Level, 0, 5, 0, 10), 3, C_FILL);
-  DrawVLine(12, 2, 3, C_FILL);
+  DrawRect(0, 0, 12, 5, C_FILL);
+  FillRect(1, 1, ConvertDomain(Level, 0, 5, 0, 10), 3, C_FILL);
+  DrawVLine(12, 1, 3, C_FILL);
 
   if (Level > 5) {
-    DrawHLine(5, 2, 5, C_INVERT);
-    PutPixel(6, 3, C_INVERT);
-    DrawHLine(2, 4, 6, C_INVERT);
+    DrawHLine(5, 1, 5, C_INVERT);
+    PutPixel(6, 2, C_INVERT);
+    DrawHLine(2, 3, 6, C_INVERT);
   }
 }
 

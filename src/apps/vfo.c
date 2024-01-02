@@ -1,5 +1,6 @@
 #include "vfo.h"
 #include "../dcs.h"
+#include "../driver/uart.h"
 #include "../helper/adapter.h"
 #include "../helper/channels.h"
 #include "../helper/lootlist.h"
@@ -112,9 +113,10 @@ static void nextFreq(bool next) {
     int16_t idx = CHANNELS_Next(gCurrentVFO->channel, next);
     if (idx > -1) {
       CH ch;
-      CHANNELS_Load(idx, &ch);
-      CH2VFO(&ch, gCurrentVFO);
       gCurrentVFO->channel = idx;
+      CHANNELS_Load(gCurrentVFO->channel, &ch);
+      CH2VFO(&ch, gCurrentVFO);
+      strncpy(gVFONames[gSettings.activeVFO], ch.name, 9);
     }
     return;
   }
@@ -137,11 +139,21 @@ static void toggleVfoMR() {
     gCurrentVFO->isMrMode = false;
     return;
   }
-  gCurrentVFO->isMrMode = true;
   CH ch;
+  int16_t i = gCurrentVFO->channel;
   CHANNELS_Load(gCurrentVFO->channel, &ch);
-  CH2VFO(&ch, gCurrentVFO);
-  strncpy(gVFONames[gSettings.activeVFO], ch.name, 9);
+  if (!IsReadable(ch.name)) {
+    i = CHANNELS_Next(gCurrentVFO->channel, true);
+    if (i > -1) {
+      gCurrentVFO->channel = i;
+      CHANNELS_Load(gCurrentVFO->channel, &ch);
+    }
+  }
+  if (IsReadable(ch.name)) {
+    CH2VFO(&ch, gCurrentVFO);
+    strncpy(gVFONames[gSettings.activeVFO], ch.name, 9);
+    gCurrentVFO->isMrMode = true;
+  }
 }
 
 bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
@@ -233,8 +245,8 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 static void render2VFOPart(uint8_t i) {
-  const uint8_t BASE = 21;
-  const uint8_t bl = BASE + 32 * i;
+  const uint8_t BASE = 22;
+  const uint8_t bl = BASE + 34 * i;
 
   VFO *vfo = &gVFO[i];
   Preset *p = PRESET_ByFrequency(vfo->fRX);
@@ -246,23 +258,23 @@ static void render2VFOPart(uint8_t i) {
   const char *mod = modulationTypeOptions[p->band.modulation];
 
   if (isActive) {
-    FillRect(0, bl - 13, 28, 7, C_FILL);
+    FillRect(0, bl - 14, 28, 7, C_FILL);
     if (msm.open) {
       PrintMediumEx(0, bl, POS_L, C_INVERT, "RX");
-      UI_RSSIBar(msm.rssi, msm.f, 32);
+      UI_RSSIBar(msm.rssi, msm.f, 31);
     }
   }
 
   if (vfo->isMrMode) {
     PrintMediumBoldEx(LCD_WIDTH / 2, bl - 8, POS_C, C_FILL, gVFONames[i]);
     PrintMediumEx(LCD_WIDTH / 2, bl, POS_C, C_FILL, "%4u.%03u", fp1, fp2);
-    PrintSmallEx(14, bl - 8, POS_C, C_INVERT, "MR %03u", vfo->channel + 1);
+    PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "MR %03u", vfo->channel + 1);
   } else {
     PrintBigDigitsEx(LCD_WIDTH - 19, bl, POS_R, C_FILL, "%4u.%03u", fp1, fp2);
     PrintMediumBoldEx(LCD_WIDTH - 1, bl, POS_R, C_FILL, "%02u", fp3);
-    PrintSmallEx(14, bl - 8, POS_C, C_INVERT, "VFO");
+    PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "VFO");
   }
-  PrintSmallEx(LCD_WIDTH - 1, bl - 8, POS_R, C_FILL, mod);
+  PrintSmallEx(LCD_WIDTH - 1, bl - 9, POS_R, C_FILL, mod);
 
   Loot *stats = LOOT_Item(i);
   uint32_t est = stats->lastTimeOpen

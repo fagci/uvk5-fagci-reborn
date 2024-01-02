@@ -119,4 +119,12 @@ void IncDec16(uint16_t *val, uint16_t min, uint16_t max, int16_t inc) {
   }
 }
 
+void IncDecI16(int16_t *val, int16_t min, int16_t max, int16_t inc) {
+  if (inc > 0) {
+    *val = *val == max - inc ? min : *val + inc;
+  } else {
+    *val = *val > min ? *val + inc : max + inc;
+  }
+}
+
 bool IsReadable(char *name) { return name[0] >= 32 && name[0] < 127; }

@@ -58,19 +58,21 @@ void STATUSLINE_update() {
 void STATUSLINE_render() {
   UI_ClearStatus();
 
-  DrawHLine(0, 7, LCD_WIDTH, C_FILL);
+  const uint8_t BASE_Y = 4;
+
+  DrawHLine(0, 6, LCD_WIDTH, C_FILL);
 
   if (showBattery) {
     UI_Battery(gBatteryDisplayLevel);
   }
 
   if (gSettings.upconverter) {
-    FillRect(LCD_WIDTH - 45, 2, 6, 4, C_FILL);
-    DrawVLine(LCD_WIDTH - 44, 0, 2, C_FILL);
-    DrawVLine(LCD_WIDTH - 41, 1, 1, C_FILL);
+    FillRect(LCD_WIDTH - 45, BASE_Y - 2, 6, 3, C_FILL);
+    DrawVLine(LCD_WIDTH - 44, BASE_Y - 4, 2, C_FILL);
+    PutPixel(LCD_WIDTH - 41, BASE_Y - 3, C_FILL);
   }
 
-  PrintSmallEx(LCD_WIDTH - 1, 5, POS_R, C_FILL,
+  PrintSmallEx(LCD_WIDTH - 1, BASE_Y, POS_R, C_FILL,
                "%c%c%c",                 //
                gMonitorMode ? 'M' : ' ', // monitor mode
                gEepromRead ? 'R' : ' ',  // eeprom r
@@ -78,8 +80,11 @@ void STATUSLINE_render() {
   );
 
   if (UART_IsLogEnabled) {
-    PrintSmall(BATTERY_W + 1, 5, statuslineText, "D:%u", UART_IsLogEnabled);
+    PrintSmall(BATTERY_W + 1, BASE_Y, statuslineText, "D:%u",
+               UART_IsLogEnabled);
   } else if (statuslineText[0] >= 32) {
-    PrintSmall(BATTERY_W + 1, 5, statuslineText);
+    PrintSmall(BATTERY_W + 1, BASE_Y, statuslineText);
   }
+
+  // FillRect(0, 0, LCD_WIDTH, 7, C_INVERT);
 }

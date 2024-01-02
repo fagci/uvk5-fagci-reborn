@@ -8,7 +8,7 @@
 
 extern VFO *gCurrentVFO;
 extern VFO gVFO[2];
-extern char *gVFONames[2];
+extern char gVFONames[2][10];
 
 extern const char *upConverterFreqNames[3];
 extern bool gIsListening;

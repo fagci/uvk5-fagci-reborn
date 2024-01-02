@@ -24,38 +24,42 @@ void CHANNELS_Save(uint16_t num, CH *p) {
 }
 
 bool CHANNELS_Existing(uint16_t i) {
-  CH v;
-  uint16_t addr = CHANNELS_OFFSET - ((i + 3) * CH_SIZE);
-  EEPROM_ReadBuffer(addr, &v, 4 + 4 + 1);
-  return IsReadable(v.name);
+  char name[2] = {0};
+  uint16_t addr = CHANNELS_OFFSET - ((i + 1) * CH_SIZE) + 4 + 4;
+  EEPROM_ReadBuffer(addr, name, 1);
+  return IsReadable(name);
 }
 
 int16_t CHANNELS_Next(int16_t base, bool next) {
-  uint16_t si = base;
+  int16_t si = base;
   uint16_t max = CHANNELS_GetCountMax();
-  IncDec16(&si, 0, max, next ? 1 : -1);
+  IncDecI16(&si, 0, max, next ? 1 : -1);
   int16_t i = si;
   UART_printf("Next CH (i:%u/%u)\n", i, max);
   UART_flush();
   if (next) {
     for (; i < max; ++i) {
       if (CHANNELS_Existing(i)) {
+        UART_printf("Existing1 %u\n", i);
         return i;
       }
     }
     for (i = 0; i < base; ++i) {
       if (CHANNELS_Existing(i)) {
+        UART_printf("Existing2 %u\n", i);
         return i;
       }
     }
   } else {
     for (; i >= 0; --i) {
       if (CHANNELS_Existing(i)) {
+        UART_printf("Existing3 %u\n", i);
         return i;
       }
     }
     for (i = max - 1; i > base; --i) {
       if (CHANNELS_Existing(i)) {
+        UART_printf("Existing4 %u\n", i);
         return i;
       }
     }

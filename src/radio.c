@@ -17,10 +17,7 @@
 
 VFO *gCurrentVFO;
 VFO gVFO[2] = {0};
-char *gVFONames[2] = {
-    "VFO 1",
-    "VFO 2",
-};
+char gVFONames[2][10] = {0};
 
 bool gIsListening = false;
 bool gMonitorMode = false;
