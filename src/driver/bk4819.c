@@ -452,7 +452,11 @@ void BK4819_SetupSquelch(uint8_t SquelchOpenRSSIThresh,
                          uint8_t SquelchOpenGlitchThresh) {
   BK4819_WriteRegister(BK4819_REG_70, 0);
   BK4819_WriteRegister(BK4819_REG_4D, 0xA000 | SquelchCloseGlitchThresh);
-  BK4819_WriteRegister(BK4819_REG_4E, 0x6F00 | SquelchOpenGlitchThresh);
+  BK4819_WriteRegister(BK4819_REG_4E,
+                       (1u << 14) |     //  1 ???
+                           (0u << 11) | // *5  squelch = open  delay .. 0 ~ 7
+                           (0u << 9) |  // *3  squelch = close delay .. 0 ~ 3
+                           SquelchOpenGlitchThresh);
   BK4819_WriteRegister(BK4819_REG_4F,
                        (SquelchCloseNoiseThresh << 8) | SquelchOpenNoiseThresh);
   BK4819_WriteRegister(BK4819_REG_78,
@@ -463,6 +467,8 @@ void BK4819_SetupSquelch(uint8_t SquelchOpenRSSIThresh,
 
 void BK4819_Squelch(uint8_t sql, uint32_t f) {
   uint8_t band = f > VHF_UHF_BOUND ? 1 : 0;
+  UART_printf("SQL %u band %u\n", sql, band);
+  UART_flush();
   BK4819_SetupSquelch(SQ[band][0][sql], SQ[band][1][sql], SQ[band][2][sql],
                       SQ[band][3][sql], SQ[band][4][sql], SQ[band][5][sql]);
 }

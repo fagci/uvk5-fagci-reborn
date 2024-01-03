@@ -40,7 +40,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {1500000, 2999500},
+                .bounds = {1500000, 2999999},
                 .name = "15-30",
                 .step = STEP_5_0kHz,
                 .modulation = MOD_AM,
@@ -54,7 +54,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {3000000, 7199500},
+                .bounds = {3000000, 7199999},
                 .name = "30-72",
                 .step = STEP_5_0kHz,
                 .modulation = MOD_FM,
@@ -68,7 +68,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {7200000, 8797500},
+                .bounds = {7200000, 8799999},
                 .name = "72-88",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -82,7 +82,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {8800000, 10790000},
+                .bounds = {8800000, 10799999},
                 .name = "Bcast FM",
                 .step = STEP_100_0kHz,
                 .modulation = MOD_FM,
@@ -96,7 +96,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {10800000, 11798750},
+                .bounds = {10800000, 11799999},
                 .name = "108-118",
                 .step = STEP_12_5kHz,
                 .modulation = MOD_FM,
@@ -110,7 +110,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {11800000, 13498750},
+                .bounds = {11800000, 13499999},
                 .name = "Air",
                 .step = STEP_12_5kHz,
                 .modulation = MOD_AM,
@@ -124,7 +124,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {13500000, 14398750},
+                .bounds = {13500000, 14399999},
                 .name = "135-144",
                 .step = STEP_12_5kHz,
                 .modulation = MOD_FM,
@@ -138,7 +138,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {14400000, 14797500},
+                .bounds = {14400000, 14799999},
                 .name = "2m HAM",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -152,7 +152,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {14800000, 17397500},
+                .bounds = {14800000, 17399999},
                 .name = "148-174",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -180,7 +180,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {VHF_UHF_BOUND, 34997500},
+                .bounds = {VHF_UHF_BOUND, 34999999},
                 .name = "BOUND-350",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -194,7 +194,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {35000000, 39997500},
+                .bounds = {35000000, 39999999},
                 .name = "350-400",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -208,7 +208,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {40000000, 43305000},
+                .bounds = {40000000, 43307499},
                 .name = "400-433",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -222,7 +222,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {43307500, 43477500},
+                .bounds = {43307500, 43479999},
                 .name = "LPD",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -236,7 +236,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {43480000, 44597500},
+                .bounds = {43480000, 44599999},
                 .name = "434.7-446",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -250,7 +250,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {44600000, 44618750},
+                .bounds = {44600000, 44619999},
                 .name = "PMR",
                 .step = STEP_6_25kHz,
                 .modulation = MOD_FM,
@@ -264,7 +264,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {44620000, 46255000},
+                .bounds = {44620000, 46256249},
                 .name = "446-462",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -278,7 +278,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {46256250, 46272500},
+                .bounds = {46256250, 46273749},
                 .name = "FRS/GM462",
                 .step = STEP_12_5kHz,
                 .modulation = MOD_FM,
@@ -292,7 +292,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {46273750, 46756250},
+                .bounds = {46273750, 46756249},
                 .name = "462-467",
                 .step = STEP_12_5kHz,
                 .modulation = MOD_FM,
@@ -306,7 +306,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {46756250, 46771250},
+                .bounds = {46756250, 46774999},
                 .name = "FRS/GM467",
                 .step = STEP_12_5kHz,
                 .modulation = MOD_FM,
@@ -320,7 +320,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {46775000, 46997500},
+                .bounds = {46775000, 46999999},
                 .name = "468-470",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -334,7 +334,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {47000000, 62997500},
+                .bounds = {47000000, 62999999},
                 .name = "470-630",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -348,7 +348,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {63000000, 83997500},
+                .bounds = {63000000, 83999999},
                 .name = "630-840",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -362,7 +362,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {84000000, 86297500},
+                .bounds = {84000000, 86299999},
                 .name = "840-863",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -376,7 +376,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {86300000, 86987200},
+                .bounds = {86300000, 86999999},
                 .name = "LORA",
                 .step = STEP_125_0kHz,
                 .modulation = MOD_FM,
@@ -390,7 +390,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {87000000, 88997500},
+                .bounds = {87000000, 88999999},
                 .name = "870-890",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -404,7 +404,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {89000000, 95980000},
+                .bounds = {89000000, 95999999},
                 .name = "GSM-900",
                 .step = STEP_200_0kHz,
                 .modulation = MOD_FM,
@@ -418,7 +418,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {96000000, 125997500},
+                .bounds = {96000000, 125999999},
                 .name = "960-1260",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -432,7 +432,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {126000000, 129997500},
+                .bounds = {126000000, 129999999},
                 .name = "23cm HAM",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -492,7 +492,7 @@ void RESET_Update() {
         .dtmfdecode = false,
         .brightness = 8,
         .contrast = 0,
-        .mainApp = APP_STILL,
+        .mainApp = APP_VFO,
         .reserved1 = 0,
         .activeVFO = 0,
         .activePreset = 22,

@@ -4,6 +4,7 @@
 #include "fonts/TomThumb.h"
 #include "fonts/muHeavy8ptBold.h"
 #include "fonts/muMatrix8ptRegular.h"
+#include "fonts/symbols.h"
 #include <stdlib.h>
 
 #ifndef _swap_int16_t
@@ -337,6 +338,14 @@ void PrintBiggestDigitsEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,
   va_list args;
   va_start(args, pattern);
   printString(fontBiggest, x, y, color, posLCR, pattern, args);
+  va_end(args);
+}
+
+void PrintSymbolsEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,
+                          const char *pattern, ...) {
+  va_list args;
+  va_start(args, pattern);
+  printString(&Symbols, x, y, color, posLCR, pattern, args);
   va_end(args);
 }
 

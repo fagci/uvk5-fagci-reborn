@@ -20,7 +20,7 @@ static void getChannelName(uint16_t i, char *name) {
   CH ch;
   CHANNELS_Load(i, &ch);
   if (IsReadable(ch.name)) {
-    strncpy(name, ch.name, 31);
+    strncpy(name, ch.name, 9);
   } else {
     sprintf(name, "CH-%u", i + 1);
   }

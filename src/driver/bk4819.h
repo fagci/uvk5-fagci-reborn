@@ -50,6 +50,7 @@ typedef enum {
   MOD_USB,
   MOD_BYP,
   MOD_RAW,
+  MOD_WFM,
 } ModulationType;
 
 typedef enum {

@@ -1,6 +1,7 @@
 #include "radio.h"
 #include "driver/audio.h"
 #include "driver/backlight.h"
+#include "driver/bk1080.h"
 #include "driver/bk4819.h"
 #include "driver/eeprom.h"
 #include "driver/gpio.h"
@@ -9,6 +10,7 @@
 #include "external/printf/printf.h"
 #include "helper/adapter.h"
 #include "helper/channels.h"
+#include "helper/measurements.h"
 #include "helper/presetlist.h"
 #include "helper/vfos.h"
 #include "inc/dp32g030/gpio.h"
@@ -23,6 +25,8 @@ char gVFONames[2][10] = {0};
 bool gIsListening = false;
 bool gMonitorMode = false;
 
+bool isBK1080 = false;
+
 const uint16_t StepFrequencyTable[14] = {
     1,   10,  50,  100,
 
@@ -32,7 +36,7 @@ const uint16_t StepFrequencyTable[14] = {
 const uint32_t upConverterValues[3] = {0, 5000000, 12500000};
 const char *upConverterFreqNames[3] = {"None", "50M", "125M"};
 
-const char *modulationTypeOptions[5] = {"FM", "AM", "SSB", "BYP", "RAW"};
+const char *modulationTypeOptions[6] = {"FM", "AM", "SSB", "BYP", "RAW", "WFM"};
 const char *vfoStateNames[] = {
     "NORMAL", "BUSY", "BAT LOW", "DISABLE", "TIMEOUT", "ALARM", "VOL HIGH",
 };
@@ -120,22 +124,58 @@ void RADIO_ToggleRX(bool on) {
 
 static void onVfoUpdate() {
   TaskRemove(RADIO_SaveCurrentVFO);
-  TaskAdd("VFO save", RADIO_SaveCurrentVFO, 5000, false);
+  TaskAdd("VFO save", RADIO_SaveCurrentVFO, 2000, false);
 }
 
 static void onPresetUpdate() {
   TaskRemove(PRESETS_SaveCurrent);
-  TaskAdd("Preset save", PRESETS_SaveCurrent, 5000, false);
+  TaskAdd("Preset save", PRESETS_SaveCurrent, 2000, false);
+}
+
+static bool isBK1080Range(uint32_t f) { return f >= 8800000 && f <= 10800000; }
+
+void RADIO_ToggleBK1080(bool on) {
+  if (on == isBK1080) {
+    return;
+  }
+  isBK1080 = on;
+
+  AUDIO_ToggleSpeaker(false);
+  if (isBK1080) {
+    BK4819_Idle();
+    BK1080_Init(gCurrentVFO->fRX, true);
+    BK1080_Mute(false);
+  } else {
+    BK1080_Mute(true);
+    BK1080_Init(0, false);
+    BK4819_RX_TurnOn();
+  }
+  AUDIO_ToggleSpeaker(true);
+  RADIO_SetupByCurrentVFO();
+}
+
+void RADIO_SetModulationByPreset() {
+  ModulationType mod = gCurrentPreset->band.modulation;
+  if (mod == MOD_WFM) {
+    if (isBK1080Range(gCurrentVFO->fRX)) {
+      RADIO_ToggleBK1080(true);
+      return;
+    } else {
+      gCurrentPreset->band.modulation = MOD_FM;
+      RADIO_ToggleBK1080(false);
+    }
+  }
+  BK4819_SetModulation(gCurrentPreset->band.modulation);
+  onPresetUpdate();
 }
 
 void RADIO_ToggleModulation() {
-  if (gCurrentPreset->band.modulation == MOD_RAW) {
+  if (gCurrentPreset->band.modulation == MOD_WFM) {
     gCurrentPreset->band.modulation = MOD_FM;
   } else {
     ++gCurrentPreset->band.modulation;
   }
-  BK4819_SetModulation(gCurrentPreset->band.modulation);
-  onPresetUpdate();
+  RADIO_SetModulationByPreset();
 }
 
 void RADIO_UpdateStep(bool inc) {
@@ -198,7 +238,8 @@ void RADIO_LoadCurrentVFO() {
 }
 
 void RADIO_SetSquelch(uint8_t sq) {
-  BK4819_Squelch(gCurrentPreset->band.squelch = sq, gCurrentVFO->fRX);
+  gCurrentPreset->band.squelch = sq;
+  RADIO_SetupByCurrentVFO(); // TODO: set AF_* to previous instead of just RX ON
   onPresetUpdate();
 }
 
@@ -224,20 +265,23 @@ void RADIO_SetupBandParams(Band *b) {
 void RADIO_SetupByCurrentVFO() {
   PRESET_SelectByFrequency(gCurrentVFO->fRX);
 
-  RADIO_SetupBandParams(&gCurrentPreset->band);
-
   gCurrentVFO->modulation = gCurrentPreset->band.modulation;
   gCurrentVFO->bw = gCurrentPreset->band.bw;
 
-  BK4819_TuneTo(gCurrentVFO->fRX);
+  if (isBK1080) {
+    BK1080_SetFrequency(gCurrentVFO->fRX);
+  } else {
+    RADIO_SetupBandParams(&gCurrentPreset->band);
+    BK4819_TuneTo(gCurrentVFO->fRX);
+  }
 }
 
 void RADIO_EnableToneDetection() {
   BK4819_SetCTCSSFrequency(670);
   BK4819_SetTailDetection(550);
-  BK4819_WriteRegister(BK4819_REG_3F, BK4819_REG_3F_CxCSS_TAIL |
+  BK4819_WriteRegister(BK4819_REG_3F, BK4819_REG_3F_CxCSS_TAIL/*  |
                                           BK4819_REG_3F_SQUELCH_LOST |
-                                          BK4819_REG_3F_SQUELCH_FOUND);
+                                          BK4819_REG_3F_SQUELCH_FOUND */);
 }
 
 void RADIO_NextCH(bool next) {
@@ -264,8 +308,9 @@ void RADIO_NextCH(bool next) {
     CH2VFO(&ch, gCurrentVFO);
     strncpy(gVFONames[gSettings.activeVFO], ch.name, 9);
     gCurrentVFO->isMrMode = true;
-    VFOS_Save(gSettings.activeVFO, gCurrentVFO);
   }
+  onVfoUpdate();
+  RADIO_SetupByCurrentVFO();
 }
 
 void RADIO_NextVFO(bool next) {
@@ -282,4 +327,34 @@ void RADIO_ToggleVfoMR() {
     RADIO_NextCH(true);
   }
   RADIO_SaveCurrentVFO();
+}
+
+void RADIO_UpdateSquelchLevel(bool next) {
+  uint8_t sq = gCurrentPreset->band.squelch;
+  IncDec8(&sq, 0, 9, next ? 1 : -1);
+  RADIO_SetSquelch(sq);
+}
+
+// TODO: бесшовное
+void RADIO_NextFreq(bool next) {
+  int8_t dir = next ? 1 : -1;
+
+  if (gCurrentVFO->isMrMode) {
+    RADIO_NextCH(next);
+    return;
+  }
+
+  Preset *nextPreset = PRESET_ByFrequency(gCurrentVFO->fRX + dir);
+  if (nextPreset != gCurrentPreset && nextPreset != &defaultPreset) {
+    if (next) {
+      RADIO_TuneTo(nextPreset->band.bounds.start);
+    } else {
+      RADIO_TuneTo(nextPreset->band.bounds.end -
+                   nextPreset->band.bounds.end %
+                       StepFrequencyTable[nextPreset->band.step]);
+    }
+  } else {
+    RADIO_TuneTo(gCurrentVFO->fRX +
+                 StepFrequencyTable[nextPreset->band.step] * dir);
+  }
 }

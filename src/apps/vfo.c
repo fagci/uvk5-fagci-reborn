@@ -25,32 +25,24 @@ static bool repeatHeld = false;
 static Loot *loot;
 
 static void handleInt(uint16_t intStatus) {
-  if (intStatus & BK4819_REG_02_SQUELCH_FOUND) {
-    msm.open = false;
-    lastClose = elapsedMilliseconds;
-  }
-  if (intStatus & BK4819_REG_02_SQUELCH_LOST) {
-    msm.open = true;
-  }
   if (intStatus & BK4819_REG_02_CxCSS_TAIL) {
     msm.open = false;
     lastClose = elapsedMilliseconds;
   }
-  UART_flush();
 }
 
 static void update() {
   msm.f = gCurrentVFO->fRX;
   msm.rssi = BK4819_GetRSSI();
   msm.noise = BK4819_GetNoise();
+  msm.open = gMonitorMode || BK4819_IsSquelchOpen();
 
+  BK4819_HandleInterrupts(handleInt);
+  if (elapsedMilliseconds - lastClose < 250) {
+    msm.open = false;
+  }
   if (gMonitorMode) {
     msm.open = true;
-  } else {
-    BK4819_HandleInterrupts(handleInt);
-    if (elapsedMilliseconds - lastClose < 250) {
-      msm.open = false;
-    }
   }
 
   if (msm.f != loot->f) {
@@ -74,7 +66,6 @@ static void render() { gRedrawScreen = true; }
 void VFO_init() {
   repeatHeld = false;
 
-  RADIO_LoadCurrentVFO();
   RADIO_EnableToneDetection();
 
   LOOT_Clear();
@@ -102,27 +93,6 @@ void VFO_deinit() {
 
 void VFO_update() {}
 
-static void nextFreq(bool next) {
-  int8_t dir = next ? 1 : -1;
-
-  if (gCurrentVFO->isMrMode) {
-    RADIO_NextCH(next);
-    return;
-  }
-
-  Preset *nextPreset = PRESET_ByFrequency(gCurrentVFO->fRX + dir);
-  if (nextPreset != gCurrentPreset && nextPreset != &defaultPreset) {
-    if (next) {
-      RADIO_TuneTo(nextPreset->band.bounds.start);
-    } else {
-      RADIO_TuneTo(nextPreset->band.bounds.end);
-    }
-    return;
-  }
-  RADIO_TuneTo(gCurrentVFO->fRX +
-               StepFrequencyTable[nextPreset->band.step] * dir);
-}
-
 bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed) {
     repeatHeld = false;
@@ -132,10 +102,10 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (key) {
     case KEY_UP:
-      nextFreq(true);
+      RADIO_NextFreq(true);
       return true;
     case KEY_DOWN:
-      nextFreq(false);
+      RADIO_NextFreq(false);
       return true;
     default:
       break;

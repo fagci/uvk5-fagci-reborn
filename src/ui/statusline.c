@@ -66,18 +66,28 @@ void STATUSLINE_render() {
     UI_Battery(gBatteryDisplayLevel);
   }
 
-  if (gSettings.upconverter) {
-    FillRect(LCD_WIDTH - 45, BASE_Y - 2, 6, 3, C_FILL);
-    DrawVLine(LCD_WIDTH - 44, BASE_Y - 4, 2, C_FILL);
-    PutPixel(LCD_WIDTH - 41, BASE_Y - 3, C_FILL);
+  char icons[16] = {0};
+  uint8_t idx = 0;
+
+  if (gEepromWrite) {
+    icons[idx++] = SYM_EEPROM_W;
+  } else if (gEepromRead) {
+    icons[idx++] = SYM_EEPROM_R;
   }
 
-  PrintSmallEx(LCD_WIDTH - 1, BASE_Y, POS_R, C_FILL,
-               "%c%c%c",                 //
-               gMonitorMode ? 'M' : ' ', // monitor mode
-               gEepromRead ? 'R' : ' ',  // eeprom r
-               gEepromWrite ? 'W' : ' '  // eeprom w
-  );
+  if (gMonitorMode) {
+    icons[idx++] = SYM_MONITOR;
+  }
+
+  if (isBK1080) {
+    icons[idx++] = SYM_HEART;
+  }
+
+  if (gSettings.upconverter) {
+    icons[idx++] = SYM_CONVERTER;
+  }
+
+  PrintSymbolsEx(LCD_WIDTH - 1, BASE_Y, POS_R, C_FILL, "%s", icons);
 
   if (UART_IsLogEnabled) {
     PrintSmall(BATTERY_W + 1, BASE_Y, statuslineText, "D:%u",

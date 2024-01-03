@@ -98,7 +98,6 @@ bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       if (strlen(inputField) < gTextInputSize) {
         insert(key - KEY_0 + '0');
       }
-      gRedrawScreen = true;
       return true;
     }
     if (currentRow) {
@@ -108,7 +107,6 @@ bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         }
         currentRow = NULL;
       }
-      gRedrawScreen = true;
       return true;
     }
     if (key == KEY_1) {
@@ -118,41 +116,34 @@ bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     } else {
       currentRow = currentSet[key - KEY_1];
     }
-    gRedrawScreen = true;
     return true;
   case KEY_0:
-    if (currentSet == numbers) {
+    if (currentSet == numbers && strlen(inputField) < gTextInputSize) {
       insert(key - KEY_0 + '0');
-      gRedrawScreen = true;
       return true;
     }
     if (!currentRow) {
       currentSet = currentSet == numbers ? symbols : numbers;
-      gRedrawScreen = true;
       return true;
     }
     return true;
   case KEY_STAR:
     if (currentSet != symbols) {
       currentSet = symbols;
-      gRedrawScreen = true;
       return true;
     }
     return true;
   case KEY_F:
     currentSet = currentSet == lettersCapital ? letters : lettersCapital;
-    gRedrawScreen = true;
     return true;
   case KEY_UP:
     if (inputIndex < 14 && inputField[inputIndex] != '\0') {
       inputIndex++;
-      gRedrawScreen = true;
     }
     return true;
   case KEY_DOWN:
     if (inputIndex > 0) {
       inputIndex--;
-      gRedrawScreen = true;
     }
     return true;
   case KEY_EXIT:
@@ -165,7 +156,6 @@ bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         APPS_exit();
       }
     }
-    gRedrawScreen = true;
     return true;
   case KEY_MENU:
     strncpy(gTextinputText, inputField, gTextInputSize);
@@ -228,4 +218,17 @@ void TEXTINPUT_render() {
       }
     }
   }
+
+  PrintMedium(1, LCD_HEIGHT - 2, "*");
+  PrintMedium(11, LCD_HEIGHT - 2, ".,/*");
+  FillRect(0, LCD_HEIGHT - 9, 7, 9, C_INVERT);
+
+  PrintMedium(1 + 43, LCD_HEIGHT - 2, "0");
+  PrintMedium(11 + 43, LCD_HEIGHT - 2, "123");
+  FillRect(0 + 43, LCD_HEIGHT - 9, 7, 9, C_INVERT);
+
+  PrintMedium(1 + 86, LCD_HEIGHT - 2, "#");
+  PrintMedium(11 + 86, LCD_HEIGHT - 2,
+              currentSet != lettersCapital ? "ABC" : "abc");
+  FillRect(0 + 86, LCD_HEIGHT - 9, 7, 9, C_INVERT);
 }

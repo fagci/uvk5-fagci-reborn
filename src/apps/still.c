@@ -55,27 +55,14 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   BK4819_SetRegValue(s, v);
 }
 
-static void UpdateCurrentFreqStill(bool inc) {
-  const uint16_t offset = StepFrequencyTable[gCurrentPreset->band.step];
-  if (inc && gCurrentVFO->fRX < F_MAX) {
-    gCurrentVFO->fRX += offset;
-  } else if (!inc && gCurrentVFO->fRX > F_MIN) {
-    gCurrentVFO->fRX -= offset;
-  } else {
-    return;
-  }
-  RADIO_TuneTo(gCurrentVFO->fRX);
-  gRedrawScreen = true;
-}
-
 static void handleInt(uint16_t intStatus) {
-  if (intStatus & BK4819_REG_02_SQUELCH_LOST) {
-    msm.open = true;
-  }
-  if (intStatus & BK4819_REG_02_SQUELCH_FOUND) {
+  /* if (intStatus & BK4819_REG_02_SQUELCH_FOUND) {
     msm.open = false;
     lastClose = elapsedMilliseconds;
   }
+  if (intStatus & BK4819_REG_02_SQUELCH_LOST) {
+    msm.open = true;
+  } */
   if (intStatus & BK4819_REG_02_CxCSS_TAIL) {
     msm.open = false;
     lastClose = elapsedMilliseconds;
@@ -88,15 +75,14 @@ static void update() {
   msm.f = gCurrentVFO->fRX;
   msm.rssi = BK4819_GetRSSI();
   msm.noise = BK4819_GetNoise();
-  // msm.open = gMonitorMode || BK4819_IsSquelchOpen();
+  msm.open = gMonitorMode || BK4819_IsSquelchOpen();
 
+  BK4819_HandleInterrupts(handleInt);
+  if (elapsedMilliseconds - lastClose < 250) {
+    msm.open = false;
+  }
   if (gMonitorMode) {
     msm.open = true;
-  } else {
-    BK4819_HandleInterrupts(handleInt);
-    if (elapsedMilliseconds - lastClose < 250) {
-      msm.open = false;
-    }
   }
 
   if (msm.f != LOOT_Item(gCurrentVFO->channel)->f) {
@@ -150,60 +136,62 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       break;
     }
   }
+
+  if (!bKeyHeld) {
+    switch (key) {
+    case KEY_1:
+      RADIO_UpdateStep(true);
+      return true;
+    case KEY_7:
+      RADIO_UpdateStep(false);
+      return true;
+    case KEY_3:
+      RADIO_UpdateSquelchLevel(true);
+      return true;
+    case KEY_9:
+      RADIO_UpdateSquelchLevel(false);
+      return true;
+    case KEY_0:
+      RADIO_ToggleModulation();
+      return true;
+    case KEY_6:
+      RADIO_ToggleListeningBW();
+      return true;
+    case KEY_SIDE1:
+      gMonitorMode = !gMonitorMode;
+      return true;
+    case KEY_F:
+      APPS_run(APP_VFO_CFG);
+      return true;
+    case KEY_5:
+      gFInputCallback = RADIO_TuneTo;
+      APPS_run(APP_FINPUT);
+      return true;
+    case KEY_SIDE2:
+      return true;
+    case KEY_8:
+      IncDec8(&menuState, 1, ARRAY_SIZE(registerSpecs), 1);
+      return true;
+    default:
+      break;
+    }
+  }
+
   switch (key) {
-  case KEY_1:
-    RADIO_UpdateStep(true);
-    return true;
-  case KEY_7:
-    RADIO_UpdateStep(false);
-    return true;
-  case KEY_3:
-    gCurrentPreset->band.squelch++;
-    RADIO_SetSquelch(gCurrentPreset->band.squelch);
-    return true;
-  case KEY_9:
-    gCurrentPreset->band.squelch--;
-    RADIO_SetSquelch(gCurrentPreset->band.squelch);
-    return true;
   case KEY_UP:
     if (menuState) {
       UpdateRegMenuValue(registerSpecs[menuState], true);
       return true;
     }
-    UpdateCurrentFreqStill(true);
+    RADIO_NextFreq(true);
     return true;
   case KEY_DOWN:
     if (menuState) {
       UpdateRegMenuValue(registerSpecs[menuState], false);
       return true;
     }
-    UpdateCurrentFreqStill(false);
+    RADIO_NextFreq(false);
     return true;
-  case KEY_F:
-    APPS_run(APP_VFO_CFG);
-    return true;
-  case KEY_5:
-    gFInputCallback = RADIO_TuneTo;
-    APPS_run(APP_FINPUT);
-    return true;
-  case KEY_0:
-    RADIO_ToggleModulation();
-    return true;
-  case KEY_6:
-    RADIO_ToggleListeningBW();
-    return true;
-  case KEY_SIDE1:
-    gMonitorMode = !gMonitorMode;
-    return true;
-  case KEY_SIDE2:
-    // ToggleBacklight();
-    return true;
-  case KEY_8:
-    if (!bKeyHeld) {
-      IncDec8(&menuState, 1, ARRAY_SIZE(registerSpecs), 1);
-      return true;
-    }
-    break;
   case KEY_EXIT:
     if (menuState) {
       menuState = 0;

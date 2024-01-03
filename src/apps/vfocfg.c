@@ -47,7 +47,7 @@ static void setInitialSubmenuIndex() {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_BW:
-    subMenuIndex = gCurrentVFO->bw;
+    subMenuIndex = gCurrentPreset->band.bw;
     break;
   case M_MODULATION:
     subMenuIndex = gCurrentVFO->modulation;
@@ -71,7 +71,7 @@ static void accept() {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_BW:
-    gCurrentVFO->bw = subMenuIndex;
+    gCurrentPreset->band.bw = subMenuIndex;
     RADIO_SaveCurrentVFO();
     break;
   case M_MODULATION:

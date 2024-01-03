@@ -65,7 +65,7 @@ static void getLootItem(uint16_t i, uint16_t index, bool isCurrent) {
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
   }
-  PrintMediumEx(6, y + 7, POS_L, C_INVERT, "%u.%05u", f / 100000, f % 100000);
+  PrintMediumEx(8, y + 7, POS_L, C_INVERT, "%u.%05u", f / 100000, f % 100000);
   PrintSmallEx(LCD_WIDTH - 6, y + 7, POS_R, C_INVERT, "%us",
                item->duration / 1000);
 
@@ -96,7 +96,7 @@ static void getLootItemShort(uint16_t i, uint16_t index, bool isCurrent) {
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H_SHORT, C_FILL);
   }
-  PrintMediumEx(6, y + 7, POS_L, C_INVERT, "%u.%05u", f / 100000, f % 100000);
+  PrintMediumEx(8, y + 7, POS_L, C_INVERT, "%u.%05u", f / 100000, f % 100000);
   switch (sortType) {
   case SORT_LOT:
     PrintSmallEx(x, y + 7, POS_R, C_INVERT, "%u:%02u", ago / 60, ago % 60);
@@ -108,10 +108,10 @@ static void getLootItemShort(uint16_t i, uint16_t index, bool isCurrent) {
     break;
   }
   if (item->blacklist) {
-    PrintSmallEx(1, y + 5, POS_L, C_INVERT, "X");
+    PrintMediumEx(1, y + 7, POS_L, C_INVERT, "-");
   }
   if (item->goodKnown) {
-    PrintSmallEx(1, y + 5, POS_L, C_INVERT, "*");
+    PrintMediumEx(1, y + 7, POS_L, C_INVERT, "+");
   }
 }
 
@@ -141,6 +141,12 @@ void LOOTLIST_update() {}
 bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   Loot *item = LOOT_Item(menuIndex);
   const uint8_t MENU_SIZE = LOOT_Size();
+
+  if (bKeyHeld && key == KEY_0) {
+    LOOT_Clear();
+    return true;
+  }
+
   switch (key) {
   case KEY_UP:
     IncDec8(&menuIndex, 0, MENU_SIZE, -1);
@@ -168,9 +174,11 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     sort(SORT_F);
     return true;
   case KEY_SIDE1:
+    item->goodKnown = false;
     item->blacklist = !item->blacklist;
     return true;
   case KEY_SIDE2:
+    item->blacklist = false;
     item->goodKnown = !item->goodKnown;
     return true;
   case KEY_7:
@@ -181,6 +189,7 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_5:
     gCurrentVFO->fRX = item->f;
+    gCurrentVFO->codeTx = item->cd != 0xFF ? item->cd : item->ct;
     APPS_run(APP_SAVECH);
     return true;
   case KEY_0:

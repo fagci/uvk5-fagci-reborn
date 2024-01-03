@@ -186,7 +186,6 @@ static void startNewScan() {
 
   if (gSettings.activePreset != oldPresetIndex) {
     resetRssiHistory();
-    LOOT_Clear();
     LOOT_Standby();
     rssiO = U16_MAX;
     noiseO = 0;
@@ -361,7 +360,7 @@ void SPECTRUM_render(void) {
     if (p->open) {
       PrintSmall(DATA_LEN + 1, ybl, ">");
     } else if (p->goodKnown) {
-      PrintSmall(DATA_LEN + 1, ybl, "*");
+      PrintSmall(DATA_LEN + 1, ybl, "+");
     }
 
     PrintSmallEx(LCD_WIDTH - 1, ybl, POS_R, C_FILL, "%u.%05u", p->f / 100000,

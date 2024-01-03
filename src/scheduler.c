@@ -38,6 +38,18 @@ void TaskRemove(void (*handler)(void)) {
   }
 }
 
+bool TaskExists(void (*handler)(void)) {
+  uint8_t i;
+  Task *t;
+  for (i = 0; i < tasksCount; ++i) {
+    t = &tasks[i];
+    if (t->handler == handler) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void TaskTouch(void (*handler)(void)) {
   Task *t;
   for (uint8_t i = 0; i < tasksCount; ++i) {

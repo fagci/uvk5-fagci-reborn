@@ -21,6 +21,21 @@ typedef enum {
   C_INVERT,
 } Color;
 
+typedef enum {
+  SYM_CONVERTER = 0x30,
+  SYM_MESSAGE = 0x31,
+  SYM_KEY_LOCK = 0x32,
+  SYM_CROSS = 0x33,
+  SYM_LOCK = 0x34,
+  SYM_EEPROM_R = 0x35,
+  SYM_EEPROM_W = 0x36,
+  SYM_BEEP = 0x37,
+  SYM_ANALOG = 0x38,
+  SYM_DIGITAL = 0x39,
+  SYM_HEART = 0x3A,
+  SYM_MONITOR = 0x3B,
+} Symbol;
+
 typedef struct {
   uint8_t x;
   uint8_t y;
@@ -55,6 +70,8 @@ void PrintBigDigitsEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,
                       const char *pattern, ...);
 void PrintBiggestDigitsEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,
                           const char *pattern, ...);
+void PrintSymbolsEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,
+                    const char *pattern, ...);
 
 void DrawRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r,
                    Color color);

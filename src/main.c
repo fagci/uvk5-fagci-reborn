@@ -90,8 +90,8 @@ static void Render() {
 
 static void Update() {
   APPS_update();
-  if (gRedrawScreen) {
-    TaskAdd("Render", Render, 0, false);
+  if (gRedrawScreen && !TaskExists(Render)) {
+    TaskAdd("Render", Render, 25, false);
   }
 }
 

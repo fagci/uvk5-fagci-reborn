@@ -13,10 +13,11 @@ extern char gVFONames[2][10];
 extern const char *upConverterFreqNames[3];
 extern bool gIsListening;
 extern bool gMonitorMode;
+extern bool isBK1080;
 
 extern const uint16_t StepFrequencyTable[14];
 
-extern const char *modulationTypeOptions[5];
+extern const char *modulationTypeOptions[6];
 extern const char *vfoStateNames[];
 extern const char *powerNames[];
 extern const char *bwNames[3];
@@ -43,5 +44,7 @@ void RADIO_EnableToneDetection();
 void RADIO_NextCH(bool next);
 void RADIO_NextVFO(bool next);
 void RADIO_ToggleVfoMR();
+void RADIO_UpdateSquelchLevel(bool next);
+void RADIO_NextFreq(bool next);
 
 #endif /* end of include guard: RADIO_H */

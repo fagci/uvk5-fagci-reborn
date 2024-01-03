@@ -10,12 +10,14 @@ Loot *gLastActiveLoot = NULL;
 
 void LOOT_BlacklistLast() {
   if (gLastActiveLoot) {
+    gLastActiveLoot->goodKnown = false;
     gLastActiveLoot->blacklist = true;
   }
 }
 
 void LOOT_GoodKnownLast() {
   if (gLastActiveLoot) {
+    gLastActiveLoot->blacklist = false;
     gLastActiveLoot->goodKnown = true;
   }
 }
@@ -120,9 +122,10 @@ Loot *LOOT_Item(uint8_t i) { return &loot[i]; }
 
 void LOOT_Replace(Loot *loot, uint32_t f) {
   loot->f = f;
+  loot->open = false;
   loot->firstTime = elapsedMilliseconds;
   loot->lastTimeCheck = elapsedMilliseconds;
-  loot->lastTimeOpen = elapsedMilliseconds;
+  loot->lastTimeOpen = 0;
   loot->duration = 0;
   loot->rssi = 0;
   loot->noise = 65535;
