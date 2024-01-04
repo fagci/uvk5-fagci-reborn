@@ -49,7 +49,8 @@ static AppType_t peek() {
 }
 
 const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
-    APP_VFO, APP_SPECTRUM, APP_STILL, APP_PRESETS_LIST, APP_TASK_MANAGER, APP_ABOUT,
+    APP_VFO,          APP_SPECTRUM,     APP_STILL,
+    APP_PRESETS_LIST, APP_TASK_MANAGER, APP_ABOUT,
 };
 
 const App apps[APPS_COUNT] = {
@@ -124,11 +125,13 @@ void APPS_run(AppType_t app) {
     APPS_init(app);
   }
 }
-void APPS_exit() {
+
+bool APPS_exit() {
   if (stackIndex == 0) {
-    return;
+    return false;
   }
   APPS_deinit();
   popApp();
   APPS_init(peek());
+  return true;
 }

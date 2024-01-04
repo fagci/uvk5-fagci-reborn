@@ -31,6 +31,12 @@ static void saveNamed() {
   VFO2CH(gCurrentVFO, &ch);
   strncpy(ch.name, tempName, 9);
   CHANNELS_Save(currentChannelIndex, &ch);
+  for (uint8_t i = 0; i < 2; ++i) {
+    if (gVFO[i].channel == currentChannelIndex) {
+      RADIO_VfoLoadCH(i);
+      break;
+    }
+  }
 }
 
 void SAVECH_init() { chCount = CHANNELS_GetCountMax(); }

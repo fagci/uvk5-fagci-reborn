@@ -172,7 +172,12 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       msm.open = gMonitorMode;
       return true;
     case KEY_EXIT:
-      APPS_exit();
+      if (!APPS_exit()) {
+        LOOT_Standby();
+        RADIO_NextVFO(true);
+        msm.f = gCurrentVFO->fRX;
+        loot = LOOT_Item(gSettings.activeVFO);
+      }
       return true;
     default:
       break;

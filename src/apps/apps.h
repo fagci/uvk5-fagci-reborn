@@ -46,6 +46,6 @@ void APPS_init(AppType_t app);
 void APPS_update(void);
 void APPS_render(void);
 void APPS_run(AppType_t app);
-void APPS_exit(void);
+bool APPS_exit(void);
 
 #endif /* end of include guard: APPS_H */

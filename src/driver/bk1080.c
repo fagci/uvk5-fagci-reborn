@@ -1,20 +1,5 @@
-/* Copyright 2023 Dual Tachyon
- * https://github.com/DualTachyon
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
- */
-
 #include "bk1080.h"
+#include "../driver/uart.h"
 #include "../inc/dp32g030/gpio.h"
 #include "../misc.h"
 #include "gpio.h"
@@ -33,7 +18,34 @@ static bool gIsInitBK1080;
 uint16_t BK1080_BaseFrequency;
 uint16_t BK1080_FrequencyDeviation;
 
-void BK1080_Init(uint16_t Frequency, bool bEnable) {
+uint16_t CH_SP_F[] = {20000, 10000, 5000};
+
+void BK1080_SetFrequency(uint32_t f) {
+  uint8_t vol = 0b1111;
+  uint8_t chSp = BK1080_CHSP_100;
+  uint8_t seekThres = 0b00001010;
+
+  uint8_t band = f < 7600000 ? BK1080_BAND_64_76 : BK1080_BAND_76_108;
+
+  uint32_t startF = band == BK1080_BAND_64_76 ? 6400000 : 7600000;
+
+  uint8_t channel = (f - startF) / CH_SP_F[chSp];
+
+  uint16_t sysCfg2 = (vol << 0) | (chSp << 4) | (band << 6) | (seekThres << 8);
+
+  UART_printf("TUNE BK1080: f=%u, band=%u, startf=%u, chspf=%u\n", f, band,
+              startF, CH_SP_F[chSp]);
+  UART_printf("TUNE BK1080 REG: chSp=%u, band=%u, channel=%u\n", chSp, band,
+              channel);
+  UART_flush();
+
+  BK1080_WriteRegister(BK1080_REG_05_SYSTEM_CONFIGURATION2, sysCfg2);
+  BK1080_WriteRegister(BK1080_REG_03_CHANNEL, channel);
+  SYSTEM_DelayMs(10);
+  BK1080_WriteRegister(BK1080_REG_03_CHANNEL, channel | 0x8000);
+}
+
+void BK1080_Init(uint32_t f, bool bEnable) {
   uint8_t i;
 
   if (bEnable) {
@@ -51,10 +63,7 @@ void BK1080_Init(uint16_t Frequency, bool bEnable) {
     } else {
       BK1080_WriteRegister(BK1080_REG_02_POWER_CONFIGURATION, 0x0201);
     }
-    BK1080_WriteRegister(BK1080_REG_05_SYSTEM_CONFIGURATION2, 0x0A5F);
-    BK1080_WriteRegister(BK1080_REG_03_CHANNEL, Frequency - 760);
-    SYSTEM_DelayMs(10);
-    BK1080_WriteRegister(BK1080_REG_03_CHANNEL, (Frequency - 760) | 0x8000);
+    BK1080_SetFrequency(f);
   } else {
     BK1080_WriteRegister(BK1080_REG_02_POWER_CONFIGURATION, 0x0241);
     GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BK1080);
@@ -89,13 +98,6 @@ void BK1080_Mute(bool Mute) {
   }
 }
 
-void BK1080_SetFrequency(uint16_t Frequency) {
-  BK1080_WriteRegister(BK1080_REG_03_CHANNEL, Frequency - 760);
-  SYSTEM_DelayMs(10);
-  BK1080_WriteRegister(BK1080_REG_03_CHANNEL, (Frequency - 760) | 0x8000);
-}
-
-void BK1080_GetFrequencyDeviation(uint16_t Frequency) {
-  BK1080_BaseFrequency = Frequency;
-  BK1080_FrequencyDeviation = BK1080_ReadRegister(BK1080_REG_07) / 16;
+uint16_t BK1080_GetFrequencyDeviation() {
+  return BK1080_ReadRegister(BK1080_REG_07) >> 4;
 }

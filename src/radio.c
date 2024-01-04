@@ -132,7 +132,7 @@ static void onPresetUpdate() {
   TaskAdd("Preset save", PRESETS_SaveCurrent, 2000, false);
 }
 
-static bool isBK1080Range(uint32_t f) { return f >= 8800000 && f <= 10800000; }
+static bool isBK1080Range(uint32_t f) { return f >= 6400000 && f <= 10800000; }
 
 void RADIO_ToggleBK1080(bool on) {
   if (on == isBK1080) {
@@ -160,11 +160,10 @@ void RADIO_SetModulationByPreset() {
     if (isBK1080Range(gCurrentVFO->fRX)) {
       RADIO_ToggleBK1080(true);
       return;
-    } else {
-      gCurrentPreset->band.modulation = MOD_FM;
-      RADIO_ToggleBK1080(false);
     }
+    gCurrentPreset->band.modulation = MOD_FM;
   }
+  RADIO_ToggleBK1080(false);
   BK4819_SetModulation(gCurrentPreset->band.modulation);
   onPresetUpdate();
 }
@@ -210,14 +209,13 @@ void RADIO_TuneTo(uint32_t f) {
 void RADIO_TuneToSave(uint32_t f) {
   gCurrentVFO->isMrMode = false;
   gCurrentVFO->fRX = f;
-  PRESET_SelectByFrequency(gCurrentVFO->fRX);
-  BK4819_TuneTo(f);
+  RADIO_SetupByCurrentVFO();
   RADIO_SaveCurrentVFO();
 }
 
 void RADIO_SaveCurrentVFO() { VFOS_Save(gSettings.activeVFO, gCurrentVFO); }
 
-static void RADIO_VfoLoadCH(uint8_t i) {
+void RADIO_VfoLoadCH(uint8_t i) {
   CH ch;
   CHANNELS_Load(gVFO[i].channel, &ch);
   CH2VFO(&ch, &gVFO[i]);
@@ -267,6 +265,9 @@ void RADIO_SetupByCurrentVFO() {
 
   gCurrentVFO->modulation = gCurrentPreset->band.modulation;
   gCurrentVFO->bw = gCurrentPreset->band.bw;
+
+  RADIO_ToggleBK1080(gCurrentVFO->modulation == MOD_WFM &&
+                     isBK1080Range(gCurrentVFO->fRX));
 
   if (isBK1080) {
     BK1080_SetFrequency(gCurrentVFO->fRX);

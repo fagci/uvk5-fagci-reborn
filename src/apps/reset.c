@@ -54,8 +54,8 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {3000000, 7199999},
-                .name = "30-72",
+                .bounds = {3000000, 6399999},
+                .name = "30-64",
                 .step = STEP_5_0kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_NARROW,
@@ -68,10 +68,10 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {7200000, 8799999},
-                .name = "72-88",
-                .step = STEP_25_0kHz,
-                .modulation = MOD_FM,
+                .bounds = {6400000, 8799999},
+                .name = "64-88",
+                .step = STEP_100_0kHz,
+                .modulation = MOD_WFM,
                 .bw = BK4819_FILTER_BW_NARROW,
                 .gainIndex = 90,
                 .squelch = 3,
@@ -85,7 +85,7 @@ static Preset defaultPresets[] = {
                 .bounds = {8800000, 10799999},
                 .name = "Bcast FM",
                 .step = STEP_100_0kHz,
-                .modulation = MOD_FM,
+                .modulation = MOD_WFM,
                 .bw = BK4819_FILTER_BW_NARROW,
                 .gainIndex = 90,
                 .squelch = 3,
@@ -334,22 +334,8 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {47000000, 62999999},
-                .name = "470-630",
-                .step = STEP_25_0kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_WIDE,
-                .gainIndex = 90,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
-            },
-        .allowTx = false,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {63000000, 83999999},
-                .name = "630-840",
+                .bounds = {47000000, 62000000},
+                .name = "470-620",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,
