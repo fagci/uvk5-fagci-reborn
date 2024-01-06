@@ -79,6 +79,9 @@ void FINPUT_init() {
 void FINPUT_deinit() { TaskRemove(dotBlinkFn); }
 
 bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  if (bKeyHeld) {
+    return false;
+  }
   switch (key) {
   case KEY_0:
   case KEY_1:
@@ -107,9 +110,11 @@ bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     gRedrawScreen = true;
     return true;
   case KEY_MENU:
+  case KEY_F:
+  case KEY_PTT:
     tempFreq = GetTuneF(tempFreq);
-    APPS_exit();
     if (tempFreq <= F_MAX && gFInputCallback) {
+      APPS_exit();
       gFInputCallback(tempFreq);
       gFInputCallback = NULL;
     }
@@ -125,7 +130,7 @@ void FINPUT_render() {
 
   uint8_t dotIndex = freqInputDotIndex ? freqInputDotIndex : freqInputIndex;
 
-  const uint8_t charWidth = 12;
+  const uint8_t charWidth = 10;
   const uint8_t BASE_X = 16;
   const uint8_t BASE_Y = 24;
   uint8_t i = 0;
@@ -150,7 +155,7 @@ void FINPUT_render() {
   // kHz
   if (freqInputDotIndex) {
     i = dotIndex + 1;
-    while (i < freqInputIndex && i < dotIndex + 4) {
+    while (i < freqInputIndex && i < dotIndex + 6) {
       const uint8_t Digit = freqInputArr[i];
       PrintBigDigits(BASE_X + (4 + i - dotIndex) * charWidth - 6, BASE_Y, "%c",
                      '0' + Digit);
@@ -158,7 +163,7 @@ void FINPUT_render() {
     }
   }
 
-  char String[] = "  ";
+  /* char String[] = "  ";
   if (freqInputDotIndex) {
     uint8_t hz = freqInputIndex - freqInputDotIndex;
     if (hz > 3) {
@@ -166,5 +171,5 @@ void FINPUT_render() {
       String[1] = hz > 5 ? '0' + freqInputArr[freqInputDotIndex + 5] : ' ';
       PrintMediumEx(LCD_WIDTH - 1 - 18, BASE_Y, POS_L, C_FILL, String);
     }
-  }
+  } */
 }

@@ -1,5 +1,6 @@
 #include "lootlist.h"
 #include "../dcs.h"
+#include "../driver/bk4819.h"
 #include "../driver/uart.h"
 #include "../scheduler.h"
 

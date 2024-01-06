@@ -35,19 +35,30 @@ typedef enum {
   BL_SQL_OPEN,
 } BacklightOnSquelchMode;
 
+typedef enum {
+  BAT_1600,
+  BAT_2200,
+} BatteryType;
+
+typedef enum {
+  BAT_CLEAN,
+  BAT_PERCENT,
+  BAT_VOLTAGE,
+} BatteryStyle;
+
 typedef struct {
   uint8_t squelch : 4;
-  uint8_t scrambler : 4;
+  uint8_t scrambler : 4; // 1
   uint8_t batsave : 4;
-  uint8_t vox : 4;
+  uint8_t vox : 4; // 1
   uint8_t backlight : 4;
-  uint8_t txTime : 4;
+  uint8_t txTime : 4; // 1
   uint8_t micGain : 4;
-  uint8_t currentScanlist : 4;
+  uint8_t currentScanlist : 4; // 1
   UpconverterTypes upconverter : 2;
   uint8_t roger : 2;
   uint8_t scanmode : 2;
-  uint8_t chDisplayMode : 2;
+  uint8_t chDisplayMode : 2; // 1
   uint8_t dw : 1;
   uint8_t crossBand : 1;
   uint8_t beep : 1;
@@ -55,16 +66,22 @@ typedef struct {
   uint8_t busyChannelTxLock : 1;
   uint8_t ste : 1;
   uint8_t repeaterSte : 1;
-  uint8_t dtmfdecode : 1;
+  uint8_t dtmfdecode : 1; // 1
   uint8_t brightness : 4;
-  uint8_t contrast : 4;
-  AppType_t mainApp : 4;
+  uint8_t contrast : 4; // 1
+  AppType_t mainApp : 8;
   BacklightOnSquelchMode backlightOnSquelch : 2;
   uint8_t activeVFO : 1;
-  uint8_t reserved1 : 1;
+  uint8_t reserved1 : 1; // 1
   uint16_t reserved2 : 10;
-  uint8_t activePreset : 6;
-  uint8_t presetsCount : 8;
+  uint8_t activePreset : 6; // 2
+  uint8_t presetsCount : 8; // 1
+  uint16_t batteryCalibration : 12;
+  BatteryType batteryType : 2;
+  BatteryStyle batteryStyle : 2; // 2
+  uint8_t reserved3 : 4;
+  uint8_t reserved4 : 8;
+  uint8_t reserved5 : 8;
 } __attribute__((packed)) Settings;
 
 typedef struct { // 24 bytes
@@ -94,6 +111,8 @@ typedef struct { // 24 bytes
   uint8_t codeTypeTx : 4; // 1
   int16_t channel : 12;   // 1
   bool isMrMode : 1;
+  uint8_t reserved1 : 8;
+  uint8_t reserved2 : 8;
 } __attribute__((packed)) VFO;
 
 typedef struct { // 8 bytes
@@ -138,6 +157,13 @@ typedef struct { // 29 bytes
 #define VFOS_OFFSET (SETTINGS_OFFSET + SETTINGS_SIZE)
 #define PRESETS_OFFSET (VFOS_OFFSET + VFO_SIZE * 2)
 #define CHANNELS_OFFSET 0x2000
+
+// settings
+// VFOs
+// presets
+// ...
+// channel 2
+// channel 1
 
 extern Settings gSettings;
 extern uint8_t BL_TIME_VALUES[7];

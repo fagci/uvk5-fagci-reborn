@@ -22,8 +22,6 @@ static uint8_t vfoCount = 2;
 
 static bool repeatHeld = false;
 
-static Loot *loot;
-
 static void handleInt(uint16_t intStatus) {
   if (intStatus & BK4819_REG_02_CxCSS_TAIL) {
     msm.open = false;
@@ -45,13 +43,9 @@ static void update() {
     msm.open = true;
   }
 
-  if (msm.f != loot->f) {
-    LOOT_Replace(loot, msm.f);
-  }
-
   RADIO_ToggleRX(msm.open);
   if (elapsedMilliseconds - lastUpdate >= 1000) {
-    LOOT_UpdateEx(loot, &msm);
+    LOOT_UpdateEx(gCurrentLoot, &msm);
     gRedrawScreen = true;
     lastUpdate = elapsedMilliseconds;
   }
@@ -68,27 +62,22 @@ void VFO_init() {
 
   RADIO_EnableToneDetection();
 
-  LOOT_Clear();
-  for (uint8_t i = 0; i < 2; ++i) {
-    Loot *item = LOOT_AddEx(gVFO[i].fRX, false);
-    item->open = false;
-    item->lastTimeOpen = 0;
-  }
-
   RADIO_SetupByCurrentVFO(); // TODO: reread from EEPROM not needed maybe
 
+  TaskRemove(update);
+  TaskRemove(render);
   TaskAdd("Update VFO", update, 10, true);
   TaskAdd("Redraw VFO", render, 1000, true);
-  loot = LOOT_Item(gSettings.activeVFO);
   gRedrawScreen = true;
 }
 
 void VFO_deinit() {
-  TaskRemove(update);
-  TaskRemove(render);
-  RADIO_ToggleRX(false);
-  LOOT_Clear();
-  BK4819_WriteRegister(BK4819_REG_3F, 0); // disable interrupts
+  if (APPS_Peek() != APP_FINPUT && APPS_Peek() != APP_VFO) {
+    TaskRemove(update);
+    TaskRemove(render);
+    RADIO_ToggleRX(false);
+    BK4819_WriteRegister(BK4819_REG_3F, 0); // disable interrupts
+  }
 }
 
 void VFO_update() {}
@@ -120,7 +109,6 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       LOOT_Standby();
       RADIO_NextVFO(true);
       msm.f = gCurrentVFO->fRX;
-      loot = LOOT_Item(gSettings.activeVFO);
       return true;
     case KEY_EXIT:
       return true;
@@ -149,6 +137,10 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
   // Simple keypress
   if (!bKeyPressed && !bKeyHeld) {
+    /* if (key == KEY_0 && !gSettings.upconverter) {
+      RADIO_ToggleModulation();
+      return true;
+    } */
     switch (key) {
     case KEY_0:
     case KEY_1:
@@ -176,7 +168,6 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         LOOT_Standby();
         RADIO_NextVFO(true);
         msm.f = gCurrentVFO->fRX;
-        loot = LOOT_Item(gSettings.activeVFO);
       }
       return true;
     default:
@@ -218,7 +209,7 @@ static void render2VFOPart(uint8_t i) {
   }
   PrintSmallEx(LCD_WIDTH - 1, bl - 9, POS_R, C_FILL, mod);
 
-  Loot *stats = LOOT_Item(i);
+  Loot *stats = &gLoot[i];
   uint32_t est = stats->lastTimeOpen
                      ? (elapsedMilliseconds - stats->lastTimeOpen) / 1000
                      : 0;

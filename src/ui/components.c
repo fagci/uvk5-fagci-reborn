@@ -11,14 +11,14 @@ static const uint8_t MENU_ITEM_H = 11;
 static const uint8_t MENU_LINES_TO_SHOW = 4;
 
 void UI_Battery(uint8_t Level) {
-  DrawRect(0, 0, 12, 5, C_FILL);
-  FillRect(1, 1, ConvertDomain(Level, 0, 5, 0, 10), 3, C_FILL);
-  DrawVLine(12, 1, 3, C_FILL);
+  DrawRect(LCD_WIDTH - 13, 0, 12, 5, C_FILL);
+  FillRect(LCD_WIDTH - 12, 1, Level, 3, C_FILL);
+  DrawVLine(LCD_WIDTH - 1, 1, 3, C_FILL);
 
-  if (Level > 5) {
-    DrawHLine(5, 1, 5, C_INVERT);
-    PutPixel(6, 2, C_INVERT);
-    DrawHLine(2, 3, 6, C_INVERT);
+  if (Level > 10) {
+    DrawHLine(LCD_WIDTH - 1 - 3, 1, 3, C_INVERT);
+    DrawHLine(LCD_WIDTH - 1 - 7, 1, 5, C_INVERT);
+    DrawHLine(LCD_WIDTH - 1 - 3, 3, 3, C_INVERT);
   }
 }
 
@@ -80,10 +80,15 @@ void UI_DrawScrollBar(const uint16_t size, const uint16_t iCurrent,
 }
 
 void UI_ShowMenuItem(uint8_t line, const char *name, bool isCurrent) {
-  if (isCurrent) {
+  /* if (isCurrent) {
     PrintMediumBold(6, MENU_Y + line * MENU_ITEM_H + 8, name);
   } else {
     PrintMedium(6, MENU_Y + line * MENU_ITEM_H + 8, name);
+  } */
+  PrintMedium(6, MENU_Y + line * MENU_ITEM_H + 8, name);
+  if (isCurrent) {
+    FillRect(0, MENU_Y + line * MENU_ITEM_H, LCD_WIDTH - 3, MENU_ITEM_H,
+             C_INVERT);
   }
 }
 

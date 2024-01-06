@@ -2,12 +2,17 @@
 #define RADIO_H
 
 #include "driver/bk4819.h"
+#include "helper/lootlist.h"
 #include "settings.h"
 #include <stdbool.h>
 #include <stdint.h>
 
 extern VFO *gCurrentVFO;
 extern VFO gVFO[2];
+
+extern Loot *gCurrentLoot;
+extern Loot gLoot[2];
+
 extern char gVFONames[2][10];
 
 extern const char *upConverterFreqNames[3];
@@ -47,5 +52,6 @@ void RADIO_NextVFO(bool next);
 void RADIO_ToggleVfoMR();
 void RADIO_UpdateSquelchLevel(bool next);
 void RADIO_NextFreq(bool next);
+bool RADIO_IsBK1080Range(uint32_t f);
 
 #endif /* end of include guard: RADIO_H */

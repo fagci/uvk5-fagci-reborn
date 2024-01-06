@@ -5,6 +5,7 @@
 #include "../ui/statusline.h"
 #include "about.h"
 #include "appslist.h"
+#include "fastscan.h"
 #include "finput.h"
 #include "lootlist.h"
 #include "presetcfg.h"
@@ -41,7 +42,7 @@ static AppType_t popApp() {
   return appsStack[stackIndex];
 }
 
-static AppType_t peek() {
+AppType_t APPS_Peek() {
   if (stackIndex >= 0) {
     return appsStack[stackIndex];
   }
@@ -49,7 +50,7 @@ static AppType_t peek() {
 }
 
 const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
-    APP_VFO,          APP_SPECTRUM,     APP_STILL,
+    APP_VFO,          APP_SPECTRUM,     APP_FASTSCAN, APP_STILL,
     APP_PRESETS_LIST, APP_TASK_MANAGER, APP_ABOUT,
 };
 
@@ -57,7 +58,9 @@ const App apps[APPS_COUNT] = {
     {"None"},
     {"Test", TEST_Init, TEST_Update, TEST_Render, TEST_key},
     {"Spectrum", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render, SPECTRUM_key},
-    {"Still", STILL_init, NULL, STILL_render, STILL_key, STILL_deinit},
+    {"Freq catch", FASTSCAN_init, FASTSCAN_update, FASTSCAN_render,
+     FASTSCAN_key, FASTSCAN_deinit},
+    {"VFO extended", STILL_init, NULL, STILL_render, STILL_key, STILL_deinit},
     {"Frequency input", FINPUT_init, NULL, FINPUT_render, FINPUT_key,
      FINPUT_deinit},
     {"Apps", APPSLIST_init, NULL, APPSLIST_render, APPSLIST_key},
@@ -132,6 +135,6 @@ bool APPS_exit() {
   }
   APPS_deinit();
   popApp();
-  APPS_init(peek());
+  APPS_init(APPS_Peek());
   return true;
 }

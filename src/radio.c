@@ -20,6 +20,10 @@
 
 VFO *gCurrentVFO;
 VFO gVFO[2] = {0};
+
+Loot *gCurrentLoot;
+Loot gLoot[2] = {0};
+
 char gVFONames[2][10] = {0};
 
 bool gIsListening = false;
@@ -132,7 +136,7 @@ static void onPresetUpdate() {
   TaskAdd("Preset save", PRESETS_SaveCurrent, 2000, false);
 }
 
-static bool isBK1080Range(uint32_t f) { return f >= 6400000 && f <= 10800000; }
+bool RADIO_IsBK1080Range(uint32_t f) { return f >= 6400000 && f <= 10800000; }
 
 void RADIO_ToggleBK1080(bool on) {
   if (on == isBK1080) {
@@ -141,12 +145,11 @@ void RADIO_ToggleBK1080(bool on) {
   isBK1080 = on;
 
   AUDIO_ToggleSpeaker(false);
+  SYSTEM_DelayMs(10);
   if (isBK1080) {
     BK4819_Idle();
     BK1080_Init(gCurrentVFO->fRX, true);
-    BK1080_Mute(false);
   } else {
-    BK1080_Mute(true);
     BK1080_Init(0, false);
     BK4819_RX_TurnOn();
   }
@@ -157,7 +160,7 @@ void RADIO_ToggleBK1080(bool on) {
 void RADIO_SetModulationByPreset() {
   ModulationType mod = gCurrentPreset->band.modulation;
   if (mod == MOD_WFM) {
-    if (isBK1080Range(gCurrentVFO->fRX)) {
+    if (RADIO_IsBK1080Range(gCurrentVFO->fRX)) {
       RADIO_ToggleBK1080(true);
       return;
     }
@@ -202,6 +205,7 @@ void RADIO_ToggleListeningBW() {
 void RADIO_TuneTo(uint32_t f) {
   gCurrentVFO->isMrMode = false;
   gCurrentVFO->fRX = f;
+  LOOT_Replace(&gLoot[gSettings.activeVFO], f);
   RADIO_SetupByCurrentVFO();
   onVfoUpdate();
 }
@@ -209,6 +213,7 @@ void RADIO_TuneTo(uint32_t f) {
 void RADIO_TuneToSave(uint32_t f) {
   gCurrentVFO->isMrMode = false;
   gCurrentVFO->fRX = f;
+  LOOT_Replace(&gLoot[gSettings.activeVFO], f);
   RADIO_SetupByCurrentVFO();
   RADIO_SaveCurrentVFO();
 }
@@ -229,9 +234,11 @@ void RADIO_LoadCurrentVFO() {
     if (gVFO[i].isMrMode) {
       RADIO_VfoLoadCH(i);
     }
+    LOOT_Replace(&gLoot[i], gVFO[i].fRX);
   }
 
   gCurrentVFO = &gVFO[gSettings.activeVFO];
+  gCurrentLoot = &gLoot[gSettings.activeVFO];
   PRESET_SelectByFrequency(gCurrentVFO->fRX);
 }
 
@@ -267,7 +274,7 @@ void RADIO_SetupByCurrentVFO() {
   gCurrentVFO->bw = gCurrentPreset->band.bw;
 
   RADIO_ToggleBK1080(gCurrentVFO->modulation == MOD_WFM &&
-                     isBK1080Range(gCurrentVFO->fRX));
+                     RADIO_IsBK1080Range(gCurrentVFO->fRX));
 
   if (isBK1080) {
     BK1080_SetFrequency(gCurrentVFO->fRX);
@@ -317,6 +324,7 @@ void RADIO_NextCH(bool next) {
 void RADIO_NextVFO(bool next) {
   gSettings.activeVFO = !gSettings.activeVFO;
   gCurrentVFO = &gVFO[gSettings.activeVFO];
+  gCurrentLoot = &gLoot[gSettings.activeVFO];
   RADIO_SetupByCurrentVFO();
   SETTINGS_Save();
 }

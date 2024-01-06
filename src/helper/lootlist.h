@@ -2,7 +2,6 @@
 
 #define LOOTLIST_HELPER_H
 
-#include "../radio.h"
 #include <stdbool.h>
 #include <stdint.h>
 

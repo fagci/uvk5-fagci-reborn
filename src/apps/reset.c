@@ -484,6 +484,9 @@ void RESET_Update() {
         .activePreset = 22,
         .presetsCount = ARRAY_SIZE(defaultPresets),
         .backlightOnSquelch = BL_SQL_ON,
+        .batteryCalibration = 2000,
+        .batteryType = BAT_1600,
+        .batteryStyle = BAT_PERCENT,
     };
     settingsWrote = true;
     bytesWrote += sizeof(Settings);

@@ -1,6 +1,7 @@
 #include "settings.h"
 #include "../driver/backlight.h"
 #include "../driver/st7565.h"
+#include "../helper/battery.h"
 #include "../helper/measurements.h"
 #include "../misc.h"
 #include "../radio.h"
@@ -19,12 +20,18 @@ typedef enum {
   M_BL_TIME,
   M_BL_SQL,
   M_BEEP,
+  M_BAT_CAL,
+  M_BAT_TYPE,
+  M_BAT_STYLE,
   M_RESET,
 } Menu;
 
 static uint8_t menuIndex = 0;
 static uint8_t subMenuIndex = 0;
 static bool isSubMenu = false;
+
+const uint16_t BAT_CAL_MIN = 1900;
+const uint16_t BAT_CAL_MAX = 2100;
 
 static const MenuItem menu[] = {
     {"Upconverter", M_UPCONVERTER, ARRAY_SIZE(upConverterFreqNames)},
@@ -33,6 +40,9 @@ static const MenuItem menu[] = {
     {"BL time", M_BL_TIME, ARRAY_SIZE(BL_TIME_VALUES)},
     {"BL SQL mode", M_BL_SQL, ARRAY_SIZE(BL_SQL_MODE_NAMES)},
     {"Beep", M_BEEP, 2},
+    {"BAT calibration", M_BAT_CAL, 200},
+    {"BAT type", M_BAT_TYPE, ARRAY_SIZE(BATTERY_TYPE_NAMES)},
+    {"BAT style", M_BAT_STYLE, ARRAY_SIZE(BATTERY_STYLE_NAMES)},
     {"EEPROM reset", M_RESET, 2},
 };
 
@@ -65,6 +75,18 @@ static void accept() {
     gSettings.beep = subMenuIndex;
     SETTINGS_Save();
     break;
+  case M_BAT_CAL:
+    gSettings.batteryCalibration = subMenuIndex + BAT_CAL_MIN;
+    SETTINGS_Save();
+    break;
+  case M_BAT_TYPE:
+    gSettings.batteryType = subMenuIndex;
+    SETTINGS_Save();
+    break;
+  case M_BAT_STYLE:
+    gSettings.batteryStyle = subMenuIndex;
+    SETTINGS_Save();
+    break;
   case M_RESET:
     if (subMenuIndex) {
       APPS_run(APP_RESET);
@@ -85,6 +107,13 @@ static const char *getValue(Menu type) {
   case M_BRIGHTNESS:
     sprintf(Output, "%u", gSettings.brightness);
     return Output;
+  case M_BAT_CAL:
+    sprintf(Output, "%u", gSettings.batteryCalibration);
+    return Output;
+  case M_BAT_TYPE:
+    return BATTERY_TYPE_NAMES[gSettings.batteryType];
+  case M_BAT_STYLE:
+    return BATTERY_STYLE_NAMES[gSettings.batteryStyle];
   case M_MAIN_APP:
     return apps[gSettings.mainApp].name;
   case M_BL_TIME:
@@ -109,6 +138,12 @@ static void getBrightnessLevelText(uint16_t index, char *name) {
   sprintf(name, "%u", index);
 }
 
+static void getBatCalibText(uint16_t index, char *name) {
+  uint16_t v =
+      gBatteryVoltage * gSettings.batteryCalibration / (index + BAT_CAL_MIN);
+  sprintf(name, "%u.%u (%u)", v / 100, v % 100, index + BAT_CAL_MIN);
+}
+
 static void getUCTypeText(uint16_t index, char *name) {
   strncpy(name, upConverterFreqNames[index], 31);
 }
@@ -119,6 +154,14 @@ static void getBacklightTimeText(uint16_t index, char *name) {
 
 static void getBacklightSQLModeText(uint16_t index, char *name) {
   strncpy(name, BL_SQL_MODE_NAMES[index], 31);
+}
+
+static void getBatTypeText(uint16_t index, char *name) {
+  strncpy(name, BATTERY_TYPE_NAMES[index], 31);
+}
+
+static void getBatStyleText(uint16_t index, char *name) {
+  strncpy(name, BATTERY_STYLE_NAMES[index], 31);
 }
 
 static void getMainAppText(uint16_t index, char *name) {
@@ -157,6 +200,15 @@ static void showSubmenu(Menu menuType) {
   case M_RESET:
     UI_ShowMenu(getYesNoText, item->size, subMenuIndex);
     break;
+  case M_BAT_CAL:
+    UI_ShowMenu(getBatCalibText, item->size, subMenuIndex);
+    break;
+  case M_BAT_TYPE:
+    UI_ShowMenu(getBatTypeText, item->size, subMenuIndex);
+    break;
+  case M_BAT_STYLE:
+    UI_ShowMenu(getBatStyleText, item->size, subMenuIndex);
+    break;
   default:
     break;
   }
@@ -194,6 +246,15 @@ static void setInitialSubmenuIndex() {
     break;
   case M_BEEP:
     subMenuIndex = gSettings.beep;
+    break;
+  case M_BAT_CAL:
+    subMenuIndex = gSettings.batteryCalibration - BAT_CAL_MIN;
+    break;
+  case M_BAT_TYPE:
+    subMenuIndex = gSettings.batteryType;
+    break;
+  case M_BAT_STYLE:
+    subMenuIndex = gSettings.batteryStyle;
     break;
   case M_MAIN_APP:
     for (i = 0; i < ARRAY_SIZE(appsAvailableToRun); ++i) {

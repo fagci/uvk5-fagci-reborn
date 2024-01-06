@@ -186,7 +186,7 @@ void BK4819_Init(void) {
   BK4819_WriteRegister(BK4819_REG_00, 0x0000);
   BK4819_WriteRegister(BK4819_REG_37, 0x1D0F);
   BK4819_WriteRegister(BK4819_REG_36, 0x0022);
-  BK4819_SetAGC(0);
+  BK4819_SetAGC();
   BK4819_WriteRegister(BK4819_REG_19, 0x1041);
   BK4819_WriteRegister(BK4819_REG_7D, 0xE94F);
   BK4819_WriteRegister(BK4819_REG_48, 0xB3A8);
@@ -298,29 +298,21 @@ void BK4819_WriteRegister(BK4819_REGISTER_t Register, uint16_t Data) {
   GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
 }
 
-void BK4819_SetAGC(uint8_t Value) {
-  if (Value == 0) {
-    BK4819_WriteRegister(BK4819_REG_13, 0x03BE);
-    BK4819_WriteRegister(BK4819_REG_12, 0x037B);
-    BK4819_WriteRegister(BK4819_REG_11, 0x027B);
-    BK4819_WriteRegister(BK4819_REG_10, 0x007A);
-    BK4819_WriteRegister(BK4819_REG_14, 0x0019);
-    BK4819_WriteRegister(BK4819_REG_49, 0x2A38);
-    BK4819_WriteRegister(BK4819_REG_7B, 0x8420);
-  } else if (Value == 1) {
-    BK4819_WriteRegister(BK4819_REG_13, 0x03BE);
-    BK4819_WriteRegister(BK4819_REG_12, 0x037C);
-    BK4819_WriteRegister(BK4819_REG_11, 0x027B);
-    BK4819_WriteRegister(BK4819_REG_10, 0x007A);
-    BK4819_WriteRegister(BK4819_REG_14, 0x0018);
-    BK4819_WriteRegister(BK4819_REG_49, 0x2A38);
-    BK4819_WriteRegister(BK4819_REG_7B, 0x318C);
-    BK4819_WriteRegister(BK4819_REG_7C, 0x595E);
-    BK4819_WriteRegister(BK4819_REG_20, 0x8DEF);
-    for (uint8_t i = 0; i < 8; i++) {
-      BK4819_WriteRegister(0x06, (i & 7) << 13 | 0x4A << 7 | 0x36);
-    }
-  }
+void BK4819_SetAGC() {
+  BK4819_WriteRegister(BK4819_REG_13, 0x03BE);
+  BK4819_WriteRegister(BK4819_REG_12, 0x037B);
+  BK4819_WriteRegister(BK4819_REG_11, 0x027B);
+  BK4819_WriteRegister(BK4819_REG_10, 0x007A);
+  BK4819_WriteRegister(BK4819_REG_14, 0x0019);
+
+  // 30, 10 - doesn't overload but sound low
+  // 50, 10 - best so far
+  // 50, 15, - SOFT - signal doesn't fall too low - works best for now
+  // 45, 25 - AGRESSIVE - lower histeresis, but volume jumps heavily, not good
+  // for music, might be good for aviation 1 << 14 - way better, seems to open
+  // squelch and match squelch as opposed to 0
+  BK4819_WriteRegister(BK4819_REG_49, (0b00 << 14) | (50 << 7) | (15 << 0));
+  BK4819_WriteRegister(BK4819_REG_7B, 0x8420);
 }
 
 void BK4819_ToggleGpioOut(BK4819_GPIO_PIN_t Pin, bool bSet) {
@@ -533,6 +525,11 @@ void BK4819_RX_TurnOn(void) {
   // Disable TX DSP
   // Enable RX DSP
   BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
+}
+
+void BK4819_DisableFilter() {
+  BK4819_ToggleGpioOut(BK4819_GPIO4_PIN32_VHF_LNA, false);
+  BK4819_ToggleGpioOut(BK4819_GPIO3_PIN31_UHF_LNA, false);
 }
 
 void BK4819_SelectFilter(uint32_t Frequency) {

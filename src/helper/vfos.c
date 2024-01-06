@@ -1,5 +1,6 @@
 #include "vfos.h"
 #include "../driver/eeprom.h"
+#include "../driver/uart.h"
 
 void VFOS_Load(uint16_t num, VFO *p) {
   EEPROM_ReadBuffer(VFOS_OFFSET + num * VFO_SIZE, p, VFO_SIZE);

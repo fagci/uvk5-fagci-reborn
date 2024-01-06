@@ -20,7 +20,7 @@ const GFXglyph dig_11_Glyphs[] PROGMEM = {
   {     3,   3,   2,   4,    0,   -1 },   // 0x2E '.'
   {     0,   0,   0,   0,    0,    0 },   // 0x2F '/'
   {     5,   9,  11,  10,    0,  -10 },   // 0x30 '0'
-  {    18,   7,  11,   8,    0,  -10 },   // 0x31 '1'
+  {    18,   7,  11,  10,    1,  -10 },   // 0x31 '1'
   {    29,   9,  11,  10,    0,  -10 },   // 0x32 '2'
   {    42,   9,  11,  10,    0,  -10 },   // 0x33 '3'
   {    55,   9,  11,  10,    0,  -10 },   // 0x34 '4'
@@ -31,4 +31,5 @@ const GFXglyph dig_11_Glyphs[] PROGMEM = {
   {   120,   9,  11,  10,    0,  -10 }    // 0x39 '9'
 };
 
-const GFXfont dig_11 PROGMEM = {(uint8_t *) dig_11_Bitmaps,    (GFXglyph *)dig_11_Glyphs, 0x2D, 0x39,    11};
+const GFXfont dig_11 PROGMEM = {(uint8_t *)dig_11_Bitmaps, 
+                                (GFXglyph *)dig_11_Glyphs, 0x2D, 0x39,   11};

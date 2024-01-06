@@ -3,13 +3,14 @@
 
 #include "../driver/keyboard.h"
 
-#define APPS_COUNT 16
-#define RUN_APPS_COUNT 6
+#define APPS_COUNT 17
+#define RUN_APPS_COUNT 7
 
 typedef enum {
   APP_NONE,
   APP_TASK_MANAGER,
   APP_SPECTRUM,
+  APP_FASTSCAN,
   APP_STILL,
   APP_FINPUT,
   APP_APPS_LIST,
@@ -41,6 +42,7 @@ extern AppType_t gPreviousApp;
 extern AppType_t gCurrentApp;
 extern const AppType_t appsAvailableToRun[RUN_APPS_COUNT];
 
+AppType_t APPS_Peek();
 bool APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
 void APPS_init(AppType_t app);
 void APPS_update(void);

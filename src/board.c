@@ -435,6 +435,5 @@ void BOARD_Init(void) {
   ST7565_Init();
   BK1080_Init(0, false);
   BK4819_Init();
-  BK4819_WriteRegister(BK4819_REG_49, 0b0001100100100000); // AGC FIX
   BACKLIGHT_Init();
 }

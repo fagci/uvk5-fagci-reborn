@@ -151,23 +151,23 @@ static void getSQTypeName(uint16_t index, char *name) {
   strncpy(name, sqTypeNames[index], 31);
 }
 
-static void showSubmenu(VfoCfgMenu menu) {
-  switch (menu) {
+static void showSubmenu(VfoCfgMenu m) {
+  const MenuItem *item = &menu[menuIndex];
+  switch (m) {
   case M_MODULATION:
-    UI_ShowMenu(getModulationTypeText, ARRAY_SIZE(modulationTypeOptions),
-                subMenuIndex);
+    UI_ShowMenu(getModulationTypeText, item->size, subMenuIndex);
     return;
   case M_BW:
-    UI_ShowMenu(getBWName, ARRAY_SIZE(bwNames), subMenuIndex);
+    UI_ShowMenu(getBWName, item->size, subMenuIndex);
     return;
   case M_STEP:
-    UI_ShowMenu(getStepText, ARRAY_SIZE(StepFrequencyTable), subMenuIndex);
+    UI_ShowMenu(getStepText, item->size, subMenuIndex);
     return;
   case M_SQ_TYPE:
-    UI_ShowMenu(getSQTypeName, ARRAY_SIZE(sqTypeNames), subMenuIndex);
+    UI_ShowMenu(getSQTypeName, item->size, subMenuIndex);
     return;
   case M_SQ:
-    UI_ShowMenu(getSquelchValueText, 10, subMenuIndex);
+    UI_ShowMenu(getSquelchValueText, item->size, subMenuIndex);
     return;
   default:
     break;
@@ -179,7 +179,10 @@ static void setTXF(uint32_t f) {
   RADIO_SaveCurrentVFO();
 }
 
-void VFOCFG_init() { gRedrawScreen = true; }
+void VFOCFG_init() {
+  gRedrawScreen = true;
+  menu[3].size -= (RADIO_IsBK1080Range(gCurrentVFO->fRX) ? 0 : 1);
+}
 void VFOCFG_update() {}
 bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   const MenuItem *item = &menu[menuIndex];

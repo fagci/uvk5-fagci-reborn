@@ -63,7 +63,18 @@ void STATUSLINE_render() {
   DrawHLine(0, 6, LCD_WIDTH, C_FILL);
 
   if (showBattery) {
-    UI_Battery(gBatteryDisplayLevel);
+    if (gSettings.batteryStyle == BAT_PERCENT ||
+        gSettings.batteryStyle == BAT_VOLTAGE) {
+      PrintSmallEx(LCD_WIDTH - 1, BASE_Y, POS_R, C_INVERT, "%u%%",
+                   gBatteryPercent);
+    } else {
+      UI_Battery(gBatteryDisplayLevel);
+    }
+  }
+
+  if (gSettings.batteryStyle == BAT_VOLTAGE) {
+    PrintSmallEx(LCD_WIDTH - 1 - 16, BASE_Y, POS_R, C_FILL, "%u.%uV",
+                 gBatteryVoltage / 100, gBatteryVoltage % 100);
   }
 
   char icons[16] = {0};
@@ -80,20 +91,21 @@ void STATUSLINE_render() {
   }
 
   if (isBK1080) {
-    icons[idx++] = SYM_HEART;
+    icons[idx++] = SYM_BROADCAST;
   }
 
   if (gSettings.upconverter) {
     icons[idx++] = SYM_CONVERTER;
   }
 
-  PrintSymbolsEx(LCD_WIDTH - 1, BASE_Y, POS_R, C_FILL, "%s", icons);
+  PrintSymbolsEx(LCD_WIDTH - 1 -
+                     (gSettings.batteryStyle == BAT_VOLTAGE ? 38 : 18),
+                 BASE_Y, POS_R, C_FILL, "%s", icons);
 
   if (UART_IsLogEnabled) {
-    PrintSmall(BATTERY_W + 1, BASE_Y, statuslineText, "D:%u",
-               UART_IsLogEnabled);
+    PrintSmall(0, BASE_Y, statuslineText, "D:%u", UART_IsLogEnabled);
   } else if (statuslineText[0] >= 32) {
-    PrintSmall(BATTERY_W + 1, BASE_Y, statuslineText);
+    PrintSmall(0, BASE_Y, statuslineText);
   }
 
   // FillRect(0, 0, LCD_WIDTH, 7, C_INVERT);
