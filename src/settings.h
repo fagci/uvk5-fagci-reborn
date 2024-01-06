@@ -68,20 +68,20 @@ typedef struct {
   uint8_t repeaterSte : 1;
   uint8_t dtmfdecode : 1; // 1
   uint8_t brightness : 4;
-  uint8_t contrast : 4; // 1
-  AppType_t mainApp : 8;
-  BacklightOnSquelchMode backlightOnSquelch : 2;
-  uint8_t activeVFO : 1;
-  uint8_t reserved1 : 1; // 1
-  uint16_t reserved2 : 10;
-  uint8_t activePreset : 6; // 2
+  uint8_t contrast : 4;  // 1
+  AppType_t mainApp : 8; // 1
+
   uint8_t presetsCount : 8; // 1
+  BacklightOnSquelchMode backlightOnSquelch : 2;
+  uint8_t activePreset : 6; // 2
   uint16_t batteryCalibration : 12;
   BatteryType batteryType : 2;
   BatteryStyle batteryStyle : 2; // 2
-  uint8_t reserved3 : 4;
-  uint8_t reserved4 : 8;
-  uint8_t reserved5 : 8;
+  uint8_t reserved1 : 8;
+  uint8_t reserved2 : 8;
+  uint8_t reserved3 : 8;
+  uint8_t reserved4 : 6;
+  uint8_t activeVFO : 2;
 } __attribute__((packed)) Settings;
 
 typedef struct { // 24 bytes
@@ -111,6 +111,7 @@ typedef struct { // 24 bytes
   uint8_t codeTypeTx : 4; // 1
   int16_t channel : 12;   // 1
   bool isMrMode : 1;
+  uint8_t reserved0 : 3;
   uint8_t reserved1 : 8;
   uint8_t reserved2 : 8;
 } __attribute__((packed)) VFO;

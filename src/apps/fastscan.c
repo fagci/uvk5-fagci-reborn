@@ -1,5 +1,6 @@
 #include "fastscan.h"
 #include "../driver/bk4819.h"
+#include "../helper/presetlist.h"
 #include "../scheduler.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
