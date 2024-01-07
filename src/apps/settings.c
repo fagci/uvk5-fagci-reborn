@@ -141,7 +141,7 @@ static void getBrightnessLevelText(uint16_t index, char *name) {
 static void getBatCalibText(uint16_t index, char *name) {
   uint16_t v =
       gBatteryVoltage * gSettings.batteryCalibration / (index + BAT_CAL_MIN);
-  sprintf(name, "%u.%u (%u)", v / 100, v % 100, index + BAT_CAL_MIN);
+  sprintf(name, "%u.%02u (%u)", v / 100, v % 100, index + BAT_CAL_MIN);
 }
 
 static void getUCTypeText(uint16_t index, char *name) {

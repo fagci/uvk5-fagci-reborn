@@ -186,7 +186,7 @@ void BK4819_Init(void) {
   BK4819_WriteRegister(BK4819_REG_00, 0x0000);
   BK4819_WriteRegister(BK4819_REG_37, 0x1D0F);
   BK4819_WriteRegister(BK4819_REG_36, 0x0022);
-  BK4819_SetAGC();
+  BK4819_SetAGC(true);
   BK4819_WriteRegister(BK4819_REG_19, 0x1041);
   BK4819_WriteRegister(BK4819_REG_7D, 0xE94F);
   BK4819_WriteRegister(BK4819_REG_48, 0xB3A8);
@@ -298,7 +298,7 @@ void BK4819_WriteRegister(BK4819_REGISTER_t Register, uint16_t Data) {
   GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
 }
 
-void BK4819_SetAGC() {
+void BK4819_SetAGC(bool useDefault) {
   BK4819_WriteRegister(BK4819_REG_13, 0x03BE);
   BK4819_WriteRegister(BK4819_REG_12, 0x037B);
   BK4819_WriteRegister(BK4819_REG_11, 0x027B);
@@ -311,7 +311,11 @@ void BK4819_SetAGC() {
   // 45, 25 - AGRESSIVE - lower histeresis, but volume jumps heavily, not good
   // for music, might be good for aviation 1 << 14 - way better, seems to open
   // squelch and match squelch as opposed to 0
-  BK4819_WriteRegister(BK4819_REG_49, (0b00 << 14) | (50 << 7) | (15 << 0));
+  if (useDefault) {
+    BK4819_WriteRegister(BK4819_REG_49, 0x2A38);
+  } else {
+    BK4819_WriteRegister(BK4819_REG_49, (0b00 << 14) | (50 << 7) | (15 << 0));
+  }
   BK4819_WriteRegister(BK4819_REG_7B, 0x8420);
 }
 
@@ -488,11 +492,13 @@ void BK4819_SetRegValue(RegisterSpec s, uint16_t v) {
 }
 
 void BK4819_SetModulation(ModulationType type) {
-  const uint8_t modTypeReg47Values[] = {BK4819_AF_FM, BK4819_AF_AM,
+  const uint8_t modTypeReg47Values[] = {BK4819_AF_FM,  BK4819_AF_AM,
                                         BK4819_AF_USB, BK4819_AF_BYPASS,
-                                        BK4819_AF_RAW};
+                                        BK4819_AF_RAW, BK4819_AF_FM};
   BK4819_SetAF(modTypeReg47Values[type]);
   BK4819_SetRegValue(afDacGainRegSpec, 0xF);
+  BK4819_SetAGC(type == MOD_FM || type == MOD_WFM || type == MOD_BYP ||
+                type == MOD_RAW);
   BK4819_WriteRegister(0x3D, type == MOD_USB ? 0 : 0x2AAB);
   BK4819_SetRegValue(afcDisableRegSpec, type != MOD_FM);
 }
@@ -891,6 +897,10 @@ void BK4819_DisableFrequencyScan(void) {
 
 void BK4819_EnableFrequencyScan(void) {
   BK4819_WriteRegister(BK4819_REG_32, 0x0245);
+}
+
+void BK4819_EnableFrequencyScanEx(FreqScanTime t) {
+  BK4819_WriteRegister(BK4819_REG_32, 0x0245 | (t << 14));
 }
 
 void BK4819_SetScanFrequency(uint32_t Frequency) {

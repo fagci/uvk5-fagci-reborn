@@ -73,7 +73,7 @@ void STATUSLINE_render() {
   }
 
   if (gSettings.batteryStyle == BAT_VOLTAGE) {
-    PrintSmallEx(LCD_WIDTH - 1 - 16, BASE_Y, POS_R, C_FILL, "%u.%uV",
+    PrintSmallEx(LCD_WIDTH - 1 - 16, BASE_Y, POS_R, C_FILL, "%u.%02uV",
                  gBatteryVoltage / 100, gBatteryVoltage % 100);
   }
 
@@ -82,8 +82,8 @@ void STATUSLINE_render() {
 
   if (gEepromWrite) {
     icons[idx++] = SYM_EEPROM_W;
-  } else if (gEepromRead) {
-    icons[idx++] = SYM_EEPROM_R;
+    /* } else if (gEepromRead) {
+      icons[idx++] = SYM_EEPROM_R; */
   }
 
   if (gMonitorMode) {
