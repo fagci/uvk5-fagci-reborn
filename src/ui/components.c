@@ -7,9 +7,6 @@
 #include <stdarg.h>
 #include <string.h>
 
-static const uint8_t MENU_ITEM_H = 11;
-static const uint8_t MENU_LINES_TO_SHOW = 4;
-
 void UI_Battery(uint8_t Level) {
   DrawRect(LCD_WIDTH - 13, 0, 12, 5, C_FILL);
   FillRect(LCD_WIDTH - 12, 1, Level, 3, C_FILL);
@@ -67,58 +64,6 @@ void UI_FSmall(uint32_t f) {
 
 void UI_FSmallest(uint32_t f, uint8_t x, uint8_t y) {
   PrintSmall(x, y, "%u.%05u", f / 100000, f % 100000);
-}
-
-void UI_DrawScrollBar(const uint16_t size, const uint16_t iCurrent,
-                      const uint8_t nLines) {
-  const uint8_t sbY =
-      ConvertDomain(iCurrent, 0, size, 0, nLines * MENU_ITEM_H - 3);
-
-  DrawVLine(LCD_WIDTH - 2, MENU_Y, LCD_HEIGHT - MENU_Y, C_FILL);
-
-  FillRect(LCD_WIDTH - 3, MENU_Y + sbY, 3, 3, C_FILL);
-}
-
-void UI_ShowMenuItem(uint8_t line, const char *name, bool isCurrent) {
-  /* if (isCurrent) {
-    PrintMediumBold(6, MENU_Y + line * MENU_ITEM_H + 8, name);
-  } else {
-    PrintMedium(6, MENU_Y + line * MENU_ITEM_H + 8, name);
-  } */
-  PrintMedium(6, MENU_Y + line * MENU_ITEM_H + 8, name);
-  if (isCurrent) {
-    FillRect(0, MENU_Y + line * MENU_ITEM_H, LCD_WIDTH - 3, MENU_ITEM_H,
-             C_INVERT);
-  }
-}
-
-void UI_ShowMenu(void (*getItemText)(uint16_t index, char *name), uint16_t size,
-                 uint16_t currentIndex) {
-  const uint16_t maxItems =
-      size < MENU_LINES_TO_SHOW ? size : MENU_LINES_TO_SHOW;
-  const uint16_t offset = Clamp(currentIndex - 2, 0, size - maxItems);
-  char name[32] = {0};
-
-  for (uint16_t i = 0; i < maxItems; ++i) {
-    uint16_t itemIndex = i + offset;
-    getItemText(itemIndex, name);
-    UI_ShowMenuItem(i, name, currentIndex == itemIndex);
-  }
-
-  UI_DrawScrollBar(size, currentIndex, MENU_LINES_TO_SHOW);
-}
-
-void UI_ShowMenuEx(void (*showItem)(uint16_t i, uint16_t index, bool isCurrent),
-                   uint16_t size, uint16_t currentIndex, uint16_t linesMax) {
-  const uint16_t maxItems = size < linesMax ? size : linesMax;
-  const uint16_t offset = Clamp(currentIndex - 2, 0, size - maxItems);
-
-  for (uint16_t i = 0; i < maxItems; ++i) {
-    uint16_t itemIndex = i + offset;
-    showItem(i, itemIndex, currentIndex == itemIndex);
-  }
-
-  UI_DrawScrollBar(size, currentIndex, linesMax);
 }
 
 void drawTicks(uint8_t x1, uint8_t x2, uint8_t y, uint32_t fs, uint32_t fe,

@@ -6,8 +6,8 @@
 #include "../misc.h"
 #include "../radio.h"
 #include "../settings.h"
-#include "../ui/components.h"
 #include "../ui/graphics.h"
+#include "../ui/menu.h"
 #include "../ui/statusline.h"
 #include "apps.h"
 #include <string.h>
@@ -30,6 +30,11 @@ static uint8_t menuIndex = 0;
 static uint8_t subMenuIndex = 0;
 static bool isSubMenu = false;
 
+char Output[16];
+
+const char *onOff[] = {"Off", "On"};
+const char *yesNo[] = {"No", "Yes"};
+
 const uint16_t BAT_CAL_MIN = 1900;
 const uint16_t BAT_CAL_MAX = 2100;
 
@@ -45,6 +50,46 @@ static const MenuItem menu[] = {
     {"BAT style", M_BAT_STYLE, ARRAY_SIZE(BATTERY_STYLE_NAMES)},
     {"EEPROM reset", M_RESET, 2},
 };
+
+static void getSubmenuItemText(uint16_t index, char *name) {
+  const MenuItem *item = &menu[menuIndex];
+  uint16_t v =
+      gBatteryVoltage * gSettings.batteryCalibration / (index + BAT_CAL_MIN);
+  switch (item->type) {
+  case M_UPCONVERTER:
+    strncpy(name, upConverterFreqNames[index], 31);
+    return;
+  case M_MAIN_APP:
+    strncpy(name, apps[appsAvailableToRun[index]].name, 31);
+    return;
+  case M_BL_SQL:
+    strncpy(name, BL_SQL_MODE_NAMES[index], 31);
+    return;
+  case M_BRIGHTNESS:
+    sprintf(name, "%u", index);
+    return;
+  case M_BL_TIME:
+    strncpy(name, BL_TIME_NAMES[index], 31);
+    return;
+  case M_BEEP:
+    strncpy(name, onOff[index], 31);
+    return;
+  case M_BAT_CAL:
+    sprintf(name, "%u.%02u (%u)", v / 100, v % 100, index + BAT_CAL_MIN);
+    return;
+  case M_BAT_TYPE:
+    strncpy(name, BATTERY_TYPE_NAMES[index], 31);
+    return;
+  case M_BAT_STYLE:
+    strncpy(name, BATTERY_STYLE_NAMES[index], 31);
+    return;
+  case M_RESET:
+    strncpy(name, yesNo[index], 31);
+    return;
+  default:
+    break;
+  }
+}
 
 static void accept() {
   const MenuItem *item = &menu[menuIndex];
@@ -97,11 +142,6 @@ static void accept() {
   }
 }
 
-char Output[16];
-
-const char *onOff[] = {"Off", "On"};
-const char *yesNo[] = {"No", "Yes"};
-
 static const char *getValue(Menu type) {
   switch (type) {
   case M_BRIGHTNESS:
@@ -128,90 +168,6 @@ static const char *getValue(Menu type) {
     break;
   }
   return "";
-}
-
-static void getMenuItemText(uint16_t index, char *name) {
-  strncpy(name, menu[index].name, 31);
-}
-
-static void getBrightnessLevelText(uint16_t index, char *name) {
-  sprintf(name, "%u", index);
-}
-
-static void getBatCalibText(uint16_t index, char *name) {
-  uint16_t v =
-      gBatteryVoltage * gSettings.batteryCalibration / (index + BAT_CAL_MIN);
-  sprintf(name, "%u.%02u (%u)", v / 100, v % 100, index + BAT_CAL_MIN);
-}
-
-static void getUCTypeText(uint16_t index, char *name) {
-  strncpy(name, upConverterFreqNames[index], 31);
-}
-
-static void getBacklightTimeText(uint16_t index, char *name) {
-  strncpy(name, BL_TIME_NAMES[index], 31);
-}
-
-static void getBacklightSQLModeText(uint16_t index, char *name) {
-  strncpy(name, BL_SQL_MODE_NAMES[index], 31);
-}
-
-static void getBatTypeText(uint16_t index, char *name) {
-  strncpy(name, BATTERY_TYPE_NAMES[index], 31);
-}
-
-static void getBatStyleText(uint16_t index, char *name) {
-  strncpy(name, BATTERY_STYLE_NAMES[index], 31);
-}
-
-static void getMainAppText(uint16_t index, char *name) {
-  strncpy(name, apps[appsAvailableToRun[index]].name, 31);
-}
-
-static void getYesNoText(uint16_t index, char *name) {
-  strncpy(name, yesNo[index], 31);
-}
-
-static void getOnOffText(uint16_t index, char *name) {
-  strncpy(name, onOff[index], 31);
-}
-
-static void showSubmenu(Menu menuType) {
-  const MenuItem *item = &menu[menuIndex];
-  switch (menuType) {
-  case M_UPCONVERTER:
-    UI_ShowMenu(getUCTypeText, item->size, subMenuIndex);
-    break;
-  case M_MAIN_APP:
-    UI_ShowMenu(getMainAppText, item->size, subMenuIndex);
-    break;
-  case M_BL_TIME:
-    UI_ShowMenu(getBacklightTimeText, item->size, subMenuIndex);
-    break;
-  case M_BL_SQL:
-    UI_ShowMenu(getBacklightSQLModeText, item->size, subMenuIndex);
-    break;
-  case M_BRIGHTNESS:
-    UI_ShowMenu(getBrightnessLevelText, item->size, subMenuIndex);
-    break;
-  case M_BEEP:
-    UI_ShowMenu(getOnOffText, item->size, subMenuIndex);
-    break;
-  case M_RESET:
-    UI_ShowMenu(getYesNoText, item->size, subMenuIndex);
-    break;
-  case M_BAT_CAL:
-    UI_ShowMenu(getBatCalibText, item->size, subMenuIndex);
-    break;
-  case M_BAT_TYPE:
-    UI_ShowMenu(getBatTypeText, item->size, subMenuIndex);
-    break;
-  case M_BAT_STYLE:
-    UI_ShowMenu(getBatStyleText, item->size, subMenuIndex);
-    break;
-  default:
-    break;
-  }
 }
 
 static void onSubChange() {
@@ -324,10 +280,10 @@ void SETTINGS_render() {
   UI_ClearStatus();
   const MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {
-    showSubmenu(item->type);
+    UI_ShowMenu(getSubmenuItemText, item->size, subMenuIndex);
     STATUSLINE_SetText(item->name);
   } else {
-    UI_ShowMenu(getMenuItemText, ARRAY_SIZE(menu), menuIndex);
+    UI_ShowMenuSimple(menu, ARRAY_SIZE(menu), menuIndex);
     PrintMediumEx(LCD_WIDTH / 2, 6 * 8 + 12, POS_C, C_FILL,
                   getValue(item->type));
   }

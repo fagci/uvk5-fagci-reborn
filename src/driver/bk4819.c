@@ -305,17 +305,17 @@ void BK4819_SetAGC(bool useDefault) {
   BK4819_WriteRegister(BK4819_REG_10, 0x007A);
   BK4819_WriteRegister(BK4819_REG_14, 0x0019);
 
-  // 30, 10 - doesn't overload but sound low
-  // 50, 10 - best so far
-  // 50, 15, - SOFT - signal doesn't fall too low - works best for now
-  // 45, 25 - AGRESSIVE - lower histeresis, but volume jumps heavily, not good
-  // for music, might be good for aviation 1 << 14 - way better, seems to open
-  // squelch and match squelch as opposed to 0
-  if (useDefault) {
-    BK4819_WriteRegister(BK4819_REG_49, 0x2A38);
-  } else {
-    BK4819_WriteRegister(BK4819_REG_49, (0b00 << 14) | (50 << 7) | (15 << 0));
+  uint8_t Lo = 0;    // 0-1 - auto, 2 - low, 3 high
+  uint8_t low = 56;  // 1dB / LSB
+  uint8_t high = 84; // 1dB / LSB
+
+  if (!useDefault) {
+    // slow 25 45
+    // fast 15 50
+    low = 15;
+    high = 50;
   }
+  BK4819_WriteRegister(BK4819_REG_49, (Lo << 14) | (high << 7) | (low << 0));
   BK4819_WriteRegister(BK4819_REG_7B, 0x8420);
 }
 

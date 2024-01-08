@@ -4,6 +4,7 @@
 #include "../misc.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
+#include "../ui/menu.h"
 #include "finput.h"
 #include "textinput.h"
 #include <stdint.h>

@@ -5,6 +5,7 @@
 #include "../radio.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
+#include "../ui/menu.h"
 #include "apps.h"
 #include <string.h>
 

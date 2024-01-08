@@ -77,7 +77,7 @@ static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
 
 static void updateMeasurements() {
   msm.rssi = BK4819_GetRSSI();
-  UART_logf(1, "[SPECTRUM] got RSSI for %u (%u)", msm.f, msm.rssi);
+  // UART_logf(1, "[SPECTRUM] got RSSI for %u (%u)", msm.f, msm.rssi);
   msm.noise = BK4819_GetNoise();
   // UART_printf("%u: Got rssi\n", elapsedMilliseconds);
 
@@ -88,12 +88,12 @@ static void updateMeasurements() {
   } else {
     msm.open = isSquelchOpen();
   }
-/*
-  if (elapsedMilliseconds - msm.lastTimeCheck < 500) {
-    msm.open = false;
-  } else {
-    BK4819_HandleInterrupts(handleInt);
-  } */
+  /*
+    if (elapsedMilliseconds - msm.lastTimeCheck < 500) {
+      msm.open = false;
+    } else {
+      BK4819_HandleInterrupts(handleInt);
+    } */
 
   LOOT_Update(&msm);
 
@@ -123,7 +123,7 @@ uint32_t lastRender = 0;
 static void writeRssi() {
   updateMeasurements();
 
-  RADIO_ToggleRX(msm.open);
+  // RADIO_ToggleRX(msm.open);
   if (msm.open || elapsedMilliseconds - lastRender >= 1000) {
     lastRender = elapsedMilliseconds;
     gRedrawScreen = true;
@@ -148,7 +148,7 @@ static void setF() {
   BK4819_SetFrequency(msm.f);
   BK4819_WriteRegister(BK4819_REG_30, 0x200);
   BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
-  UART_logf(1, "[SPECTRUM] F set %u", msm.f);
+  // UART_logf(1, "[SPECTRUM] F set %u", msm.f);
   SYSTEM_DelayMs(msmDelay); // (X_X)
   writeRssi();
 
@@ -169,7 +169,8 @@ static void updateStats() {
   const uint16_t noiseMax = Max(noiseHistory, x);
   rssiO = noiseFloor;
   noiseO = noiseMax - noiseOpenDiff;
-  UART_logf(1, "[SPECTRUM] update stats Nf:%u Nmax:%u", noiseFloor, noiseMax);
+  // UART_logf(1, "[SPECTRUM] update stats Nf:%u Nmax:%u", noiseFloor,
+  // noiseMax);
 }
 
 static void startNewScan() {
@@ -307,7 +308,7 @@ static int RssiMin(uint16_t *array, uint8_t n) {
   uint8_t min = array[0];
   for (uint8_t i = 1; i < n; ++i) {
     if (array[i] == 0) {
-      UART_logf(1, "MIN=0 at %i", i);
+      // UART_logf(1, "MIN=0 at %i", i);
       continue;
     }
     if (array[i] < min) {
@@ -331,9 +332,9 @@ void SPECTRUM_render(void) {
   const uint16_t vMin = rssiMin - 2;
   const uint16_t vMax = rssiMax + 20 + (rssiMax - rssiMin) / 2;
 
-  UART_logf(1,
+  /* UART_logf(1,
             "---------------------------> filled=%u xmax=%u, vmin=%u, vmax=%u",
-            bandFilled, xMax, vMin, vMax);
+            bandFilled, xMax, vMin, vMax); */
 
   for (uint8_t xx = 0; xx < xMax; ++xx) {
     uint8_t yVal = ConvertDomain(rssiHistory[xx], vMin, vMax, 0, S_HEIGHT);
@@ -368,5 +369,6 @@ void SPECTRUM_render(void) {
   }
 
   PrintSmallEx(0, SPECTRUM_Y - 3, POS_L, C_FILL, "%u", noiseOpenDiff);
+  PrintSmallEx(0, SPECTRUM_Y - 3 + 6, POS_L, C_FILL, "%u", noiseO);
   PrintSmallEx(DATA_LEN - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "%ums", msmDelay);
 }

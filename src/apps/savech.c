@@ -8,6 +8,7 @@
 #include "../helper/vfos.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
+#include "../ui/menu.h"
 #include "apps.h"
 #include "textinput.h"
 #include <stdio.h>

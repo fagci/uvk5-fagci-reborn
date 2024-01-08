@@ -10,6 +10,7 @@
 #include "../scheduler.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
+#include "../ui/menu.h"
 #include "../ui/statusline.h"
 #include "apps.h"
 #include <string.h>
