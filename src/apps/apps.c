@@ -14,6 +14,7 @@
 #include "savech.h"
 #include "scanlists.h"
 #include "settings.h"
+#include "spectrumchannel.h"
 #include "spectrumreborn.h"
 #include "still.h"
 #include "test.h"
@@ -51,7 +52,7 @@ AppType_t APPS_Peek() {
 }
 
 const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
-    APP_VFO,       APP_SPECTRUM,     APP_FASTSCAN,     APP_STILL,
+    APP_VFO,       APP_SPECTRUM,     APP_SPECTRUM_CH,  APP_FASTSCAN, APP_STILL,
     APP_SCANLISTS, APP_PRESETS_LIST, APP_TASK_MANAGER, APP_ABOUT,
 };
 
@@ -59,6 +60,8 @@ const App apps[APPS_COUNT] = {
     {"None"},
     {"Test", TEST_Init, TEST_Update, TEST_Render, TEST_key},
     {"Spectrum", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render, SPECTRUM_key},
+    {"Spectrum CH", SPECTRUMCH_init, SPECTRUMCH_update, SPECTRUMCH_render,
+     SPECTRUMCH_key},
     {"Freq catch", FASTSCAN_init, FASTSCAN_update, FASTSCAN_render,
      FASTSCAN_key, FASTSCAN_deinit},
     {"VFO extended", STILL_init, NULL, STILL_render, STILL_key, STILL_deinit},

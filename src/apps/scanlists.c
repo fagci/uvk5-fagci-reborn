@@ -9,12 +9,9 @@
 #include <stdbool.h>
 #include <string.h>
 
-static uint8_t scanlist = 255;
 static uint16_t count = 0;
 
-uint16_t channels[350] = {0};
-
-uint16_t currentIndex = 0;
+static uint16_t currentIndex = 0;
 
 static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
   CH ch;
@@ -37,7 +34,7 @@ static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
 }
 
 static void getScanlistItem(uint16_t i, uint16_t index, bool isCurrent) {
-  uint16_t chNum = channels[index];
+  uint16_t chNum = gScanlist[index];
   CH ch;
   const uint8_t y = MENU_Y + i * MENU_ITEM_H;
   CHANNELS_Load(chNum, &ch);
@@ -55,18 +52,6 @@ static void getScanlistItem(uint16_t i, uint16_t index, bool isCurrent) {
     scanlistsStr[i] = ch.memoryBanks & (1 << i) ? '1' + i : '-';
   }
   PrintSmallEx(LCD_WIDTH - 1, y + 8, POS_R, C_INVERT, "%s", scanlistsStr);
-}
-
-static void loadScanlist(uint8_t n) {
-  uint16_t max = CHANNELS_GetCountMax();
-  uint8_t scanlistMask = 1 << n;
-  count = 0;
-  for (uint16_t i = 0; i < max; ++i) {
-    if ((CHANNELS_Scanlists(i) & scanlistMask) == scanlistMask) {
-      channels[count] = i;
-      count++;
-    }
-  }
 }
 
 static void toggleScanlist(uint8_t n) {
@@ -113,13 +98,13 @@ bool SCANLISTS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_6:
     case KEY_7:
     case KEY_8:
-      scanlist = key - KEY_1;
-      loadScanlist(scanlist);
+      CHANNELS_LoadScanlist(key - KEY_1);
+      count = gScanlistSize;
       currentIndex = 0;
       return true;
     case KEY_0:
-      scanlist = 255;
       currentIndex = 0;
+      CHANNELS_LoadScanlist(15);
       count = CHANNELS_GetCountMax();
       return true;
     case KEY_UP:
@@ -157,11 +142,11 @@ bool SCANLISTS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
 void SCANLISTS_render() {
   UI_ClearScreen();
-  if (scanlist == 255) {
+  if (gSettings.currentScanlist == 15) {
     STATUSLINE_SetText("CH scanlists");
     UI_ShowMenuEx(getChItem, count, currentIndex, MENU_LINES_TO_SHOW + 1);
   } else {
-    STATUSLINE_SetText("CH scanlist #%u", scanlist + 1);
+    STATUSLINE_SetText("CH scanlist #%u", gSettings.currentScanlist + 1);
     UI_ShowMenuEx(getScanlistItem, count, currentIndex, MENU_LINES_TO_SHOW + 1);
   }
 }

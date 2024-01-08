@@ -7,6 +7,9 @@
 #include "vfos.h"
 #include <string.h>
 
+uint16_t gScanlistSize = 0;
+uint16_t gScanlist[350] = {0};
+
 static uint16_t presetsSizeBytes() {
   return gSettings.presetsCount * PRESET_SIZE;
 }
@@ -71,4 +74,19 @@ int16_t CHANNELS_Next(int16_t base, bool next) {
 void CHANNELS_Delete(uint16_t i) {
   CH v = {0};
   CHANNELS_Save(i, &v);
+}
+
+void CHANNELS_LoadScanlist(uint8_t n) {
+  gSettings.currentScanlist = n;
+  uint16_t max = CHANNELS_GetCountMax();
+  uint8_t scanlistMask = 1 << n;
+  gScanlistSize = 0;
+  for (uint16_t i = 0; i < max; ++i) {
+    if ((n == 15 && CHANNELS_Existing(i)) ||
+        (CHANNELS_Scanlists(i) & scanlistMask) == scanlistMask) {
+      gScanlist[gScanlistSize] = i;
+      gScanlistSize++;
+    }
+  }
+  SETTINGS_Save();
 }
