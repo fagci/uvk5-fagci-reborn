@@ -463,8 +463,6 @@ void BK4819_SetupSquelch(uint8_t SquelchOpenRSSIThresh,
 
 void BK4819_Squelch(uint8_t sql, uint32_t f) {
   uint8_t band = f > VHF_UHF_BOUND ? 1 : 0;
-  UART_printf("SQL %u band %u\n", sql, band);
-  UART_flush();
   BK4819_SetupSquelch(SQ[band][0][sql], SQ[band][1][sql], SQ[band][2][sql],
                       SQ[band][3][sql], SQ[band][4][sql], SQ[band][5][sql]);
 }

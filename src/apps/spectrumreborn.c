@@ -47,7 +47,9 @@ static bool newScan = true;
 static uint16_t rssiO = U16_MAX;
 static uint16_t noiseO = 0;
 
-static uint8_t msmDelay = 5;
+static uint8_t msmDelay = 10;
+
+static bool noListen = false;
 
 static uint16_t oldPresetIndex = 255;
 
@@ -67,33 +69,39 @@ static void resetRssiHistory() {
 
 static Loot msm = {0};
 
-static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
+static bool isSquelchOpen() {
 
-/* static void handleInt(uint16_t intStatus) {
-  if (intStatus & BK4819_REG_02_CxCSS_TAIL) {
-    msm.open = false;
+  uint8_t band = msm.f > VHF_UHF_BOUND ? 1 : 0;
+  uint8_t sql = gSettings.squelch;
+  uint8_t ro = SQ[band][0][sql];
+  uint8_t rc = SQ[band][1][sql];
+  uint8_t no = SQ[band][2][sql];
+  uint8_t nc = SQ[band][3][sql];
+  // 119 36 40
+  // 69 65 70
+  bool open = false;
+  if (msm.rssi > ro && msm.noise < no) {
+    open = true;
   }
-} */
+  if (msm.rssi < rc || msm.noise > nc) {
+    open = false;
+  }
+  return open;
+
+  // return msm.rssi >= rssiO && msm.noise <= noiseO;
+}
 
 static void updateMeasurements() {
   msm.rssi = BK4819_GetRSSI();
-  // UART_logf(1, "[SPECTRUM] got RSSI for %u (%u)", msm.f, msm.rssi);
   msm.noise = BK4819_GetNoise();
-  // UART_printf("%u: Got rssi\n", elapsedMilliseconds);
 
   if (gIsListening) {
-    noiseO -= noiseOpenDiff;
+    noiseO -= noiseOpenDiff / 2;
     msm.open = isSquelchOpen();
-    noiseO += noiseOpenDiff;
+    noiseO += noiseOpenDiff / 2;
   } else {
     msm.open = isSquelchOpen();
   }
-  /*
-    if (elapsedMilliseconds - msm.lastTimeCheck < 500) {
-      msm.open = false;
-    } else {
-      BK4819_HandleInterrupts(handleInt);
-    } */
 
   LOOT_Update(&msm);
 
@@ -123,10 +131,11 @@ uint32_t lastRender = 0;
 static void writeRssi() {
   updateMeasurements();
 
-  // RADIO_ToggleRX(msm.open);
-  if (msm.open || elapsedMilliseconds - lastRender >= 1000) {
-    lastRender = elapsedMilliseconds;
-    gRedrawScreen = true;
+  if (bandFilled && !noListen) {
+    RADIO_ToggleRX(msm.open);
+  }
+
+  if (gIsListening) {
     return;
   }
 
@@ -145,24 +154,15 @@ static void setF() {
     markers[lx] = false;
   }
   // need to run when task activated, coz of another tasks exists between
-  BK4819_SetFrequency(msm.f);
+  /* BK4819_SetFrequency(msm.f);
   BK4819_WriteRegister(BK4819_REG_30, 0x200);
-  BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
-  // UART_logf(1, "[SPECTRUM] F set %u", msm.f);
+  BK4819_WriteRegister(BK4819_REG_30, 0xBFF1); */
+  BK4819_TuneTo(msm.f);
   SYSTEM_DelayMs(msmDelay); // (X_X)
   writeRssi();
-
-  /* TaskRemove(writeRssi);
-  Task *t = TaskAdd("Get RSSI", writeRssi, msmDelay, false);
-  t->priority = 0;
-  t->active = 1; */
 }
 
-static void step() {
-  /* TaskRemove(setF);
-  TaskAdd("Set F", setF, 0, false)->priority = 0; */
-  setF();
-}
+static void step() { setF(); }
 
 static void updateStats() {
   const uint16_t noiseFloor = Std(rssiHistory, x);
@@ -191,6 +191,7 @@ static void startNewScan() {
     rssiO = U16_MAX;
     noiseO = 0;
     RADIO_SetupBandParams(currentBand);
+
     oldPresetIndex = gSettings.activePreset;
     gRedrawScreen = true;
     bandFilled = false;
@@ -201,79 +202,89 @@ static void startNewScan() {
 
 void SPECTRUM_init(void) {
   newScan = true;
-  // RADIO_EnableToneDetection();
-
-  // resetRssiHistory();
   step();
 }
 
-void SPECTRUM_deinit() {
-  // BK4819_WriteRegister(BK4819_REG_3F, 0); // disable interrupts
-  RADIO_ToggleRX(false);
-}
+void SPECTRUM_deinit() { RADIO_ToggleRX(false); }
+
+bool repeatHeld = false;
 
 bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
-  switch (Key) {
-  case KEY_EXIT:
-    APPS_exit();
-    return true;
-  case KEY_UP:
-    PRESETS_SelectPresetRelative(true);
-    newScan = true;
-    return true;
-  case KEY_DOWN:
-    PRESETS_SelectPresetRelative(false);
-    newScan = true;
-    return true;
-  case KEY_SIDE1:
-    LOOT_BlacklistLast();
-    return true;
-  case KEY_SIDE2:
-    LOOT_GoodKnownLast();
-    return true;
-  case KEY_F:
-    APPS_run(APP_PRESET_CFG);
-    return true;
-  case KEY_0:
-    APPS_run(APP_PRESETS_LIST);
-    return true;
-  case KEY_STAR:
-    APPS_run(APP_LOOT_LIST);
-    return true;
-  case KEY_5:
-    return true;
-  case KEY_3:
-    IncDec8(&msmDelay, 0, 20, 1);
-    resetRssiHistory();
-    newScan = true;
-    return true;
-  case KEY_9:
-    IncDec8(&msmDelay, 0, 20, -1);
-    resetRssiHistory();
-    newScan = true;
-    return true;
-  case KEY_2:
-    IncDec8(&noiseOpenDiff, 2, 40, 1);
-    resetRssiHistory();
-    newScan = true;
-    return true;
-  case KEY_8:
-    IncDec8(&noiseOpenDiff, 2, 40, -1);
-    resetRssiHistory();
-    newScan = true;
-    return true;
-  case KEY_PTT:
-    RADIO_TuneToSave(gLastActiveLoot->f);
-    APPS_run(APP_STILL);
-    return true;
-  case KEY_1:
-    UART_ToggleLog(true);
-    return true;
-  case KEY_7:
-    UART_ToggleLog(false);
-    return true;
-  default:
-    break;
+  if (!bKeyPressed) {
+    repeatHeld = false;
+  }
+  if (bKeyHeld && bKeyPressed && !repeatHeld) {
+    repeatHeld = true;
+    if (Key == KEY_SIDE1) {
+      noListen = !noListen;
+      RADIO_ToggleRX(false);
+      return true;
+    }
+  }
+
+  if (!bKeyPressed && !bKeyHeld) {
+    switch (Key) {
+    case KEY_EXIT:
+      APPS_exit();
+      return true;
+    case KEY_UP:
+      PRESETS_SelectPresetRelative(true);
+      newScan = true;
+      return true;
+    case KEY_DOWN:
+      PRESETS_SelectPresetRelative(false);
+      newScan = true;
+      return true;
+    case KEY_SIDE1:
+      LOOT_BlacklistLast();
+      return true;
+    case KEY_SIDE2:
+      LOOT_GoodKnownLast();
+      return true;
+    case KEY_F:
+      APPS_run(APP_PRESET_CFG);
+      return true;
+    case KEY_0:
+      APPS_run(APP_PRESETS_LIST);
+      return true;
+    case KEY_STAR:
+      APPS_run(APP_LOOT_LIST);
+      return true;
+    case KEY_5:
+      return true;
+    case KEY_3:
+      IncDec8(&msmDelay, 0, 20, 1);
+      resetRssiHistory();
+      newScan = true;
+      return true;
+    case KEY_9:
+      IncDec8(&msmDelay, 0, 20, -1);
+      resetRssiHistory();
+      newScan = true;
+      return true;
+    case KEY_2:
+      IncDec8(&noiseOpenDiff, 2, 40, 1);
+      resetRssiHistory();
+      newScan = true;
+      return true;
+    case KEY_8:
+      IncDec8(&noiseOpenDiff, 2, 40, -1);
+      resetRssiHistory();
+      newScan = true;
+      return true;
+    case KEY_PTT:
+      RADIO_TuneToSave(gLastActiveLoot->f);
+      APPS_run(APP_STILL);
+      return true;
+    case KEY_1:
+      UART_ToggleLog(true);
+      return true;
+    case KEY_7:
+      UART_ToggleLog(false);
+      return true;
+    default:
+      break;
+    }
   }
   return false;
 }
@@ -294,6 +305,12 @@ void SPECTRUM_update(void) {
     }
     return;
   }
+
+  if (!bandFilled && elapsedMilliseconds - lastRender >= 1000) {
+    lastRender = elapsedMilliseconds;
+    gRedrawScreen = true;
+  }
+
   if (msm.f >= currentBand->bounds.end) {
     updateStats();
     gRedrawScreen = true;
@@ -320,10 +337,10 @@ static int RssiMin(uint16_t *array, uint8_t n) {
 
 void SPECTRUM_render(void) {
   UI_ClearScreen();
-  STATUSLINE_SetText(currentBand->name);
+  STATUSLINE_SetText(gCurrentPreset->band.name);
   DrawVLine(DATA_LEN - 1, 8, LCD_HEIGHT - 8, C_FILL);
 
-  UI_DrawTicks(0, DATA_LEN - 1, 56, currentBand);
+  UI_DrawTicks(0, DATA_LEN - 1, 56, &gCurrentPreset->band);
 
   const uint8_t xMax = bandFilled ? DATA_LEN - 1 : x;
 
@@ -331,10 +348,6 @@ void SPECTRUM_render(void) {
   const uint16_t rssiMax = Max(rssiHistory, xMax);
   const uint16_t vMin = rssiMin - 2;
   const uint16_t vMax = rssiMax + 20 + (rssiMax - rssiMin) / 2;
-
-  /* UART_logf(1,
-            "---------------------------> filled=%u xmax=%u, vmin=%u, vmax=%u",
-            bandFilled, xMax, vMin, vMax); */
 
   for (uint8_t xx = 0; xx < xMax; ++xx) {
     uint8_t yVal = ConvertDomain(rssiHistory[xx], vMin, vMax, 0, S_HEIGHT);
@@ -369,6 +382,8 @@ void SPECTRUM_render(void) {
   }
 
   PrintSmallEx(0, SPECTRUM_Y - 3, POS_L, C_FILL, "%u", noiseOpenDiff);
-  PrintSmallEx(0, SPECTRUM_Y - 3 + 6, POS_L, C_FILL, "%u", noiseO);
+  if (noListen) {
+    PrintSmallEx(0, SPECTRUM_Y - 3 + 6, POS_L, C_FILL, "No listen");
+  }
   PrintSmallEx(DATA_LEN - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "%ums", msmDelay);
 }

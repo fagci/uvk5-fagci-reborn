@@ -93,6 +93,7 @@ extern const uint16_t BWRegValues[3];
 extern const Gain gainTable[96];
 
 extern bool gRxIdleMode;
+extern const uint8_t SQ[2][6][11];
 
 void BK4819_Init(void);
 uint16_t BK4819_ReadRegister(BK4819_REGISTER_t Register);
