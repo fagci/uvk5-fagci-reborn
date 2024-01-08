@@ -244,7 +244,9 @@ void RADIO_LoadCurrentVFO() {
 
 void RADIO_SetSquelch(uint8_t sq) {
   gCurrentPreset->band.squelch = sq;
-  RADIO_SetupByCurrentVFO(); // TODO: set AF_* to previous instead of just RX ON
+  BK4819_Squelch(sq, gCurrentPreset->band.bounds.start);
+
+  // RADIO_SetupByCurrentVFO(); TODO: set AF to previous instead of just RX ON
   onPresetUpdate();
 }
 
@@ -340,7 +342,12 @@ void RADIO_ToggleVfoMR() {
 
 void RADIO_UpdateSquelchLevel(bool next) {
   uint8_t sq = gCurrentPreset->band.squelch;
-  IncDec8(&sq, 0, 9, next ? 1 : -1);
+  if (!next && sq > 0) {
+    sq--;
+  }
+  if (next && sq < 9) {
+    sq++;
+  }
   RADIO_SetSquelch(sq);
 }
 

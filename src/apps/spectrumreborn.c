@@ -20,9 +20,6 @@
 
 static const uint16_t U16_MAX = 65535;
 
-// TODO: use as variable
-static uint8_t noiseOpenDiff = 14;
-
 static const uint8_t S_HEIGHT = 40;
 
 static const uint8_t SPECTRUM_Y = 16;
@@ -44,8 +41,10 @@ static uint32_t bandwidth;
 
 static bool newScan = true;
 
-static uint16_t rssiO = U16_MAX;
-static uint16_t noiseO = 0;
+static uint8_t ro = 255;
+static uint8_t rc = 255;
+static uint8_t no = 0;
+static uint8_t nc = 0;
 
 static uint8_t msmDelay = 10;
 
@@ -55,11 +54,11 @@ static uint16_t oldPresetIndex = 255;
 
 static bool bandFilled = false;
 
+static uint32_t lastRender = 0;
+
 static uint16_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 
 static void resetRssiHistory() {
-  rssiO = U16_MAX;
-  noiseO = 0;
   for (uint8_t x = 0; x < DATA_LEN; ++x) {
     rssiHistory[x] = 0;
     noiseHistory[x] = 0;
@@ -70,38 +69,19 @@ static void resetRssiHistory() {
 static Loot msm = {0};
 
 static bool isSquelchOpen() {
+  bool open = msm.rssi > ro && msm.noise < no;
 
-  uint8_t band = msm.f > VHF_UHF_BOUND ? 1 : 0;
-  uint8_t sql = gSettings.squelch;
-  uint8_t ro = SQ[band][0][sql];
-  uint8_t rc = SQ[band][1][sql];
-  uint8_t no = SQ[band][2][sql];
-  uint8_t nc = SQ[band][3][sql];
-  // 119 36 40
-  // 69 65 70
-  bool open = false;
-  if (msm.rssi > ro && msm.noise < no) {
-    open = true;
-  }
   if (msm.rssi < rc || msm.noise > nc) {
     open = false;
   }
   return open;
-
-  // return msm.rssi >= rssiO && msm.noise <= noiseO;
 }
 
 static void updateMeasurements() {
   msm.rssi = BK4819_GetRSSI();
   msm.noise = BK4819_GetNoise();
 
-  if (gIsListening) {
-    noiseO -= noiseOpenDiff / 2;
-    msm.open = isSquelchOpen();
-    noiseO += noiseOpenDiff / 2;
-  } else {
-    msm.open = isSquelchOpen();
-  }
+  msm.open = isSquelchOpen();
 
   LOOT_Update(&msm);
 
@@ -125,8 +105,6 @@ static void updateMeasurements() {
     }
   }
 }
-
-uint32_t lastRender = 0;
 
 static void writeRssi() {
   updateMeasurements();
@@ -165,17 +143,13 @@ static void setF() {
 static void step() { setF(); }
 
 static void updateStats() {
-  const uint16_t noiseFloor = Std(rssiHistory, x);
-  const uint16_t noiseMax = Max(noiseHistory, x);
-  rssiO = noiseFloor;
-  noiseO = noiseMax - noiseOpenDiff;
-  // UART_logf(1, "[SPECTRUM] update stats Nf:%u Nmax:%u", noiseFloor,
-  // noiseMax);
+  /* const uint16_t noiseFloor = Std(rssiHistory, x);
+  const uint16_t noiseMax = Max(noiseHistory, x); */
 }
 
 static void startNewScan() {
   currentStep = 0;
-  currentBand = &PRESETS_Item(gSettings.activePreset)->band;
+  currentBand = &gCurrentPreset->band;
   currentStepSize = StepFrequencyTable[currentBand->step];
 
   bandwidth = currentBand->bounds.end - currentBand->bounds.start;
@@ -188,9 +162,13 @@ static void startNewScan() {
   if (gSettings.activePreset != oldPresetIndex) {
     resetRssiHistory();
     LOOT_Standby();
-    rssiO = U16_MAX;
-    noiseO = 0;
     RADIO_SetupBandParams(currentBand);
+    uint8_t band = msm.f > VHF_UHF_BOUND ? 1 : 0;
+    uint8_t sql = gCurrentPreset->band.squelch;
+    ro = SQ[band][0][sql];
+    rc = SQ[band][1][sql];
+    no = SQ[band][2][sql];
+    nc = SQ[band][3][sql];
 
     oldPresetIndex = gSettings.activePreset;
     gRedrawScreen = true;
@@ -218,6 +196,10 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     if (Key == KEY_SIDE1) {
       noListen = !noListen;
       RADIO_ToggleRX(false);
+      return true;
+    }
+    if (Key == KEY_0) {
+      LOOT_Clear();
       return true;
     }
   }
@@ -253,24 +235,32 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_5:
       return true;
     case KEY_3:
+      RADIO_UpdateSquelchLevel(true);
+      resetRssiHistory();
+      newScan = true;
+      oldPresetIndex = 255;
+      bandFilled = false;
+      return true;
+    case KEY_9:
+      if (gCurrentPreset->band.squelch > 1) {
+        RADIO_UpdateSquelchLevel(false);
+      }
+      resetRssiHistory();
+      newScan = true;
+      oldPresetIndex = 255;
+      bandFilled = false;
+      return true;
+    case KEY_2:
       IncDec8(&msmDelay, 0, 20, 1);
       resetRssiHistory();
       newScan = true;
+      bandFilled = false;
       return true;
-    case KEY_9:
+    case KEY_8:
       IncDec8(&msmDelay, 0, 20, -1);
       resetRssiHistory();
       newScan = true;
-      return true;
-    case KEY_2:
-      IncDec8(&noiseOpenDiff, 2, 40, 1);
-      resetRssiHistory();
-      newScan = true;
-      return true;
-    case KEY_8:
-      IncDec8(&noiseOpenDiff, 2, 40, -1);
-      resetRssiHistory();
-      newScan = true;
+      bandFilled = false;
       return true;
     case KEY_PTT:
       RADIO_TuneToSave(gLastActiveLoot->f);
@@ -381,9 +371,10 @@ void SPECTRUM_render(void) {
                  p->f % 100000);
   }
 
-  PrintSmallEx(0, SPECTRUM_Y - 3, POS_L, C_FILL, "%u", noiseOpenDiff);
+  PrintSmallEx(0, SPECTRUM_Y - 3, POS_L, C_FILL, "%ums", msmDelay);
+  PrintSmallEx(DATA_LEN - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "SQ:%u",
+               gCurrentPreset->band.squelch);
   if (noListen) {
     PrintSmallEx(0, SPECTRUM_Y - 3 + 6, POS_L, C_FILL, "No listen");
   }
-  PrintSmallEx(DATA_LEN - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "%ums", msmDelay);
 }
