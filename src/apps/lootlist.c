@@ -16,8 +16,7 @@
 #include <string.h>
 
 static uint8_t menuIndex = 0;
-static const uint8_t MENU_ITEM_H = 15;
-static const uint8_t MENU_ITEM_H_SHORT = 9;
+static const uint8_t MENU_ITEM_H_LARGER = 15;
 
 typedef enum {
   SORT_LOT,
@@ -62,7 +61,7 @@ static void exportLootList() {
 static void getLootItem(uint16_t i, uint16_t index, bool isCurrent) {
   Loot *item = LOOT_Item(index);
   uint32_t f = item->f;
-  const uint8_t y = 9 + i * MENU_ITEM_H;
+  const uint8_t y = MENU_Y + i * MENU_ITEM_H_LARGER;
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
   }
@@ -92,10 +91,10 @@ static void getLootItemShort(uint16_t i, uint16_t index, bool isCurrent) {
   Loot *item = LOOT_Item(index);
   uint32_t f = item->f;
   const uint8_t x = LCD_WIDTH - 6;
-  const uint8_t y = 9 + i * MENU_ITEM_H_SHORT;
+  const uint8_t y = MENU_Y + i * MENU_ITEM_H;
   const uint32_t ago = (elapsedMilliseconds - item->lastTimeOpen) / 1000;
   if (isCurrent) {
-    FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H_SHORT, C_FILL);
+    FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
   }
   PrintMediumEx(8, y + 7, POS_L, C_INVERT, "%u.%05u", f / 100000, f % 100000);
   switch (sortType) {
@@ -138,7 +137,9 @@ void LOOTLIST_init() {
   sortType = SORT_F;
   sort(SORT_LOT);
 }
+
 void LOOTLIST_update() {}
+
 bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   Loot *item = LOOT_Item(menuIndex);
   const uint8_t MENU_SIZE = LOOT_Size();

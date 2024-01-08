@@ -185,7 +185,7 @@ void SPECTRUM_init(void) {
 
 void SPECTRUM_deinit() { RADIO_ToggleRX(false); }
 
-bool repeatHeld = false;
+static bool repeatHeld = false;
 
 bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed) {

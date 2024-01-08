@@ -12,5 +12,6 @@ bool CHANNELS_LoadBuf();
 int16_t CHANNELS_Next(int16_t base, bool next);
 void CHANNELS_Delete(uint16_t i);
 bool CHANNELS_Existing(uint16_t i);
+uint8_t CHANNELS_Scanlists(uint16_t i);
 
 #endif /* end of include guard: CHANNELS_H */

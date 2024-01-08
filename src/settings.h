@@ -84,16 +84,16 @@ typedef struct {
   uint8_t activeVFO : 2;
 } __attribute__((packed)) Settings;
 
-typedef struct { // 24 bytes
-  uint32_t fRX;  // 4
-  uint32_t fTX;  // 4
-  char name[10]; // 10
+typedef struct {           // 24 bytes
+  uint32_t fRX;            // 4
+  uint32_t fTX;            // 4
+  char name[10];           // 10
+  uint8_t memoryBanks : 8; // 1
   ModulationType modulation : 4;
   BK4819_FilterBandwidth_t bw : 2;
   uint8_t power : 2;
-  uint8_t memoryBanks : 8; // 1
-  uint8_t codeRx : 8;      // 1
-  uint8_t codeTx : 8;      // 1
+  uint8_t codeRx : 8; // 1
+  uint8_t codeTx : 8; // 1
   uint8_t codeTypeRx : 4;
   uint8_t codeTypeTx : 4; // 1
   uint8_t reserved : 6;   // 1

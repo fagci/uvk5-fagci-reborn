@@ -15,6 +15,7 @@
 
 static uint8_t presetsWrote = 0;
 static uint8_t vfosWrote = 0;
+static uint16_t channelsWrote = 0;
 static bool settingsWrote = 0;
 static uint8_t buf[8];
 static uint16_t bytesWrote = 0;
@@ -449,6 +450,7 @@ void RESET_Init() {
   presetsWrote = 0;
   vfosWrote = 0;
   bytesWrote = 0;
+  channelsWrote = 0;
   settingsWrote = false;
   memset(buf, 0xFF, sizeof(buf));
 }
@@ -495,15 +497,19 @@ void RESET_Update() {
     vfosWrote++;
     bytesWrote += sizeof(VFO);
   } else if (presetsWrote < ARRAY_SIZE(defaultPresets)) {
-    SETTINGS_Save();
     PRESETS_SavePreset(presetsWrote, &defaultPresets[presetsWrote]);
     presetsWrote++;
     bytesWrote += sizeof(Preset);
-  } else if (bytesWrote < 0x2000) {
-    memset(buf, 0xFF, 8);
-    EEPROM_WriteBuffer(bytesWrote, buf, 8);
-    bytesWrote += 8;
+  } else if (channelsWrote < CHANNELS_GetCountMax()) {
+    CH ch = {
+        .name = {0},
+        .memoryBanks = 0,
+    };
+    CHANNELS_Save(channelsWrote, &ch);
+    channelsWrote++;
+    bytesWrote += sizeof(CH);
   } else {
+    SETTINGS_Save();
     NVIC_SystemReset();
   }
   gRedrawScreen = true;

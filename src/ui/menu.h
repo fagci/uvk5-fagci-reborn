@@ -5,6 +5,8 @@
 #include <stdint.h>
 
 static const uint8_t MENU_Y = 8;
+static const uint8_t MENU_ITEM_H = 11;
+static const uint8_t MENU_LINES_TO_SHOW = 4;
 
 typedef struct MenuItem {
   const char *name;
@@ -21,7 +23,8 @@ typedef enum {
 } MenuItemType;
 
 void UI_ShowMenuItem(uint8_t line, const char *name, bool isCurrent);
-void UI_ShowMenuSimple(const MenuItem *menu, uint16_t size, uint16_t currentIndex);
+void UI_ShowMenuSimple(const MenuItem *menu, uint16_t size,
+                       uint16_t currentIndex);
 void UI_ShowMenu(void (*getItemText)(uint16_t index, char *name), uint16_t size,
                  uint16_t currentIndex);
 void UI_ShowMenuEx(void (*showItem)(uint16_t i, uint16_t index, bool isCurrent),

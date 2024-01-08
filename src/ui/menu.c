@@ -3,8 +3,6 @@
 #include "../helper/measurements.h"
 #include "graphics.h"
 
-static const uint8_t MENU_ITEM_H = 11;
-static const uint8_t MENU_LINES_TO_SHOW = 4;
 
 void UI_DrawScrollBar(const uint16_t size, const uint16_t iCurrent,
                       const uint8_t nLines) {

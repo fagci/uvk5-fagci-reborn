@@ -30,6 +30,13 @@ bool CHANNELS_Existing(uint16_t i) {
   return IsReadable(name);
 }
 
+uint8_t CHANNELS_Scanlists(uint16_t i) {
+  uint8_t scanlists;
+  uint16_t addr = CHANNELS_OFFSET - ((i + 1) * CH_SIZE) + 4 + 4 + 10;
+  EEPROM_ReadBuffer(addr, &scanlists, 1);
+  return scanlists;
+}
+
 int16_t CHANNELS_Next(int16_t base, bool next) {
   int16_t si = base;
   uint16_t max = CHANNELS_GetCountMax();

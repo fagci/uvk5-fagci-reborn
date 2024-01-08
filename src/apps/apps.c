@@ -12,6 +12,7 @@
 #include "presetlist.h"
 #include "reset.h"
 #include "savech.h"
+#include "scanlists.h"
 #include "settings.h"
 #include "spectrumreborn.h"
 #include "still.h"
@@ -50,8 +51,8 @@ AppType_t APPS_Peek() {
 }
 
 const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
-    APP_VFO,          APP_SPECTRUM,     APP_FASTSCAN, APP_STILL,
-    APP_PRESETS_LIST, APP_TASK_MANAGER, APP_ABOUT,
+    APP_VFO,       APP_SPECTRUM,     APP_FASTSCAN,     APP_STILL,
+    APP_SCANLISTS, APP_PRESETS_LIST, APP_TASK_MANAGER, APP_ABOUT,
 };
 
 const App apps[APPS_COUNT] = {
@@ -72,6 +73,8 @@ const App apps[APPS_COUNT] = {
     {"VFO config", VFOCFG_init, VFOCFG_update, VFOCFG_render, VFOCFG_key},
     {"Preset config", PRESETCFG_init, PRESETCFG_update, PRESETCFG_render,
      PRESETCFG_key},
+    {"Scanlists", SCANLISTS_init, SCANLISTS_update, SCANLISTS_render,
+     SCANLISTS_key},
     {"Save to channel", SAVECH_init, SAVECH_update, SAVECH_render, SAVECH_key},
     {"Settings", SETTINGS_init, SETTINGS_update, SETTINGS_render, SETTINGS_key},
     {"VFO", VFO_init, VFO_update, VFO_render, VFO_key, VFO_deinit},
