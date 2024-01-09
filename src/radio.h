@@ -19,6 +19,7 @@ extern const char *upConverterFreqNames[3];
 extern bool gIsListening;
 extern bool gMonitorMode;
 extern bool isBK1080;
+extern Loot gMeasurements;
 
 extern const uint16_t StepFrequencyTable[14];
 
@@ -38,6 +39,7 @@ void RADIO_ToggleModulation();
 void RADIO_ToggleListeningBW();
 void RADIO_UpdateStep(bool inc);
 void RADIO_TuneTo(uint32_t f);
+void RADIO_TuneToPure(uint32_t f);
 void RADIO_TuneToSave(uint32_t f);
 void RADIO_SaveCurrentVFO();
 void RADIO_LoadCurrentVFO();
@@ -53,5 +55,7 @@ void RADIO_ToggleVfoMR();
 void RADIO_UpdateSquelchLevel(bool next);
 void RADIO_NextFreq(bool next);
 bool RADIO_IsBK1080Range(uint32_t f);
+
+void RADIO_UpdateMeasurements();
 
 #endif /* end of include guard: RADIO_H */

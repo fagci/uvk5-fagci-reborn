@@ -16,12 +16,14 @@ typedef struct {
   uint16_t ct;
   uint16_t duration;
   uint16_t rssi;
-  uint16_t noise;
+  uint8_t noise;
+  uint8_t glitch;
   bool open;
   bool blacklist;
   bool goodKnown;
 } Loot;
 
+int16_t LOOT_IndexOf(Loot *loot);
 void LOOT_BlacklistLast();
 void LOOT_GoodKnownLast();
 Loot *LOOT_Get(uint32_t f);

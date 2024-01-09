@@ -118,7 +118,7 @@ static void writeRssi() {
 static void setF() {
   msm.rssi = 0;
   msm.blacklist = false;
-  msm.noise = U16_MAX;
+  msm.noise = 255;
   for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
     uint8_t lx = DATA_LEN * currentStep / stepsCount + exIndex;
     noiseHistory[lx] = U16_MAX;

@@ -6,12 +6,15 @@
 #include "../ui/menu.h"
 #include "../ui/statusline.h"
 #include "apps.h"
+#include "textinput.h"
 #include <stdbool.h>
 #include <string.h>
 
 static uint16_t count = 0;
 
 static uint16_t currentIndex = 0;
+CH ch;
+uint16_t chNum = 0;
 
 static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
   CH ch;
@@ -51,25 +54,28 @@ static void getScanlistItem(uint16_t i, uint16_t index, bool isCurrent) {
   for (uint8_t i = 0; i < 8; ++i) {
     scanlistsStr[i] = ch.memoryBanks & (1 << i) ? '1' + i : '-';
   }
-  PrintSmallEx(LCD_WIDTH - 1, y + 8, POS_R, C_INVERT, "%s", scanlistsStr);
+  PrintSmallEx(LCD_WIDTH - 1 - 3, y + 8, POS_R, C_INVERT, "%s", scanlistsStr);
 }
 
 static void toggleScanlist(uint8_t n) {
   CH ch;
-  CHANNELS_Load(currentIndex, &ch);
+  CHANNELS_Load(gScanlist[currentIndex], &ch);
   ch.memoryBanks ^= 1 << n;
-  CHANNELS_Save(currentIndex, &ch);
+  CHANNELS_Save(gScanlist[currentIndex], &ch);
 }
 
 void SCANLISTS_init() {
-  currentIndex = 0;
   gRedrawScreen = true;
-  count = CHANNELS_GetCountMax();
+  CHANNELS_LoadScanlist(gSettings.currentScanlist);
+  count = gScanlistSize;
 }
 
 void SCANLISTS_update() {}
 
+static void saveRenamed() { CHANNELS_Save(chNum, &ch); }
+
 bool SCANLISTS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  chNum = gScanlist[currentIndex];
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (key) {
     case KEY_UP:
@@ -97,9 +103,9 @@ bool SCANLISTS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       currentIndex = 0;
       return true;
     case KEY_0:
-      currentIndex = 0;
       CHANNELS_LoadScanlist(15);
-      count = CHANNELS_GetCountMax();
+      count = gScanlistSize;
+      currentIndex = 0;
       return true;
     case KEY_UP:
       IncDec16(&currentIndex, 0, count, -1);
@@ -125,6 +131,14 @@ bool SCANLISTS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_EXIT:
       APPS_exit();
+      return true;
+    case KEY_F:
+      CHANNELS_Load(chNum, &ch);
+      gTextinputText = ch.name;
+      gTextInputSize = 9;
+      gTextInputCallback = saveRenamed;
+      APPS_run(APP_TEXTINPUT);
+
       return true;
     default:
       return false;

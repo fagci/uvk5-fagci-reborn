@@ -8,61 +8,28 @@
 #include "../scheduler.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
+#include "apps.h"
 
 static uint16_t currentIndex = 0;
 static uint16_t scanIndex = 0;
-static const uint8_t LIST_Y = MENU_Y + 8;
+static const uint8_t LIST_Y = MENU_Y + 10;
 
-Loot msm = {0};
+static void setup() { RADIO_TuneToPure(LOOT_Item(scanIndex)->f); }
 
-static uint8_t ro = 255;
-static uint8_t rc = 255;
-static uint8_t no = 0;
-static uint8_t nc = 0;
-
-static bool isSquelchOpen() {
-  bool open = msm.rssi > ro && msm.noise < no;
-
-  if (msm.rssi < rc || msm.noise > nc) {
-    open = false;
+static void step() {
+  RADIO_UpdateMeasurements();
+  if (gMeasurements.glitch >= 255) {
+    return;
   }
-  return open;
-}
 
-static void msmUpdate() {
-  msm.rssi = BK4819_GetRSSI();
-  msm.noise = BK4819_GetNoise();
-  msm.open = isSquelchOpen();
-
-  if (msm.open != gIsListening) {
+  if (gMeasurements.open != gIsListening) {
     gRedrawScreen = true;
   }
 
-  LOOT_Update(&msm);
-  RADIO_ToggleRX(msm.open);
-}
+  LOOT_UpdateEx(LOOT_Item(scanIndex), &gMeasurements);
+  RADIO_ToggleRX(gMeasurements.open);
 
-static void setup() {
-  Loot *item = LOOT_Item(scanIndex);
-  msm.f = item->f;
-
-  uint32_t oldF = gCurrentVFO->fRX;
-  uint8_t band = msm.f > VHF_UHF_BOUND ? 1 : 0;
-  gCurrentVFO->fRX = msm.f;
-  RADIO_SetupByCurrentVFO();
-  gCurrentVFO->fRX = oldF;
-
-  uint8_t sql = gCurrentPreset->band.squelch;
-  ro = SQ[band][0][sql];
-  rc = SQ[band][1][sql];
-  no = SQ[band][2][sql];
-  nc = SQ[band][3][sql];
-}
-
-static void step() {
-  msmUpdate();
-
-  if (!msm.open) {
+  if (!gMeasurements.open) {
     IncDec16(&scanIndex, 0, gScanlistSize, 1);
     setup();
   }
@@ -78,6 +45,10 @@ static void showItem(uint16_t i, uint16_t index, bool isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
   }
   PrintMediumEx(8, y + 8, POS_L, C_INVERT, "%s", ch.name);
+  PrintSmallEx(LCD_WIDTH - 5, y + 8, POS_R, C_INVERT, "R%u N%u G%u", item->rssi,
+               item->noise, item->glitch);
+  /* PrintSmallEx(LCD_WIDTH - 5, y + 5, POS_R, C_INVERT, "R%u N%u G%u",
+     item->rssi, item->noise, item->glitch); */
   if (item->open) {
     FillRect(1, y + 1, 3, MENU_ITEM_H - 2, C_INVERT);
   }
@@ -92,7 +63,9 @@ void CHSCANNER_init(void) {
     CH ch;
     uint16_t num = gScanlist[i];
     CHANNELS_Load(num, &ch);
-    LOOT_AddEx(ch.fRX, false);
+    Loot *loot = LOOT_AddEx(ch.fRX, false);
+    loot->open = false;
+    loot->lastTimeOpen = 0;
   }
   setup();
 }
@@ -111,26 +84,30 @@ bool CHSCANNER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     default:
       break;
     }
-    return true;
+  }
+
+  if (!bKeyPressed && !bKeyHeld) {
+    switch (Key) {
+    case KEY_EXIT:
+      APPS_exit();
+      return true;
+    default:
+      break;
+    }
   }
   return false;
 }
 
-static uint32_t lastUpdate = 0;
-
-void CHSCANNER_update(void) {
-  if (elapsedMilliseconds - lastUpdate >= 10) {
-    lastUpdate = elapsedMilliseconds;
-    step();
-  }
-}
+void CHSCANNER_update(void) { step(); }
 
 void CHSCANNER_render(void) {
   UI_ClearScreen();
   if (gLastActiveLootIndex >= 0) {
     CH ch;
     CHANNELS_Load(gScanlist[gLastActiveLootIndex], &ch);
-    PrintMediumBoldEx(LCD_WIDTH / 2, MENU_Y + 8, POS_C, C_FILL, "%s", ch.name);
+    PrintMediumBoldEx(LCD_WIDTH / 2, MENU_Y + 7, POS_C, C_FILL, "%s", ch.name);
+  } else {
+    PrintMediumBoldEx(LCD_WIDTH / 2, MENU_Y + 7, POS_C, C_FILL, "Scanning...");
   }
   UI_ShowMenuEx(showItem, gScanlistSize, currentIndex, 4);
 }
