@@ -51,7 +51,7 @@ static void setInitialSubmenuIndex() {
     subMenuIndex = gCurrentPreset->band.bw;
     break;
   case M_MODULATION:
-    subMenuIndex = gCurrentVFO->modulation;
+    subMenuIndex = gCurrentPreset->band.modulation;
     break;
   case M_STEP:
     subMenuIndex = gCurrentPreset->band.step;
@@ -73,11 +73,11 @@ static void accept() {
   switch (item->type) {
   case M_BW:
     gCurrentPreset->band.bw = subMenuIndex;
-    RADIO_SaveCurrentVFO();
+    PRESETS_SaveCurrent();
     break;
   case M_MODULATION:
-    gCurrentVFO->modulation = subMenuIndex;
-    RADIO_SaveCurrentVFO();
+    gCurrentPreset->band.modulation = subMenuIndex;
+    PRESETS_SaveCurrent();
     break;
   case M_STEP:
     gCurrentPreset->band.step = subMenuIndex;

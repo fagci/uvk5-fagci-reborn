@@ -20,8 +20,6 @@ static uint32_t lastClose = 0;
 
 static uint8_t vfoCount = 2;
 
-static bool repeatHeld = false;
-
 static void handleInt(uint16_t intStatus) {
   if (intStatus & BK4819_REG_02_CxCSS_TAIL) {
     msm.open = false;
@@ -58,8 +56,6 @@ static void update() {
 static void render() { gRedrawScreen = true; }
 
 void VFO_init() {
-  repeatHeld = false;
-
   RADIO_EnableToneDetection();
 
   RADIO_SetupByCurrentVFO(); // TODO: reread from EEPROM not needed maybe
@@ -83,10 +79,6 @@ void VFO_deinit() {
 void VFO_update() {}
 
 bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  if (!bKeyPressed) {
-    repeatHeld = false;
-  }
-
   // up-down keys
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (key) {
@@ -102,8 +94,7 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   }
 
   // long held
-  if (bKeyHeld && bKeyPressed && !repeatHeld) {
-    repeatHeld = true;
+  if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     switch (key) {
     case KEY_2:
       LOOT_Standby();
@@ -240,7 +231,7 @@ static void render1VFO() {
   Preset *p = PRESET_ByFrequency(vfo->fRX);
 
   uint16_t fp1 = vfo->fRX / 100000;
-  uint16_t fp2 = vfo->fRX / 10 % 10000;
+  uint16_t fp2 = vfo->fRX / 100 % 1000;
   uint8_t fp3 = vfo->fRX % 100;
   const char *mod = modulationTypeOptions[p->band.modulation];
 

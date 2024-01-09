@@ -214,13 +214,8 @@ void SPECTRUMCH_update(void) {
   step();
 }
 
-static bool repeatHeld = false;
 bool SPECTRUMCH_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
-  if (!bKeyPressed) {
-    repeatHeld = false;
-  }
-  if (bKeyHeld && bKeyPressed && !repeatHeld) {
-    repeatHeld = true;
+  if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     if (Key == KEY_0) {
       LOOT_Clear();
       return true;
@@ -255,36 +250,6 @@ bool SPECTRUMCH_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_STAR:
       APPS_run(APP_LOOT_LIST);
       return true;
-    case KEY_5:
-      return true;
-    case KEY_3:
-      RADIO_UpdateSquelchLevel(true);
-      resetRssiHistory();
-      newScan = true;
-      oldScanListIndex = 255;
-      bandFilled = false;
-      return true;
-    case KEY_9:
-      if (gCurrentPreset->band.squelch > 1) {
-        RADIO_UpdateSquelchLevel(false);
-      }
-      resetRssiHistory();
-      newScan = true;
-      oldScanListIndex = 255;
-      bandFilled = false;
-      return true;
-    case KEY_2:
-      IncDec8(&msmDelay, 0, 20, 1);
-      resetRssiHistory();
-      newScan = true;
-      bandFilled = false;
-      return true;
-    case KEY_8:
-      IncDec8(&msmDelay, 0, 20, -1);
-      resetRssiHistory();
-      newScan = true;
-      bandFilled = false;
-      return true;
     case KEY_PTT:
       RADIO_TuneToSave(gLastActiveLoot->f);
       APPS_run(APP_STILL);
@@ -318,10 +283,8 @@ static int RssiMin(uint16_t *array, uint8_t n) {
 
 void SPECTRUMCH_render(void) {
   UI_ClearScreen();
-  STATUSLINE_SetText(gCurrentPreset->band.name);
+  STATUSLINE_SetText("Scanlist %u", gSettings.currentScanlist + 1);
   DrawVLine(DATA_LEN - 1, 8, LCD_HEIGHT - 8, C_FILL);
-
-  UI_DrawTicks(0, DATA_LEN - 1, 56, &gCurrentPreset->band);
 
   const uint8_t xMax = bandFilled ? DATA_LEN - 1 : x;
 
@@ -337,8 +300,6 @@ void SPECTRUMCH_render(void) {
       DrawVLine(xx, S_BOTTOM + 6, 2, C_FILL);
     }
   }
-
-  LOOT_Sort(LOOT_SortByLastOpenTime, false);
 
   const uint8_t LOOT_BL = 13;
 
@@ -361,8 +322,4 @@ void SPECTRUMCH_render(void) {
     PrintSmallEx(LCD_WIDTH - 1, ybl, POS_R, C_FILL, "%u.%05u", p->f / 100000,
                  p->f % 100000);
   }
-
-  PrintSmallEx(0, SPECTRUM_Y - 3, POS_L, C_FILL, "%ums", msmDelay);
-  PrintSmallEx(DATA_LEN - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "SQ:%u",
-               gCurrentPreset->band.squelch);
 }

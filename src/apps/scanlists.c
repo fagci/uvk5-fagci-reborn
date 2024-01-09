@@ -69,12 +69,7 @@ void SCANLISTS_init() {
 
 void SCANLISTS_update() {}
 
-static bool repeatHeld = false;
-
 bool SCANLISTS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  if (!bKeyPressed) {
-    repeatHeld = false;
-  }
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (key) {
     case KEY_UP:
@@ -87,8 +82,7 @@ bool SCANLISTS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       break;
     }
   }
-  if (bKeyHeld && bKeyPressed && !repeatHeld) {
-    repeatHeld = true;
+  if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     switch (key) {
     case KEY_1:
     case KEY_2:

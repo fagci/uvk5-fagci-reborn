@@ -149,6 +149,7 @@ bool gKeyBeingHeld;
 bool gPttIsPressed;
 bool gPttWasReleased;
 uint8_t gPttDebounceCounter;
+bool gRepeatHeld = false;
 
 static uint8_t gSerialConfigCountDown_500ms = 0;
 static uint8_t KEY_DEBOUNCE = 4;
@@ -216,6 +217,7 @@ void KEYBOARD_CheckKeys(void onKey(KEY_Code_t, bool, bool)) {
     }
 
     gKeyBeingHeld = false;
+    gRepeatHeld = false;
     return;
   }
 
@@ -228,6 +230,7 @@ void KEYBOARD_CheckKeys(void onKey(KEY_Code_t, bool, bool)) {
   if (gDebounceCounter == KEY_REPEAT_DELAY) {
     if (Key != KEY_PTT) {
       gKeyBeingHeld = true;
+      gRepeatHeld = false;
       onKey(Key, true, true); // key held event
     }
   } else {
@@ -235,6 +238,7 @@ void KEYBOARD_CheckKeys(void onKey(KEY_Code_t, bool, bool)) {
     // fast key repeats for up/down buttons
     if (Key == KEY_UP || Key == KEY_DOWN) {
       gKeyBeingHeld = true;
+      gRepeatHeld = true;
       if ((gDebounceCounter % KEY_REPEAT) == 0)
         onKey(Key, true, true); // key held event
     }

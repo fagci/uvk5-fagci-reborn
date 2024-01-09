@@ -47,6 +47,8 @@ typedef enum {
 extern KEY_Code_t gKeyReading0;
 extern KEY_Code_t gKeyReading1;
 extern uint16_t gDebounceCounter;
+extern bool gKeyBeingHeld;
+extern bool gRepeatHeld;
 
 KEY_Code_t KEYBOARD_Poll(void);
 void KEYBOARD_CheckKeys(void onKey(KEY_Code_t, bool, bool));

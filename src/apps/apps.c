@@ -5,6 +5,7 @@
 #include "../ui/statusline.h"
 #include "about.h"
 #include "appslist.h"
+#include "channelscanner.h"
 #include "fastscan.h"
 #include "finput.h"
 #include "lootlist.h"
@@ -52,8 +53,8 @@ AppType_t APPS_Peek() {
 }
 
 const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
-    APP_VFO,       APP_SPECTRUM,     APP_SPECTRUM_CH,  APP_FASTSCAN, APP_STILL,
-    APP_SCANLISTS, APP_PRESETS_LIST, APP_TASK_MANAGER, APP_ABOUT,
+    APP_VFO,   APP_SPECTRUM,  APP_SPECTRUM_CH,  APP_CH_SCANNER,   APP_FASTSCAN,
+    APP_STILL, APP_SCANLISTS, APP_PRESETS_LIST, APP_TASK_MANAGER, APP_ABOUT,
 };
 
 const App apps[APPS_COUNT] = {
@@ -62,6 +63,8 @@ const App apps[APPS_COUNT] = {
     {"Spectrum", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render, SPECTRUM_key},
     {"Spectrum CH", SPECTRUMCH_init, SPECTRUMCH_update, SPECTRUMCH_render,
      SPECTRUMCH_key},
+    {"CH scanner", CHSCANNER_init, CHSCANNER_update, CHSCANNER_render,
+     CHSCANNER_key, CHSCANNER_deinit},
     {"Freq catch", FASTSCAN_init, FASTSCAN_update, FASTSCAN_render,
      FASTSCAN_key, FASTSCAN_deinit},
     {"VFO extended", STILL_init, NULL, STILL_render, STILL_key, STILL_deinit},

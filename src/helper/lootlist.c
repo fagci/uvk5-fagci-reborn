@@ -5,9 +5,10 @@
 #include "../scheduler.h"
 
 static Loot loot[LOOT_SIZE_MAX] = {0};
-static int8_t lootIndex = -1;
+static int16_t lootIndex = -1;
 
 Loot *gLastActiveLoot = NULL;
+int16_t gLastActiveLootIndex = -1;
 
 void LOOT_BlacklistLast() {
   if (gLastActiveLoot) {

@@ -144,7 +144,7 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   Loot *item = LOOT_Item(menuIndex);
   const uint8_t MENU_SIZE = LOOT_Size();
 
-  if (bKeyHeld && key == KEY_0) {
+  if (bKeyHeld && key == KEY_0 && !gRepeatHeld) {
     LOOT_Clear();
     return true;
   }
