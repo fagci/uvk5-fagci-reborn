@@ -1,4 +1,4 @@
-#include "vfo.h"
+#include "vfo2.h"
 #include "../dcs.h"
 #include "../driver/uart.h"
 #include "../helper/adapter.h"
@@ -17,8 +17,6 @@ static Loot msm = {0};
 static bool lastOpenState = false;
 static uint32_t lastUpdate = 0;
 static uint32_t lastClose = 0;
-
-static uint8_t vfoCount = 2;
 
 static void handleInt(uint16_t intStatus) {
   if (intStatus & BK4819_REG_02_CxCSS_TAIL) {
@@ -55,7 +53,7 @@ static void update() {
 
 static void render() { gRedrawScreen = true; }
 
-void VFO_init() {
+void VFO2_init() {
   RADIO_EnableToneDetection();
 
   RADIO_SetupByCurrentVFO(); // TODO: reread from EEPROM not needed maybe
@@ -67,8 +65,8 @@ void VFO_init() {
   gRedrawScreen = true;
 }
 
-void VFO_deinit() {
-  if (APPS_Peek() != APP_FINPUT && APPS_Peek() != APP_VFO) {
+void VFO2_deinit() {
+  if (APPS_Peek() != APP_FINPUT && APPS_Peek() != APP_VFO2) {
     TaskRemove(update);
     TaskRemove(render);
     RADIO_ToggleRX(false);
@@ -76,9 +74,9 @@ void VFO_deinit() {
   }
 }
 
-void VFO_update() {}
+void VFO2_update() {}
 
-bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   // up-down keys
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (key) {
@@ -117,9 +115,6 @@ bool VFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_6:
       RADIO_ToggleListeningBW();
-      return true;
-    case KEY_5:
-      vfoCount = vfoCount == 1 ? 2 : 1;
       return true;
     default:
       break;
@@ -218,37 +213,9 @@ static void render2VFOPart(uint8_t i) {
                gCurrentPreset->band.squelch); */
 }
 
-static void render2VFO() {
+void VFO2_render() {
+  UI_ClearScreen();
   for (uint8_t i = 0; i < 2; ++i) {
     render2VFOPart(i);
-  }
-}
-
-static void render1VFO() {
-  const uint8_t BASE = 38;
-
-  VFO *vfo = &gVFO[gSettings.activeVFO];
-  Preset *p = PRESET_ByFrequency(vfo->fRX);
-
-  uint16_t fp1 = vfo->fRX / 100000;
-  uint16_t fp2 = vfo->fRX / 100 % 1000;
-  uint8_t fp3 = vfo->fRX % 100;
-  const char *mod = modulationTypeOptions[p->band.modulation];
-
-  PrintBiggestDigitsEx(LCD_WIDTH - 19, BASE, POS_R, C_FILL, "%4u.%03u", fp1,
-                       fp2);
-  PrintMediumEx(LCD_WIDTH - 1, BASE, POS_R, C_FILL, "%02u", fp3);
-  PrintSmallEx(LCD_WIDTH - 1, BASE - 8, POS_R, C_FILL, mod);
-}
-
-void VFO_render() {
-  UI_ClearScreen();
-  if (vfoCount == 1) {
-    render1VFO();
-  } else if (vfoCount == 2) {
-    render2VFO();
-  } else {
-    PrintMediumEx(LCD_WIDTH / 2, LCD_HEIGHT / 2, POS_C, C_FILL,
-                  "%u VFO not impl", vfoCount);
   }
 }

@@ -14,16 +14,23 @@ static uint16_t currentIndex = 0;
 static uint16_t scanIndex = 0;
 static const uint8_t LIST_Y = MENU_Y + 10;
 
+int16_t lastActiveLootIndex = -1;
+
 static void setup() { RADIO_TuneToPure(LOOT_Item(scanIndex)->f); }
 
 static void step() {
   RADIO_UpdateMeasurements();
+
   if (gMeasurements.glitch >= 255) {
     return;
   }
 
   if (gMeasurements.open != gIsListening) {
     gRedrawScreen = true;
+  }
+
+  if (gMeasurements.open) {
+    lastActiveLootIndex = scanIndex;
   }
 
   LOOT_UpdateEx(LOOT_Item(scanIndex), &gMeasurements);
@@ -47,8 +54,6 @@ static void showItem(uint16_t i, uint16_t index, bool isCurrent) {
   PrintMediumEx(8, y + 8, POS_L, C_INVERT, "%s", ch.name);
   PrintSmallEx(LCD_WIDTH - 5, y + 8, POS_R, C_INVERT, "R%u N%u G%u", item->rssi,
                item->noise, item->glitch);
-  /* PrintSmallEx(LCD_WIDTH - 5, y + 5, POS_R, C_INVERT, "R%u N%u G%u",
-     item->rssi, item->noise, item->glitch); */
   if (item->open) {
     FillRect(1, y + 1, 3, MENU_ITEM_H - 2, C_INVERT);
   }
@@ -102,9 +107,9 @@ void CHSCANNER_update(void) { step(); }
 
 void CHSCANNER_render(void) {
   UI_ClearScreen();
-  if (gLastActiveLootIndex >= 0) {
+  if (lastActiveLootIndex >= 0) {
     CH ch;
-    CHANNELS_Load(gScanlist[gLastActiveLootIndex], &ch);
+    CHANNELS_Load(gScanlist[lastActiveLootIndex], &ch);
     PrintMediumBoldEx(LCD_WIDTH / 2, MENU_Y + 7, POS_C, C_FILL, "%s", ch.name);
   } else {
     PrintMediumBoldEx(LCD_WIDTH / 2, MENU_Y + 7, POS_C, C_FILL, "Scanning...");

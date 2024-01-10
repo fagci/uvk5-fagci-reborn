@@ -15,12 +15,12 @@
 #include "savech.h"
 #include "scanlists.h"
 #include "settings.h"
-#include "spectrumchannel.h"
 #include "spectrumreborn.h"
 #include "still.h"
 #include "test.h"
 #include "textinput.h"
-#include "vfo.h"
+#include "vfo1.h"
+#include "vfo2.h"
 #include "vfocfg.h"
 
 #define APPS_STACK_SIZE 8
@@ -53,21 +53,28 @@ AppType_t APPS_Peek() {
 }
 
 const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
-    APP_VFO,   APP_SPECTRUM,  APP_SPECTRUM_CH,  APP_CH_SCANNER,   APP_FASTSCAN,
-    APP_STILL, APP_SCANLISTS, APP_PRESETS_LIST, APP_TASK_MANAGER, APP_ABOUT,
+    APP_VFO1,         //
+    APP_STILL,        //
+    APP_VFO2,         //
+    APP_CH_SCANNER,   //
+    APP_SPECTRUM,     //
+    APP_FASTSCAN,     //
+    APP_SCANLISTS,    //
+    APP_PRESETS_LIST, //
+    APP_TASK_MANAGER, //
+    APP_ABOUT,        //
 };
 
 const App apps[APPS_COUNT] = {
     {"None"},
     {"Test", TEST_Init, TEST_Update, TEST_Render, TEST_key},
-    {"Spectrum", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render, SPECTRUM_key},
-    {"Spectrum CH", SPECTRUMCH_init, SPECTRUMCH_update, SPECTRUMCH_render,
-     SPECTRUMCH_key},
-    {"CH scanner", CHSCANNER_init, CHSCANNER_update, CHSCANNER_render,
+    {"Band Spectrum", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render,
+     SPECTRUM_key},
+    {"CH Scan", CHSCANNER_init, CHSCANNER_update, CHSCANNER_render,
      CHSCANNER_key, CHSCANNER_deinit},
     {"Freq catch", FASTSCAN_init, FASTSCAN_update, FASTSCAN_render,
      FASTSCAN_key, FASTSCAN_deinit},
-    {"VFO extended", STILL_init, NULL, STILL_render, STILL_key, STILL_deinit},
+    {"1 VFO pro", STILL_init, NULL, STILL_render, STILL_key, STILL_deinit},
     {"Frequency input", FINPUT_init, NULL, FINPUT_render, FINPUT_key,
      FINPUT_deinit},
     {"Apps", APPSLIST_init, NULL, APPSLIST_render, APPSLIST_key},
@@ -83,11 +90,9 @@ const App apps[APPS_COUNT] = {
      SCANLISTS_key},
     {"Save to channel", SAVECH_init, SAVECH_update, SAVECH_render, SAVECH_key},
     {"Settings", SETTINGS_init, SETTINGS_update, SETTINGS_render, SETTINGS_key},
-    {"VFO", VFO_init, VFO_update, VFO_render, VFO_key, VFO_deinit},
+    {"1 VFO", VFO1_init, VFO1_update, VFO1_render, VFO1_key, VFO1_deinit},
+    {"2 VFO", VFO2_init, VFO2_update, VFO2_render, VFO2_key, VFO2_deinit},
     {"ABOUT", ABOUT_Init, ABOUT_Update, ABOUT_Render, ABOUT_key, ABOUT_Deinit},
-    // {"Scanlist", NULL, SCANLIST_update, SCANLIST_render, SCANLIST_key},
-    /* {"A to B scanner", ABSCANNER_init, ABSCANNER_update, ABSCANNER_render,
-     ABSCANNER_key}, */
 };
 
 bool APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {

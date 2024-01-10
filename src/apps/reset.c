@@ -480,7 +480,7 @@ void RESET_Update() {
         .dtmfdecode = false,
         .brightness = 8,
         .contrast = 0,
-        .mainApp = APP_VFO,
+        .mainApp = APP_VFO2,
         .reserved1 = 0,
         .activeVFO = 0,
         .activePreset = 22,

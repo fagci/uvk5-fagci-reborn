@@ -25,6 +25,19 @@ VFO gVFO[2] = {0};
 Loot *gCurrentLoot;
 Loot gLoot[2] = {0};
 
+typedef struct {
+  uint16_t ro;
+  uint16_t rc;
+  uint8_t no;
+  uint8_t nc;
+  uint8_t go;
+  uint8_t gc;
+} SQLParams;
+
+static SQLParams sq = {255, 255, 0, 0, 0, 0};
+
+Loot gMeasurements = {0};
+
 char gVFONames[2][10] = {0};
 
 bool gIsListening = false;
@@ -203,6 +216,30 @@ void RADIO_ToggleListeningBW() {
   onPresetUpdate();
 }
 
+void RADIO_TuneToPure(uint32_t f) {
+  Preset *preset = PRESET_ByFrequency(f);
+  LOOT_Replace(&gMeasurements, f);
+
+  RADIO_ToggleBK1080(preset->band.modulation == MOD_WFM &&
+                     RADIO_IsBK1080Range(f));
+
+  if (isBK1080) {
+    BK1080_SetFrequency(f);
+  } else {
+    RADIO_SetupBandParams(&preset->band);
+    BK4819_TuneTo(f);
+  }
+
+  uint8_t sql = preset->band.squelch;
+  uint8_t band = f > VHF_UHF_BOUND ? 1 : 0;
+  sq.ro = SQ[band][0][sql];
+  sq.rc = SQ[band][1][sql];
+  sq.no = SQ[band][2][sql];
+  sq.nc = SQ[band][3][sql];
+  sq.go = SQ[band][4][sql];
+  sq.gc = SQ[band][5][sql];
+}
+
 void RADIO_TuneTo(uint32_t f) {
   gCurrentVFO->isMrMode = false;
   gCurrentVFO->fRX = f;
@@ -217,6 +254,23 @@ void RADIO_TuneToSave(uint32_t f) {
   LOOT_Replace(&gLoot[gSettings.activeVFO], f);
   RADIO_SetupByCurrentVFO();
   RADIO_SaveCurrentVFO();
+}
+
+void RADIO_SetupByCurrentVFO() {
+  PRESET_SelectByFrequency(gCurrentVFO->fRX);
+
+  gCurrentVFO->modulation = gCurrentPreset->band.modulation;
+  gCurrentVFO->bw = gCurrentPreset->band.bw;
+
+  RADIO_ToggleBK1080(gCurrentVFO->modulation == MOD_WFM &&
+                     RADIO_IsBK1080Range(gCurrentVFO->fRX));
+
+  if (isBK1080) {
+    BK1080_SetFrequency(gCurrentVFO->fRX);
+  } else {
+    RADIO_SetupBandParams(&gCurrentPreset->band);
+    BK4819_TuneTo(gCurrentVFO->fRX);
+  }
 }
 
 void RADIO_SaveCurrentVFO() { VFOS_Save(gSettings.activeVFO, gCurrentVFO); }
@@ -270,36 +324,6 @@ void RADIO_SetupBandParams(Band *b) {
   BK4819_SetGain(b->gainIndex);
 }
 
-void RADIO_SetupByCurrentVFO() {
-  PRESET_SelectByFrequency(gCurrentVFO->fRX);
-
-  gCurrentVFO->modulation = gCurrentPreset->band.modulation;
-  gCurrentVFO->bw = gCurrentPreset->band.bw;
-
-  RADIO_ToggleBK1080(gCurrentVFO->modulation == MOD_WFM &&
-                     RADIO_IsBK1080Range(gCurrentVFO->fRX));
-
-  if (isBK1080) {
-    BK1080_SetFrequency(gCurrentVFO->fRX);
-  } else {
-    RADIO_SetupBandParams(&gCurrentPreset->band);
-    BK4819_TuneTo(gCurrentVFO->fRX);
-  }
-}
-
-typedef struct {
-  uint16_t ro;
-  uint16_t rc;
-  uint8_t no;
-  uint8_t nc;
-  uint8_t go;
-  uint8_t gc;
-} SQLParams;
-
-static SQLParams sq = {255, 255, 0, 0, 0, 0};
-
-Loot gMeasurements = {0};
-
 static bool isSquelchOpen() {
   bool open = gMeasurements.rssi > sq.ro && gMeasurements.noise < sq.no &&
               gMeasurements.glitch < sq.go;
@@ -317,30 +341,6 @@ void RADIO_UpdateMeasurements() {
   gMeasurements.glitch = BK4819_GetGlitch();
 
   gMeasurements.open = isSquelchOpen();
-}
-
-void RADIO_TuneToPure(uint32_t f) {
-  Preset *preset = PRESET_ByFrequency(f);
-  LOOT_Replace(&gMeasurements, f);
-
-  RADIO_ToggleBK1080(preset->band.modulation == MOD_WFM &&
-                     RADIO_IsBK1080Range(f));
-
-  if (isBK1080) {
-    BK1080_SetFrequency(f);
-  } else {
-    RADIO_SetupBandParams(&preset->band);
-    BK4819_TuneTo(f);
-  }
-
-  uint8_t sql = preset->band.squelch;
-  uint8_t band = f > VHF_UHF_BOUND ? 1 : 0;
-  sq.ro = SQ[band][0][sql];
-  sq.rc = SQ[band][1][sql];
-  sq.no = SQ[band][2][sql];
-  sq.nc = SQ[band][3][sql];
-  sq.go = SQ[band][4][sql];
-  sq.gc = SQ[band][5][sql];
 }
 
 void RADIO_EnableToneDetection() {
