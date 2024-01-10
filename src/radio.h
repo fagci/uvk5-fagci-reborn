@@ -43,6 +43,7 @@ void RADIO_TuneToPure(uint32_t f);
 void RADIO_TuneToSave(uint32_t f);
 void RADIO_SaveCurrentVFO();
 void RADIO_LoadCurrentVFO();
+void RADIO_SetSquelchPure(uint32_t f, uint8_t sql);
 void RADIO_SetSquelch(uint8_t sq);
 void RADIO_SetGain(uint8_t gainIndex);
 void RADIO_SetupByCurrentVFO();

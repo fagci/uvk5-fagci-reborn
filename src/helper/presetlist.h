@@ -18,6 +18,11 @@ void PRESETS_SavePreset(uint8_t num, Preset *p);
 void PRESETS_LoadPreset(uint8_t num, Preset *p);
 void PRESETS_SaveCurrent();
 
+uint16_t PRESETS_GetStepSize(Preset *p);
+uint16_t PRESETS_GetSteps(Preset *p);
+uint32_t PRESETS_GetF(Preset *p, uint16_t channel);
+uint16_t PRESETS_GetChannel(Preset *p, uint32_t f);
+
 extern Preset defaultPreset;
 extern Preset *gCurrentPreset;
 

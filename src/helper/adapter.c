@@ -8,8 +8,6 @@ void VFO2CH(VFO *src, CH *dst) {
   dst->codeTypeRx = src->codeTypeRx;
   dst->codeTypeTx = src->codeTypeTx;
   dst->power = src->power;
-  dst->bw = src->bw;
-  dst->modulation = src->modulation;
 }
 
 void CH2VFO(CH *src, VFO *dst) {
@@ -20,6 +18,4 @@ void CH2VFO(CH *src, VFO *dst) {
   dst->codeTypeRx = src->codeTypeRx;
   dst->codeTypeTx = src->codeTypeTx;
   dst->power = src->power;
-  dst->bw = src->bw;
-  dst->modulation = src->modulation;
 }

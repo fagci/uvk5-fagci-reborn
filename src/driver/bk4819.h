@@ -175,8 +175,6 @@ void BK4819_EnableFrequencyScan(void);
 void BK4819_EnableFrequencyScanEx(FreqScanTime t);
 void BK4819_SetScanFrequency(uint32_t Frequency);
 
-void BK4819_Disable(void);
-
 void BK4819_StopScan(void);
 
 uint8_t BK4819_GetDTMF_5TONE_Code(void);

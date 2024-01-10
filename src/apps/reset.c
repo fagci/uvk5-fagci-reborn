@@ -25,15 +25,11 @@ static VFO defaultVFOs[2] = {
         .fRX = 14550000,
         .channel = 0,
         .isMrMode = false,
-        .bw = BK4819_FILTER_BW_WIDE,
-        .modulation = MOD_FM,
     },
     (VFO){
         .fRX = 43307500,
         .channel = 0,
         .isMrMode = false,
-        .bw = BK4819_FILTER_BW_WIDE,
-        .modulation = MOD_FM,
     },
 };
 

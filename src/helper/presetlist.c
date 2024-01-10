@@ -78,3 +78,19 @@ bool PRESETS_Load() {
   }
   return true;
 }
+
+uint16_t PRESETS_GetStepSize(Preset *p) {
+  return StepFrequencyTable[p->band.step];
+}
+
+uint16_t PRESETS_GetSteps(Preset *p) {
+  return (p->band.bounds.end - p->band.bounds.start) / PRESETS_GetStepSize(p);
+}
+
+uint32_t PRESETS_GetF(Preset *p, uint16_t channel) {
+  return p->band.bounds.start + channel * PRESETS_GetStepSize(p);
+}
+
+uint16_t PRESETS_GetChannel(Preset *p, uint32_t f) {
+  return (f - p->band.bounds.start) / PRESETS_GetStepSize(p);
+}

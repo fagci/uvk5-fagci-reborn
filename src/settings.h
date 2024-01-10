@@ -102,8 +102,8 @@ typedef struct {           // 24 bytes
 typedef struct { // 24 bytes
   uint32_t fRX;  // 4
   uint32_t fTX;  // 4
-  ModulationType modulation : 4;
-  BK4819_FilterBandwidth_t bw : 2;
+  uint8_t reserved00 : 4;
+  uint8_t reserved01 : 2;
   uint8_t power : 2;
   uint8_t codeRx : 8; // 1
   uint8_t codeTx : 8; // 1

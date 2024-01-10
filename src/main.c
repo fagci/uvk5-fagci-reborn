@@ -130,11 +130,9 @@ static void Intro() {
   if (PRESETS_Load()) {
     if (gSettings.beep)
       AUDIO_PlayTone(1400, 50);
-    RADIO_LoadCurrentVFO();
 
-    BK4819_TuneTo(gCurrentVFO->fRX);
-    BK4819_Squelch(3, gCurrentVFO->fRX);
-    BK4819_SetModulation(gCurrentVFO->modulation);
+    RADIO_LoadCurrentVFO();
+    RADIO_SetupByCurrentVFO();
 
     TaskRemove(Intro);
     if (gSettings.beep)
@@ -165,7 +163,8 @@ void Main(void) {
     APPS_run(APP_RESET);
     TaskAdd("Update", Update, 1, true);
   } else if (KEYBOARD_Poll() == KEY_STAR) {
-    PrintMediumEx(0, 7, POS_L, C_FILL, "SET: %u %u", SETTINGS_OFFSET, SETTINGS_SIZE);
+    PrintMediumEx(0, 7, POS_L, C_FILL, "SET: %u %u", SETTINGS_OFFSET,
+                  SETTINGS_SIZE);
     PrintMediumEx(0, 7 + 8, POS_L, C_FILL, "VFO: %u %u", VFOS_OFFSET, VFO_SIZE);
     ST7565_Blit();
   } else if (KEYBOARD_Poll() == KEY_F) {

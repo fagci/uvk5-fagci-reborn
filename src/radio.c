@@ -112,34 +112,6 @@ uint32_t GetTuneF(uint32_t f) {
   return f + upConverterValues[gSettings.upconverter];
 }
 
-void RADIO_ToggleRX(bool on) {
-  if (gIsListening == on) {
-    return;
-  }
-
-  gIsListening = on;
-
-  BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN, on);
-
-  if (on) {
-    BK4819_ToggleAFDAC(true);
-    BK4819_ToggleAFBit(true);
-    SYSTEM_DelayMs(10);
-    AUDIO_ToggleSpeaker(true);
-    if (gSettings.backlightOnSquelch != BL_SQL_OFF) {
-      BACKLIGHT_On();
-    }
-  } else {
-    AUDIO_ToggleSpeaker(false);
-    SYSTEM_DelayMs(10);
-    BK4819_ToggleAFDAC(false);
-    BK4819_ToggleAFBit(false);
-    if (gSettings.backlightOnSquelch == BL_SQL_OPEN) {
-      BACKLIGHT_Toggle(false);
-    }
-  }
-}
-
 static void onVfoUpdate() {
   TaskRemove(RADIO_SaveCurrentVFO);
   TaskAdd("VFO save", RADIO_SaveCurrentVFO, 2000, false);
@@ -152,22 +124,82 @@ static void onPresetUpdate() {
 
 bool RADIO_IsBK1080Range(uint32_t f) { return f >= 6400000 && f <= 10800000; }
 
+void toggleBK4819(bool on) {
+  if (on) {
+    BK4819_ToggleAFDAC(true);
+    BK4819_ToggleAFBit(true);
+    SYSTEM_DelayMs(10);
+    AUDIO_ToggleSpeaker(true);
+  } else {
+    AUDIO_ToggleSpeaker(false);
+    SYSTEM_DelayMs(10);
+    BK4819_ToggleAFDAC(false);
+    BK4819_ToggleAFBit(false);
+  }
+}
+
+void toggleBK1080(bool on) {
+  if (on) {
+    BK1080_Init(gMeasurements.f, true);
+    BK1080_Mute(false);
+    SYSTEM_DelayMs(10);
+    AUDIO_ToggleSpeaker(true);
+    if (gSettings.backlightOnSquelch != BL_SQL_OFF) {
+      BACKLIGHT_On();
+    }
+  } else {
+    AUDIO_ToggleSpeaker(false);
+    SYSTEM_DelayMs(10);
+    BK1080_Mute(true);
+    BK1080_Init(0, false);
+    if (gSettings.backlightOnSquelch == BL_SQL_OPEN) {
+      BACKLIGHT_Toggle(false);
+    }
+  }
+}
+
+void RADIO_ToggleRX(bool on) {
+  if (gIsListening == on) {
+    return;
+  }
+
+  gIsListening = on;
+
+  BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN, on);
+
+  if (on) {
+    if (gSettings.backlightOnSquelch != BL_SQL_OFF) {
+      BACKLIGHT_On();
+    }
+  } else {
+    if (gSettings.backlightOnSquelch == BL_SQL_OPEN) {
+      BACKLIGHT_Toggle(false);
+    }
+  }
+
+  if (isBK1080) {
+    toggleBK1080(on);
+  } else {
+    toggleBK4819(on);
+  }
+}
+
 void RADIO_ToggleBK1080(bool on) {
   if (on == isBK1080) {
     return;
   }
+  bool lastListenState = gIsListening;
   isBK1080 = on;
 
-  AUDIO_ToggleSpeaker(false);
-  SYSTEM_DelayMs(10);
   if (isBK1080) {
+    toggleBK4819(false);
     BK4819_Idle();
-    BK1080_Init(gCurrentVFO->fRX, true);
   } else {
-    BK1080_Init(0, false);
-    BK4819_RX_TurnOn();
+    toggleBK1080(false);
   }
-  AUDIO_ToggleSpeaker(true);
+  gIsListening = false;
+  RADIO_ToggleRX(lastListenState);
+
   RADIO_SetupByCurrentVFO();
 }
 
@@ -216,6 +248,16 @@ void RADIO_ToggleListeningBW() {
   onPresetUpdate();
 }
 
+void RADIO_SetSquelchPure(uint32_t f, uint8_t sql) {
+  uint8_t band = f > VHF_UHF_BOUND ? 1 : 0;
+  sq.ro = SQ[band][0][sql];
+  sq.rc = SQ[band][1][sql];
+  sq.no = SQ[band][2][sql];
+  sq.nc = SQ[band][3][sql];
+  sq.go = SQ[band][4][sql];
+  sq.gc = SQ[band][5][sql];
+}
+
 void RADIO_TuneToPure(uint32_t f) {
   Preset *preset = PRESET_ByFrequency(f);
   LOOT_Replace(&gMeasurements, f);
@@ -230,14 +272,7 @@ void RADIO_TuneToPure(uint32_t f) {
     BK4819_TuneTo(f);
   }
 
-  uint8_t sql = preset->band.squelch;
-  uint8_t band = f > VHF_UHF_BOUND ? 1 : 0;
-  sq.ro = SQ[band][0][sql];
-  sq.rc = SQ[band][1][sql];
-  sq.no = SQ[band][2][sql];
-  sq.nc = SQ[band][3][sql];
-  sq.go = SQ[band][4][sql];
-  sq.gc = SQ[band][5][sql];
+  RADIO_SetSquelchPure(f, preset->band.squelch);
 }
 
 void RADIO_TuneTo(uint32_t f) {
@@ -259,10 +294,7 @@ void RADIO_TuneToSave(uint32_t f) {
 void RADIO_SetupByCurrentVFO() {
   PRESET_SelectByFrequency(gCurrentVFO->fRX);
 
-  gCurrentVFO->modulation = gCurrentPreset->band.modulation;
-  gCurrentVFO->bw = gCurrentPreset->band.bw;
-
-  RADIO_ToggleBK1080(gCurrentVFO->modulation == MOD_WFM &&
+  RADIO_ToggleBK1080(gCurrentPreset->band.modulation == MOD_WFM &&
                      RADIO_IsBK1080Range(gCurrentVFO->fRX));
 
   if (isBK1080) {
@@ -299,14 +331,12 @@ void RADIO_LoadCurrentVFO() {
 
 void RADIO_SetSquelch(uint8_t sq) {
   gCurrentPreset->band.squelch = sq;
-  BK4819_Squelch(sq, gCurrentPreset->band.bounds.start);
-
-  // RADIO_SetupByCurrentVFO(); TODO: set AF to previous instead of just RX ON
+  RADIO_SetSquelchPure(gCurrentPreset->band.bounds.start, sq);
   onPresetUpdate();
 }
 
 void RADIO_SetSquelchType(SquelchType t) {
-  BK4819_SquelchType(gCurrentPreset->band.squelchType = t);
+  gCurrentPreset->band.squelchType = t;
   onPresetUpdate();
 }
 
@@ -325,22 +355,59 @@ void RADIO_SetupBandParams(Band *b) {
 }
 
 static bool isSquelchOpen() {
-  bool open = gMeasurements.rssi > sq.ro && gMeasurements.noise < sq.no &&
-              gMeasurements.glitch < sq.go;
+  bool open = false;
+  switch (gCurrentPreset->band.squelchType) {
+  case SQUELCH_RSSI_NOISE_GLITCH:
+    open = gMeasurements.rssi > sq.ro && gMeasurements.noise < sq.no &&
+           gMeasurements.glitch < sq.go;
 
-  if (gMeasurements.rssi < sq.rc || gMeasurements.noise > sq.nc ||
-      gMeasurements.glitch > sq.gc) {
-    open = false;
+    if (gMeasurements.rssi < sq.rc || gMeasurements.noise > sq.nc ||
+        gMeasurements.glitch > sq.gc) {
+      open = false;
+    }
+    break;
+  case SQUELCH_RSSI_NOISE:
+    open = gMeasurements.rssi > sq.ro && gMeasurements.noise < sq.no;
+
+    if (gMeasurements.rssi < sq.rc || gMeasurements.noise > sq.nc) {
+      open = false;
+    }
+    break;
+  case SQUELCH_RSSI_GLITCH:
+    open = gMeasurements.rssi > sq.ro && gMeasurements.glitch < sq.go;
+
+    if (gMeasurements.rssi < sq.rc || gMeasurements.glitch > sq.gc) {
+      open = false;
+    }
+    break;
+  case SQUELCH_RSSI:
+    open = gMeasurements.rssi > sq.ro;
+
+    if (gMeasurements.rssi < sq.rc) {
+      open = false;
+    }
+    break;
   }
   return open;
 }
 
-void RADIO_UpdateMeasurements() {
-  gMeasurements.rssi = BK4819_GetRSSI();
-  gMeasurements.noise = BK4819_GetNoise();
-  gMeasurements.glitch = BK4819_GetGlitch();
+uint16_t RADIO_GetRSSI() {
+  return isBK1080 ? 125/*BK1080_GetRSSI()*/ : BK4819_GetRSSI();
+}
 
-  gMeasurements.open = isSquelchOpen();
+void RADIO_UpdateMeasurements() {
+  gMeasurements.rssi = RADIO_GetRSSI();
+
+  if (isBK1080) {
+    gMeasurements.noise = 0;
+    gMeasurements.glitch = 0;
+  } else {
+    gMeasurements.noise = BK4819_GetNoise();
+    gMeasurements.glitch = BK4819_GetGlitch();
+  }
+
+  gMeasurements.open =
+      gMonitorMode ? true : (isBK1080 ? true : isSquelchOpen());
 }
 
 void RADIO_EnableToneDetection() {

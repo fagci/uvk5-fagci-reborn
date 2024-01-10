@@ -2,6 +2,7 @@
 #include "../driver/uart.h"
 #include "../inc/dp32g030/gpio.h"
 #include "../misc.h"
+#include "bk1080-regs.h"
 #include "gpio.h"
 #include "i2c.h"
 #include "system.h"
@@ -100,4 +101,8 @@ void BK1080_Mute(bool Mute) {
 
 uint16_t BK1080_GetFrequencyDeviation() {
   return BK1080_ReadRegister(BK1080_REG_07) >> 4;
+}
+
+uint16_t BK1080_GetRSSI() {
+  return (BK1080_ReadRegister(BK1080_REG_10) & 0xFF) << 1;
 }

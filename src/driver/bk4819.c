@@ -913,11 +913,9 @@ void BK4819_SetScanFrequency(uint32_t Frequency) {
   BK4819_RX_TurnOn();
 }
 
-void BK4819_Disable(void) { BK4819_WriteRegister(BK4819_REG_30, 0); }
-
 void BK4819_StopScan(void) {
   BK4819_DisableFrequencyScan();
-  BK4819_Disable();
+  BK4819_Idle();
 }
 
 uint8_t BK4819_GetDTMF_5TONE_Code(void) {

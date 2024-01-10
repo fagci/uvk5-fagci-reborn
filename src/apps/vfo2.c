@@ -12,69 +12,38 @@
 #include "apps.h"
 #include "finput.h"
 
-static Loot msm = {0};
-
-static bool lastOpenState = false;
 static uint32_t lastUpdate = 0;
-static uint32_t lastClose = 0;
-
-static void handleInt(uint16_t intStatus) {
-  if (intStatus & BK4819_REG_02_CxCSS_TAIL) {
-    msm.open = false;
-    lastClose = elapsedMilliseconds;
-  }
-}
-
-static void update() {
-  msm.f = gCurrentVFO->fRX;
-  msm.rssi = BK4819_GetRSSI();
-  msm.noise = BK4819_GetNoise();
-  msm.open = gMonitorMode || BK4819_IsSquelchOpen();
-
-  BK4819_HandleInterrupts(handleInt);
-  if (elapsedMilliseconds - lastClose < 250) {
-    msm.open = false;
-  }
-  if (gMonitorMode) {
-    msm.open = true;
-  }
-
-  RADIO_ToggleRX(msm.open);
-  if (elapsedMilliseconds - lastUpdate >= 1000) {
-    LOOT_UpdateEx(gCurrentLoot, &msm);
-    gRedrawScreen = true;
-    lastUpdate = elapsedMilliseconds;
-  }
-  if (msm.open != lastOpenState) {
-    lastOpenState = msm.open;
-    gRedrawScreen = true;
-  }
-}
-
-static void render() { gRedrawScreen = true; }
 
 void VFO2_init() {
-  RADIO_EnableToneDetection();
-
   RADIO_SetupByCurrentVFO(); // TODO: reread from EEPROM not needed maybe
+  RADIO_TuneToPure(gCurrentVFO->fRX);
 
-  TaskRemove(update);
-  TaskRemove(render);
-  TaskAdd("Update VFO", update, 10, true);
-  TaskAdd("Redraw VFO", render, 1000, true);
   gRedrawScreen = true;
 }
 
 void VFO2_deinit() {
   if (APPS_Peek() != APP_FINPUT && APPS_Peek() != APP_VFO2) {
-    TaskRemove(update);
-    TaskRemove(render);
     RADIO_ToggleRX(false);
-    BK4819_WriteRegister(BK4819_REG_3F, 0); // disable interrupts
   }
 }
 
-void VFO2_update() {}
+void VFO2_update() {
+  RADIO_UpdateMeasurements();
+  if (gMeasurements.glitch >= 255) {
+    return;
+  }
+  if (gMeasurements.open != gIsListening) {
+    gRedrawScreen = true;
+  }
+
+  RADIO_ToggleRX(gMeasurements.open);
+  LOOT_UpdateEx(gCurrentLoot, &gMeasurements);
+
+  if (elapsedMilliseconds - lastUpdate >= 500) {
+    gRedrawScreen = true;
+    lastUpdate = elapsedMilliseconds;
+  }
+}
 
 bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   // up-down keys
@@ -97,7 +66,7 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_2:
       LOOT_Standby();
       RADIO_NextVFO(true);
-      msm.f = gCurrentVFO->fRX;
+      RADIO_TuneToPure(gCurrentVFO->fRX);
       return true;
     case KEY_EXIT:
       return true;
@@ -123,10 +92,6 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
   // Simple keypress
   if (!bKeyPressed && !bKeyHeld) {
-    /* if (key == KEY_0 && !gSettings.upconverter) {
-      RADIO_ToggleModulation();
-      return true;
-    } */
     switch (key) {
     case KEY_0:
     case KEY_1:
@@ -147,13 +112,13 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_SIDE1:
       gMonitorMode = !gMonitorMode;
-      msm.open = gMonitorMode;
+      gMeasurements.open = gMonitorMode;
       return true;
     case KEY_EXIT:
       if (!APPS_exit()) {
         LOOT_Standby();
         RADIO_NextVFO(true);
-        msm.f = gCurrentVFO->fRX;
+        RADIO_TuneToPure(gCurrentVFO->fRX);
       }
       return true;
     default:
@@ -178,9 +143,9 @@ static void render2VFOPart(uint8_t i) {
 
   if (isActive) {
     FillRect(0, bl - 14, 28, 7, C_FILL);
-    if (msm.open) {
+    if (gMeasurements.open) {
       PrintMediumEx(0, bl, POS_L, C_INVERT, "RX");
-      UI_RSSIBar(msm.rssi, msm.f, 31);
+      UI_RSSIBar(gMeasurements.rssi, gMeasurements.f, 31);
     }
   }
 
@@ -208,9 +173,6 @@ static void render2VFOPart(uint8_t i) {
   }
   PrintSmallEx(LCD_WIDTH - 1, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,
                est % 60, stats->duration / 1000);
-
-  /* PrintSmallEx(LCD_WIDTH - 18, bl - 12, POS_R, C_FILL, "SQ %d",
-               gCurrentPreset->band.squelch); */
 }
 
 void VFO2_render() {
