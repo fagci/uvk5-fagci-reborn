@@ -7,6 +7,14 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+typedef enum {
+  TX_UNKNOWN,
+  TX_ON,
+  TX_VOL_HIGH,
+  TX_BAT_LOW,
+  TX_DISABLED,
+} TXState;
+
 extern VFO *gCurrentVFO;
 extern VFO gVFO[2];
 
@@ -20,6 +28,7 @@ extern bool gIsListening;
 extern bool gMonitorMode;
 extern bool isBK1080;
 extern Loot gMeasurements;
+extern TXState gTxState;
 
 extern const uint16_t StepFrequencyTable[14];
 
@@ -30,11 +39,13 @@ extern const char *bwNames[3];
 extern const char *deviationNames[];
 extern const SquelchType sqTypeValues[4];
 extern const char *sqTypeNames[4];
+extern const char *TX_STATE_NAMES[5];
 
 void RADIO_SetupRegisters();
 uint32_t GetScreenF(uint32_t f);
 uint32_t GetTuneF(uint32_t f);
 void RADIO_ToggleRX(bool on);
+void RADIO_ToggleTX(bool on);
 void RADIO_ToggleModulation();
 void RADIO_ToggleListeningBW();
 void RADIO_UpdateStep(bool inc);

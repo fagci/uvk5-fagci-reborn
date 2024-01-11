@@ -46,6 +46,12 @@ void VFO2_update() {
 }
 
 bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  if (key == KEY_PTT) {
+    gMonitorMode = bKeyPressed;
+    RADIO_ToggleTX(bKeyPressed);
+    return true;
+  }
+
   // up-down keys
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (key) {
@@ -147,18 +153,26 @@ static void render2VFOPart(uint8_t i) {
       PrintMediumEx(0, bl, POS_L, C_INVERT, "RX");
       UI_RSSIBar(gMeasurements.rssi, gMeasurements.f, 31);
     }
+    if (gTxState == TX_ON) {
+      PrintMediumEx(0, bl, POS_L, C_INVERT, "TX");
+    }
   }
 
-  if (vfo->isMrMode) {
-    PrintMediumBoldEx(LCD_WIDTH / 2, bl - 8, POS_C, C_FILL, gVFONames[i]);
-    PrintMediumEx(LCD_WIDTH / 2, bl, POS_C, C_FILL, "%4u.%03u", fp1, fp2);
-    PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "MR %03u", vfo->channel + 1);
+  if (gTxState && gTxState != TX_ON && isActive) {
+    PrintMediumBoldEx(LCD_WIDTH / 2, bl - 8, POS_C, C_FILL, "%s",
+                      TX_STATE_NAMES[gTxState]);
   } else {
-    PrintBigDigitsEx(LCD_WIDTH - 19, bl, POS_R, C_FILL, "%4u.%03u", fp1, fp2);
-    PrintMediumBoldEx(LCD_WIDTH - 1, bl, POS_R, C_FILL, "%02u", fp3);
-    PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "VFO");
+    if (vfo->isMrMode) {
+      PrintMediumBoldEx(LCD_WIDTH / 2, bl - 8, POS_C, C_FILL, gVFONames[i]);
+      PrintMediumEx(LCD_WIDTH / 2, bl, POS_C, C_FILL, "%4u.%03u", fp1, fp2);
+      PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "MR %03u", vfo->channel + 1);
+    } else {
+      PrintBigDigitsEx(LCD_WIDTH - 19, bl, POS_R, C_FILL, "%4u.%03u", fp1, fp2);
+      PrintMediumBoldEx(LCD_WIDTH - 1, bl, POS_R, C_FILL, "%02u", fp3);
+      PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "VFO");
+    }
+    PrintSmallEx(LCD_WIDTH - 1, bl - 9, POS_R, C_FILL, mod);
   }
-  PrintSmallEx(LCD_WIDTH - 1, bl - 9, POS_R, C_FILL, mod);
 
   Loot *stats = &gLoot[i];
   uint32_t est = stats->lastTimeOpen

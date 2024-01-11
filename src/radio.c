@@ -9,6 +9,7 @@
 #include "driver/uart.h"
 #include "external/printf/printf.h"
 #include "helper/adapter.h"
+#include "helper/battery.h"
 #include "helper/channels.h"
 #include "helper/lootlist.h"
 #include "helper/measurements.h"
@@ -60,6 +61,8 @@ const char *vfoStateNames[] = {
 };
 const char *powerNames[] = {"LOW", "MID", "HIGH"};
 const char *bwNames[3] = {"25k", "12.5k", "6.25k"};
+const char *TX_STATE_NAMES[5] = {"TX Off", "TX On", "VOL HIGH", "BAT LOW",
+                                 "DISABLED"};
 
 const SquelchType sqTypeValues[4] = {
     SQUELCH_RSSI_NOISE_GLITCH,
@@ -182,6 +185,38 @@ void RADIO_ToggleRX(bool on) {
   } else {
     toggleBK4819(on);
   }
+}
+
+TXState gTxState = TX_UNKNOWN;
+
+void RADIO_ToggleTX(bool on) {
+
+  BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, on);
+  if (gTxState == on) {
+    return;
+  }
+
+  if (on) {
+    if (!gCurrentPreset->allowTx) {
+      gTxState = TX_DISABLED;
+      return;
+    }
+    if (gBatteryPercent < 5) {
+      gTxState = TX_BAT_LOW;
+      return;
+    }
+    if (gChargingWithTypeC || gBatteryVoltage > 880) {
+      gTxState = TX_VOL_HIGH;
+      return;
+    }
+  }
+
+  if (on) {
+    RADIO_ToggleRX(false);
+  }
+  BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, on);
+
+  gTxState = on;
 }
 
 void RADIO_ToggleBK1080(bool on) {
