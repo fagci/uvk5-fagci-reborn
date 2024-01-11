@@ -347,11 +347,14 @@ void RADIO_SetGain(uint8_t gainIndex) {
 
 void RADIO_SetupBandParams(Band *b) {
   BK4819_SelectFilter(b->bounds.start);
-  BK4819_SquelchType(b->squelchType);
-  BK4819_Squelch(b->squelch, b->bounds.start);
+  RADIO_SetSquelchType(b->squelchType);
+  RADIO_SetSquelchPure(b->squelch, b->bounds.start);
+  // BK4819_SquelchType(b->squelchType);
+  // BK4819_Squelch(b->squelch, b->bounds.start);
   BK4819_SetFilterBandwidth(b->bw);
   BK4819_SetModulation(b->modulation);
   BK4819_SetGain(b->gainIndex);
+  BK4819_RX_TurnOn(); // TODO: needeed?
 }
 
 static bool isSquelchOpen() {
@@ -392,7 +395,7 @@ static bool isSquelchOpen() {
 }
 
 uint16_t RADIO_GetRSSI() {
-  return isBK1080 ? 125/*BK1080_GetRSSI()*/ : BK4819_GetRSSI();
+  return isBK1080 ? 125 /*BK1080_GetRSSI()*/ : BK4819_GetRSSI();
 }
 
 void RADIO_UpdateMeasurements() {

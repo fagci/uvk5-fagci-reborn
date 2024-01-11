@@ -15,8 +15,7 @@
 #include "finput.h"
 
 static uint8_t menuState = 0;
-static uint32_t lastClose = 0;
-static Loot msm = {0};
+uint32_t lastUpdate = 0;
 
 static char String[16];
 
@@ -55,62 +54,26 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   BK4819_SetRegValue(s, v);
 }
 
-static void handleInt(uint16_t intStatus) {
-  /* if (intStatus & BK4819_REG_02_SQUELCH_FOUND) {
-    msm.open = false;
-    lastClose = elapsedMilliseconds;
-  }
-  if (intStatus & BK4819_REG_02_SQUELCH_LOST) {
-    msm.open = true;
-  } */
-  if (intStatus & BK4819_REG_02_CxCSS_TAIL) {
-    msm.open = false;
-    lastClose = elapsedMilliseconds;
-  }
-}
+void STILL_init() { RADIO_SetupByCurrentVFO(); }
 
-static bool lastOpenState = false;
+void STILL_deinit() { RADIO_ToggleRX(false); }
 
-static void update() {
-  msm.f = gCurrentVFO->fRX;
-  msm.rssi = BK4819_GetRSSI();
-  msm.noise = BK4819_GetNoise();
-  msm.open = gMonitorMode || BK4819_IsSquelchOpen();
-
-  BK4819_HandleInterrupts(handleInt);
-  if (elapsedMilliseconds - lastClose < 250) {
-    msm.open = false;
+void STILL_update() {
+  RADIO_UpdateMeasurements();
+  if (gMeasurements.glitch >= 255) {
+    return;
   }
-  if (gMonitorMode) {
-    msm.open = true;
-  }
-
-  if (msm.f != LOOT_Item(gCurrentVFO->channel)->f) {
-    LOOT_ReplaceItem(gCurrentVFO->channel, msm.f);
-  }
-
-  RADIO_ToggleRX(msm.open);
-  if (lastOpenState != msm.open) {
-    lastOpenState = msm.open;
+  if (gMeasurements.open != gIsListening) {
     gRedrawScreen = true;
   }
-}
 
-static void render() { gRedrawScreen = true; }
+  RADIO_ToggleRX(gMeasurements.open);
+  LOOT_UpdateEx(gCurrentLoot, &gMeasurements);
 
-void STILL_init() {
-  RADIO_SetupByCurrentVFO();
-  RADIO_EnableToneDetection();
-
-  TaskAdd("Update still", update, 10, true);
-  TaskAdd("Redraw still", render, 1000, true);
-}
-
-void STILL_deinit() {
-  TaskRemove(update);
-  TaskRemove(render);
-  RADIO_ToggleRX(false);
-  BK4819_WriteRegister(BK4819_REG_3F, 0); // disable interrupts
+  if (elapsedMilliseconds - lastUpdate >= 500) {
+    gRedrawScreen = true;
+    lastUpdate = elapsedMilliseconds;
+  }
 }
 
 bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
@@ -170,7 +133,9 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_SIDE2:
       return true;
     case KEY_8:
-      IncDec8(&menuState, 1, ARRAY_SIZE(registerSpecs), 1);
+      if (!isBK1080) {
+        IncDec8(&menuState, 1, ARRAY_SIZE(registerSpecs), 1);
+      }
       return true;
     default:
       break;
@@ -198,8 +163,6 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     }
     APPS_exit();
-    gMonitorMode = false;
-    msm.open = gMonitorMode;
     return true;
   default:
     break;
@@ -246,6 +209,9 @@ void STILL_render() {
   UI_ClearScreen();
   STATUSLINE_SetText(gCurrentPreset->band.name);
   UI_FSmall(GetScreenF(gCurrentVFO->fRX));
-  UI_RSSIBar(msm.rssi, gCurrentVFO->fRX, 23);
-  DrawRegs();
+  UI_RSSIBar(gMeasurements.rssi, gCurrentVFO->fRX, 23);
+
+  if (!isBK1080) {
+    DrawRegs();
+  }
 }
