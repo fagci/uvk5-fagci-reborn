@@ -6,6 +6,7 @@
 #include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
+#include "../ui/statusline.h"
 #include "apps.h"
 #include <string.h>
 
@@ -19,6 +20,7 @@ static void getMenuItemText(uint16_t index, char *name) {
 
 void APPSLIST_render() {
   UI_ClearScreen();
+  STATUSLINE_SetText("%u", MENU_SIZE);
   UI_ShowMenu(getMenuItemText, MENU_SIZE, menuIndex);
 }
 

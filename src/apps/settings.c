@@ -19,6 +19,7 @@ typedef enum {
   M_BRIGHTNESS,
   M_BL_TIME,
   M_BL_SQL,
+  M_FLT_BOUND,
   M_BEEP,
   M_BAT_CAL,
   M_BAT_TYPE,
@@ -34,9 +35,10 @@ char Output[16];
 
 const char *onOff[] = {"Off", "On"};
 const char *yesNo[] = {"No", "Yes"};
+const char *fltBound[] = {"240MHz", "280MHz"};
 
 const uint16_t BAT_CAL_MIN = 1900;
-const uint16_t BAT_CAL_MAX = 2100;
+const uint16_t BAT_CAL_MAX = 2155;
 
 static const MenuItem menu[] = {
     {"Upconverter", M_UPCONVERTER, ARRAY_SIZE(upConverterFreqNames)},
@@ -44,8 +46,9 @@ static const MenuItem menu[] = {
     {"Brightness", M_BRIGHTNESS, 16},
     {"BL time", M_BL_TIME, ARRAY_SIZE(BL_TIME_VALUES)},
     {"BL SQL mode", M_BL_SQL, ARRAY_SIZE(BL_SQL_MODE_NAMES)},
+    {"Filter bound", M_FLT_BOUND, 2},
     {"Beep", M_BEEP, 2},
-    {"BAT calibration", M_BAT_CAL, 200},
+    {"BAT calibration", M_BAT_CAL, 255},
     {"BAT type", M_BAT_TYPE, ARRAY_SIZE(BATTERY_TYPE_NAMES)},
     {"BAT style", M_BAT_STYLE, ARRAY_SIZE(BATTERY_STYLE_NAMES)},
     {"EEPROM reset", M_RESET, 2},
@@ -64,6 +67,9 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     return;
   case M_BL_SQL:
     strncpy(name, BL_SQL_MODE_NAMES[index], 31);
+    return;
+  case M_FLT_BOUND:
+    strncpy(name, fltBound[index], 31);
     return;
   case M_BRIGHTNESS:
     sprintf(name, "%u", index);
@@ -106,6 +112,10 @@ static void accept() {
     break;
   case M_BL_SQL:
     gSettings.backlightOnSquelch = subMenuIndex;
+    SETTINGS_Save();
+    break;
+  case M_FLT_BOUND:
+    gSettings.bound_240_280 = subMenuIndex;
     SETTINGS_Save();
     break;
   case M_BRIGHTNESS:
@@ -160,6 +170,9 @@ static const char *getValue(Menu type) {
     return BL_TIME_NAMES[gSettings.backlight];
   case M_BL_SQL:
     return BL_SQL_MODE_NAMES[gSettings.backlightOnSquelch];
+  case M_FLT_BOUND:
+    sprintf(Output, "%uMHz", SETTINGS_GetFilterBound() / 100000);
+    return Output;
   case M_UPCONVERTER:
     return upConverterFreqNames[gSettings.upconverter];
   case M_BEEP:
@@ -196,6 +209,9 @@ static void setInitialSubmenuIndex() {
     break;
   case M_BL_SQL:
     subMenuIndex = gSettings.backlightOnSquelch;
+    break;
+  case M_FLT_BOUND:
+    subMenuIndex = gSettings.bound_240_280;
     break;
   case M_UPCONVERTER:
     subMenuIndex = gSettings.upconverter;
@@ -284,7 +300,6 @@ void SETTINGS_render() {
     STATUSLINE_SetText(item->name);
   } else {
     UI_ShowMenuSimple(menu, ARRAY_SIZE(menu), menuIndex);
-    PrintMediumEx(LCD_WIDTH / 2, 6 * 8 + 12, POS_C, C_FILL,
-                  getValue(item->type));
+    PrintMediumEx(LCD_XCENTER, 6 * 8 + 12, POS_C, C_FILL, getValue(item->type));
   }
 }

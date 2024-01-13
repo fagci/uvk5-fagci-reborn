@@ -50,8 +50,8 @@ static void exportLootList() {
   for (uint8_t i = 0; i < LOOT_Size(); ++i) {
     Loot *v = LOOT_Item(i);
     if (!v->blacklist) {
-      UART_printf("%u.%05u,%u,%u,%u,%u,%u\n", v->f / 100000, v->f % 100000,
-                  v->duration, v->ct, v->cd, v->rssi, v->noise);
+      UART_printf("%u.%05u,%u,%u,%u,%u\n", v->f / 100000, v->f % 100000,
+                  v->duration, v->ct, v->cd, v->rssi);
     }
   }
   UART_printf("--- >8 ---\n");
@@ -69,8 +69,7 @@ static void getLootItem(uint16_t i, uint16_t index, bool isCurrent) {
   PrintSmallEx(LCD_WIDTH - 6, y + 7, POS_R, C_INVERT, "%us",
                item->duration / 1000);
 
-  PrintSmallEx(6, y + 7 + 6, POS_L, C_INVERT, "R:%03u N:%03u", item->rssi,
-               item->noise);
+  PrintSmallEx(6, y + 7 + 6, POS_L, C_INVERT, "R:%03u", item->rssi);
   if (item->cd != 0xFF) {
     PrintSmallEx(6 + 55, y + 7 + 6, POS_L, C_INVERT, "DCS:D%03oN",
                  DCS_Options[item->cd]);

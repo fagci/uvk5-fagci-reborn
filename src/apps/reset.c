@@ -163,7 +163,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {17400000, VHF_UHF_BOUND - 2500},
+                .bounds = {17400000, VHF_UHF_BOUND2 - 2500},
                 .name = "174-BOUND",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -177,7 +177,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {VHF_UHF_BOUND, 34999999},
+                .bounds = {VHF_UHF_BOUND2, 34999999},
                 .name = "BOUND-350",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -518,7 +518,7 @@ void RESET_Render() {
   UI_ClearScreen();
   DrawRect(0, POS_Y, LCD_WIDTH, 10, C_FILL);
   FillRect(1, POS_Y, progressX, 10, C_FILL);
-  PrintMediumEx(LCD_WIDTH / 2, POS_Y + 8, POS_C, C_INVERT, "%u%",
+  PrintMediumEx(LCD_XCENTER, POS_Y + 8, POS_C, C_INVERT, "%u%",
                 bytesWrote * 100 / 0x2000);
 }
 

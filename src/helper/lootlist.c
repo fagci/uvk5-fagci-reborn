@@ -58,8 +58,6 @@ Loot *LOOT_AddEx(uint32_t f, bool reuse) {
         .lastTimeOpen = elapsedMilliseconds,
         .duration = 0,
         .rssi = 0,
-        .noise = 255,
-        .glitch = 255,
         .open = true, // as we add it when open
         .ct = 0xFF,
         .cd = 0xFF,
@@ -140,8 +138,6 @@ void LOOT_Replace(Loot *loot, uint32_t f) {
   loot->lastTimeOpen = 0;
   loot->duration = 0;
   loot->rssi = 0;
-  loot->noise = 255;
-  loot->glitch = 255;
   loot->ct = 0xFF;
   loot->cd = 0xFF;
 }
@@ -161,8 +157,6 @@ void LOOT_UpdateEx(Loot *loot, Loot *msm) {
   }
 
   loot->rssi = msm->rssi;
-  loot->noise = msm->noise;
-  loot->glitch = msm->glitch;
 
   if (loot->open) {
     loot->duration += elapsedMilliseconds - loot->lastTimeCheck;

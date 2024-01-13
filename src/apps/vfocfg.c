@@ -249,7 +249,7 @@ void VFOCFG_render() {
     STATUSLINE_SetText(item->name);
   } else {
     UI_ShowMenu(getMenuItemText, ARRAY_SIZE(menu), menuIndex);
-    PrintMediumEx(LCD_WIDTH / 2, LCD_HEIGHT - 2, POS_C, C_FILL,
+    PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 2, POS_C, C_FILL,
                   getValue(item->type));
   }
 }

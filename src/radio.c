@@ -5,6 +5,7 @@
 #include "driver/bk4819.h"
 #include "driver/eeprom.h"
 #include "driver/gpio.h"
+#include "driver/st7565.h"
 #include "driver/system.h"
 #include "driver/uart.h"
 #include "external/printf/printf.h"
@@ -34,8 +35,6 @@ typedef struct {
   uint8_t go;
   uint8_t gc;
 } SQLParams;
-
-static SQLParams sq = {255, 255, 0, 0, 0, 0};
 
 Loot gMeasurements = {0};
 
@@ -165,6 +164,7 @@ void RADIO_ToggleRX(bool on) {
   if (gIsListening == on) {
     return;
   }
+  gRedrawScreen = true;
 
   gIsListening = on;
 
@@ -283,15 +283,7 @@ void RADIO_ToggleListeningBW() {
   onPresetUpdate();
 }
 
-void RADIO_SetSquelchPure(uint32_t f, uint8_t sql) {
-  uint8_t band = f > VHF_UHF_BOUND ? 1 : 0;
-  sq.ro = SQ[band][0][sql];
-  sq.rc = SQ[band][1][sql];
-  sq.no = SQ[band][2][sql];
-  sq.nc = SQ[band][3][sql];
-  sq.go = SQ[band][4][sql];
-  sq.gc = SQ[band][5][sql];
-}
+void RADIO_SetSquelchPure(uint32_t f, uint8_t sql) { BK4819_Squelch(sql, f); }
 
 void RADIO_TuneToPure(uint32_t f) {
   Preset *preset = PRESET_ByFrequency(f);
@@ -392,43 +384,6 @@ void RADIO_SetupBandParams(Band *b) {
   BK4819_RX_TurnOn(); // TODO: needeed?
 }
 
-static bool isSquelchOpen() {
-  bool open = false;
-  switch (gCurrentPreset->band.squelchType) {
-  case SQUELCH_RSSI_NOISE_GLITCH:
-    open = gMeasurements.rssi > sq.ro && gMeasurements.noise < sq.no &&
-           gMeasurements.glitch < sq.go;
-
-    if (gMeasurements.rssi < sq.rc || gMeasurements.noise > sq.nc ||
-        gMeasurements.glitch > sq.gc) {
-      open = false;
-    }
-    break;
-  case SQUELCH_RSSI_NOISE:
-    open = gMeasurements.rssi > sq.ro && gMeasurements.noise < sq.no;
-
-    if (gMeasurements.rssi < sq.rc || gMeasurements.noise > sq.nc) {
-      open = false;
-    }
-    break;
-  case SQUELCH_RSSI_GLITCH:
-    open = gMeasurements.rssi > sq.ro && gMeasurements.glitch < sq.go;
-
-    if (gMeasurements.rssi < sq.rc || gMeasurements.glitch > sq.gc) {
-      open = false;
-    }
-    break;
-  case SQUELCH_RSSI:
-    open = gMeasurements.rssi > sq.ro;
-
-    if (gMeasurements.rssi < sq.rc) {
-      open = false;
-    }
-    break;
-  }
-  return open;
-}
-
 uint16_t RADIO_GetRSSI() {
   return isBK1080 ? 125 /*BK1080_GetRSSI()*/ : BK4819_GetRSSI();
 }
@@ -436,16 +391,8 @@ uint16_t RADIO_GetRSSI() {
 void RADIO_UpdateMeasurements() {
   gMeasurements.rssi = RADIO_GetRSSI();
 
-  if (isBK1080) {
-    gMeasurements.noise = 0;
-    gMeasurements.glitch = 0;
-  } else {
-    gMeasurements.noise = BK4819_GetNoise();
-    gMeasurements.glitch = BK4819_GetGlitch();
-  }
-
   gMeasurements.open =
-      gMonitorMode ? true : (isBK1080 ? true : isSquelchOpen());
+      gMonitorMode ? true : (isBK1080 ? true : BK4819_IsSquelchOpen());
 }
 
 void RADIO_EnableToneDetection() {

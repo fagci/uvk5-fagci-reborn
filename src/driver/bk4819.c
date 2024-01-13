@@ -22,6 +22,7 @@
 #include "../inc/dp32g030/gpio.h"
 #include "../inc/dp32g030/portcon.h"
 #include "../misc.h"
+#include "../settings.h"
 #include "bk4819-regs.h"
 
 #define BK4819_F_MIN 1600000
@@ -38,24 +39,6 @@ bool gRxIdleMode;
 
 const uint8_t DTMF_COEFFS[] = {111, 107, 103, 98, 80,  71,  58,  44,
                                65,  55,  37,  23, 228, 203, 181, 159};
-
-/* const uint8_t SQ[2][6][11] = {
-    {
-        {0, 10, 62, 66, 74, 75, 92, 95, 98, 170, 252},
-        {0, 5, 60, 64, 72, 70, 89, 92, 95, 166, 250},
-        {255, 65, 56, 54, 48, 45, 32, 29, 20, 25, 20},
-        {255, 70, 61, 58, 52, 48, 35, 32, 23, 30, 30},
-        {255, 180, 150, 140, 120, 20, 3, 3, 2, 50, 50},
-        {255, 100, 135, 135, 116, 17, 5, 5, 4, 45, 45},
-    },
-    {
-        {0, 50, 78, 88, 94, 110, 114, 117, 119, 200, 252},
-        {0, 40, 76, 86, 92, 106, 110, 113, 115, 195, 250},
-        {255, 65, 49, 44, 42, 40, 33, 30, 22, 23, 22},
-        {255, 70, 59, 54, 46, 45, 37, 34, 25, 27, 25},
-        {255, 90, 150, 140, 120, 10, 8, 7, 6, 32, 32},
-        {255, 100, 135, 135, 116, 15, 12, 11, 10, 30, 30},
-    }}; */
 
 const uint8_t SQ[2][6][11] = {
     {
@@ -303,13 +286,15 @@ void BK4819_SetAGC(bool useDefault) {
   BK4819_WriteRegister(BK4819_REG_12, 0x037B);
   BK4819_WriteRegister(BK4819_REG_11, 0x027B);
   BK4819_WriteRegister(BK4819_REG_10, 0x007A);
-  BK4819_WriteRegister(BK4819_REG_14, 0x0019);
 
   uint8_t Lo = 0;    // 0-1 - auto, 2 - low, 3 high
   uint8_t low = 56;  // 1dB / LSB
   uint8_t high = 84; // 1dB / LSB
 
-  if (!useDefault) {
+  if (useDefault) {
+    BK4819_WriteRegister(BK4819_REG_14, 0x0019);
+  } else {
+    BK4819_WriteRegister(BK4819_REG_14, 0x0000);
     // slow 25 45
     // fast 15 50
     low = 15;
@@ -420,7 +405,7 @@ void BK4819_SetupPowerAmplifier(uint16_t Bias, uint32_t Frequency) {
   if (Bias > 255) {
     Bias = 255;
   }
-  if (Frequency < VHF_UHF_BOUND) {
+  if (Frequency < VHF_UHF_BOUND2) {
     // Gain 1 = 1
     // Gain 2 = 0
     Gain = 0x08U;
@@ -443,7 +428,7 @@ uint32_t BK4819_GetFrequency() {
          BK4819_ReadRegister(BK4819_REG_38);
 }
 
-/* void BK4819_SetupSquelch(uint8_t SquelchOpenRSSIThresh,
+void BK4819_SetupSquelch(uint8_t SquelchOpenRSSIThresh,
                          uint8_t SquelchCloseRSSIThresh,
                          uint8_t SquelchOpenNoiseThresh,
                          uint8_t SquelchCloseNoiseThresh,
@@ -462,23 +447,21 @@ uint32_t BK4819_GetFrequency() {
                        (SquelchOpenRSSIThresh << 8) | SquelchCloseRSSIThresh);
   BK4819_SetAF(BK4819_AF_MUTE);
   BK4819_RX_TurnOn();
-} */
+}
 
-/* void BK4819_Squelch(uint8_t sql, uint32_t f) {
-  uint8_t band = f > VHF_UHF_BOUND ? 1 : 0;
+void BK4819_Squelch(uint8_t sql, uint32_t f) {
+  uint8_t band = f > SETTINGS_GetFilterBound() ? 1 : 0;
   BK4819_SetupSquelch(SQ[band][0][sql], SQ[band][1][sql], SQ[band][2][sql],
                       SQ[band][3][sql], SQ[band][4][sql], SQ[band][5][sql]);
-} */
+}
 
-/* void BK4819_SquelchType(SquelchType t) {
+void BK4819_SquelchType(SquelchType t) {
   const RegisterSpec sqType = {"SQ type", 0x77, 8, 0xFF, 1};
   const uint8_t squelchTypeValues[4] = {0x88, 0xAA, 0xCC, 0xFF};
   BK4819_SetRegValue(sqType, squelchTypeValues[t]);
-} */
+}
 
 void BK4819_SetAF(BK4819_AF_Type_t AF) {
-  // AF Output Inverse Mode = Inverse
-  // Undocumented bits 0x2040
   BK4819_WriteRegister(BK4819_REG_47, 0x6040 | (AF << 8));
 }
 
@@ -499,13 +482,12 @@ void BK4819_SetModulation(ModulationType type) {
     return;
   }
   modTypeCurrent = type;
-  const uint8_t modTypeReg47Values[] = {BK4819_AF_FM,  BK4819_AF_AM,
-                                        BK4819_AF_USB, BK4819_AF_BYPASS,
-                                        BK4819_AF_RAW, BK4819_AF_FM};
+  const uint16_t modTypeReg47Values[] = {BK4819_AF_FM,  BK4819_AF_AM,
+                                         BK4819_AF_USB, BK4819_AF_BYPASS,
+                                         BK4819_AF_RAW, BK4819_AF_FM};
   BK4819_SetAF(modTypeReg47Values[type]);
   BK4819_SetRegValue(afDacGainRegSpec, 0xF);
-  BK4819_SetAGC(type == MOD_FM || type == MOD_WFM || type == MOD_BYP ||
-                type == MOD_RAW);
+  BK4819_SetAGC(type != MOD_AM);
   BK4819_WriteRegister(0x3D, type == MOD_USB ? 0 : 0x2AAB);
   BK4819_SetRegValue(afcDisableRegSpec, type != MOD_FM);
 }
@@ -546,7 +528,8 @@ void BK4819_DisableFilter() {
 }
 
 void BK4819_SelectFilter(uint32_t Frequency) {
-  Filter filterNeeded = Frequency < VHF_UHF_BOUND ? FILTER_VHF : FILTER_UHF;
+  Filter filterNeeded =
+      Frequency < SETTINGS_GetFilterBound() ? FILTER_VHF : FILTER_UHF;
 
   if (selectedFilter == filterNeeded) {
     return;
@@ -1093,9 +1076,9 @@ void BK4819_SetToneFrequency(uint16_t f) {
   BK4819_WriteRegister(BK4819_REG_71, (f * 103U) / 10U);
 }
 
-/* bool BK4819_IsSquelchOpen() {
+bool BK4819_IsSquelchOpen() {
   return (BK4819_ReadRegister(BK4819_REG_0C) >> 1) & 1;
-} */
+}
 
 void BK4819_ResetRSSI() {
   uint32_t Reg = BK4819_ReadRegister(BK4819_REG_30);

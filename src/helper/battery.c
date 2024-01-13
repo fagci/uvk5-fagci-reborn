@@ -4,12 +4,13 @@
 #include "../misc.h"
 #include "../settings.h"
 
-uint16_t gBatteryCurrentVoltage;
-uint16_t gBatteryVoltage;
-uint8_t gBatteryDisplayLevel;
-bool gChargingWithTypeC;
+uint16_t gBatteryVoltage = 0;
 uint16_t gBatteryCurrent = 0;
 uint8_t gBatteryPercent = 0;
+bool gChargingWithTypeC = true;
+
+static uint16_t batAdcV = 0;
+static uint16_t batAvgV = 0;
 
 const char *BATTERY_TYPE_NAMES[2] = {"1600mAh", "2200mAh"};
 const char *BATTERY_STYLE_NAMES[3] = {"Plain", "Percent", "Voltage"};
@@ -54,26 +55,16 @@ uint8_t BATTERY_VoltsToPercent(const unsigned int voltage_10mV) {
   return 0;
 }
 
-// calibrated
-// const uint16_t BATTERY_CALIBRATION[6] = {1307, 1806, 1904, 1957, 2023, 2300};
-
-// custom (mid from calibrated & max)
-// const uint16_t BATTERY_CALIBRATION[6] = {1345, 1810, 1930, 2010, 2090, 2300};
-
-// uint16_t voltages[4];
-
 void BATTERY_UpdateBatteryInfo() {
-  BOARD_ADC_GetBatteryInfo(&gBatteryCurrentVoltage, &gBatteryCurrent);
-  BATTERY_GetReadings(false);
-}
+  BOARD_ADC_GetBatteryInfo(&batAdcV, &gBatteryCurrent);
+  bool charg = gBatteryCurrent >= 501;
+  if (batAvgV == 0 || charg != gChargingWithTypeC) {
+    batAvgV = batAdcV;
+  } else {
+    batAvgV = batAvgV - (batAvgV - batAdcV) / 7;
+  }
 
-void BATTERY_GetReadings(bool bDisplayBatteryLevel) {
-  gBatteryDisplayLevel = 0;
-
-  gBatteryVoltage =
-      (gBatteryCurrentVoltage * 760) / gSettings.batteryCalibration;
-  gChargingWithTypeC = gBatteryCurrent >= 501;
+  gBatteryVoltage = (batAvgV * 760) / gSettings.batteryCalibration;
+  gChargingWithTypeC = charg;
   gBatteryPercent = BATTERY_VoltsToPercent(gBatteryVoltage);
-
-  gBatteryDisplayLevel = gBatteryPercent / 10;
 }

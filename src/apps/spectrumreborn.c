@@ -120,12 +120,8 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 
 void SPECTRUM_update(void) {
   RADIO_UpdateMeasurements();
-  if (gMeasurements.glitch >= 255 || gMeasurements.rssi == 0) {
+  if (gMeasurements.rssi == 0) {
     return;
-  }
-
-  if (gMeasurements.open != gIsListening) {
-    gRedrawScreen = true;
   }
 
   LOOT_Update(&gMeasurements);

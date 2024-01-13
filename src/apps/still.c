@@ -60,12 +60,6 @@ void STILL_deinit() { RADIO_ToggleRX(false); }
 
 void STILL_update() {
   RADIO_UpdateMeasurements();
-  if (gMeasurements.glitch >= 255) {
-    return;
-  }
-  if (gMeasurements.open != gIsListening) {
-    gRedrawScreen = true;
-  }
 
   RADIO_ToggleRX(gMeasurements.open);
   LOOT_UpdateEx(gCurrentLoot, &gMeasurements);

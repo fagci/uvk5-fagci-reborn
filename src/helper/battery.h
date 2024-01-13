@@ -20,16 +20,16 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-extern uint16_t gBatteryCurrentVoltage;
+#define BAT_WARN_PERCENT 15
+
 extern uint16_t gBatteryVoltage;
-extern uint8_t gBatteryDisplayLevel;
-extern bool gChargingWithTypeC;
 extern uint16_t gBatteryCurrent;
 extern uint8_t gBatteryPercent;
+extern bool gChargingWithTypeC;
+
 extern const char *BATTERY_TYPE_NAMES[2];
 extern const char *BATTERY_STYLE_NAMES[3];
 
-void BATTERY_GetReadings(bool bDisplayBatteryLevel);
 void BATTERY_UpdateBatteryInfo();
 
 #endif

@@ -270,10 +270,10 @@ void PRESETCFG_render() {
   const MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {
     showSubmenu(item->type);
-    PrintMediumEx(LCD_WIDTH / 2, LCD_HEIGHT - 2, POS_C, C_FILL, item->name);
+    PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 2, POS_C, C_FILL, item->name);
   } else {
     UI_ShowMenu(getMenuItemText, ARRAY_SIZE(menu), menuIndex);
-    PrintMediumEx(LCD_WIDTH / 2, LCD_HEIGHT - 2, POS_C, C_FILL,
+    PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 2, POS_C, C_FILL,
                   getValue(item->type));
   }
 }

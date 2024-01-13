@@ -3,8 +3,8 @@
 
 #include "../driver/keyboard.h"
 
-#define APPS_COUNT 21
-#define RUN_APPS_COUNT 11
+#define APPS_COUNT 20
+#define RUN_APPS_COUNT 10
 
 typedef enum {
   APP_NONE,

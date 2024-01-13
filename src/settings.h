@@ -77,7 +77,8 @@ typedef struct {
   uint16_t batteryCalibration : 12;
   BatteryType batteryType : 2;
   BatteryStyle batteryStyle : 2; // 2
-  uint8_t reserved1 : 8;
+  bool bound_240_280 : 1;
+  uint8_t reserved1 : 7;
   uint8_t reserved2 : 8;
   uint8_t reserved3 : 8;
   uint8_t reserved4 : 6;
@@ -174,5 +175,6 @@ extern const char *BL_SQL_MODE_NAMES[3];
 void SETTINGS_Save();
 void SETTINGS_Load();
 void SETTINGS_DelayedSave();
+uint32_t SETTINGS_GetFilterBound();
 
 #endif /* end of include guard: SETTINGS_H */

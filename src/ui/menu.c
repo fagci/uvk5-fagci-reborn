@@ -3,7 +3,6 @@
 #include "../helper/measurements.h"
 #include "graphics.h"
 
-
 void UI_DrawScrollBar(const uint16_t size, const uint16_t iCurrent,
                       const uint8_t nLines) {
   const uint8_t sbY =
@@ -22,11 +21,12 @@ void UI_ShowMenuItem(uint8_t line, const char *name, bool isCurrent) {
   }
 }
 
-void UI_ShowMenuSimple(const MenuItem *menu, uint16_t size, uint16_t currentIndex) {
+void UI_ShowMenuSimple(const MenuItem *menu, uint16_t size,
+                       uint16_t currentIndex) {
   const uint16_t maxItems =
       size < MENU_LINES_TO_SHOW ? size : MENU_LINES_TO_SHOW;
   const uint16_t offset = Clamp(currentIndex - 2, 0, size - maxItems);
-  char name[32] = {0};
+  char name[32] = {'\0'};
 
   for (uint16_t i = 0; i < maxItems; ++i) {
     uint16_t itemIndex = i + offset;
@@ -42,9 +42,9 @@ void UI_ShowMenu(void (*getItemText)(uint16_t index, char *name), uint16_t size,
   const uint16_t maxItems =
       size < MENU_LINES_TO_SHOW ? size : MENU_LINES_TO_SHOW;
   const uint16_t offset = Clamp(currentIndex - 2, 0, size - maxItems);
-  char name[32] = {0};
 
   for (uint16_t i = 0; i < maxItems; ++i) {
+    char name[32] = {'\0'};
     uint16_t itemIndex = i + offset;
     getItemText(itemIndex, name);
     UI_ShowMenuItem(i, name, currentIndex == itemIndex);

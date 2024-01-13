@@ -35,15 +35,13 @@ void STATUSLINE_SetText(const char *pattern, ...) {
 
 void STATUSLINE_update() {
   BATTERY_UpdateBatteryInfo();
-  if (gBatteryDisplayLevel) {
-    if (previousBatteryLevel != gBatteryDisplayLevel) {
-      previousBatteryLevel = gBatteryDisplayLevel;
-      UI_Battery(gBatteryDisplayLevel);
-
-      gRedrawScreen = true;
-    }
-  } else {
+  uint8_t level = gBatteryPercent / 10;
+  if (gBatteryPercent < BAT_WARN_PERCENT) {
     showBattery = !showBattery;
+    gRedrawScreen = true;
+  }
+  if (previousBatteryLevel != level) {
+    previousBatteryLevel = level;
     gRedrawScreen = true;
   }
 
@@ -68,7 +66,7 @@ void STATUSLINE_render() {
       PrintSmallEx(LCD_WIDTH - 1, BASE_Y, POS_R, C_INVERT, "%u%%",
                    gBatteryPercent);
     } else {
-      UI_Battery(gBatteryDisplayLevel);
+      UI_Battery(previousBatteryLevel);
     }
   }
 

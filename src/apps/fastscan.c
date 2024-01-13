@@ -62,9 +62,9 @@ bool FASTSCAN_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
 void FASTSCAN_render() {
   UI_ClearScreen();
-  PrintMediumEx(LCD_WIDTH / 2, LCD_HEIGHT / 2, POS_C, C_FILL, "Scanning...");
+  PrintMediumEx(LCD_XCENTER, LCD_HEIGHT / 2, POS_C, C_FILL, "Scanning...");
   if (isDone) {
-    PrintMediumEx(LCD_WIDTH / 2, LCD_HEIGHT / 2 + 8, POS_C, C_FILL, "%u.%05u",
+    PrintMediumEx(LCD_XCENTER, LCD_HEIGHT / 2 + 8, POS_C, C_FILL, "%u.%05u",
                   scanF / 100000, scanF % 100000);
   }
 }

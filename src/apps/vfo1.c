@@ -27,15 +27,10 @@ void VFO1_deinit() {
 
 void VFO1_update() {
   RADIO_UpdateMeasurements();
-  if (gMeasurements.glitch >= 255) {
-    return;
-  }
 
-  if (gIsListening != gMeasurements.open) {
-    gRedrawScreen = true;
-  }
   RADIO_ToggleRX(gMeasurements.open);
   LOOT_UpdateEx(gCurrentLoot, &gMeasurements);
+
   if (elapsedMilliseconds - lastUpdate >= 500) {
     gRedrawScreen = true;
     lastUpdate = elapsedMilliseconds;

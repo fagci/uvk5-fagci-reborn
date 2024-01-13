@@ -22,3 +22,7 @@ void SETTINGS_DelayedSave() {
   TaskRemove(SETTINGS_Save);
   TaskAdd("Settings save", SETTINGS_Save, 5000, false);
 }
+
+uint32_t SETTINGS_GetFilterBound() {
+  return gSettings.bound_240_280 ? VHF_UHF_BOUND2 : VHF_UHF_BOUND1;
+}

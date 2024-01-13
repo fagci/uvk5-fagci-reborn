@@ -22,6 +22,8 @@
 
 #define LCD_WIDTH 128
 #define LCD_HEIGHT 64
+#define LCD_XCENTER 64
+#define LCD_YCENTER 32
 
 extern bool gRedrawScreen;
 extern uint8_t gFrameBuffer[8][LCD_WIDTH];

@@ -12,42 +12,44 @@
 #include "apps.h"
 #include "finput.h"
 
+static uint32_t lastRender = 0;
 static uint32_t lastUpdate = 0;
+
+// TODO: check if any msm/loot is buggy
 
 void VFO2_init() {
   RADIO_SetupByCurrentVFO(); // TODO: reread from EEPROM not needed maybe
-  RADIO_TuneToPure(gCurrentVFO->fRX);
+  // RADIO_TuneToPure(gCurrentVFO->fRX);
 
   gRedrawScreen = true;
 }
 
 void VFO2_deinit() {
-  if (APPS_Peek() != APP_FINPUT && APPS_Peek() != APP_VFO2) {
+  /* if (APPS_Peek() != APP_FINPUT && APPS_Peek() != APP_VFO2) {
     RADIO_ToggleRX(false);
-  }
+  } */
 }
 
 void VFO2_update() {
-  RADIO_UpdateMeasurements();
-  if (gMeasurements.glitch >= 255) {
-    return;
-  }
-  if (gMeasurements.open != gIsListening) {
-    gRedrawScreen = true;
-  }
-
-  RADIO_ToggleRX(gMeasurements.open);
-  LOOT_UpdateEx(gCurrentLoot, &gMeasurements);
-
-  if (elapsedMilliseconds - lastUpdate >= 500) {
-    gRedrawScreen = true;
+  if (elapsedMilliseconds - lastUpdate >= 10) {
+    RADIO_UpdateMeasurements();
     lastUpdate = elapsedMilliseconds;
+    if (gMeasurements.open != gIsListening) {
+      gRedrawScreen = true;
+    }
+
+    RADIO_ToggleRX(gMeasurements.open);
+    // LOOT_UpdateEx(gCurrentLoot, &gMeasurements);
+
+    if (elapsedMilliseconds - lastRender >= 500) {
+      gRedrawScreen = true;
+      lastRender = elapsedMilliseconds;
+    }
   }
 }
 
 bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (key == KEY_PTT) {
-    gMonitorMode = bKeyPressed;
     RADIO_ToggleTX(bKeyPressed);
     return true;
   }
@@ -149,22 +151,22 @@ static void render2VFOPart(uint8_t i) {
 
   if (isActive) {
     FillRect(0, bl - 14, 28, 7, C_FILL);
+    if (gTxState == TX_ON) {
+      PrintMediumEx(0, bl, POS_L, C_INVERT, "TX");
+    }
     if (gMeasurements.open) {
       PrintMediumEx(0, bl, POS_L, C_INVERT, "RX");
       UI_RSSIBar(gMeasurements.rssi, gMeasurements.f, 31);
     }
-    if (gTxState == TX_ON) {
-      PrintMediumEx(0, bl, POS_L, C_INVERT, "TX");
-    }
   }
 
   if (gTxState && gTxState != TX_ON && isActive) {
-    PrintMediumBoldEx(LCD_WIDTH / 2, bl - 8, POS_C, C_FILL, "%s",
+    PrintMediumBoldEx(LCD_XCENTER, bl - 8, POS_C, C_FILL, "%s",
                       TX_STATE_NAMES[gTxState]);
   } else {
     if (vfo->isMrMode) {
-      PrintMediumBoldEx(LCD_WIDTH / 2, bl - 8, POS_C, C_FILL, gVFONames[i]);
-      PrintMediumEx(LCD_WIDTH / 2, bl, POS_C, C_FILL, "%4u.%03u", fp1, fp2);
+      PrintMediumBoldEx(LCD_XCENTER, bl - 8, POS_C, C_FILL, gVFONames[i]);
+      PrintMediumEx(LCD_XCENTER, bl, POS_C, C_FILL, "%4u.%03u", fp1, fp2);
       PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "MR %03u", vfo->channel + 1);
     } else {
       PrintBigDigitsEx(LCD_WIDTH - 19, bl, POS_R, C_FILL, "%4u.%03u", fp1, fp2);
