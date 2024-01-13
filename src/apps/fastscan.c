@@ -71,5 +71,4 @@ void FASTSCAN_render() {
 
 void FASTSCAN_deinit() {
   BK4819_StopScan();
-  RADIO_SetupByCurrentVFO();
 }

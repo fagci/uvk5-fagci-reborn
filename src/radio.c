@@ -340,12 +340,19 @@ void RADIO_LoadCurrentVFO() {
       RADIO_VfoLoadCH(i);
     }
     gVFOPresets[i] = PRESET_ByFrequency(gVFO[i].fRX);
+
     LOOT_Replace(&gLoot[i], gVFO[i].fRX);
   }
 
   gCurrentVFO = &gVFO[gSettings.activeVFO];
   gCurrentLoot = &gLoot[gSettings.activeVFO];
-  PRESET_SelectByFrequency(gCurrentVFO->fRX);
+  uint32_t f = gCurrentVFO->fRX;
+  RADIO_SetupBandParams(&gCurrentPreset->band);
+  BK4819_Squelch(gCurrentPreset->band.squelch, f);
+
+  RADIO_ToggleBK1080(gCurrentPreset->band.modulation == MOD_WFM &&
+                     RADIO_IsBK1080Range(f));
+  RADIO_TuneToPure(f);
 }
 
 void RADIO_SetSquelch(uint8_t sq) {
@@ -365,6 +372,8 @@ void RADIO_SetGain(uint8_t gainIndex) {
 }
 
 void RADIO_SetupBandParams(Band *b) {
+  UART_printf("RADIO_SetupBandParams %s", b->name);
+  UART_flush();
   BK4819_SelectFilter(b->bounds.start);
   BK4819_SquelchType(b->squelchType);
   BK4819_Squelch(b->squelch, b->bounds.start);
@@ -434,7 +443,7 @@ void RADIO_NextVFO(bool next) {
   gSettings.activeVFO = !gSettings.activeVFO;
   gCurrentVFO = &gVFO[gSettings.activeVFO];
   gCurrentLoot = &gLoot[gSettings.activeVFO];
-  gCurrentPreset = gVFOPresets[gSettings.activeVFO];
+  gVFOPresets[gSettings.activeVFO] = NULL; // to force init
   RADIO_SetupByCurrentVFO();
   SETTINGS_Save();
 }
@@ -488,4 +497,12 @@ void RADIO_NextFreq(bool next) {
                  StepFrequencyTable[nextPreset->band.step] * dir);
   }
   onVfoUpdate();
+}
+
+void RADIO_NextPresetFreq(bool next) {
+  uint16_t steps = PRESETS_GetSteps(gCurrentPreset);
+  uint16_t step = PRESETS_GetChannel(gCurrentPreset, gCurrentVFO->fRX);
+  IncDec16(&step, 0, steps, next ? 1 : -1);
+  gCurrentVFO->fRX = PRESETS_GetF(gCurrentPreset, step);
+  RADIO_TuneToPure(gCurrentVFO->fRX);
 }

@@ -98,7 +98,8 @@ uint16_t PRESETS_GetStepSize(Preset *p) {
 }
 
 uint16_t PRESETS_GetSteps(Preset *p) {
-  return (p->band.bounds.end - p->band.bounds.start) / PRESETS_GetStepSize(p);
+  return (p->band.bounds.end - p->band.bounds.start) / PRESETS_GetStepSize(p) +
+         1;
 }
 
 uint32_t PRESETS_GetF(Preset *p, uint16_t channel) {

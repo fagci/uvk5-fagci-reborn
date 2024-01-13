@@ -61,6 +61,7 @@ void RADIO_SetupByCurrentVFO();
 void RADIO_NextVFO(bool next);
 void RADIO_NextCH(bool next);
 void RADIO_NextFreq(bool next);
+void RADIO_NextPresetFreq(bool next);
 void RADIO_ToggleVfoMR();
 
 void RADIO_SetSquelchPure(uint32_t f, uint8_t sql);

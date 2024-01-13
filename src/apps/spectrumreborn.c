@@ -27,13 +27,14 @@ static bool noListen = false;
 static bool bandFilled = false;
 
 static uint32_t lastRender = 0;
+static uint32_t lastUpdate = 0;
 
 static void startNewScan(bool reset) {
-  RADIO_TuneTo(gCurrentPreset->band.bounds.start);
-
   if (reset) {
-    SP_Init(PRESETS_GetSteps(gCurrentPreset), spectrumWidth);
     LOOT_Standby();
+    RADIO_TuneTo(gCurrentPreset->band.bounds.start);
+    lastUpdate = elapsedMilliseconds;
+    SP_Init(PRESETS_GetSteps(gCurrentPreset), spectrumWidth);
     bandFilled = false;
   } else {
     SP_Begin();
@@ -42,8 +43,52 @@ static void startNewScan(bool reset) {
 }
 
 void SPECTRUM_init(void) {
+  RADIO_LoadCurrentVFO();
   startNewScan(true);
   gRedrawScreen = true;
+}
+
+void SPECTRUM_update(void) {
+  if (elapsedMilliseconds - lastUpdate < 10) {
+    return;
+  }
+
+  RADIO_UpdateMeasurements();
+
+  Loot *msm = &gLoot[gSettings.activeVFO];
+
+  Loot *loot = LOOT_Get(gCurrentVFO->fRX);
+  if (!loot && gIsListening) {
+    loot = LOOT_Add(gCurrentVFO->fRX);
+  }
+  if (loot) {
+    LOOT_UpdateEx(loot, msm);
+  }
+
+  SP_AddPoint(msm);
+
+  if (newScan) {
+    newScan = false;
+    startNewScan(false);
+  }
+
+  if (elapsedMilliseconds - lastRender >= 500) {
+    lastRender = elapsedMilliseconds;
+    gRedrawScreen = true;
+  }
+
+  if (gIsListening) {
+    return;
+  }
+
+  RADIO_NextPresetFreq(true);
+  lastUpdate = elapsedMilliseconds;
+
+  if (gCurrentVFO->fRX == gCurrentPreset->band.bounds.start) {
+    startNewScan(false);
+    return;
+  }
+  SP_Next();
 }
 
 void SPECTRUM_deinit() { RADIO_ToggleRX(false); }
@@ -116,40 +161,6 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     }
   }
   return false;
-}
-
-static uint32_t lastUpdate = 0;
-void SPECTRUM_update(void) {
-  if (elapsedMilliseconds - lastUpdate < 10) {
-    return;
-  }
-  lastUpdate = elapsedMilliseconds;
-
-  RADIO_UpdateMeasurements();
-  SP_AddPoint(&gLoot[gSettings.activeVFO]);
-
-  if (newScan) {
-    newScan = false;
-    startNewScan(false);
-  }
-
-  if (elapsedMilliseconds - lastRender >= 500) {
-    lastRender = elapsedMilliseconds;
-    gRedrawScreen = true;
-  }
-
-  if (gIsListening) {
-    return;
-  }
-
-  if (gCurrentVFO->fRX >= gCurrentPreset->band.bounds.end) {
-    gRedrawScreen = true;
-    newScan = true;
-    return;
-  }
-
-  RADIO_TuneTo(gCurrentVFO->fRX + PRESETS_GetStepSize(gCurrentPreset));
-  SP_Next();
 }
 
 void SPECTRUM_render(void) {

@@ -53,7 +53,7 @@ static void onKey(KEY_Code_t key, bool pressed, bool hold) {
   // - keyup (!pressed)
   // - keyhold pressed (hold && pressed)
   // - keyup hold (hold && !pressed)
-  if ((hold || !pressed || key == KEY_PTT) && APPS_key(key, pressed, hold)) {
+  if ((hold || !pressed) && APPS_key(key, pressed, hold)) {
     if (gSettings.beep)
       AUDIO_PlayTone(1000, 20);
     gRedrawScreen = true;
@@ -132,7 +132,7 @@ static void Intro() {
       AUDIO_PlayTone(1400, 50);
 
     RADIO_LoadCurrentVFO();
-    RADIO_SetupByCurrentVFO();
+    // RADIO_SetupByCurrentVFO();
 
     TaskRemove(Intro);
     if (gSettings.beep)
