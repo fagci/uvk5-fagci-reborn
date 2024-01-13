@@ -3,7 +3,6 @@
 #include "../helper/channels.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
-#include "../helper/presetlist.h"
 #include "../radio.h"
 #include "../scheduler.h"
 #include "../ui/graphics.h"
@@ -15,24 +14,6 @@ static uint16_t scanIndex = 0;
 static const uint8_t LIST_Y = MENU_Y + 10;
 
 int16_t lastActiveLootIndex = -1;
-
-static void setup() { RADIO_TuneToPure(LOOT_Item(scanIndex)->f); }
-
-static void step() {
-  RADIO_UpdateMeasurements();
-
-  if (gMeasurements.open) {
-    lastActiveLootIndex = scanIndex;
-  }
-
-  LOOT_UpdateEx(LOOT_Item(scanIndex), &gMeasurements);
-  RADIO_ToggleRX(gMeasurements.open);
-
-  if (!gMeasurements.open) {
-    IncDec16(&scanIndex, 0, gScanlistSize, 1);
-    setup();
-  }
-}
 
 static void showItem(uint16_t i, uint16_t index, bool isCurrent) {
   CH ch;
@@ -64,7 +45,9 @@ void CHSCANNER_init(void) {
     loot->open = false;
     loot->lastTimeOpen = 0;
   }
-  setup();
+  if (gScanlistSize) {
+    RADIO_TuneToPure(LOOT_Item(scanIndex)->f);
+  }
 }
 
 void CHSCANNER_deinit(void) { RADIO_ToggleRX(false); }
@@ -95,10 +78,31 @@ bool CHSCANNER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void CHSCANNER_update(void) { step(); }
+void CHSCANNER_update(void) {
+  RADIO_UpdateMeasurements();
+
+  if (gMeasurements.open) {
+    lastActiveLootIndex = scanIndex;
+  }
+
+  LOOT_UpdateEx(LOOT_Item(scanIndex), &gMeasurements);
+  RADIO_ToggleRX(gMeasurements.open);
+
+  if (!gMeasurements.open) {
+    IncDec16(&scanIndex, 0, gScanlistSize, 1);
+    RADIO_TuneToPure(LOOT_Item(scanIndex)->f);
+  }
+}
 
 void CHSCANNER_render(void) {
   UI_ClearScreen();
+
+  if (gScanlistSize == 0) {
+    PrintMediumBoldEx(LCD_XCENTER, LCD_YCENTER, POS_C, C_FILL,
+                      "Scanlist empty.");
+    return;
+  }
+
   if (lastActiveLootIndex >= 0) {
     CH ch;
     CHANNELS_Load(gScanlist[lastActiveLootIndex], &ch);

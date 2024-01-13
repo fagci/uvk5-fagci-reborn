@@ -19,7 +19,6 @@ static uint32_t lastUpdate = 0;
 
 void VFO2_init() {
   RADIO_SetupByCurrentVFO(); // TODO: reread from EEPROM not needed maybe
-  // RADIO_TuneToPure(gCurrentVFO->fRX);
 
   gRedrawScreen = true;
 }
@@ -140,9 +139,10 @@ static void render2VFOPart(uint8_t i) {
   const uint8_t BASE = 22;
   const uint8_t bl = BASE + 34 * i;
 
-  VFO *vfo = &gVFO[i];
-  Preset *p = PRESET_ByFrequency(vfo->fRX);
+  const VFO *vfo = &gVFO[i];
+  const Preset *p = PRESET_ByFrequency(vfo->fRX);
   const bool isActive = gSettings.activeVFO == i;
+  const Loot *loot = &gLoot[i];
 
   const uint16_t fp1 = vfo->fRX / 100000;
   const uint16_t fp2 = vfo->fRX / 100 % 1000;
@@ -176,24 +176,23 @@ static void render2VFOPart(uint8_t i) {
     PrintSmallEx(LCD_WIDTH - 1, bl - 9, POS_R, C_FILL, mod);
   }
 
-  Loot *stats = &gLoot[i];
-  uint32_t est = stats->lastTimeOpen
-                     ? (elapsedMilliseconds - stats->lastTimeOpen) / 1000
+  uint32_t est = loot->lastTimeOpen
+                     ? (elapsedMilliseconds - loot->lastTimeOpen) / 1000
                      : 0;
-  if (stats->ct != 0xFF) {
+  if (loot->ct != 0xFF) {
     PrintSmallEx(0, bl + 6, POS_L, C_FILL, "CT:%u.%uHz",
-                 CTCSS_Options[stats->ct] / 10, CTCSS_Options[stats->ct] % 10);
-  } else if (stats->cd != 0xFF) {
+                 CTCSS_Options[loot->ct] / 10, CTCSS_Options[loot->ct] % 10);
+  } else if (loot->cd != 0xFF) {
     PrintSmallEx(0, bl + 6, POS_L, C_FILL, "D%03oN(fake)",
-                 DCS_Options[stats->cd]);
+                 DCS_Options[loot->cd]);
   }
+  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%s", p->band.name);
   PrintSmallEx(LCD_WIDTH - 1, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,
-               est % 60, stats->duration / 1000);
+               est % 60, loot->duration / 1000);
 }
 
 void VFO2_render() {
   UI_ClearScreen();
-  for (uint8_t i = 0; i < 2; ++i) {
-    render2VFOPart(i);
-  }
+  render2VFOPart(0);
+  render2VFOPart(1);
 }

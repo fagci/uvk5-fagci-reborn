@@ -31,11 +31,15 @@ static AppType_t appsStack[APPS_STACK_SIZE] = {0};
 static int8_t stackIndex = -1;
 
 static bool pushApp(AppType_t app) {
-  if (stackIndex < APPS_STACK_SIZE) {
+  if (stackIndex < APPS_STACK_SIZE - 1) {
     appsStack[++stackIndex] = app;
-    return true;
+  } else {
+    for (uint8_t i = 1; i < APPS_STACK_SIZE; ++i) {
+      appsStack[i - 1] = appsStack[i];
+    }
+    appsStack[stackIndex] = app;
   }
-  return false;
+  return true;
 }
 
 static AppType_t popApp() {

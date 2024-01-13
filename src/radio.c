@@ -143,20 +143,14 @@ void toggleBK4819(bool on) {
 void toggleBK1080(bool on) {
   if (on) {
     BK1080_Init(gMeasurements.f, true);
-    BK1080_Mute(false);
+    // BK1080_Mute(false);
     SYSTEM_DelayMs(10);
     AUDIO_ToggleSpeaker(true);
-    if (gSettings.backlightOnSquelch != BL_SQL_OFF) {
-      BACKLIGHT_On();
-    }
   } else {
     AUDIO_ToggleSpeaker(false);
     SYSTEM_DelayMs(10);
-    BK1080_Mute(true);
+    // BK1080_Mute(true);
     BK1080_Init(0, false);
-    if (gSettings.backlightOnSquelch == BL_SQL_OPEN) {
-      BACKLIGHT_Toggle(false);
-    }
   }
 }
 
@@ -224,6 +218,7 @@ void RADIO_ToggleBK1080(bool on) {
     return;
   }
   bool lastListenState = gIsListening;
+  RADIO_ToggleRX(false);
   isBK1080 = on;
 
   if (isBK1080) {
@@ -234,8 +229,6 @@ void RADIO_ToggleBK1080(bool on) {
   }
   gIsListening = false;
   RADIO_ToggleRX(lastListenState);
-
-  RADIO_SetupByCurrentVFO();
 }
 
 void RADIO_SetModulationByPreset() {
@@ -374,10 +367,8 @@ void RADIO_SetGain(uint8_t gainIndex) {
 
 void RADIO_SetupBandParams(Band *b) {
   BK4819_SelectFilter(b->bounds.start);
-  RADIO_SetSquelchType(b->squelchType);
-  RADIO_SetSquelchPure(b->squelch, b->bounds.start);
-  // BK4819_SquelchType(b->squelchType);
-  // BK4819_Squelch(b->squelch, b->bounds.start);
+  BK4819_SquelchType(b->squelchType);
+  BK4819_Squelch(b->squelch, b->bounds.start);
   BK4819_SetFilterBandwidth(b->bw);
   BK4819_SetModulation(b->modulation);
   BK4819_SetGain(b->gainIndex);
@@ -385,7 +376,7 @@ void RADIO_SetupBandParams(Band *b) {
 }
 
 uint16_t RADIO_GetRSSI() {
-  return isBK1080 ? 125 /*BK1080_GetRSSI()*/ : BK4819_GetRSSI();
+  return isBK1080 ? BK1080_GetRSSI() : BK4819_GetRSSI();
 }
 
 void RADIO_UpdateMeasurements() {

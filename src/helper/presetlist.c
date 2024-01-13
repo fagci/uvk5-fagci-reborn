@@ -32,26 +32,24 @@ Preset *PRESETS_Item(uint8_t i) { return &presets[i]; }
 
 void PRESETS_SelectPresetRelative(bool next) {
   uint8_t activePreset = gSettings.activePreset;
-  IncDec8(&activePreset, 0, gSettings.presetsCount, next ? 1 : -1);
+  IncDec8(&activePreset, 0, PRESETS_Size(), next ? 1 : -1);
   gSettings.activePreset = activePreset;
   gCurrentPreset = &presets[gSettings.activePreset];
   gCurrentVFO->fRX = gCurrentPreset->band.bounds.start;
   SETTINGS_DelayedSave();
 }
 
-int8_t PRESET_GetCurrentIndex() { return gSettings.activePreset; }
+uint8_t PRESET_GetCurrentIndex() { return gSettings.activePreset; }
 
-int8_t PRESET_Select(int8_t i) {
+uint8_t PRESET_Select(uint8_t i) {
   gCurrentPreset = &presets[i];
   gSettings.activePreset = i;
   return i;
 }
 
 int8_t PRESET_SelectByFrequency(uint32_t f) {
-  UART_logf(1, "Choosing from %u presets", gSettings.presetsCount);
-  for (uint8_t i = 0; i < gSettings.presetsCount; ++i) {
+  for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
     FRange *range = &presets[i].band.bounds;
-    UART_logf(1, "%u <= %u <= %u", range->start, f, range->end);
     if (f >= range->start && f <= range->end) {
       return PRESET_Select(i);
     }
@@ -61,7 +59,7 @@ int8_t PRESET_SelectByFrequency(uint32_t f) {
 }
 
 Preset *PRESET_ByFrequency(uint32_t f) {
-  for (uint8_t i = 0; i < gSettings.presetsCount; ++i) {
+  for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
     FRange *range = &presets[i].band.bounds;
     if (f >= range->start && f <= range->end) {
       return &presets[i];
@@ -71,7 +69,7 @@ Preset *PRESET_ByFrequency(uint32_t f) {
 }
 
 bool PRESETS_Load() {
-  if (loadedCount < gSettings.presetsCount) {
+  if (loadedCount < PRESETS_Size()) {
     PRESETS_LoadPreset(loadedCount, &presets[loadedCount]);
     loadedCount++;
     return false;

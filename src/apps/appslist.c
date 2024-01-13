@@ -20,7 +20,6 @@ static void getMenuItemText(uint16_t index, char *name) {
 
 void APPSLIST_render() {
   UI_ClearScreen();
-  STATUSLINE_SetText("%u", MENU_SIZE);
   UI_ShowMenu(getMenuItemText, MENU_SIZE, menuIndex);
 }
 
