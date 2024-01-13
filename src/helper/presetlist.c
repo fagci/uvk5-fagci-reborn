@@ -10,7 +10,17 @@ static Preset presets[PRESETS_SIZE_MAX] = {0};
 static uint8_t loadedCount = 0;
 
 // to use instead of predefined when we need to keep step, etc
-Preset defaultPreset = {.band = (Band){.name = "default"}};
+Preset defaultPreset = {
+    .band =
+        (Band){
+            .name = "default",
+            .step = STEP_25_0kHz,
+            .bw = BK4819_FILTER_BW_WIDE,
+            .gainIndex = 90,
+            .squelch = 3,
+            .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+        },
+};
 
 void PRESETS_SavePreset(uint8_t num, Preset *p) {
   EEPROM_WriteBuffer(PRESETS_OFFSET + num * PRESET_SIZE, p, PRESET_SIZE);
@@ -47,10 +57,16 @@ uint8_t PRESET_Select(uint8_t i) {
   return i;
 }
 
+static bool inRange(const uint32_t f, const Preset *p) {
+  return f >= p->band.bounds.start && f <= p->band.bounds.end;
+}
+
 int8_t PRESET_SelectByFrequency(uint32_t f) {
+  if (inRange(f, gCurrentPreset)) {
+    return gSettings.activePreset;
+  }
   for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
-    FRange *range = &presets[i].band.bounds;
-    if (f >= range->start && f <= range->end) {
+    if (inRange(f, &presets[i])) {
       return PRESET_Select(i);
     }
   }

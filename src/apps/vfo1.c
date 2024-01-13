@@ -26,10 +26,7 @@ void VFO1_deinit() {
 }
 
 void VFO1_update() {
-  RADIO_UpdateMeasurements();
-
-  RADIO_ToggleRX(gMeasurements.open);
-  LOOT_UpdateEx(gCurrentLoot, &gMeasurements);
+  RADIO_UpdateMeasurementsEx(gCurrentLoot);
 
   if (elapsedMilliseconds - lastUpdate >= 500) {
     gRedrawScreen = true;
@@ -104,7 +101,6 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_SIDE1:
       gMonitorMode = !gMonitorMode;
-      gMeasurements.open = gMonitorMode;
       return true;
     case KEY_EXIT:
       if (!APPS_exit()) {
@@ -125,7 +121,7 @@ void VFO1_render() {
   const uint8_t BASE = 38;
 
   VFO *vfo = &gVFO[gSettings.activeVFO];
-  Preset *p = PRESET_ByFrequency(vfo->fRX);
+  Preset *p = gVFOPresets[gSettings.activeVFO];
 
   uint16_t fp1 = vfo->fRX / 100000;
   uint16_t fp2 = vfo->fRX / 100 % 1000;

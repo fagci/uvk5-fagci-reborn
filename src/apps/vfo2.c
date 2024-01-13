@@ -30,15 +30,9 @@ void VFO2_deinit() {
 }
 
 void VFO2_update() {
-  if (elapsedMilliseconds - lastUpdate >= 10) {
+  if (elapsedMilliseconds - lastUpdate >= (isBK1080 ? 1000 : 10)) {
     RADIO_UpdateMeasurements();
     lastUpdate = elapsedMilliseconds;
-    if (gMeasurements.open != gIsListening) {
-      gRedrawScreen = true;
-    }
-
-    RADIO_ToggleRX(gMeasurements.open);
-    // LOOT_UpdateEx(gCurrentLoot, &gMeasurements);
 
     if (elapsedMilliseconds - lastRender >= 500) {
       gRedrawScreen = true;
@@ -119,7 +113,6 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_SIDE1:
       gMonitorMode = !gMonitorMode;
-      gMeasurements.open = gMonitorMode;
       return true;
     case KEY_EXIT:
       if (!APPS_exit()) {
@@ -139,8 +132,8 @@ static void render2VFOPart(uint8_t i) {
   const uint8_t BASE = 22;
   const uint8_t bl = BASE + 34 * i;
 
+  Preset *p = gVFOPresets[i];
   const VFO *vfo = &gVFO[i];
-  const Preset *p = PRESET_ByFrequency(vfo->fRX);
   const bool isActive = gSettings.activeVFO == i;
   const Loot *loot = &gLoot[i];
 
@@ -154,9 +147,9 @@ static void render2VFOPart(uint8_t i) {
     if (gTxState == TX_ON) {
       PrintMediumEx(0, bl, POS_L, C_INVERT, "TX");
     }
-    if (gMeasurements.open) {
+    if (gIsListening) {
       PrintMediumEx(0, bl, POS_L, C_INVERT, "RX");
-      UI_RSSIBar(gMeasurements.rssi, gMeasurements.f, 31);
+      UI_RSSIBar(gLoot[i].rssi, vfo->fRX, 31);
     }
   }
 
@@ -186,13 +179,18 @@ static void render2VFOPart(uint8_t i) {
     PrintSmallEx(0, bl + 6, POS_L, C_FILL, "D%03oN(fake)",
                  DCS_Options[loot->cd]);
   }
-  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%s", p->band.name);
+  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%s (#%u)", p->band.name,
+               PRESETS_GetChannel(p, vfo->fRX) + 1);
   PrintSmallEx(LCD_WIDTH - 1, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,
                est % 60, loot->duration / 1000);
 }
 
+#include "../ui/statusline.h"
+
 void VFO2_render() {
   UI_ClearScreen();
+  STATUSLINE_SetText("%u", gCurrentVFO->fRX);
+
   render2VFOPart(0);
   render2VFOPart(1);
 }

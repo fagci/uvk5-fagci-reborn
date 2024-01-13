@@ -103,7 +103,7 @@ static void accept() {
   case M_UPCONVERTER: {
     uint32_t f = GetScreenF(gCurrentVFO->fRX);
     gSettings.upconverter = subMenuIndex;
-    RADIO_TuneTo(GetTuneF(f));
+    RADIO_TuneToSave(GetTuneF(f));
     SETTINGS_Save();
   }; break;
   case M_MAIN_APP:

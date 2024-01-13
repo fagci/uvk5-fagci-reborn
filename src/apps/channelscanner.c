@@ -79,16 +79,13 @@ bool CHSCANNER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void CHSCANNER_update(void) {
-  RADIO_UpdateMeasurements();
+  RADIO_UpdateMeasurementsEx(LOOT_Item(scanIndex));
 
-  if (gMeasurements.open) {
+  if (gIsListening) {
     lastActiveLootIndex = scanIndex;
   }
 
-  LOOT_UpdateEx(LOOT_Item(scanIndex), &gMeasurements);
-  RADIO_ToggleRX(gMeasurements.open);
-
-  if (!gMeasurements.open) {
+  if (!gIsListening) {
     IncDec16(&scanIndex, 0, gScanlistSize, 1);
     RADIO_TuneToPure(LOOT_Item(scanIndex)->f);
   }

@@ -17,6 +17,7 @@ typedef enum {
 
 extern VFO *gCurrentVFO;
 extern VFO gVFO[2];
+extern Preset *gVFOPresets[2];
 
 extern Loot *gCurrentLoot;
 extern Loot gLoot[2];
@@ -26,7 +27,6 @@ extern char gVFONames[2][10];
 extern bool gIsListening;
 extern bool gMonitorMode;
 extern bool isBK1080;
-extern Loot gMeasurements;
 extern TXState gTxState;
 
 extern const uint16_t StepFrequencyTable[14];
@@ -77,5 +77,6 @@ uint32_t GetTuneF(uint32_t f);
 bool RADIO_IsBK1080Range(uint32_t f);
 
 void RADIO_UpdateMeasurements();
+bool RADIO_UpdateMeasurementsEx(Loot *dest);
 
 #endif /* end of include guard: RADIO_H */

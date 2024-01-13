@@ -29,7 +29,7 @@ static bool bandFilled = false;
 static uint32_t lastRender = 0;
 
 static void startNewScan(bool reset) {
-  RADIO_TuneToPure(gCurrentPreset->band.bounds.start);
+  RADIO_TuneTo(gCurrentPreset->band.bounds.start);
 
   if (reset) {
     SP_Init(PRESETS_GetSteps(gCurrentPreset), spectrumWidth);
@@ -118,16 +118,15 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
+static uint32_t lastUpdate = 0;
 void SPECTRUM_update(void) {
-  RADIO_UpdateMeasurements();
-  if (gMeasurements.rssi == 0) {
+  if (elapsedMilliseconds - lastUpdate < 10) {
     return;
   }
+  lastUpdate = elapsedMilliseconds;
 
-  LOOT_Update(&gMeasurements);
-  RADIO_ToggleRX(gMeasurements.open);
-
-  SP_AddPoint(&gMeasurements);
+  RADIO_UpdateMeasurements();
+  SP_AddPoint(&gLoot[gSettings.activeVFO]);
 
   if (newScan) {
     newScan = false;
@@ -143,14 +142,13 @@ void SPECTRUM_update(void) {
     return;
   }
 
-  if (gMeasurements.f >= gCurrentPreset->band.bounds.end) {
+  if (gCurrentVFO->fRX >= gCurrentPreset->band.bounds.end) {
     gRedrawScreen = true;
     newScan = true;
     return;
   }
 
-  gMeasurements.f += PRESETS_GetStepSize(gCurrentPreset);
-  RADIO_TuneToPure(gMeasurements.f);
+  RADIO_TuneTo(gCurrentVFO->fRX + PRESETS_GetStepSize(gCurrentPreset));
   SP_Next();
 }
 

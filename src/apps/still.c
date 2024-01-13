@@ -59,10 +59,7 @@ void STILL_init() { RADIO_SetupByCurrentVFO(); }
 void STILL_deinit() { RADIO_ToggleRX(false); }
 
 void STILL_update() {
-  RADIO_UpdateMeasurements();
-
-  RADIO_ToggleRX(gMeasurements.open);
-  LOOT_UpdateEx(gCurrentLoot, &gMeasurements);
+  RADIO_UpdateMeasurementsEx(gCurrentLoot);
 
   if (elapsedMilliseconds - lastUpdate >= 500) {
     gRedrawScreen = true;
@@ -203,7 +200,7 @@ void STILL_render() {
   UI_ClearScreen();
   STATUSLINE_SetText(gCurrentPreset->band.name);
   UI_FSmall(GetScreenF(gCurrentVFO->fRX));
-  UI_RSSIBar(gMeasurements.rssi, gCurrentVFO->fRX, 23);
+  UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, gCurrentVFO->fRX, 23);
 
   if (!isBK1080) {
     DrawRegs();
