@@ -512,14 +512,14 @@ void RESET_Update() {
 }
 
 void RESET_Render() {
-  uint8_t progressX = ConvertDomain(bytesWrote, 0, 0x2000, 1, LCD_WIDTH - 2);
+  uint8_t progressX = ConvertDomain(bytesWrote, 0, EEPROM_SIZE, 1, LCD_WIDTH - 2);
   uint8_t POS_Y = LCD_HEIGHT / 2;
 
   UI_ClearScreen();
   DrawRect(0, POS_Y, LCD_WIDTH, 10, C_FILL);
   FillRect(1, POS_Y, progressX, 10, C_FILL);
   PrintMediumEx(LCD_XCENTER, POS_Y + 8, POS_C, C_INVERT, "%u%",
-                bytesWrote * 100 / 0x2000);
+                bytesWrote * 100 / EEPROM_SIZE);
 }
 
 bool RESET_key(KEY_Code_t k, bool p, bool h) { return true; }

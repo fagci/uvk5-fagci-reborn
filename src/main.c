@@ -21,9 +21,8 @@
 
 void _putchar(char c) {}
 
-void selfTest() {
+void selfTest(void) {
   PrintSmall(0, 0, "PRS O:%u SZ:%u", PRESETS_OFFSET, PRESET_SIZE);
-  PrintSmall(0, 6, "CHN O:%u SZ:%u", CHANNELS_OFFSET, CH_SIZE);
   PrintSmall(0, 18, "SET O:%u SZ:%u", SETTINGS_OFFSET, SETTINGS_SIZE);
   ST7565_Blit();
 
@@ -76,22 +75,22 @@ static void onKey(KEY_Code_t key, bool pressed, bool hold) {
   }
 }
 
-static void Render() {
+static void Render(void) {
   STATUSLINE_render();
   APPS_render();
   ST7565_Render();
 }
 
-static void Update() {
+static void Update(void) {
   APPS_update();
   if (gRedrawScreen && !TaskExists(Render)) {
     TaskAdd("Render", Render, 25, false);
   }
 }
 
-static void Keys() { KEYBOARD_CheckKeys(onKey); }
+static void Keys(void) { KEYBOARD_CheckKeys(onKey); }
 
-static void sysUpdate() {
+static void sysUpdate(void) {
   STATUSLINE_update();
   BACKLIGHT_Update();
 }
@@ -99,12 +98,12 @@ static void sysUpdate() {
 // TODO:
 // - menu hold in still mode
 
-// static void TX() {
+// static void TX(void) {
 // DEV = 300 for SSB
 // SAVE 74, dev
 // }
 
-static void AddTasks() {
+static void AddTasks(void) {
   TaskAdd("Keys", Keys, 10, true);
   TaskAdd("Update", Update, 1, true);
   TaskAdd("1s sys upd", sysUpdate, 1000, true);
@@ -113,7 +112,7 @@ static void AddTasks() {
 }
 
 static uint8_t introIndex = 0;
-static void Intro() {
+static void Intro(void) {
   char pb[] = "-\\|/";
   UI_ClearScreen();
   PrintMedium(4, 0 + 12, "OSFW");

@@ -158,7 +158,6 @@ typedef struct { // 29 bytes
 
 #define VFOS_OFFSET (SETTINGS_OFFSET + SETTINGS_SIZE)
 #define PRESETS_OFFSET (VFOS_OFFSET + VFO_SIZE * 2)
-#define CHANNELS_OFFSET 0x2000
 
 // settings
 // VFOs

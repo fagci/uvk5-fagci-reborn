@@ -107,19 +107,19 @@ bool APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 void APPS_init(AppType_t app) {
-  char appnameShort[3];
+  // char appnameShort[3];
   gCurrentApp = app;
 
-  {
+  /* {
     char String[16] = {'\0'};
     for (uint8_t i = 0; i <= stackIndex; i++) {
       strncpy(appnameShort, apps[appsStack[i]].name, 2);
       sprintf(String, "%s>%s", String, appnameShort);
     }
     STATUSLINE_SetText(String);
-  }
+  } */
 
-  // STATUSLINE_SetText(apps[gCurrentApp].name);
+  STATUSLINE_SetText(apps[gCurrentApp].name);
   gRedrawScreen = true;
 
   if (apps[gCurrentApp].init) {

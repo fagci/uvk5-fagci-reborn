@@ -44,7 +44,7 @@ void UI_ShowMenu(void (*getItemText)(uint16_t index, char *name), uint16_t size,
   const uint16_t offset = Clamp(currentIndex - 2, 0, size - maxItems);
 
   for (uint16_t i = 0; i < maxItems; ++i) {
-    char name[32] = {'\0'};
+    char name[16] = {'\0'};
     uint16_t itemIndex = i + offset;
     getItemText(itemIndex, name);
     UI_ShowMenuItem(i, name, currentIndex == itemIndex);

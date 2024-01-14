@@ -2,11 +2,9 @@
 #include "../driver/st7565.h"
 #include "../helper/measurements.h"
 #include "../misc.h"
-#include "../radio.h"
-#include "../ui/components.h"
+#include "../scheduler.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
-#include "../ui/statusline.h"
 #include "apps.h"
 #include <string.h>
 
@@ -15,16 +13,16 @@ static const uint8_t MENU_SIZE = ARRAY_SIZE(appsAvailableToRun);
 static uint8_t menuIndex = 0;
 
 static void getMenuItemText(uint16_t index, char *name) {
-  strncpy(name, apps[appsAvailableToRun[index]].name, 31);
+  strncpy(name, apps[appsAvailableToRun[index]].name, 15);
 }
 
-void APPSLIST_render() {
+void APPSLIST_render(void) {
   UI_ClearScreen();
   UI_ShowMenu(getMenuItemText, MENU_SIZE, menuIndex);
 }
 
-void APPSLIST_init() { gRedrawScreen = true; }
-void APPSLIST_update() {}
+void APPSLIST_init(void) { gRedrawScreen = true; }
+void APPSLIST_update(void) {}
 bool APPSLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   switch (key) {
   case KEY_UP:

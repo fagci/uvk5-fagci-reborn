@@ -9,7 +9,7 @@
 static uint32_t lastUpdate = 0;
 
 void VFO1_init(void) {
-  RADIO_SetupByCurrentVFO(); // TODO: reread from EEPROM not needed maybe
+  RADIO_SetupByCurrentVFO();
   gRedrawScreen = true;
 }
 

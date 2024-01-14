@@ -10,19 +10,19 @@ const char *BL_TIME_NAMES[7] = {"Off",  "5s",   "10s", "20s",
 
 const char *BL_SQL_MODE_NAMES[3] = {"Off", "On", "Open"};
 
-void SETTINGS_Save() {
+void SETTINGS_Save(void) {
   EEPROM_WriteBuffer(SETTINGS_OFFSET, &gSettings, SETTINGS_SIZE);
 }
 
-void SETTINGS_Load() {
+void SETTINGS_Load(void) {
   EEPROM_ReadBuffer(SETTINGS_OFFSET, &gSettings, SETTINGS_SIZE);
 }
 
-void SETTINGS_DelayedSave() {
+void SETTINGS_DelayedSave(void) {
   TaskRemove(SETTINGS_Save);
   TaskAdd("Settings save", SETTINGS_Save, 5000, false);
 }
 
-uint32_t SETTINGS_GetFilterBound() {
+uint32_t SETTINGS_GetFilterBound(void) {
   return gSettings.bound_240_280 ? VHF_UHF_BOUND2 : VHF_UHF_BOUND1;
 }

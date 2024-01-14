@@ -10,32 +10,32 @@
 uint16_t gScanlistSize = 0;
 uint16_t gScanlist[350] = {0};
 
-static uint16_t presetsSizeBytes() {
+static uint16_t presetsSizeBytes(void) {
   return gSettings.presetsCount * PRESET_SIZE;
 }
 
-uint16_t CHANNELS_GetCountMax() {
+uint16_t CHANNELS_GetCountMax(void) {
   return (EEPROM_SIZE - PRESETS_OFFSET - presetsSizeBytes()) / CH_SIZE;
 }
 
 void CHANNELS_Load(uint16_t num, CH *p) {
-  EEPROM_ReadBuffer(CHANNELS_OFFSET - (num + 1) * CH_SIZE, p, CH_SIZE);
+  EEPROM_ReadBuffer(EEPROM_SIZE - (num + 1) * CH_SIZE, p, CH_SIZE);
 }
 
 void CHANNELS_Save(uint16_t num, CH *p) {
-  EEPROM_WriteBuffer(CHANNELS_OFFSET - (num + 1) * CH_SIZE, p, CH_SIZE);
+  EEPROM_WriteBuffer(EEPROM_SIZE - (num + 1) * CH_SIZE, p, CH_SIZE);
 }
 
 bool CHANNELS_Existing(uint16_t i) {
   char name[2] = {0};
-  uint16_t addr = CHANNELS_OFFSET - ((i + 1) * CH_SIZE) + 4 + 4;
+  uint16_t addr = EEPROM_SIZE - ((i + 1) * CH_SIZE) + 4 + 4;
   EEPROM_ReadBuffer(addr, name, 1);
   return IsReadable(name);
 }
 
 uint8_t CHANNELS_Scanlists(uint16_t i) {
   uint8_t scanlists;
-  uint16_t addr = CHANNELS_OFFSET - ((i + 1) * CH_SIZE) + 4 + 4 + 10;
+  uint16_t addr = EEPROM_SIZE - ((i + 1) * CH_SIZE) + 4 + 4 + 10;
   EEPROM_ReadBuffer(addr, &scanlists, 1);
   return scanlists;
 }

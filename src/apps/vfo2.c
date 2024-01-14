@@ -14,7 +14,7 @@ static uint32_t lastUpdate = 0;
 // TODO: check if any msm/loot is buggy
 
 void VFO2_init(void) {
-  RADIO_SetupByCurrentVFO(); // TODO: reread from EEPROM not needed maybe
+  RADIO_SetupByCurrentVFO();
 
   gRedrawScreen = true;
 }

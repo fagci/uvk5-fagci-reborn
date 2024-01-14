@@ -97,7 +97,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
   }
 }
 
-static void accept() {
+static void accept(void) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_UPCONVERTER: {
@@ -183,7 +183,7 @@ static const char *getValue(Menu type) {
   return "";
 }
 
-static void onSubChange() {
+static void onSubChange(void) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_BRIGHTNESS:
@@ -197,7 +197,7 @@ static void onSubChange() {
   }
 }
 
-static void setInitialSubmenuIndex() {
+static void setInitialSubmenuIndex(void) {
   const MenuItem *item = &menu[menuIndex];
   uint8_t i = 0;
   switch (item->type) {
@@ -242,8 +242,8 @@ static void setInitialSubmenuIndex() {
   }
 }
 
-void SETTINGS_init() { gRedrawScreen = true; }
-void SETTINGS_update() {}
+void SETTINGS_init(void) { gRedrawScreen = true; }
+void SETTINGS_update(void) {}
 bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   const MenuItem *item = &menu[menuIndex];
   const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
@@ -291,9 +291,8 @@ bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   }
   return false;
 }
-void SETTINGS_render() {
+void SETTINGS_render(void) {
   UI_ClearScreen();
-  UI_ClearStatus();
   const MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {
     UI_ShowMenu(getSubmenuItemText, item->size, subMenuIndex);
