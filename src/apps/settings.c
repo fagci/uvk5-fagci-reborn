@@ -31,10 +31,8 @@ static uint8_t menuIndex = 0;
 static uint8_t subMenuIndex = 0;
 static bool isSubMenu = false;
 
-char Output[16];
+static char Output[16];
 
-const char *onOff[] = {"Off", "On"};
-const char *yesNo[] = {"No", "Yes"};
 const char *fltBound[] = {"240MHz", "280MHz"};
 
 const uint16_t BAT_CAL_MIN = 1900;
@@ -299,6 +297,7 @@ void SETTINGS_render(void) {
     STATUSLINE_SetText(item->name);
   } else {
     UI_ShowMenuSimple(menu, ARRAY_SIZE(menu), menuIndex);
-    PrintMediumEx(LCD_XCENTER, 6 * 8 + 12, POS_C, C_FILL, getValue(item->type));
+    PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 4, POS_C, C_FILL,
+                  getValue(item->type));
   }
 }

@@ -20,6 +20,7 @@ typedef enum {
   M_SQ,
   M_SQ_TYPE,
   M_GAIN,
+  M_TX,
   // M_SAVE,
 } PresetCfgMenu;
 
@@ -37,10 +38,11 @@ static MenuItem menu[] = {
     {"SQ level", M_SQ, 10},
     {"SQ type", M_SQ_TYPE, ARRAY_SIZE(sqTypeNames)},
     {"Gain", M_GAIN, ARRAY_SIZE(gainTable)},
+    {"Enable TX", M_TX, 2},
     // {"Save", M_SAVE},
 };
 
-static void setInitialSubmenuIndex() {
+static void setInitialSubmenuIndex(void) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_BW:
@@ -61,13 +63,16 @@ static void setInitialSubmenuIndex() {
   case M_GAIN:
     subMenuIndex = gCurrentPreset->band.gainIndex;
     break;
+  case M_TX:
+    subMenuIndex = gCurrentPreset->allowTx;
+    break;
   default:
     subMenuIndex = 0;
     break;
   }
 }
 
-static void accept() {
+static void accept(void) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_BW:
@@ -92,6 +97,10 @@ static void accept() {
     break;
   case M_GAIN:
     gCurrentPreset->band.gainIndex = subMenuIndex;
+    PRESETS_SaveCurrent();
+    break;
+  case M_TX:
+    gCurrentPreset->allowTx = subMenuIndex;
     PRESETS_SaveCurrent();
     break;
   default:
@@ -129,6 +138,8 @@ static const char *getValue(PresetCfgMenu type) {
             StepFrequencyTable[gCurrentPreset->band.step] / 100,
             StepFrequencyTable[gCurrentPreset->band.step] % 100);
     return Output;
+  case M_TX:
+    return yesNo[gCurrentPreset->allowTx];
   default:
     break;
   }
@@ -164,8 +175,12 @@ static void getGainText(uint16_t i, char *name) {
   sprintf(name, "%ddB%s", gainTable[i].gainDb, i == 90 ? "(def)" : "");
 }
 
-static void showSubmenu(PresetCfgMenu menu) {
-  switch (menu) {
+static void getYesNoText(uint16_t index, char *name) {
+  strncpy(name, yesNo[index], 31);
+}
+
+static void showSubmenu(PresetCfgMenu m) {
+  switch (m) {
   case M_MODULATION:
     UI_ShowMenu(getModulationTypeText, ARRAY_SIZE(modulationTypeOptions),
                 subMenuIndex);
@@ -185,6 +200,9 @@ static void showSubmenu(PresetCfgMenu menu) {
   case M_GAIN:
     UI_ShowMenu(getGainText, ARRAY_SIZE(gainTable), subMenuIndex);
     return;
+  case M_TX:
+    UI_ShowMenu(getYesNoText, 2, subMenuIndex);
+    return;
   default:
     break;
   }
@@ -200,8 +218,8 @@ static void setLowerBound(uint32_t f) {
   PRESETS_SaveCurrent();
 }
 
-void PRESETCFG_init() { gRedrawScreen = true; }
-void PRESETCFG_update() {}
+void PRESETCFG_init(void) { gRedrawScreen = true; }
+void PRESETCFG_update(void) {}
 bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   const MenuItem *item = &menu[menuIndex];
   const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
@@ -265,15 +283,15 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void PRESETCFG_render() {
+void PRESETCFG_render(void) {
   UI_ClearScreen();
   const MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {
     showSubmenu(item->type);
-    PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 2, POS_C, C_FILL, item->name);
+    PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 4, POS_C, C_FILL, item->name);
   } else {
     UI_ShowMenu(getMenuItemText, ARRAY_SIZE(menu), menuIndex);
-    PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 2, POS_C, C_FILL,
+    PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 4, POS_C, C_FILL,
                   getValue(item->type));
   }
 }

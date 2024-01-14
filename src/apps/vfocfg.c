@@ -96,35 +96,35 @@ static void accept(void) {
   }
 }
 
-static char Output[16];
-static const char *getValue(VfoCfgMenu type) {
+static void getValue(VfoCfgMenu type, char *value) {
   switch (type) {
   case M_F_RX:
-    sprintf(Output, "%u.%05u", gCurrentVFO->fRX / 100000,
+    sprintf(value, "%u.%05u", gCurrentVFO->fRX / 100000,
             gCurrentVFO->fRX % 100000);
-    return Output;
+    break;
   case M_F_TX:
-    sprintf(Output, "%u.%05u", gCurrentVFO->fTX / 100000,
+    sprintf(value, "%u.%05u", gCurrentVFO->fTX / 100000,
             gCurrentVFO->fTX % 100000);
-    return Output;
+    break;
   case M_BW:
-    return bwNames[gCurrentPreset->band.bw];
+    snprintf(value, 15, bwNames[gCurrentPreset->band.bw]);
+    break;
   case M_MODULATION:
-    return modulationTypeOptions[gCurrentPreset->band.modulation];
+    snprintf(value, 15, modulationTypeOptions[gCurrentPreset->band.modulation]);
   case M_STEP:
-    sprintf(Output, "%d.%02dKHz",
+    sprintf(value, "%d.%02dKHz",
             StepFrequencyTable[gCurrentPreset->band.step] / 100,
             StepFrequencyTable[gCurrentPreset->band.step] % 100);
-    return Output;
+    break;
   case M_SQ_TYPE:
-    return sqTypeNames[gCurrentPreset->band.squelchType];
+    snprintf(value, 15, sqTypeNames[gCurrentPreset->band.squelchType]);
+    break;
   case M_SQ:
-    sprintf(Output, "%u", gCurrentPreset->band.squelch);
-    return Output;
+    sprintf(value, "%u", gCurrentPreset->band.squelch);
+    break;
   default:
     break;
   }
-  return "";
 }
 
 static void getMenuItemText(uint16_t index, char *name) {
@@ -249,7 +249,8 @@ void VFOCFG_render(void) {
     STATUSLINE_SetText(item->name);
   } else {
     UI_ShowMenu(getMenuItemText, ARRAY_SIZE(menu), menuIndex);
-    PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 2, POS_C, C_FILL,
-                  getValue(item->type));
+    char Output[32] = "";
+    getValue(item->type, Output);
+    PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 4, POS_C, C_FILL, Output);
   }
 }

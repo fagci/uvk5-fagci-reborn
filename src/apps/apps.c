@@ -111,7 +111,7 @@ void APPS_init(AppType_t app) {
   gCurrentApp = app;
 
   /* {
-    char String[16] = {'\0'};
+    char String[32] = "";
     for (uint8_t i = 0; i <= stackIndex; i++) {
       strncpy(appnameShort, apps[appsStack[i]].name, 2);
       sprintf(String, "%s>%s", String, appnameShort);
@@ -119,7 +119,7 @@ void APPS_init(AppType_t app) {
     STATUSLINE_SetText(String);
   } */
 
-  STATUSLINE_SetText(apps[gCurrentApp].name);
+  STATUSLINE_SetText("%s", apps[gCurrentApp].name);
   gRedrawScreen = true;
 
   if (apps[gCurrentApp].init) {

@@ -251,7 +251,7 @@ void moveTo(uint8_t x, uint8_t y) {
 static void printString(const GFXfont *gfxFont, uint8_t x, uint8_t y,
                         Color color, TextPos posLCR, const char *pattern,
                         va_list args) {
-  char String[64];
+  char String[64] = {'\0'};
   vsnprintf(String, 63, pattern, args);
 
   int16_t x1, y1;
