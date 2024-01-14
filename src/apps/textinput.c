@@ -52,7 +52,7 @@ static char inputField[16] = {0};
 static uint8_t inputIndex = 0;
 static bool coursorBlink = true;
 
-static void blink() {
+static void blink(void) {
   coursorBlink = !coursorBlink;
   gRedrawScreen = true;
 }
@@ -65,7 +65,7 @@ static void insert(char c) {
   inputField[inputIndex++] = c;
 }
 
-static void backspace() {
+static void backspace(void) {
   if (inputField[inputIndex] != '\0') {
     inputIndex--;
     memmove(inputField + inputIndex, inputField + inputIndex + 1,
@@ -76,13 +76,13 @@ static void backspace() {
   }
 }
 
-void TEXTINPUT_init() {
+void TEXTINPUT_init(void) {
   strncpy(inputField, gTextinputText, 15);
   inputIndex = strlen(inputField);
   TaskAdd("Coursor blink", blink, 250, true);
 }
-void TEXTINPUT_deinit() { TaskRemove(blink); }
-void TEXTINPUT_update() {}
+void TEXTINPUT_deinit(void) { TaskRemove(blink); }
+void TEXTINPUT_update(void) {}
 bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   switch (key) {
   case KEY_1:
@@ -171,7 +171,7 @@ bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void TEXTINPUT_render() {
+void TEXTINPUT_render(void) {
   char String[8];
   const uint8_t INPUT_Y = 8 + 14;
   const uint8_t CHAR_W = 5;

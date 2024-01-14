@@ -1,9 +1,7 @@
 #include "../driver/eeprom.h"
-#include "../driver/gpio.h"
 #include "../driver/i2c.h"
 #include "../driver/system.h"
 #include "../driver/uart.h"
-#include "../inc/dp32g030/gpio.h"
 
 bool gEepromWrite = false;
 bool gEepromRead = false;

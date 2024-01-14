@@ -24,8 +24,11 @@ static const GFXfont *fontMediumBold = &muHeavy8ptBold;
 static const GFXfont *fontBig = &dig_11;
 static const GFXfont *fontBiggest = &dig_14;
 
-void UI_ClearStatus() { memset(gFrameBuffer[0], 0, sizeof(gFrameBuffer[0])); }
-void UI_ClearScreen() {
+void UI_ClearStatus(void) {
+  memset(gFrameBuffer[0], 0, sizeof(gFrameBuffer[0]));
+}
+
+void UI_ClearScreen(void) {
   for (uint8_t i = 1; i < 8; ++i) {
     memset(gFrameBuffer[i], 0, sizeof(gFrameBuffer[i]));
   }
@@ -248,8 +251,8 @@ void moveTo(uint8_t x, uint8_t y) {
 static void printString(const GFXfont *gfxFont, uint8_t x, uint8_t y,
                         Color color, TextPos posLCR, const char *pattern,
                         va_list args) {
-  char String[256];
-  vsnprintf(String, 255, pattern, args);
+  char String[64];
+  vsnprintf(String, 63, pattern, args);
 
   int16_t x1, y1;
   uint16_t w, h;
@@ -342,7 +345,7 @@ void PrintBiggestDigitsEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,
 }
 
 void PrintSymbolsEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,
-                          const char *pattern, ...) {
+                    const char *pattern, ...) {
   va_list args;
   va_start(args, pattern);
   printString(&Symbols, x, y, color, posLCR, pattern, args);

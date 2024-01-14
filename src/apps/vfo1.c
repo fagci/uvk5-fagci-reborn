@@ -1,31 +1,25 @@
 #include "vfo1.h"
-#include "../dcs.h"
-#include "../driver/uart.h"
-#include "../helper/adapter.h"
-#include "../helper/channels.h"
 #include "../helper/lootlist.h"
-#include "../helper/measurements.h"
-#include "../helper/presetlist.h"
+#include "../radio.h"
 #include "../scheduler.h"
-#include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "apps.h"
 #include "finput.h"
 
 static uint32_t lastUpdate = 0;
 
-void VFO1_init() {
+void VFO1_init(void) {
   RADIO_SetupByCurrentVFO(); // TODO: reread from EEPROM not needed maybe
   gRedrawScreen = true;
 }
 
-void VFO1_deinit() {
+void VFO1_deinit(void) {
   if (APPS_Peek() != APP_FINPUT && APPS_Peek() != APP_VFO1) {
     RADIO_ToggleRX(false);
   }
 }
 
-void VFO1_update() {
+void VFO1_update(void) {
   RADIO_UpdateMeasurementsEx(gCurrentLoot);
 
   if (elapsedMilliseconds - lastUpdate >= 500) {
@@ -105,7 +99,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_EXIT:
       if (!APPS_exit()) {
         LOOT_Standby();
-        RADIO_NextVFO(true);
+        RADIO_NextVFO();
         RADIO_TuneToPure(gCurrentVFO->fRX);
       }
       return true;
@@ -116,7 +110,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void VFO1_render() {
+void VFO1_render(void) {
   UI_ClearScreen();
   const uint8_t BASE = 38;
 

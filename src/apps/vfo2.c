@@ -1,10 +1,6 @@
 #include "vfo2.h"
 #include "../dcs.h"
-#include "../driver/uart.h"
-#include "../helper/adapter.h"
-#include "../helper/channels.h"
 #include "../helper/lootlist.h"
-#include "../helper/measurements.h"
 #include "../helper/presetlist.h"
 #include "../scheduler.h"
 #include "../ui/components.h"
@@ -17,20 +13,20 @@ static uint32_t lastUpdate = 0;
 
 // TODO: check if any msm/loot is buggy
 
-void VFO2_init() {
+void VFO2_init(void) {
   RADIO_SetupByCurrentVFO(); // TODO: reread from EEPROM not needed maybe
 
   gRedrawScreen = true;
 }
 
-void VFO2_deinit() {
+void VFO2_deinit(void) {
   /* if (APPS_Peek() != APP_FINPUT && APPS_Peek() != APP_VFO2) {
     RADIO_ToggleRX(false);
   } */
 }
 
-void VFO2_update() {
-  if (elapsedMilliseconds - lastUpdate >= (isBK1080 ? 1000 : 10)) {
+void VFO2_update(void) {
+  if (elapsedMilliseconds - lastUpdate >= (isBK1080 ? 100 : 10)) {
     RADIO_UpdateMeasurements();
     lastUpdate = elapsedMilliseconds;
 
@@ -66,8 +62,7 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     switch (key) {
     case KEY_2:
       LOOT_Standby();
-      RADIO_NextVFO(true);
-      RADIO_TuneToPure(gCurrentVFO->fRX);
+      RADIO_NextVFO();
       return true;
     case KEY_EXIT:
       return true;
@@ -117,8 +112,7 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_EXIT:
       if (!APPS_exit()) {
         LOOT_Standby();
-        RADIO_NextVFO(true);
-        RADIO_TuneToPure(gCurrentVFO->fRX);
+        RADIO_NextVFO();
       }
       return true;
     default:
@@ -187,7 +181,7 @@ static void render2VFOPart(uint8_t i) {
 
 #include "../ui/statusline.h"
 
-void VFO2_render() {
+void VFO2_render(void) {
   UI_ClearScreen();
   STATUSLINE_SetText("%u", gCurrentVFO->fRX);
 

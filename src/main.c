@@ -2,9 +2,6 @@
 #include "board.h"
 #include "driver/audio.h"
 #include "driver/backlight.h"
-#include "driver/bk4819-regs.h"
-#include "driver/bk4819.h"
-#include "driver/eeprom.h"
 #include "driver/gpio.h"
 #include "driver/keyboard.h"
 #include "driver/st7565.h"
@@ -14,16 +11,13 @@
 #include "helper/battery.h"
 #include "helper/presetlist.h"
 #include "inc/dp32g030/gpio.h"
-#include "misc.h"
 #include "radio.h"
 #include "scheduler.h"
 #include "settings.h"
-#include "ui/components.h"
 #include "ui/graphics.h"
 #include "ui/statusline.h"
 #include <stdbool.h>
 #include <stdint.h>
-#include <string.h>
 
 void _putchar(char c) {}
 

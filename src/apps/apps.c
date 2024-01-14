@@ -42,14 +42,14 @@ static bool pushApp(AppType_t app) {
   return true;
 }
 
-static AppType_t popApp() {
+static AppType_t popApp(void) {
   if (stackIndex > 0) {
     return appsStack[stackIndex--]; // Do not care about existing value
   }
   return appsStack[stackIndex];
 }
 
-AppType_t APPS_Peek() {
+AppType_t APPS_Peek(void) {
   if (stackIndex >= 0) {
     return appsStack[stackIndex];
   }
@@ -73,7 +73,7 @@ const App apps[APPS_COUNT] = {
     {"None"},
     {"Test", TEST_Init, TEST_Update, TEST_Render, TEST_key},
     {"Band Spectrum", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render,
-     SPECTRUM_key},
+     SPECTRUM_key, SPECTRUM_deinit},
     {"CH Scan", CHSCANNER_init, CHSCANNER_update, CHSCANNER_render,
      CHSCANNER_key, CHSCANNER_deinit},
     {"Freq catch", FASTSCAN_init, FASTSCAN_update, FASTSCAN_render,
@@ -107,14 +107,18 @@ bool APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 void APPS_init(AppType_t app) {
-  char String[16] = "";
   char appnameShort[3];
   gCurrentApp = app;
-  for (uint8_t i = 0; i <= stackIndex; i++) {
-    strncpy(appnameShort, apps[appsStack[i]].name, 2);
-    sprintf(String, "%s>%s", String, appnameShort);
+
+  {
+    char String[16] = {'\0'};
+    for (uint8_t i = 0; i <= stackIndex; i++) {
+      strncpy(appnameShort, apps[appsStack[i]].name, 2);
+      sprintf(String, "%s>%s", String, appnameShort);
+    }
+    STATUSLINE_SetText(String);
   }
-  STATUSLINE_SetText(String);
+
   // STATUSLINE_SetText(apps[gCurrentApp].name);
   gRedrawScreen = true;
 
@@ -137,7 +141,6 @@ void APPS_deinit(void) {
     apps[gCurrentApp].deinit();
   }
 }
-#include "../driver/uart.h"
 void APPS_run(AppType_t app) {
   if (appsStack[stackIndex] == app) {
     return;
@@ -148,7 +151,7 @@ void APPS_run(AppType_t app) {
   }
 }
 
-bool APPS_exit() {
+bool APPS_exit(void) {
   if (stackIndex == 0) {
     return false;
   }

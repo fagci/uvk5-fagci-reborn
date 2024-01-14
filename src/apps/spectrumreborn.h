@@ -9,6 +9,7 @@
 
 bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
 void SPECTRUM_init(void);
+void SPECTRUM_deinit(void);
 void SPECTRUM_update(void);
 void SPECTRUM_render(void);
 

@@ -1,9 +1,7 @@
 #include "presetlist.h"
 #include "../driver/eeprom.h"
-#include "../driver/uart.h"
 #include "../helper/measurements.h"
 #include "../settings.h"
-#include <stddef.h>
 
 Preset *gCurrentPreset;
 static Preset presets[PRESETS_SIZE_MAX] = {0};

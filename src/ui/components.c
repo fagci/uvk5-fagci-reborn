@@ -1,11 +1,8 @@
 #include "components.h"
 #include "../driver/st7565.h"
-#include "../external/printf/printf.h"
 #include "../helper/measurements.h"
 #include "../helper/presetlist.h"
 #include "graphics.h"
-#include <stdarg.h>
-#include <string.h>
 
 void UI_Battery(uint8_t Level) {
   DrawRect(LCD_WIDTH - 13, 0, 12, 5, C_FILL);
@@ -19,7 +16,7 @@ void UI_Battery(uint8_t Level) {
   }
 }
 
-void UI_RSSIBar(int16_t rssi, uint32_t f, uint8_t y) {
+void UI_RSSIBar(uint16_t rssi, uint32_t f, uint8_t y) {
   const uint8_t BAR_LEFT_MARGIN = 32;
   const uint8_t BAR_BASE = y + 7;
 

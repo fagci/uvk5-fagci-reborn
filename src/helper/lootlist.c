@@ -10,14 +10,14 @@ static int16_t lootIndex = -1;
 Loot *gLastActiveLoot = NULL;
 int16_t gLastActiveLootIndex = -1;
 
-void LOOT_BlacklistLast() {
+void LOOT_BlacklistLast(void) {
   if (gLastActiveLoot) {
     gLastActiveLoot->goodKnown = false;
     gLastActiveLoot->blacklist = true;
   }
 }
 
-void LOOT_GoodKnownLast() {
+void LOOT_GoodKnownLast(void) {
   if (gLastActiveLoot) {
     gLastActiveLoot->blacklist = false;
     gLastActiveLoot->goodKnown = true;
@@ -33,9 +33,9 @@ Loot *LOOT_Get(uint32_t f) {
   return NULL;
 }
 
-int16_t LOOT_IndexOf(Loot *loot) {
-  for (uint16_t i = 0; i < LOOT_Size(); ++i) {
-    if (&loot[i] == loot) {
+int16_t LOOT_IndexOf(Loot *item) {
+  for (int16_t i = 0; i < LOOT_Size(); ++i) {
+    if (&item[i] == item) {
       return i;
     }
   }
@@ -78,11 +78,11 @@ void LOOT_Remove(uint8_t i) {
   }
 }
 
-void LOOT_Clear() { lootIndex = -1; }
+void LOOT_Clear(void) { lootIndex = -1; }
 
-uint8_t LOOT_Size() { return lootIndex + 1; }
+uint8_t LOOT_Size(void) { return lootIndex + 1; }
 
-void LOOT_Standby() {
+void LOOT_Standby(void) {
   for (uint8_t i = 0; i < LOOT_Size(); ++i) {
     Loot *p = &loot[i];
     p->open = false;
@@ -130,16 +130,16 @@ void LOOT_Sort(bool (*compare)(Loot *a, Loot *b), bool reverse) {
 
 Loot *LOOT_Item(uint8_t i) { return &loot[i]; }
 
-void LOOT_Replace(Loot *loot, uint32_t f) {
-  loot->f = f;
-  loot->open = false;
-  loot->firstTime = elapsedMilliseconds;
-  loot->lastTimeCheck = elapsedMilliseconds;
-  loot->lastTimeOpen = 0;
-  loot->duration = 0;
-  loot->rssi = 0;
-  loot->ct = 0xFF;
-  loot->cd = 0xFF;
+void LOOT_Replace(Loot *item, uint32_t f) {
+  item->f = f;
+  item->open = false;
+  item->firstTime = elapsedMilliseconds;
+  item->lastTimeCheck = elapsedMilliseconds;
+  item->lastTimeOpen = 0;
+  item->duration = 0;
+  item->rssi = 0;
+  item->ct = 0xFF;
+  item->cd = 0xFF;
 }
 
 void LOOT_ReplaceItem(uint8_t i, uint32_t f) {
@@ -147,21 +147,21 @@ void LOOT_ReplaceItem(uint8_t i, uint32_t f) {
   LOOT_Replace(item, f);
 }
 
-void LOOT_UpdateEx(Loot *loot, Loot *msm) {
-  if (loot == NULL) {
+void LOOT_UpdateEx(Loot *item, Loot *msm) {
+  if (item == NULL) {
     return;
   }
 
-  if (loot->blacklist || loot->goodKnown) {
+  if (item->blacklist || item->goodKnown) {
     msm->open = false;
   }
 
-  loot->rssi = msm->rssi;
+  item->rssi = msm->rssi;
 
-  if (loot->open) {
-    loot->duration += elapsedMilliseconds - loot->lastTimeCheck;
-    gLastActiveLoot = loot;
-    gLastActiveLootIndex = LOOT_IndexOf(loot);
+  if (item->open) {
+    item->duration += elapsedMilliseconds - item->lastTimeCheck;
+    gLastActiveLoot = item;
+    gLastActiveLootIndex = LOOT_IndexOf(item);
   }
   if (msm->open) {
     uint32_t cd = 0;
@@ -172,35 +172,35 @@ void LOOT_UpdateEx(Loot *loot, Loot *msm) {
     case BK4819_CSS_RESULT_CDCSS:
       Code = DCS_GetCdcssCode(cd);
       if (Code != 0xFF) {
-        loot->cd = Code;
+        item->cd = Code;
       }
       break;
     case BK4819_CSS_RESULT_CTCSS:
       Code = DCS_GetCtcssCode(ct);
       if (Code != 0xFF) {
-        loot->ct = Code;
+        item->ct = Code;
       }
       break;
     default:
       break;
     }
-    loot->lastTimeOpen = elapsedMilliseconds;
+    item->lastTimeOpen = elapsedMilliseconds;
   }
-  loot->lastTimeCheck = elapsedMilliseconds;
-  loot->open = msm->open;
+  item->lastTimeCheck = elapsedMilliseconds;
+  item->open = msm->open;
 
   if (msm->blacklist) {
-    loot->blacklist = true;
+    item->blacklist = true;
   }
 }
 
 void LOOT_Update(Loot *msm) {
-  Loot *loot = LOOT_Get(msm->f);
+  Loot *item = LOOT_Get(msm->f);
 
-  if (loot == NULL && msm->open) {
-    loot = LOOT_Add(msm->f);
+  if (item == NULL && msm->open) {
+    item = LOOT_Add(msm->f);
     UART_logf(1, "[LOOT] %u", msm->f);
   }
 
-  LOOT_UpdateEx(loot, msm);
+  LOOT_UpdateEx(item, msm);
 }

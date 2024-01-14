@@ -27,21 +27,21 @@ static void getChannelName(uint16_t i, char *name) {
   }
 }
 
-static void saveNamed() {
+static void saveNamed(void) {
   CH ch;
   VFO2CH(gCurrentVFO, &ch);
   strncpy(ch.name, tempName, 9);
   CHANNELS_Save(currentChannelIndex, &ch);
   for (uint8_t i = 0; i < 2; ++i) {
-    if (gVFO[i].channel == currentChannelIndex) {
+    if (gVFO[i].isMrMode && gVFO[i].channel == currentChannelIndex) {
       RADIO_VfoLoadCH(i);
       break;
     }
   }
 }
 
-void SAVECH_init() { chCount = CHANNELS_GetCountMax(); }
-void SAVECH_update() {}
+void SAVECH_init(void) { chCount = CHANNELS_GetCountMax(); }
+void SAVECH_update(void) {}
 
 bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   CH ch;
@@ -77,7 +77,7 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void SAVECH_render() {
+void SAVECH_render(void) {
   UI_ClearScreen();
   UI_ShowMenu(getChannelName, chCount, currentChannelIndex);
 }

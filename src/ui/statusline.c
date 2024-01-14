@@ -75,7 +75,7 @@ void STATUSLINE_render() {
                  gBatteryVoltage / 100, gBatteryVoltage % 100);
   }
 
-  char icons[16] = {0};
+  char icons[8] = {'\0'};
   uint8_t idx = 0;
 
   if (gEepromWrite) {

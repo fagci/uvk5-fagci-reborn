@@ -1,21 +1,14 @@
 #include "spectrumreborn.h"
-#include "../driver/audio.h"
-#include "../driver/bk4819.h"
 #include "../driver/st7565.h"
-#include "../driver/system.h"
 #include "../driver/uart.h"
 #include "../helper/lootlist.h"
-#include "../helper/measurements.h"
 #include "../helper/presetlist.h"
 #include "../scheduler.h"
 #include "../settings.h"
-#include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/spectrum.h"
 #include "../ui/statusline.h"
 #include "apps.h"
-#include "finput.h"
-#include <string.h>
 
 static const uint8_t SPECTRUM_Y = 16;
 static const uint8_t SPECTRUM_HEIGHT = 40;
@@ -30,9 +23,14 @@ static uint32_t lastRender = 0;
 static uint32_t lastUpdate = 0;
 
 static void startNewScan(bool reset) {
+  UART_printf("[SPECTRUM] startNewScan(%u)\n", reset);
+  UART_flush();
   if (reset) {
     LOOT_Standby();
     RADIO_TuneTo(gCurrentPreset->band.bounds.start);
+  UART_printf("[SPECTRUM] initialf(%u) %u\n", gCurrentVFO->fRX,
+              elapsedMilliseconds);
+  UART_flush();
     lastUpdate = elapsedMilliseconds;
     SP_Init(PRESETS_GetSteps(gCurrentPreset), spectrumWidth);
     bandFilled = false;
@@ -52,6 +50,8 @@ void SPECTRUM_update(void) {
   if (elapsedMilliseconds - lastUpdate < 10) {
     return;
   }
+  UART_printf("[SPECTRUM] upd 10(%u)\n", elapsedMilliseconds);
+  UART_flush();
 
   RADIO_UpdateMeasurements();
 
@@ -82,6 +82,9 @@ void SPECTRUM_update(void) {
   }
 
   RADIO_NextPresetFreq(true);
+  UART_printf("[SPECTRUM] nextf(%u) %u\n", gCurrentVFO->fRX,
+              elapsedMilliseconds);
+  UART_flush();
   lastUpdate = elapsedMilliseconds;
 
   if (gCurrentVFO->fRX == gCurrentPreset->band.bounds.start) {
@@ -91,7 +94,7 @@ void SPECTRUM_update(void) {
   SP_Next();
 }
 
-void SPECTRUM_deinit() { RADIO_ToggleRX(false); }
+void SPECTRUM_deinit(void) { RADIO_ToggleRX(false); }
 
 bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
