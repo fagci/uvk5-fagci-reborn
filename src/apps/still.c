@@ -68,6 +68,10 @@ void STILL_update() {
 }
 
 bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  if (key == KEY_PTT) {
+    RADIO_ToggleTX(bKeyHeld);
+    return true;
+  }
   if (menuState) {
     switch (key) {
     case KEY_1:

@@ -39,7 +39,7 @@ void VFO2_update(void) {
 
 bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (key == KEY_PTT) {
-    RADIO_ToggleTX(bKeyPressed);
+    RADIO_ToggleTX(bKeyHeld);
     return true;
   }
 

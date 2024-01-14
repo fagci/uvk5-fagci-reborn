@@ -86,7 +86,7 @@ void RADIO_SetupRegisters(void) {
     SYSTEM_DelayMs(1);
   }
   BK4819_WriteRegister(BK4819_REG_3F, 0);
-  BK4819_WriteRegister(BK4819_REG_7D, 0xE94F); // TODO: maybe add some value
+  BK4819_WriteRegister(BK4819_REG_7D, 0xE940); // TODO: maybe add some value
   BK4819_SetFrequency(Frequency);
   BK4819_SelectFilter(Frequency);
   BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, true);
@@ -101,7 +101,8 @@ void RADIO_SetupRegisters(void) {
   /* BK4819_WriteRegister(BK4819_REG_3F, BK4819_REG_3F_SQUELCH_FOUND |
                                           BK4819_REG_3F_SQUELCH_LOST); */
   BK4819_WriteRegister(0x40, (BK4819_ReadRegister(0x40) & ~(0b11111111111)) |
-                                 0b10110101010);
+                                 0b10110101010 | (1 << 12));
+  // BK4819_WriteRegister(0x40, (1 << 12) | (1450));
 }
 
 uint32_t GetScreenF(uint32_t f) {
@@ -188,11 +189,23 @@ void RADIO_ToggleRX(bool on) {
   }
 }
 
+void RADIO_EnableCxCSS(void) {
+  switch (gCurrentVFO->codeTypeTx) {
+  /* case CODE_TYPE_DIGITAL:
+  case CODE_TYPE_REVERSE_DIGITAL:
+          BK4819_EnableCDCSS();
+          break; */
+  default:
+    BK4819_EnableCTCSS();
+    break;
+  }
+
+  SYSTEM_DelayMs(200);
+}
+
 TXState gTxState = TX_UNKNOWN;
 
 void RADIO_ToggleTX(bool on) {
-
-  BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, on);
   if (gTxState == on) {
     return;
   }
@@ -214,7 +227,30 @@ void RADIO_ToggleTX(bool on) {
 
   if (on) {
     RADIO_ToggleRX(false);
+
+    BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, false);
+    RADIO_SetupBandParams(&gCurrentPreset->band);
+    BK1080_SetFrequency(gCurrentVFO->fTX);
+
+    BK4819_PrepareTransmit();
+
+    SYSTEM_DelayMs(10);
+    BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, true);
+    SYSTEM_DelayMs(5);
+    BK4819_SetupPowerAmplifier(0x10, gCurrentVFO->fTX);
+    SYSTEM_DelayMs(10);
+    BK4819_ExitSubAu();
+
+  } else {
+    BK4819_ExitDTMF_TX(true);
+    RADIO_EnableCxCSS();
+
+    BK4819_SetupPowerAmplifier(0, 0);
+    BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, false);
+    BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, true);
+    BK4819_RX_TurnOn();
   }
+
   BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, on);
 
   gTxState = on;
@@ -393,8 +429,12 @@ void RADIO_UpdateMeasurements(void) {
   // TODO: timeout logic here
   Loot *msm = &gLoot[gSettings.activeVFO];
   msm->rssi = RADIO_GetRSSI();
-  msm->open = gMonitorMode ? true : (isBK1080 ? true : BK4819_IsSquelchOpen());
-  RADIO_ToggleRX(msm->open);
+  if (gTxState == TX_ON) {
+  } else {
+    msm->open =
+        gMonitorMode ? true : (isBK1080 ? true : BK4819_IsSquelchOpen());
+    RADIO_ToggleRX(msm->open);
+  }
 }
 
 bool RADIO_UpdateMeasurementsEx(Loot *dest) {

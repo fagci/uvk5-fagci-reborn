@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 #define EEPROM_SIZE 8196
-// #define EEPROM_SIZE 32784
+// #define EEPROM_SIZE 32768
 
 extern bool gEepromRead;
 extern bool gEepromWrite;

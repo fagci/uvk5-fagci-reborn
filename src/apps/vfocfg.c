@@ -44,7 +44,7 @@ static MenuItem menu[] = {
     {"Save", M_SAVE},
 };
 
-static void setInitialSubmenuIndex() {
+static void setInitialSubmenuIndex(void) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_BW:
@@ -68,7 +68,7 @@ static void setInitialSubmenuIndex() {
   }
 }
 
-static void accept() {
+static void accept(void) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_BW:
@@ -180,11 +180,11 @@ static void setTXF(uint32_t f) {
   RADIO_SaveCurrentVFO();
 }
 
-void VFOCFG_init() {
+void VFOCFG_init(void) {
   gRedrawScreen = true;
   menu[3].size -= (RADIO_IsBK1080Range(gCurrentVFO->fRX) ? 0 : 1);
 }
-void VFOCFG_update() {}
+void VFOCFG_update(void) {}
 bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   const MenuItem *item = &menu[menuIndex];
   const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
@@ -241,7 +241,7 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   }
   return false;
 }
-void VFOCFG_render() {
+void VFOCFG_render(void) {
   UI_ClearScreen();
   const MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {

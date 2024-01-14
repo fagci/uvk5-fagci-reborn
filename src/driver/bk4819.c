@@ -830,10 +830,23 @@ void BK4819_TransmitTone(bool bLocalLoopback, uint32_t Frequency) {
 }
 
 void BK4819_GenTail(uint8_t Tail) {
-  const uint16_t TAILS[] = {
-      0x828F, 0xA28F, 0xC28F, 0xE28F, 0x046f,
-  };
-  BK4819_WriteRegister(BK4819_REG_52, TAILS[Tail]);
+  switch (Tail) {
+  case 0: // 134.4Hz CTCSS Tail
+    BK4819_WriteRegister(BK4819_REG_52, 0x828F);
+    break;
+  case 1: // 120° phase shift
+    BK4819_WriteRegister(BK4819_REG_52, 0xA28F);
+    break;
+  case 2: // 180° phase shift
+    BK4819_WriteRegister(BK4819_REG_52, 0xC28F);
+    break;
+  case 3: // 240° phase shift
+    BK4819_WriteRegister(BK4819_REG_52, 0xE28F);
+    break;
+  case 4: // 55Hz tone freq NOTE: REG_07
+    BK4819_WriteRegister(BK4819_REG_07, 0x046f);
+    break;
+  }
 }
 
 void BK4819_EnableCDCSS(void) {
@@ -842,6 +855,7 @@ void BK4819_EnableCDCSS(void) {
 }
 
 void BK4819_EnableCTCSS(void) {
+  // BK4819_GenTail(2); // CTC180
   BK4819_GenTail(4); // CTC55
   BK4819_WriteRegister(BK4819_REG_51, 0x904A);
 }

@@ -10,7 +10,7 @@ uint8_t duration = 2;
 uint8_t countdown;
 bool state = false;
 
-void BACKLIGHT_Init() {
+void BACKLIGHT_Init(void) {
   // 48MHz / 94 / 1024 ~ 500Hz
   const uint32_t PWM_FREQUENCY_HZ = 1000;
   PWM_PLUS0_CLKSRC |= ((CPU_CLOCK_HZ / 1024 / PWM_FREQUENCY_HZ) << 16);
@@ -32,7 +32,6 @@ void BACKLIGHT_Init() {
 
 void BACKLIGHT_SetBrightness(uint8_t brigtness) {
   PWM_PLUS0_CH0_COMP = (1 << brigtness) - 1;
-  // PWM_PLUS0_SWLOAD = 1;
 }
 
 void BACKLIGHT_Toggle(bool on) {
@@ -41,15 +40,13 @@ void BACKLIGHT_Toggle(bool on) {
   }
   state = on;
   if (on) {
-    // GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
-    BACKLIGHT_SetBrightness(gSettings.brightness);
+    GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
   } else {
-    // GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
-    BACKLIGHT_SetBrightness(0);
+    GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
   }
 }
 
-void BACKLIGHT_On() {
+void BACKLIGHT_On(void) {
   countdown = duration;
   BACKLIGHT_Toggle(countdown);
 }
@@ -59,7 +56,7 @@ void BACKLIGHT_SetDuration(uint8_t durationSec) {
   countdown = durationSec;
 }
 
-void BACKLIGHT_Update() {
+void BACKLIGHT_Update(void) {
   if (countdown == 0 || countdown == 255) {
     return;
   }

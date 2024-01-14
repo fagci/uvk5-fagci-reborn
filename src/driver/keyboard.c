@@ -151,7 +151,7 @@ bool gPttWasReleased;
 uint8_t gPttDebounceCounter;
 bool gRepeatHeld = false;
 
-static uint8_t gSerialConfigCountDown_500ms = 0;
+// static uint8_t gSerialConfigCountDown_500ms = 0;
 static uint8_t KEY_DEBOUNCE = 4;
 static uint8_t KEY_REPEAT_DELAY = 40;
 static uint8_t KEY_REPEAT = 8;
@@ -162,22 +162,22 @@ void KEYBOARD_CheckKeys(void onKey(KEY_Code_t, bool, bool)) {
 
   if (gPttIsPressed) {
     // PTT released or serial comms config in progress
-    if (GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) ||
-        gSerialConfigCountDown_500ms > 0) {
-      if (++gPttDebounceCounter >= 3 || gSerialConfigCountDown_500ms > 0) {
+    if (GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT)) {
+      if (++gPttDebounceCounter >= 3) {
         onKey(KEY_PTT, false, false);
         gPttIsPressed = false;
-        if (gKeyReading1 != KEY_INVALID)
+        if (gKeyReading1 != KEY_INVALID) {
           gPttWasReleased = true;
+        }
       }
-    } else
+    } else {
       gPttDebounceCounter = 0;
-  } else if (!GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) &&
-             gSerialConfigCountDown_500ms == 0) {
+    }
+  } else if (!GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT)) {
     if (++gPttDebounceCounter >= 3) {
       gPttDebounceCounter = 0;
       gPttIsPressed = true;
-      onKey(KEY_PTT, true, false);
+      onKey(KEY_PTT, true, true);
     }
   } else {
     gPttDebounceCounter = 0;
