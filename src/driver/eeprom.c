@@ -30,7 +30,7 @@ void EEPROM_ReadBuffer(uint16_t address, void *pBuffer, uint8_t size) {
 
 void EEPROM_WriteBuffer(uint16_t address, const void *pBuffer, uint8_t size) {
   for (uint8_t offset = 0; offset < size; offset += 8) {
-    uint8_t rest = (size - offset);
+    uint8_t rest = size - offset;
     uint8_t n = rest > 8 ? 8 : rest;
     I2C_Start();
 
