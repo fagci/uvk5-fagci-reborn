@@ -35,6 +35,35 @@ static VFO defaultVFOs[2] = {
 
 static Preset defaultPresets[] = {
     (Preset){
+
+        /*
+  FRange bounds; // 8
+  char name[10]; // 18
+  Step step : 4;
+  ModulationType modulation : 4; // 19
+  BK4819_FilterBandwidth_t bw : 2;
+  SquelchType squelchType : 2;
+  uint8_t squelch : 4; // 20
+  uint8_t gainIndex : 7;
+  bool reserved1 : 1; // 21
+  uint32_t offset;         // 25
+  uint8_t memoryBanks : 8; // 26
+  uint8_t codeTypeRx : 4;
+  uint8_t codeTypeTx : 4; // 27
+  uint8_t codeRx : 8;     // 28
+  uint8_t codeTx : 8;     // 29
+  TXOutputPower power : 2;
+  bool allowTx : 1;
+  uint8_t a : 5;             // 30
+  PowerCalibration powCalib; // 33
+        */
+
+        /* .band =
+            {
+                .bounds = {0x12345678, 0x12345678},
+                .name = "\1\2\3\4\5\1\2\3\4\5",
+            }, */
+
         .band =
             {
                 .bounds = {1500000, 2999999},
@@ -47,6 +76,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -61,6 +91,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -75,6 +106,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -89,6 +121,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -103,6 +136,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -117,6 +151,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -131,6 +166,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -145,6 +181,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -159,6 +196,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -173,6 +211,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -187,6 +226,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -201,6 +241,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x82, 0x82, 0x82},
     },
     (Preset){
         .band =
@@ -215,6 +256,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -229,6 +271,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = true,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -243,6 +286,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -257,6 +301,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = true,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -271,6 +316,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -285,6 +331,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -299,6 +346,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -313,6 +361,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -327,6 +376,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -341,6 +391,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -355,6 +406,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -369,6 +421,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -383,6 +436,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -397,6 +451,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -411,6 +466,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -425,6 +481,7 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
     (Preset){
         .band =
@@ -439,10 +496,11 @@ static Preset defaultPresets[] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
+        .powCalib = {0x8C, 0x8C, 0x8C},
     },
 };
 
-void RESET_Init() {
+void RESET_Init(void) {
   presetsWrote = 0;
   vfosWrote = 0;
   bytesWrote = 0;
@@ -451,7 +509,7 @@ void RESET_Init() {
   memset(buf, 0xFF, sizeof(buf));
 }
 
-void RESET_Update() {
+void RESET_Update(void) {
   if (!settingsWrote) {
     gSettings = (Settings){
         .squelch = 4,
@@ -511,8 +569,9 @@ void RESET_Update() {
   gRedrawScreen = true;
 }
 
-void RESET_Render() {
-  uint8_t progressX = ConvertDomain(bytesWrote, 0, EEPROM_SIZE, 1, LCD_WIDTH - 2);
+void RESET_Render(void) {
+  uint8_t progressX =
+      ConvertDomain(bytesWrote, 0, EEPROM_SIZE, 1, LCD_WIDTH - 2);
   uint8_t POS_Y = LCD_HEIGHT / 2;
 
   UI_ClearScreen();

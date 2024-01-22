@@ -393,8 +393,6 @@ void BK4819_EnableVox(uint16_t VoxEnableThreshold,
 }
 
 void BK4819_SetFilterBandwidth(BK4819_FilterBandwidth_t Bandwidth) {
-  UART_printf("BK4819_SetFilterBandwidth(%u)\n", Bandwidth);
-  UART_flush();
   if (BK4819_ReadRegister(BK4819_REG_43) !=
       BWRegValues[Bandwidth]) { // TODO: maybe slow
     BK4819_WriteRegister(BK4819_REG_43, BWRegValues[Bandwidth]);
@@ -421,8 +419,6 @@ void BK4819_SetupPowerAmplifier(uint16_t Bias, uint32_t Frequency) {
 }
 
 void BK4819_SetFrequency(uint32_t f) {
-  UART_printf("BK4819_SetFrequency(%u)\n", f);
-  UART_flush();
   BK4819_WriteRegister(BK4819_REG_38, f & 0xFFFF);
   BK4819_WriteRegister(BK4819_REG_39, (f >> 16) & 0xFFFF);
 }
@@ -455,8 +451,6 @@ void BK4819_SetupSquelch(uint8_t SquelchOpenRSSIThresh,
 
 void BK4819_Squelch(uint8_t sql, uint32_t f) {
   uint8_t band = f > SETTINGS_GetFilterBound() ? 1 : 0;
-  UART_printf("BK4819_Squelch(%u, %u): %u\n", sql, f, band);
-  UART_flush();
   BK4819_SetupSquelch(SQ[band][0][sql], SQ[band][1][sql], SQ[band][2][sql],
                       SQ[band][3][sql], SQ[band][4][sql], SQ[band][5][sql]);
 }
@@ -468,8 +462,6 @@ void BK4819_SquelchType(SquelchType t) {
 }
 
 void BK4819_SetAF(BK4819_AF_Type_t AF) {
-  UART_printf("BK4819_SetAF(%u)\n", AF);
-  UART_flush();
   BK4819_WriteRegister(BK4819_REG_47, 0x6040 | (AF << 8));
 }
 
@@ -490,8 +482,6 @@ void BK4819_SetModulation(ModulationType type) {
     return;
   }
   modTypeCurrent = type;
-  UART_printf("BK4819_SetModulation(%u)\n", type);
-  UART_flush();
   const uint16_t modTypeReg47Values[] = {BK4819_AF_FM,  BK4819_AF_AM,
                                          BK4819_AF_USB, BK4819_AF_BYPASS,
                                          BK4819_AF_RAW, BK4819_AF_FM};
@@ -544,8 +534,6 @@ void BK4819_SelectFilter(uint32_t f) {
     return;
   }
 
-  UART_printf("BK4819_SelectFilter(%u): %u\n", f, filterNeeded);
-  UART_flush();
 
   selectedFilter = filterNeeded;
   BK4819_ToggleGpioOut(BK4819_GPIO4_PIN32_VHF_LNA, filterNeeded == FILTER_VHF);
@@ -1075,8 +1063,6 @@ void BK4819_PlayDTMFEx(bool bLocalLoopback, char Code) {
 }
 
 void BK4819_ToggleAFBit(bool on) {
-  UART_printf("BK4819_ToggleAFBit(%u)\n", on);
-  UART_flush();
   uint16_t reg = BK4819_ReadRegister(BK4819_REG_47);
   reg &= ~(1 << 8);
   if (on)
@@ -1085,8 +1071,6 @@ void BK4819_ToggleAFBit(bool on) {
 }
 
 void BK4819_ToggleAFDAC(bool on) {
-  UART_printf("BK4819_ToggleAFDAC(%u)\n", on);
-  UART_flush();
   uint16_t Reg = BK4819_ReadRegister(BK4819_REG_30);
   Reg &= ~BK4819_REG_30_ENABLE_AF_DAC;
   if (on)
@@ -1095,8 +1079,6 @@ void BK4819_ToggleAFDAC(bool on) {
 }
 
 void BK4819_TuneTo(uint32_t f) {
-  UART_printf("BK4819_TuneTo(%u)\n", f);
-  UART_flush();
   BK4819_SelectFilter(f);
   BK4819_SetFrequency(f);
   uint16_t reg = BK4819_ReadRegister(BK4819_REG_30);

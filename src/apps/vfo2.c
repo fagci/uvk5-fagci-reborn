@@ -79,7 +79,7 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       RADIO_ToggleModulation();
       return true;
     case KEY_6:
-      RADIO_ToggleListeningBW();
+      RADIO_ToggleTxPower();
       return true;
     default:
       break;
@@ -145,6 +145,10 @@ static void render2VFOPart(uint8_t i) {
       PrintMediumEx(0, bl, POS_L, C_INVERT, "RX");
       UI_RSSIBar(gLoot[i].rssi, vfo->fRX, 31);
     }
+  }
+  uint8_t pow = p->power + 1;
+  for (uint8_t ii = 0; ii < pow; ++ii) {
+    FillRect(29, bl - 14 + 4 - ii * 2, 2 * (ii+1), 2, C_FILL);
   }
 
   if (gTxState && gTxState != TX_ON && isActive) {

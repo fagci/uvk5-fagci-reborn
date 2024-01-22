@@ -13,6 +13,7 @@ typedef enum {
   TX_VOL_HIGH,
   TX_BAT_LOW,
   TX_DISABLED,
+  TX_POW_OVERDRIVE,
 } TXState;
 
 extern VFO *gCurrentVFO;
@@ -39,7 +40,7 @@ extern const char *powerNames[];
 extern const char *bwNames[3];
 extern const char *deviationNames[];
 extern const char *sqTypeNames[4];
-extern const char *TX_STATE_NAMES[5];
+extern const char *TX_STATE_NAMES[6];
 
 void RADIO_SetupRegisters();
 
@@ -69,6 +70,7 @@ void RADIO_SetSquelch(uint8_t sq);
 void RADIO_SetGain(uint8_t gainIndex);
 void RADIO_ToggleModulation();
 void RADIO_ToggleListeningBW();
+void RADIO_ToggleTxPower(void);
 void RADIO_UpdateStep(bool inc);
 void RADIO_UpdateSquelchLevel(bool next);
 

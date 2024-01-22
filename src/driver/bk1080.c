@@ -15,13 +15,15 @@ static const uint16_t BK1080_RegisterTable[] = {
 };
 
 static bool gIsInitBK1080;
-
-uint16_t BK1080_BaseFrequency;
-uint16_t BK1080_FrequencyDeviation;
+static uint32_t currentF = 0;
 
 uint16_t CH_SP_F[] = {20000, 10000, 5000};
 
 void BK1080_SetFrequency(uint32_t f) {
+  if (f == currentF) {
+    return;
+  }
+  currentF = f;
   uint8_t vol = 0b1111;
   uint8_t chSp = BK1080_CHSP_100;
   uint8_t seekThres = 0b00001010;
@@ -30,15 +32,10 @@ void BK1080_SetFrequency(uint32_t f) {
 
   uint32_t startF = band == BK1080_BAND_64_76 ? 6400000 : 7600000;
 
-  uint8_t channel = (f - startF) / CH_SP_F[chSp];
+  uint16_t channel = (f - startF) / CH_SP_F[chSp];
 
   uint16_t sysCfg2 = (vol << 0) | (chSp << 4) | (band << 6) | (seekThres << 8);
 
-  UART_printf("TUNE BK1080: f=%u, band=%u, startf=%u, chspf=%u\n", f, band,
-              startF, CH_SP_F[chSp]);
-  UART_printf("TUNE BK1080 REG: chSp=%u, band=%u, channel=%u\n", chSp, band,
-              channel);
-  UART_flush();
 
   BK1080_WriteRegister(BK1080_REG_05_SYSTEM_CONFIGURATION2, sysCfg2);
   BK1080_WriteRegister(BK1080_REG_03_CHANNEL, channel);

@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define EEPROM_SIZE 8196
+#define EEPROM_SIZE 8192
 // #define EEPROM_SIZE 32768
 
 extern bool gEepromRead;

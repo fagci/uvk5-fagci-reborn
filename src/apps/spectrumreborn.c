@@ -23,14 +23,9 @@ static uint32_t lastRender = 0;
 static uint32_t lastUpdate = 0;
 
 static void startNewScan(bool reset) {
-  UART_printf("[SPECTRUM] startNewScan(%u)\n", reset);
-  UART_flush();
   if (reset) {
     LOOT_Standby();
     RADIO_TuneTo(gCurrentPreset->band.bounds.start);
-  UART_printf("[SPECTRUM] initialf(%u) %u\n", gCurrentVFO->fRX,
-              elapsedMilliseconds);
-  UART_flush();
     lastUpdate = elapsedMilliseconds;
     SP_Init(PRESETS_GetSteps(gCurrentPreset), spectrumWidth);
     bandFilled = false;
@@ -50,8 +45,6 @@ void SPECTRUM_update(void) {
   if (elapsedMilliseconds - lastUpdate < 10) {
     return;
   }
-  UART_printf("[SPECTRUM] upd 10(%u)\n", elapsedMilliseconds);
-  UART_flush();
 
   RADIO_UpdateMeasurements();
 
@@ -82,9 +75,6 @@ void SPECTRUM_update(void) {
   }
 
   RADIO_NextPresetFreq(true);
-  UART_printf("[SPECTRUM] nextf(%u) %u\n", gCurrentVFO->fRX,
-              elapsedMilliseconds);
-  UART_flush();
   lastUpdate = elapsedMilliseconds;
 
   if (gCurrentVFO->fRX == gCurrentPreset->band.bounds.start) {

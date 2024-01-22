@@ -46,6 +46,12 @@ typedef enum {
   BAT_VOLTAGE,
 } BatteryStyle;
 
+typedef enum {
+  TX_POW_LOW,
+  TX_POW_MID,
+  TX_POW_HIGH,
+} TXOutputPower;
+
 typedef struct {
   uint8_t squelch : 4;
   uint8_t scrambler : 4; // 1
@@ -92,7 +98,7 @@ typedef struct {           // 24 bytes
   uint8_t memoryBanks : 8; // 1
   ModulationType modulation : 4;
   BK4819_FilterBandwidth_t bw : 2;
-  uint8_t power : 2;
+  TXOutputPower power : 2;
   uint8_t codeRx : 8; // 1
   uint8_t codeTx : 8; // 1
   uint8_t codeTypeRx : 4;
@@ -105,7 +111,7 @@ typedef struct { // 24 bytes
   uint32_t fTX;  // 4
   uint8_t reserved00 : 4;
   uint8_t reserved01 : 2;
-  uint8_t power : 2;
+  TXOutputPower power : 2;
   uint8_t codeRx : 8; // 1
   uint8_t codeTx : 8; // 1
   uint8_t codeTypeRx : 4;
@@ -123,30 +129,35 @@ typedef struct { // 8 bytes
 } __attribute__((packed)) FRange;
 
 typedef struct { // 21 bytes
-  FRange bounds;
-  char name[10];
+  FRange bounds; // 8
+  char name[10]; // 18
   Step step : 4;
-  ModulationType modulation : 4;
+  ModulationType modulation : 4; // 19
   BK4819_FilterBandwidth_t bw : 2;
   SquelchType squelchType : 2;
-  uint8_t squelch : 4;
+  uint8_t squelch : 4; // 20
   uint8_t gainIndex : 7;
-  bool reserved1 : 1;
+  bool reserved1 : 1; // 21
 } __attribute__((packed)) Band;
 
-typedef struct { // 29 bytes
-  Band band;
-  uint32_t offset;         // 4
-  uint8_t memoryBanks : 8; // 1
+typedef struct {
+  uint8_t s;
+  uint8_t m;
+  uint8_t e;
+} PowerCalibration;
+
+typedef struct {           // 29 bytes
+  Band band;               // 21
+  uint32_t offset;         // 25
+  uint8_t memoryBanks : 8; // 26
   uint8_t codeTypeRx : 4;
-  uint8_t codeTypeTx : 4; // 1
-  uint8_t codeRx : 8;     // 1
-  uint8_t codeTx : 8;     // 1
-  uint8_t power : 2;
+  uint8_t codeTypeTx : 4; // 27
+  uint8_t codeRx : 8;     // 28
+  uint8_t codeTx : 8;     // 29
+  TXOutputPower power : 2;
   bool allowTx : 1;
-  uint8_t a : 5;
-  uint8_t b : 8;
-  uint8_t c : 8;
+  uint8_t a : 5;             // 30
+  PowerCalibration powCalib; // 33
 } __attribute__((packed)) Preset;
 
 #define SETTINGS_OFFSET (0)
@@ -170,6 +181,7 @@ extern Settings gSettings;
 extern uint8_t BL_TIME_VALUES[7];
 extern const char *BL_TIME_NAMES[7];
 extern const char *BL_SQL_MODE_NAMES[3];
+extern const char *TX_POWER_NAMES[3];
 
 void SETTINGS_Save();
 void SETTINGS_Load();

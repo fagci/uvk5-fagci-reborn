@@ -13,8 +13,9 @@
 #include "textinput.h"
 
 typedef enum {
-  M_F_RX, // uint32_t fRX : 32;
-  M_F_TX, // uint32_t fTX : 32;
+  M_F_RX,  // uint32_t fRX : 32;
+  M_F_TX,  // uint32_t fTX : 32;
+  M_F_TXP, // uint32_t fTX : 32;
   // uint8_t memoryBanks : 8;
   M_STEP,       // uint8_t step : 8;
   M_MODULATION, // uint8_t modulation : 4;
@@ -36,6 +37,7 @@ static bool isSubMenu = false;
 static MenuItem menu[] = {
     {"RX freq", M_F_RX},
     {"TX freq", M_F_TX},
+    {"TX power", M_F_TXP, ARRAY_SIZE(TX_POWER_NAMES)},
     {"Step", M_STEP, ARRAY_SIZE(StepFrequencyTable)},
     {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions)},
     {"BW", M_BW, ARRAY_SIZE(bwNames)},
@@ -49,6 +51,9 @@ static void setInitialSubmenuIndex(void) {
   switch (item->type) {
   case M_BW:
     subMenuIndex = gCurrentPreset->band.bw;
+    break;
+  case M_F_TXP:
+    subMenuIndex = gCurrentPreset->power;
     break;
   case M_MODULATION:
     subMenuIndex = gCurrentPreset->band.modulation;
@@ -73,6 +78,10 @@ static void accept(void) {
   switch (item->type) {
   case M_BW:
     gCurrentPreset->band.bw = subMenuIndex;
+    PRESETS_SaveCurrent();
+    break;
+  case M_F_TXP:
+    gCurrentPreset->power = subMenuIndex;
     PRESETS_SaveCurrent();
     break;
   case M_MODULATION:
@@ -105,6 +114,9 @@ static void getValue(VfoCfgMenu type, char *value) {
   case M_F_TX:
     sprintf(value, "%u.%05u", gCurrentVFO->fTX / 100000,
             gCurrentVFO->fTX % 100000);
+    break;
+  case M_F_TXP:
+    snprintf(value, 15, TX_POWER_NAMES[gCurrentPreset->power]);
     break;
   case M_BW:
     snprintf(value, 15, bwNames[gCurrentPreset->band.bw]);
@@ -144,6 +156,10 @@ static void getModulationTypeText(uint16_t index, char *name) {
   strncpy(name, modulationTypeOptions[index], 31);
 }
 
+static void getTXPowerName(uint16_t index, char *name) {
+  strncpy(name, TX_POWER_NAMES[index], 31);
+}
+
 static void getBWName(uint16_t index, char *name) {
   strncpy(name, bwNames[index], 31);
 }
@@ -160,6 +176,9 @@ static void showSubmenu(VfoCfgMenu m) {
     return;
   case M_BW:
     UI_ShowMenu(getBWName, item->size, subMenuIndex);
+    return;
+  case M_F_TXP:
+    UI_ShowMenu(getTXPowerName, item->size, subMenuIndex);
     return;
   case M_STEP:
     UI_ShowMenu(getStepText, item->size, subMenuIndex);

@@ -1,5 +1,6 @@
 #include "presetlist.h"
 #include "../driver/eeprom.h"
+#include "../driver/uart.h"
 #include "../helper/measurements.h"
 #include "../settings.h"
 
@@ -28,13 +29,13 @@ void PRESETS_LoadPreset(uint8_t num, Preset *p) {
   EEPROM_ReadBuffer(PRESETS_OFFSET + num * PRESET_SIZE, p, PRESET_SIZE);
 }
 
-void PRESETS_SaveCurrent() {
+void PRESETS_SaveCurrent(void) {
   if (gCurrentPreset != &defaultPreset) {
     PRESETS_SavePreset(gSettings.activePreset, gCurrentPreset);
   }
 }
 
-uint8_t PRESETS_Size() { return gSettings.presetsCount; }
+uint8_t PRESETS_Size(void) { return gSettings.presetsCount; }
 
 Preset *PRESETS_Item(uint8_t i) { return &presets[i]; }
 
@@ -47,7 +48,7 @@ void PRESETS_SelectPresetRelative(bool next) {
   SETTINGS_DelayedSave();
 }
 
-uint8_t PRESET_GetCurrentIndex() { return gSettings.activePreset; }
+uint8_t PRESET_GetCurrentIndex(void) { return gSettings.activePreset; }
 
 uint8_t PRESET_Select(uint8_t i) {
   gCurrentPreset = &presets[i];
@@ -82,7 +83,7 @@ Preset *PRESET_ByFrequency(uint32_t f) {
   return &defaultPreset;
 }
 
-bool PRESETS_Load() {
+bool PRESETS_Load(void) {
   if (loadedCount < PRESETS_Size()) {
     PRESETS_LoadPreset(loadedCount, &presets[loadedCount]);
     loadedCount++;

@@ -32,11 +32,7 @@ typedef enum {
   BK1080_CHSP_200,
   BK1080_CHSP_100,
   BK1080_CHSP_50,
-
 } BK1080_ChannelSpacing;
-
-extern uint16_t BK1080_BaseFrequency;
-extern uint16_t BK1080_FrequencyDeviation;
 
 void BK1080_Init(uint32_t Frequency, bool bEnable);
 uint16_t BK1080_ReadRegister(BK1080_Register_t Register);

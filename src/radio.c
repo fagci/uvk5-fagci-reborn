@@ -57,8 +57,8 @@ const char *vfoStateNames[] = {
 };
 const char *powerNames[] = {"LOW", "MID", "HIGH"};
 const char *bwNames[3] = {"25k", "12.5k", "6.25k"};
-const char *TX_STATE_NAMES[5] = {"TX Off", "TX On", "VOL HIGH", "BAT LOW",
-                                 "DISABLED"};
+const char *TX_STATE_NAMES[6] = {"TX Off",  "TX On",    "VOL HIGH",
+                                 "BAT LOW", "DISABLED", "POWER OVERDRIVE"};
 
 const SquelchType sqTypeValues[4] = {
     SQUELCH_RSSI_NOISE_GLITCH,
@@ -125,8 +125,6 @@ static void onPresetUpdate(void) {
 bool RADIO_IsBK1080Range(uint32_t f) { return f >= 6400000 && f <= 10800000; }
 
 void toggleBK4819(bool on) {
-  UART_printf("BK4819 toggle: %u\n", on);
-  UART_flush();
   if (on) {
     BK4819_ToggleAFDAC(true);
     BK4819_ToggleAFBit(true);
@@ -141,8 +139,6 @@ void toggleBK4819(bool on) {
 }
 
 void toggleBK1080(bool on) {
-  UART_printf("BK1080 toggle: %u\n", on);
-  UART_flush();
   if (on) {
     BK1080_Init(gCurrentVFO->fRX, true);
     BK1080_Mute(false);
@@ -157,15 +153,9 @@ void toggleBK1080(bool on) {
 }
 
 void RADIO_ToggleRX(bool on) {
-  UART_printf("RADIO_ToggleRX(%u)\n", on);
-  UART_flush();
   if (gIsListening == on) {
-    UART_printf("RADIO_ToggleRX(%u) [FAIL]\n", on);
-    UART_flush();
     return;
   }
-  UART_printf("RADIO_ToggleRX(%u) [OK]\n", on);
-  UART_flush();
   gRedrawScreen = true;
 
   gIsListening = on;
@@ -203,12 +193,40 @@ void RADIO_EnableCxCSS(void) {
   SYSTEM_DelayMs(200);
 }
 
+static uint8_t calculateOutputPower(Preset *p, uint32_t Frequency) {
+  uint8_t TxpLow = p->powCalib.s;
+  uint8_t TxpMid = p->powCalib.m;
+  uint8_t TxpHigh = p->powCalib.e;
+  uint32_t LowerLimit = p->band.bounds.start;
+  uint32_t UpperLimit = p->band.bounds.start;
+  uint32_t Middle = LowerLimit + (UpperLimit - LowerLimit) / 2;
+
+  if (Frequency <= LowerLimit) {
+    return TxpLow;
+  }
+
+  if (UpperLimit <= Frequency) {
+    return TxpHigh;
+  }
+
+  if (Frequency <= Middle) {
+    TxpMid +=
+        ((TxpMid - TxpLow) * (Frequency - LowerLimit)) / (Middle - LowerLimit);
+    return TxpMid;
+  }
+
+  TxpMid += ((TxpHigh - TxpMid) * (Frequency - Middle)) / (UpperLimit - Middle);
+  return TxpMid;
+}
+
 TXState gTxState = TX_UNKNOWN;
 
 void RADIO_ToggleTX(bool on) {
   if (gTxState == on) {
     return;
   }
+
+  uint8_t power = 0;
 
   if (on) {
     if (!gCurrentPreset->allowTx) {
@@ -223,6 +241,13 @@ void RADIO_ToggleTX(bool on) {
       gTxState = TX_VOL_HIGH;
       return;
     }
+    power = calculateOutputPower(gCurrentPreset, gCurrentVFO->fTX);
+    if (power > 0x91) {
+      power = 0;
+      gTxState = TX_POW_OVERDRIVE;
+      return;
+    }
+    power >>= 2 - gCurrentPreset->power;
   }
 
   if (on) {
@@ -237,11 +262,10 @@ void RADIO_ToggleTX(bool on) {
     SYSTEM_DelayMs(10);
     BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, true);
     SYSTEM_DelayMs(5);
-    BK4819_SetupPowerAmplifier(0x10, gCurrentVFO->fTX);
+    BK4819_SetupPowerAmplifier(power, gCurrentVFO->fTX);
     SYSTEM_DelayMs(10);
     BK4819_ExitSubAu();
-
-  } else {
+  } else if (gTxState == TX_ON) {
     BK4819_ExitDTMF_TX(true);
     RADIO_EnableCxCSS();
 
@@ -260,8 +284,6 @@ void RADIO_ToggleBK1080(bool on) {
   if (on == isBK1080) {
     return;
   }
-  UART_printf("RADIO_ToggleBK1080(%u)\n", on);
-  UART_flush();
   isBK1080 = on;
 
   if (isBK1080) {
@@ -318,11 +340,20 @@ void RADIO_ToggleListeningBW(void) {
   onPresetUpdate();
 }
 
+void RADIO_ToggleTxPower(void) {
+  if (gCurrentPreset->power == TX_POW_HIGH) {
+    gCurrentPreset->power = TX_POW_LOW;
+  } else {
+    ++gCurrentPreset->power;
+  }
+
+  BK4819_SetFilterBandwidth(gCurrentPreset->band.bw);
+  onPresetUpdate();
+}
+
 void RADIO_SetSquelchPure(uint32_t f, uint8_t sql) { BK4819_Squelch(sql, f); }
 
 void RADIO_TuneToPure(uint32_t f) {
-  UART_printf("RADIO_TuneToPure(%u)\n", f);
-  UART_flush();
   LOOT_Replace(&gLoot[gSettings.activeVFO], f);
   if (isBK1080) {
     BK1080_SetFrequency(f);
@@ -333,14 +364,10 @@ void RADIO_TuneToPure(uint32_t f) {
 
 void RADIO_SetupByCurrentVFO(void) {
   uint32_t f = gCurrentVFO->fRX;
-  UART_printf("RADIO_SetupByCurrentVFO\n");
-  UART_flush();
 
   Preset *p = PRESET_ByFrequency(f);
 
   if (p != gCurrentPreset) {
-    UART_printf("! New preset\n");
-    UART_flush();
     gVFOPresets[gSettings.activeVFO] = gCurrentPreset = p;
     gSettings.activePreset = PRESET_GetCurrentIndex();
 
@@ -410,8 +437,6 @@ void RADIO_SetGain(uint8_t gainIndex) {
 
 void RADIO_SetupBandParams(Band *b) {
   uint32_t fMid = b->bounds.start + (b->bounds.end - b->bounds.start) / 2;
-  UART_printf("RADIO_SetupBandParams %s\n", b->name);
-  UART_flush();
   BK4819_SelectFilter(fMid);
   BK4819_SquelchType(b->squelchType);
   BK4819_Squelch(b->squelch, fMid);
@@ -421,9 +446,7 @@ void RADIO_SetupBandParams(Band *b) {
   // BK4819_RX_TurnOn(); // TODO: needeed?
 }
 
-uint16_t RADIO_GetRSSI(void) {
-  return isBK1080 ? BK1080_GetRSSI() : BK4819_GetRSSI();
-}
+uint16_t RADIO_GetRSSI(void) { return isBK1080 ? 128 : BK4819_GetRSSI(); }
 
 void RADIO_UpdateMeasurements(void) {
   // TODO: timeout logic here
@@ -482,8 +505,6 @@ void RADIO_NextCH(bool next) {
 }
 
 void RADIO_NextVFO(void) {
-  UART_printf("RADIO_NextVFO()\n");
-  UART_flush();
   gSettings.activeVFO = !gSettings.activeVFO;
   gCurrentVFO = &gVFO[gSettings.activeVFO];
   gCurrentLoot = &gLoot[gSettings.activeVFO];
@@ -522,13 +543,7 @@ void RADIO_NextFreq(bool next) {
   }
 
   Preset *nextPreset = PRESET_ByFrequency(gCurrentVFO->fRX + dir);
-  UART_printf("PSz: %u\n", PRESETS_Size());
-  UART_printf("F: %u <=> %u\n", gCurrentVFO->fRX, gCurrentVFO->fRX + dir);
-  UART_flush();
   if (nextPreset != gCurrentPreset && nextPreset != &defaultPreset) {
-    UART_printf("P: %u(%s) <=> %u(%s)\n", nextPreset, nextPreset->band.name,
-                gCurrentPreset, gCurrentPreset->band.name);
-    UART_flush();
     if (next) {
       RADIO_TuneTo(nextPreset->band.bounds.start);
     } else {

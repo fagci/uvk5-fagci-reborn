@@ -4,6 +4,7 @@
 #include "../ui/graphics.h"
 #include "../ui/statusline.h"
 #include "about.h"
+#include "antenna.h"
 #include "appslist.h"
 #include "channelscanner.h"
 #include "fastscan.h"
@@ -65,6 +66,7 @@ const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
     APP_FASTSCAN,     //
     APP_SCANLISTS,    //
     APP_PRESETS_LIST, //
+    APP_ANT,          //
     APP_TASK_MANAGER, //
     APP_ABOUT,        //
 };
@@ -98,6 +100,8 @@ const App apps[APPS_COUNT] = {
     {"1 VFO", VFO1_init, VFO1_update, VFO1_render, VFO1_key, VFO1_deinit},
     {"2 VFO", VFO2_init, VFO2_update, VFO2_render, VFO2_key, VFO2_deinit},
     {"ABOUT", ABOUT_Init, ABOUT_Update, ABOUT_Render, ABOUT_key, ABOUT_Deinit},
+    {"Antenna len", ANTENNA_init, ANTENNA_update, ANTENNA_render, ANTENNA_key,
+     ANTENNA_deinit},
 };
 
 bool APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
