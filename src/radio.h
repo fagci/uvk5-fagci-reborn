@@ -13,6 +13,7 @@ typedef enum {
   TX_VOL_HIGH,
   TX_BAT_LOW,
   TX_DISABLED,
+  TX_DISABLED_UPCONVERTER,
   TX_POW_OVERDRIVE,
 } TXState;
 
@@ -40,7 +41,7 @@ extern const char *powerNames[];
 extern const char *bwNames[3];
 extern const char *deviationNames[];
 extern const char *sqTypeNames[4];
-extern const char *TX_STATE_NAMES[6];
+extern const char *TX_STATE_NAMES[7];
 
 void RADIO_SetupRegisters();
 

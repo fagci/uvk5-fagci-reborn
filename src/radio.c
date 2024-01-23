@@ -52,13 +52,11 @@ const uint32_t upConverterValues[3] = {0, 5000000, 12500000};
 const char *upConverterFreqNames[3] = {"None", "50M", "125M"};
 
 const char *modulationTypeOptions[6] = {"FM", "AM", "SSB", "BYP", "RAW", "WFM"};
-const char *vfoStateNames[] = {
-    "NORMAL", "BUSY", "BAT LOW", "DISABLE", "TIMEOUT", "ALARM", "VOL HIGH",
-};
 const char *powerNames[] = {"LOW", "MID", "HIGH"};
 const char *bwNames[3] = {"25k", "12.5k", "6.25k"};
-const char *TX_STATE_NAMES[6] = {"TX Off",  "TX On",    "VOL HIGH",
-                                 "BAT LOW", "DISABLED", "POWER OVERDRIVE"};
+const char *TX_STATE_NAMES[7] = {"TX Off",         "TX On",    "VOL HIGH",
+                                 "BAT LOW",        "DISABLED", "UPCONVERTER",
+                                 "POWER OVERDRIVE"};
 
 const SquelchType sqTypeValues[4] = {
     SQUELCH_RSSI_NOISE_GLITCH,
@@ -231,6 +229,10 @@ void RADIO_ToggleTX(bool on) {
                                   : gCurrentVFO->fRX + gCurrentPreset->offset;
 
   if (on) {
+    if (gSettings.upconverter) {
+      gTxState = TX_DISABLED_UPCONVERTER;
+      return;
+    }
     if (!gCurrentPreset->allowTx) {
       gTxState = TX_DISABLED;
       return;

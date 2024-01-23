@@ -20,9 +20,9 @@ static uint32_t tempFreq;
 
 static bool dotBlink = true;
 
-static void ResetFreqInput() { tempFreq = 0; }
+static void ResetFreqInput(void) { tempFreq = 0; }
 
-static void dotBlinkFn() {
+static void dotBlinkFn(void) {
   if (!freqInputDotIndex) {
     dotBlink = !dotBlink;
     gRedrawScreen = true;
@@ -68,7 +68,7 @@ static void input(KEY_Code_t key) {
   }
 }
 
-void FINPUT_init() {
+void FINPUT_init(void) {
   UI_ClearStatus();
   freqInputIndex = 0;
   freqInputDotIndex = 0;
@@ -76,7 +76,7 @@ void FINPUT_init() {
   TaskAdd("Dot blink", dotBlinkFn, 250, true);
 }
 
-void FINPUT_deinit() { TaskRemove(dotBlinkFn); }
+void FINPUT_deinit(void) { TaskRemove(dotBlinkFn); }
 
 bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyHeld) {
@@ -112,7 +112,6 @@ bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_MENU:
   case KEY_F:
   case KEY_PTT:
-    tempFreq = GetTuneF(tempFreq);
     if (tempFreq <= F_MAX && gFInputCallback) {
       APPS_exit();
       gFInputCallback(tempFreq);
@@ -125,7 +124,7 @@ bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void FINPUT_render() {
+void FINPUT_render(void) {
   UI_ClearScreen();
 
   uint8_t dotIndex = freqInputDotIndex ? freqInputDotIndex : freqInputIndex;

@@ -13,6 +13,10 @@ static uint32_t lastUpdate = 0;
 
 // TODO: check if any msm/loot is buggy
 
+static void tuneTo(uint32_t f) {
+  RADIO_TuneToSave(GetTuneF(f));
+} // entered 7.1, tuned to 7.1 + 125 = 132.1
+
 void VFO2_init(void) {
   RADIO_SetupByCurrentVFO();
 
@@ -99,7 +103,7 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_7:
     case KEY_8:
     case KEY_9:
-      gFInputCallback = RADIO_TuneToSave;
+      gFInputCallback = tuneTo;
       APPS_run(APP_FINPUT);
       APPS_key(key, bKeyPressed, bKeyHeld);
       return true;
@@ -131,12 +135,14 @@ static void render2VFOPart(uint8_t i) {
   const bool isActive = gSettings.activeVFO == i;
   const Loot *loot = &gLoot[i];
 
-  const uint16_t fp1 = vfo->fRX / 100000;
-  const uint16_t fp2 = vfo->fRX / 100 % 1000;
-  const uint8_t fp3 = vfo->fRX % 100;
+  uint32_t f = GetScreenF(vfo->fRX);
+
+  const uint16_t fp1 = f / 100000;
+  const uint16_t fp2 = f / 100 % 1000;
+  const uint8_t fp3 = f % 100;
   const char *mod = modulationTypeOptions[p->band.modulation];
 
-  if (isActive) {
+  if (isActive && gTxState <= TX_ON) {
     FillRect(0, bl - 14, 28, 7, C_FILL);
     if (gTxState == TX_ON) {
       PrintMediumEx(0, bl, POS_L, C_INVERT, "TX");
@@ -148,11 +154,11 @@ static void render2VFOPart(uint8_t i) {
   }
   uint8_t pow = p->power + 1;
   for (uint8_t ii = 0; ii < pow; ++ii) {
-    FillRect(29, bl - 14 + 4 - ii * 2, 2 * (ii+1), 2, C_FILL);
+    FillRect(29, bl - 14 + 4 - ii * 2, 2 * (ii + 1), 2, C_FILL);
   }
 
   if (gTxState && gTxState != TX_ON && isActive) {
-    PrintMediumBoldEx(LCD_XCENTER, bl - 8, POS_C, C_FILL, "%s",
+    PrintMediumBoldEx(LCD_XCENTER, bl - 8 + 4, POS_C, C_FILL, "%s",
                       TX_STATE_NAMES[gTxState]);
   } else {
     if (vfo->isMrMode) {
