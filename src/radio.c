@@ -227,9 +227,16 @@ void RADIO_ToggleTX(bool on) {
   }
 
   uint8_t power = 0;
+  uint32_t fTX = gCurrentVFO->fTX ? gCurrentVFO->fTX
+                                  : gCurrentVFO->fRX + gCurrentPreset->offset;
 
   if (on) {
     if (!gCurrentPreset->allowTx) {
+      gTxState = TX_DISABLED;
+      return;
+    }
+    if (!(PRESET_InRange(fTX, gCurrentPreset) ||
+          PRESET_InRangeOffset(fTX, gCurrentPreset))) {
       gTxState = TX_DISABLED;
       return;
     }
@@ -255,24 +262,8 @@ void RADIO_ToggleTX(bool on) {
 
     BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, false);
     RADIO_SetupBandParams(&gCurrentPreset->band);
-    /*
-            Скорее всего логика будет такой:
-    - если указана частота передачи в VFO, используем её
-    - если частота передачи не указана, берём частоту приёма + оффсет из пресета
 
-    Проверка на возможность передачи:
-    - если частота передачи не указана, разрешаем по пресету
-    - если частота передачи указана, тут хз, но есть варианты:
-
-    а. разрешаем передачу только в пределах пресета
-    б. разрешаем передачу в пределах пресета + оффсет (что кажется более
-    правильным)
-    в. разрешаем передачу в пределах пресета ИЛИ предел пресета + оффсет
-    */
-
-    BK4819_SetFrequency(gCurrentVFO->fTX
-                            ? gCurrentVFO->fTX
-                            : gCurrentVFO->fRX + gCurrentPreset->offset);
+    BK4819_SetFrequency(fTX);
 
     BK4819_PrepareTransmit();
 
@@ -289,6 +280,8 @@ void RADIO_ToggleTX(bool on) {
     BK4819_SetupPowerAmplifier(0, 0);
     BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, false);
     BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, true);
+
+    BK4819_SetFrequency(gCurrentVFO->fRX);
     BK4819_RX_TurnOn();
   }
 

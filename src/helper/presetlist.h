@@ -17,6 +17,8 @@ int8_t PRESET_SelectByFrequency(uint32_t f);
 void PRESETS_SavePreset(uint8_t num, Preset *p);
 void PRESETS_LoadPreset(uint8_t num, Preset *p);
 void PRESETS_SaveCurrent();
+bool PRESET_InRange(const uint32_t f, const Preset *p);
+bool PRESET_InRangeOffset(const uint32_t f, const Preset *p);
 
 uint16_t PRESETS_GetStepSize(Preset *p);
 uint16_t PRESETS_GetSteps(Preset *p);

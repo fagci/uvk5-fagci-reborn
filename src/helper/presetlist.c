@@ -56,16 +56,20 @@ uint8_t PRESET_Select(uint8_t i) {
   return i;
 }
 
-static bool inRange(const uint32_t f, const Preset *p) {
+bool PRESET_InRange(const uint32_t f, const Preset *p) {
   return f >= p->band.bounds.start && f <= p->band.bounds.end;
 }
 
+bool PRESET_InRangeOffset(const uint32_t f, const Preset *p) {
+  return f >= p->band.bounds.start + p->offset && f <= p->band.bounds.end + p->offset;
+}
+
 int8_t PRESET_SelectByFrequency(uint32_t f) {
-  if (inRange(f, gCurrentPreset)) {
+  if (PRESET_InRange(f, gCurrentPreset)) {
     return gSettings.activePreset;
   }
   for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
-    if (inRange(f, &presets[i])) {
+    if (PRESET_InRange(f, &presets[i])) {
       return PRESET_Select(i);
     }
   }
