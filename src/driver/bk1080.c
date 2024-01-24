@@ -36,7 +36,6 @@ void BK1080_SetFrequency(uint32_t f) {
 
   uint16_t sysCfg2 = (vol << 0) | (chSp << 4) | (band << 6) | (seekThres << 8);
 
-
   BK1080_WriteRegister(BK1080_REG_05_SYSTEM_CONFIGURATION2, sysCfg2);
   BK1080_WriteRegister(BK1080_REG_03_CHANNEL, channel);
   SYSTEM_DelayMs(10);
@@ -61,6 +60,7 @@ void BK1080_Init(uint32_t f, bool bEnable) {
     } else {
       BK1080_WriteRegister(BK1080_REG_02_POWER_CONFIGURATION, 0x0201);
     }
+    currentF = 0;
     BK1080_SetFrequency(f);
   } else {
     BK1080_WriteRegister(BK1080_REG_02_POWER_CONFIGURATION, 0x0241);
