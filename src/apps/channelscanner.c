@@ -5,6 +5,8 @@
 #include "../helper/measurements.h"
 #include "../radio.h"
 #include "../scheduler.h"
+#include "../svc.h"
+#include "../svc_scan.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
 #include "apps.h"
@@ -32,6 +34,19 @@ static void showItem(uint16_t i, uint16_t index, bool isCurrent) {
   }
 }
 
+static void scanFn(bool fowward) {
+  RADIO_UpdateMeasurementsEx(LOOT_Item(scanIndex));
+
+  if (gIsListening) {
+    lastActiveLootIndex = scanIndex;
+  }
+
+  if (!gIsListening) {
+    IncDec16(&scanIndex, 0, gScanlistSize, fowward ? 1 : -1);
+    RADIO_TuneToPure(LOOT_Item(scanIndex)->f);
+  }
+}
+
 void CHSCANNER_init(void) {
   currentIndex = 0;
   scanIndex = 0;
@@ -48,9 +63,12 @@ void CHSCANNER_init(void) {
   if (gScanlistSize) {
     RADIO_TuneToPure(LOOT_Item(scanIndex)->f);
   }
+
+  gScanFn = scanFn;
+  SVC_Toggle(SVC_SCAN, true, 10);
 }
 
-void CHSCANNER_deinit(void) { RADIO_ToggleRX(false); }
+void CHSCANNER_deinit(void) { SVC_Toggle(SVC_SCAN, false, 0); }
 
 bool CHSCANNER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed || (bKeyPressed && !bKeyHeld)) {
@@ -78,18 +96,7 @@ bool CHSCANNER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void CHSCANNER_update(void) {
-  RADIO_UpdateMeasurementsEx(LOOT_Item(scanIndex));
-
-  if (gIsListening) {
-    lastActiveLootIndex = scanIndex;
-  }
-
-  if (!gIsListening) {
-    IncDec16(&scanIndex, 0, gScanlistSize, 1);
-    RADIO_TuneToPure(LOOT_Item(scanIndex)->f);
-  }
-}
+void CHSCANNER_update(void) {}
 
 void CHSCANNER_render(void) {
   UI_ClearScreen();

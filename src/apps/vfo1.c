@@ -2,6 +2,8 @@
 #include "../helper/lootlist.h"
 #include "../radio.h"
 #include "../scheduler.h"
+#include "../svc.h"
+#include "../svc_scan.h"
 #include "../ui/graphics.h"
 #include "apps.h"
 #include "finput.h"
@@ -13,15 +15,9 @@ void VFO1_init(void) {
   gRedrawScreen = true;
 }
 
-void VFO1_deinit(void) {
-  if (APPS_Peek() != APP_FINPUT && APPS_Peek() != APP_VFO1) {
-    RADIO_ToggleRX(false);
-  }
-}
+void VFO1_deinit(void) {}
 
 void VFO1_update(void) {
-  RADIO_UpdateMeasurementsEx(gCurrentLoot);
-
   if (elapsedMilliseconds - lastUpdate >= 500) {
     gRedrawScreen = true;
     lastUpdate = elapsedMilliseconds;
@@ -33,9 +29,17 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (key) {
     case KEY_UP:
+      if (SVC_Running(SVC_SCAN)) {
+        gScanForward = true;
+        return true;
+      }
       RADIO_NextFreq(true);
       return true;
     case KEY_DOWN:
+      if (SVC_Running(SVC_SCAN)) {
+        gScanForward = false;
+        return true;
+      }
       RADIO_NextFreq(false);
       return true;
     default:
@@ -51,6 +55,9 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       RADIO_NextVFO(true);
       msm.f = gCurrentVFO->fRX;
       return true; */
+    case KEY_STAR:
+      SVC_Toggle(SVC_SCAN, true, 10);
+      return true;
     case KEY_EXIT:
       return true;
     case KEY_3:
@@ -97,6 +104,10 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       gMonitorMode = !gMonitorMode;
       return true;
     case KEY_EXIT:
+      if (SVC_Running(SVC_SCAN)) {
+        SVC_Toggle(SVC_SCAN, false, 0);
+        return true;
+      }
       if (!APPS_exit()) {
         LOOT_Standby();
         RADIO_NextVFO();

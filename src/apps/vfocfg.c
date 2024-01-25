@@ -4,46 +4,26 @@
 #include "../helper/presetlist.h"
 #include "../misc.h"
 #include "../radio.h"
-#include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
 #include "../ui/statusline.h"
 #include "apps.h"
 #include "finput.h"
-#include "textinput.h"
-
-typedef enum {
-  M_F_RX,  // uint32_t fRX : 32;
-  M_F_TX,  // uint32_t fTX : 32;
-  M_F_TXP, // uint32_t fTX : 32;
-  // uint8_t memoryBanks : 8;
-  M_STEP,       // uint8_t step : 8;
-  M_MODULATION, // uint8_t modulation : 4;
-  M_BW,         // uint8_t bw : 2;
-                // uint8_t power : 2;
-                // uint8_t codeRx : 8;
-                // uint8_t codeTx : 8;
-                // uint8_t codeTypeRx : 4;
-                // uint8_t codeTypeTx : 4;
-  M_SQ,
-  M_SQ_TYPE,
-  M_SAVE,
-} VfoCfgMenu;
 
 static uint8_t menuIndex = 0;
 static uint8_t subMenuIndex = 0;
 static bool isSubMenu = false;
 
 static MenuItem menu[] = {
-    {"RX freq", M_F_RX},
-    {"TX freq", M_F_TX},
+    {"RX freq", M_F_RX, 0},
+    {"TX freq", M_F_TX, 0},
     {"TX power", M_F_TXP, ARRAY_SIZE(TX_POWER_NAMES)},
     {"Step", M_STEP, ARRAY_SIZE(StepFrequencyTable)},
     {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions)},
     {"BW", M_BW, ARRAY_SIZE(bwNames)},
     {"SQ type", M_SQ_TYPE, ARRAY_SIZE(sqTypeNames)},
     {"SQ level", M_SQ, 10},
-    {"Save", M_SAVE},
+    {"Save", M_SAVE, 0},
 };
 
 static void setInitialSubmenuIndex(void) {
@@ -105,89 +85,31 @@ static void accept(void) {
   }
 }
 
-static void getValue(VfoCfgMenu type, char *value) {
-  switch (type) {
-  case M_F_RX:
-    sprintf(value, "%u.%05u", gCurrentVFO->fRX / 100000,
-            gCurrentVFO->fRX % 100000);
-    break;
-  case M_F_TX:
-    sprintf(value, "%u.%05u", gCurrentVFO->fTX / 100000,
-            gCurrentVFO->fTX % 100000);
-    break;
-  case M_F_TXP:
-    snprintf(value, 15, TX_POWER_NAMES[gCurrentPreset->power]);
-    break;
-  case M_BW:
-    snprintf(value, 15, bwNames[gCurrentPreset->band.bw]);
-    break;
-  case M_MODULATION:
-    snprintf(value, 15, modulationTypeOptions[gCurrentPreset->band.modulation]);
-  case M_STEP:
-    sprintf(value, "%d.%02dKHz",
-            StepFrequencyTable[gCurrentPreset->band.step] / 100,
-            StepFrequencyTable[gCurrentPreset->band.step] % 100);
-    break;
-  case M_SQ_TYPE:
-    snprintf(value, 15, sqTypeNames[gCurrentPreset->band.squelchType]);
-    break;
-  case M_SQ:
-    sprintf(value, "%u", gCurrentPreset->band.squelch);
-    break;
-  default:
-    break;
-  }
-}
-
 static void getMenuItemText(uint16_t index, char *name) {
   strncpy(name, menu[index].name, 31);
 }
 
-static void getStepText(uint16_t i, char *name) {
-  sprintf(name, "%d.%02dKHz", StepFrequencyTable[i] / 100,
-          StepFrequencyTable[i] % 100);
-}
-
-static void getSquelchValueText(uint16_t i, char *name) {
-  sprintf(name, "%u", i);
-}
-
-static void getModulationTypeText(uint16_t index, char *name) {
-  strncpy(name, modulationTypeOptions[index], 31);
-}
-
-static void getTXPowerName(uint16_t index, char *name) {
-  strncpy(name, TX_POWER_NAMES[index], 31);
-}
-
-static void getBWName(uint16_t index, char *name) {
-  strncpy(name, bwNames[index], 31);
-}
-
-static void getSQTypeName(uint16_t index, char *name) {
-  strncpy(name, sqTypeNames[index], 31);
-}
-
-static void showSubmenu(VfoCfgMenu m) {
+static void getSubmenuItemText(uint16_t index, char *name) {
   const MenuItem *item = &menu[menuIndex];
-  switch (m) {
+  switch (item->type) {
   case M_MODULATION:
-    UI_ShowMenu(getModulationTypeText, item->size, subMenuIndex);
+    strncpy(name, modulationTypeOptions[index], 31);
     return;
   case M_BW:
-    UI_ShowMenu(getBWName, item->size, subMenuIndex);
+    strncpy(name, bwNames[index], 31);
     return;
   case M_F_TXP:
-    UI_ShowMenu(getTXPowerName, item->size, subMenuIndex);
+    strncpy(name, TX_POWER_NAMES[index], 31);
     return;
   case M_STEP:
-    UI_ShowMenu(getStepText, item->size, subMenuIndex);
+    sprintf(name, "%d.%02dKHz", StepFrequencyTable[index] / 100,
+            StepFrequencyTable[index] % 100);
     return;
   case M_SQ_TYPE:
-    UI_ShowMenu(getSQTypeName, item->size, subMenuIndex);
+    strncpy(name, sqTypeNames[index], 31);
     return;
   case M_SQ:
-    UI_ShowMenu(getSquelchValueText, item->size, subMenuIndex);
+    sprintf(name, "%u", index);
     return;
   default:
     break;
@@ -203,7 +125,9 @@ void VFOCFG_init(void) {
   gRedrawScreen = true;
   menu[3].size -= (RADIO_IsBK1080Range(gCurrentVFO->fRX) ? 0 : 1);
 }
+
 void VFOCFG_update(void) {}
+
 bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   const MenuItem *item = &menu[menuIndex];
   const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
@@ -260,16 +184,17 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   }
   return false;
 }
+
 void VFOCFG_render(void) {
   UI_ClearScreen();
   const MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {
-    showSubmenu(item->type);
+    UI_ShowMenu(getSubmenuItemText, item->size, subMenuIndex);
     STATUSLINE_SetText(item->name);
   } else {
     UI_ShowMenu(getMenuItemText, ARRAY_SIZE(menu), menuIndex);
     char Output[32] = "";
-    getValue(item->type, Output);
+    GetMenuItemValue(item->type, Output);
     PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 4, POS_C, C_FILL, Output);
   }
 }

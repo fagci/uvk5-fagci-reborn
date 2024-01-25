@@ -3,19 +3,16 @@
 #include "../helper/lootlist.h"
 #include "../helper/presetlist.h"
 #include "../scheduler.h"
+#include "../svc.h"
+#include "../svc_scan.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "apps.h"
 #include "finput.h"
 
 static uint32_t lastRender = 0;
-static uint32_t lastUpdate = 0;
 
-// TODO: check if any msm/loot is buggy
-
-static void tuneTo(uint32_t f) {
-  RADIO_TuneToSave(GetTuneF(f));
-} // entered 7.1, tuned to 7.1 + 125 = 132.1
+static void tuneTo(uint32_t f) { RADIO_TuneToSave(GetTuneF(f)); }
 
 void VFO2_init(void) {
   RADIO_SetupByCurrentVFO();
@@ -23,21 +20,12 @@ void VFO2_init(void) {
   gRedrawScreen = true;
 }
 
-void VFO2_deinit(void) {
-  /* if (APPS_Peek() != APP_FINPUT && APPS_Peek() != APP_VFO2) {
-    RADIO_ToggleRX(false);
-  } */
-}
+void VFO2_deinit(void) {}
 
 void VFO2_update(void) {
-  if (elapsedMilliseconds - lastUpdate >= (isBK1080 ? 100 : 10)) {
-    RADIO_UpdateMeasurements();
-    lastUpdate = elapsedMilliseconds;
-
-    if (elapsedMilliseconds - lastRender >= 500) {
-      gRedrawScreen = true;
-      lastRender = elapsedMilliseconds;
-    }
+  if (elapsedMilliseconds - lastRender >= 500) {
+    gRedrawScreen = true;
+    lastRender = elapsedMilliseconds;
   }
 }
 
@@ -51,9 +39,17 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (key) {
     case KEY_UP:
+      if (SVC_Running(SVC_SCAN)) {
+        gScanForward = true;
+        return true;
+      }
       RADIO_NextFreq(true);
       return true;
     case KEY_DOWN:
+      if (SVC_Running(SVC_SCAN)) {
+        gScanForward = false;
+        return true;
+      }
       RADIO_NextFreq(false);
       return true;
     default:
@@ -85,6 +81,9 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_6:
       RADIO_ToggleTxPower();
       return true;
+    case KEY_STAR:
+      SVC_Toggle(SVC_SCAN, true, 10);
+      return true;
     default:
       break;
     }
@@ -114,6 +113,10 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       gMonitorMode = !gMonitorMode;
       return true;
     case KEY_EXIT:
+      if (SVC_Running(SVC_SCAN)) {
+        SVC_Toggle(SVC_SCAN, false, 0);
+        return true;
+      }
       if (!APPS_exit()) {
         LOOT_Standby();
         RADIO_NextVFO();

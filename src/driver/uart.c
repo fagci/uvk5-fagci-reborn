@@ -150,6 +150,16 @@ void UART_logf(uint8_t level, const char *pattern, ...) {
   }
 }
 
+void Log(const char *pattern, ...) {
+    char text[128];
+    va_list args;
+    va_start(args, pattern);
+    vsnprintf(text, sizeof(text), pattern, args);
+    va_end(args);
+    UART_printf("%u %s\n", elapsedMilliseconds, text);
+    UART_flush();
+}
+
 #define DMA_INDEX(x, y) (((x) + (y)) % sizeof(UART_DMA_Buffer))
 
 static uint16_t write_index = 0;

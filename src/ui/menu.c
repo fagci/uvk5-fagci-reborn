@@ -68,3 +68,57 @@ void UI_ShowMenuEx(void (*showItem)(uint16_t i, uint16_t index, bool isCurrent),
 
   UI_DrawScrollBar(size, currentIndex, linesMax);
 }
+
+#include "../helper/presetlist.h"
+
+void GetMenuItemValue(PresetCfgMenu type, char *Output) {
+  Band *band = &gCurrentPreset->band;
+  uint32_t fs = band->bounds.start;
+  uint32_t fe = band->bounds.end;
+  switch (type) {
+  case M_START:
+    sprintf(Output, "%lu.%03lu", fs / 100000, fs / 100 % 1000);
+    break;
+  case M_END:
+    sprintf(Output, "%lu.%03lu", fe / 100000, fe / 100 % 1000);
+    break;
+  case M_NAME:
+    strncpy(Output, band->name, 31);
+    break;
+  case M_BW:
+    strncpy(Output, bwNames[band->bw], 31);
+    break;
+  case M_SQ_TYPE:
+    strncpy(Output, sqTypeNames[band->squelchType], 31);
+    break;
+  case M_SQ:
+    sprintf(Output, "%u", band->squelch);
+    break;
+  case M_GAIN:
+    sprintf(Output, "%ddB", gainTable[band->gainIndex].gainDb);
+    break;
+  case M_MODULATION:
+    strncpy(Output, modulationTypeOptions[band->modulation], 31);
+    break;
+  case M_STEP:
+    sprintf(Output, "%u.%02uKHz", StepFrequencyTable[band->step] / 100,
+            StepFrequencyTable[band->step] % 100);
+    break;
+  case M_TX:
+    strncpy(Output, yesNo[gCurrentPreset->allowTx], 31);
+    break;
+  case M_F_RX:
+    sprintf(Output, "%u.%05u", gCurrentVFO->fRX / 100000,
+            gCurrentVFO->fRX % 100000);
+    break;
+  case M_F_TX:
+    sprintf(Output, "%u.%05u", gCurrentVFO->fTX / 100000,
+            gCurrentVFO->fTX % 100000);
+    break;
+  case M_F_TXP:
+    snprintf(Output, 15, TX_POWER_NAMES[gCurrentPreset->power]);
+    break;
+  default:
+    break;
+  }
+}

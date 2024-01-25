@@ -25,6 +25,10 @@ void TaskRemove(void (*handler)(void));
 bool TaskExists(void (*handler)(void));
 void TaskTouch(void (*handler)(void));
 void TasksUpdate(void);
+uint32_t Now(void);
+
+void SetTimeout(uint32_t *v, uint32_t t);
+bool CheckTimeout(uint32_t *v);
 
 extern volatile Task tasks[TASKS_MAX];
 

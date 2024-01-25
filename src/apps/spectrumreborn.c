@@ -5,6 +5,8 @@
 #include "../helper/presetlist.h"
 #include "../scheduler.h"
 #include "../settings.h"
+#include "../svc.h"
+#include "../svc_scan.h"
 #include "../ui/graphics.h"
 #include "../ui/spectrum.h"
 #include "../ui/statusline.h"
@@ -35,17 +37,7 @@ static void startNewScan(bool reset) {
   }
 }
 
-void SPECTRUM_init(void) {
-  RADIO_LoadCurrentVFO();
-  startNewScan(true);
-  gRedrawScreen = true;
-}
-
-void SPECTRUM_update(void) {
-  if (elapsedMilliseconds - lastUpdate < 10) {
-    return;
-  }
-
+static void scanFn(bool forward) {
   RADIO_UpdateMeasurements();
 
   Loot *msm = &gLoot[gSettings.activeVFO];
@@ -84,7 +76,18 @@ void SPECTRUM_update(void) {
   SP_Next();
 }
 
-void SPECTRUM_deinit(void) { RADIO_ToggleRX(false); }
+void SPECTRUM_init(void) {
+  RADIO_LoadCurrentVFO();
+  startNewScan(true);
+  gRedrawScreen = true;
+  gScanFn = scanFn;
+  SVC_Toggle(SVC_SCAN, true, 10);
+}
+
+void SPECTRUM_update(void) {
+}
+
+void SPECTRUM_deinit(void) { SVC_Toggle(SVC_SCAN, false, 0); }
 
 bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {

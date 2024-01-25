@@ -10,11 +10,27 @@ static const uint8_t MENU_LINES_TO_SHOW = 4;
 extern const char *onOff[];
 extern const char *yesNo[];
 
+typedef enum {
+  M_START,
+  M_END,
+  M_NAME,
+  M_STEP,
+  M_MODULATION,
+  M_BW,
+  M_SQ,
+  M_SQ_TYPE,
+  M_GAIN,
+  M_TX,
+  M_F_RX,
+  M_F_TX,
+  M_F_TXP,
+  M_SAVE,
+} PresetCfgMenu;
+
 typedef struct MenuItem {
   const char *name;
   uint8_t type;
   uint8_t size;
-  void (*getItemText)(uint16_t index, char *name);
 } MenuItem;
 
 typedef enum {
@@ -31,5 +47,7 @@ void UI_ShowMenu(void (*getItemText)(uint16_t index, char *name), uint16_t size,
                  uint16_t currentIndex);
 void UI_ShowMenuEx(void (*showItem)(uint16_t i, uint16_t index, bool isCurrent),
                    uint16_t size, uint16_t currentIndex, uint16_t linesMax);
+
+void GetMenuItemValue(PresetCfgMenu type, char *Output);
 
 #endif /* end of include guard: MENU_H */

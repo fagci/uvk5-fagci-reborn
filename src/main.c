@@ -12,9 +12,9 @@
 #include "helper/presetlist.h"
 #include "inc/dp32g030/gpio.h"
 #include "radio.h"
-#include "radio_scheduler.h"
 #include "scheduler.h"
 #include "settings.h"
+#include "svc.h"
 #include "ui/graphics.h"
 #include "ui/statusline.h"
 #include <stdbool.h>
@@ -106,7 +106,9 @@ static void sysUpdate(void) {
 
 static void AddTasks(void) {
   TaskAdd("Keys", Keys, 10, true);
-  TaskAdd("Update radio", RADIO_SCHEDULER_Update, 10, true);
+
+  SVC_Toggle(SVC_LISTEN, true, 10);
+
   TaskAdd("Update", Update, 1, true);
   TaskAdd("1s sys upd", sysUpdate, 1000, true);
 

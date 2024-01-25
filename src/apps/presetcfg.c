@@ -10,20 +10,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-typedef enum {
-  M_START,
-  M_END,
-  M_NAME,       // char name[16];
-  M_STEP,       // uint8_t step : 8;
-  M_MODULATION, // uint8_t modulation : 4;
-  M_BW,         // uint8_t bw : 2;
-  M_SQ,
-  M_SQ_TYPE,
-  M_GAIN,
-  M_TX,
-  // M_SAVE,
-} PresetCfgMenu;
-
 static uint8_t menuIndex = 0;
 static uint8_t subMenuIndex = 0;
 static bool isSubMenu = false;
@@ -39,7 +25,6 @@ static MenuItem menu[] = {
     {"SQ type", M_SQ_TYPE, ARRAY_SIZE(sqTypeNames)},
     {"Gain", M_GAIN, ARRAY_SIZE(gainTable)},
     {"Enable TX", M_TX, 2},
-    // {"Save", M_SAVE},
 };
 
 static void setInitialSubmenuIndex(void) {
@@ -108,100 +93,35 @@ static void accept(void) {
   }
 }
 
-static char Output[16];
-static const char *getValue(PresetCfgMenu type) {
-  uint32_t fs = gCurrentPreset->band.bounds.start;
-  uint32_t fe = gCurrentPreset->band.bounds.end;
-  switch (type) {
-  case M_START:
-    sprintf(Output, "%lu.%03lu", fs / 100000, fs / 100 % 1000);
-    return Output;
-  case M_END:
-    sprintf(Output, "%lu.%03lu", fe / 100000, fe / 100 % 1000);
-    return Output;
-  case M_NAME:
-    return gCurrentPreset->band.name;
-  case M_BW:
-    return bwNames[gCurrentPreset->band.bw];
-  case M_SQ_TYPE:
-    return sqTypeNames[gCurrentPreset->band.squelchType];
-  case M_SQ:
-    sprintf(Output, "%u", gCurrentPreset->band.squelch);
-    return Output;
-  case M_GAIN:
-    sprintf(Output, "%ddB", gainTable[gCurrentPreset->band.gainIndex].gainDb);
-    return Output;
-  case M_MODULATION:
-    return modulationTypeOptions[gCurrentPreset->band.modulation];
-  case M_STEP:
-    sprintf(Output, "%u.%02uKHz",
-            StepFrequencyTable[gCurrentPreset->band.step] / 100,
-            StepFrequencyTable[gCurrentPreset->band.step] % 100);
-    return Output;
-  case M_TX:
-    return yesNo[gCurrentPreset->allowTx];
-  default:
-    break;
-  }
-  return "";
-}
-
 static void getMenuItemText(uint16_t index, char *name) {
   strncpy(name, menu[index].name, 31);
 }
 
-static void getStepText(uint16_t i, char *name) {
-  sprintf(name, "%d.%02dKHz", StepFrequencyTable[i] / 100,
-          StepFrequencyTable[i] % 100);
-}
-
-static void getSquelchValueText(uint16_t i, char *name) {
-  sprintf(name, "%u", i);
-}
-
-static void getModulationTypeText(uint16_t index, char *name) {
-  strncpy(name, modulationTypeOptions[index], 31);
-}
-
-static void getBWName(uint16_t index, char *name) {
-  strncpy(name, bwNames[index], 31);
-}
-
-static void getSQTypeName(uint16_t index, char *name) {
-  strncpy(name, sqTypeNames[index], 31);
-}
-
-static void getGainText(uint16_t i, char *name) {
-  sprintf(name, "%ddB%s", gainTable[i].gainDb, i == 90 ? "(def)" : "");
-}
-
-static void getYesNoText(uint16_t index, char *name) {
-  strncpy(name, yesNo[index], 31);
-}
-
-static void showSubmenu(PresetCfgMenu m) {
-  switch (m) {
+static void getSubmenuItemText(uint16_t index, char *name) {
+  const MenuItem *item = &menu[menuIndex];
+  switch (item->type) {
   case M_MODULATION:
-    UI_ShowMenu(getModulationTypeText, ARRAY_SIZE(modulationTypeOptions),
-                subMenuIndex);
+    strncpy(name, modulationTypeOptions[index], 31);
     return;
   case M_BW:
-    UI_ShowMenu(getBWName, ARRAY_SIZE(bwNames), subMenuIndex);
+    strncpy(name, bwNames[index], 31);
     return;
   case M_SQ_TYPE:
-    UI_ShowMenu(getSQTypeName, ARRAY_SIZE(sqTypeNames), subMenuIndex);
+    strncpy(name, sqTypeNames[index], 31);
     return;
   case M_SQ:
-    UI_ShowMenu(getSquelchValueText, 10, subMenuIndex);
+    sprintf(name, "%u", index);
     return;
   case M_STEP:
-    UI_ShowMenu(getStepText, ARRAY_SIZE(StepFrequencyTable), subMenuIndex);
+    sprintf(name, "%d.%02dKHz", StepFrequencyTable[index] / 100,
+            StepFrequencyTable[index] % 100);
     return;
   case M_GAIN:
-    UI_ShowMenu(getGainText, ARRAY_SIZE(gainTable), subMenuIndex);
+    sprintf(name, "%ddB%s", gainTable[index].gainDb,
+            index == 90 ? "(def)" : "");
     return;
   case M_TX:
-    UI_ShowMenu(getYesNoText, 2, subMenuIndex);
+    strncpy(name, yesNo[index], 31);
     return;
   default:
     break;
@@ -287,11 +207,12 @@ void PRESETCFG_render(void) {
   UI_ClearScreen();
   const MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {
-    showSubmenu(item->type);
+    UI_ShowMenu(getSubmenuItemText, item->size, subMenuIndex);
     PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 4, POS_C, C_FILL, item->name);
   } else {
     UI_ShowMenu(getMenuItemText, ARRAY_SIZE(menu), menuIndex);
-    PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 4, POS_C, C_FILL,
-                  getValue(item->type));
+    char Output[32] = "";
+    GetMenuItemValue(item->type, Output);
+    PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 4, POS_C, C_FILL, Output);
   }
 }
