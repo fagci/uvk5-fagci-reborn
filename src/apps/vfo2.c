@@ -155,9 +155,9 @@ static void render2VFOPart(uint8_t i) {
       UI_RSSIBar(gLoot[i].rssi, vfo->fRX, 31);
     }
   }
-  uint8_t pow = p->power + 1;
-  for (uint8_t ii = 0; ii < pow; ++ii) {
-    FillRect(29, bl - 14 + 4 - ii * 2, 2 * (ii + 1), 2, C_FILL);
+
+  if (p->allowTx) {
+    PrintMedium(29, bl - 8, "%c", TX_POWER_NAMES[p->power][0]);
   }
 
   if (gTxState && gTxState != TX_ON && isActive) {
@@ -186,17 +186,14 @@ static void render2VFOPart(uint8_t i) {
     PrintSmallEx(0, bl + 6, POS_L, C_FILL, "D%03oN(fake)",
                  DCS_Options[loot->cd]);
   }
-  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%s (#%u)", p->band.name,
+  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%s :%u", p->band.name,
                PRESETS_GetChannel(p, vfo->fRX) + 1);
   PrintSmallEx(LCD_WIDTH - 1, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,
                est % 60, loot->duration / 1000);
 }
 
-#include "../ui/statusline.h"
-
 void VFO2_render(void) {
   UI_ClearScreen();
-  STATUSLINE_SetText("%u", gCurrentVFO->fRX);
 
   render2VFOPart(0);
   render2VFOPart(1);

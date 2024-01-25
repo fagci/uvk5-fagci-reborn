@@ -25,6 +25,11 @@ void VFO1_update(void) {
 }
 
 bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  if (key == KEY_PTT) {
+    RADIO_ToggleTX(bKeyHeld);
+    return true;
+  }
+
   // up-down keys
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (key) {
@@ -133,8 +138,13 @@ void VFO1_render(void) {
   uint8_t fp3 = vfo->fRX % 100;
   const char *mod = modulationTypeOptions[p->band.modulation];
 
-  PrintBiggestDigitsEx(LCD_WIDTH - 19, BASE, POS_R, C_FILL, "%4u.%03u", fp1,
-                       fp2);
-  PrintMediumEx(LCD_WIDTH - 1, BASE, POS_R, C_FILL, "%02u", fp3);
-  PrintSmallEx(LCD_WIDTH - 1, BASE - 8, POS_R, C_FILL, mod);
+  if (gTxState && gTxState != TX_ON) {
+    PrintMediumBoldEx(LCD_XCENTER, BASE, POS_C, C_FILL, "%s",
+                      TX_STATE_NAMES[gTxState]);
+  } else {
+    PrintBiggestDigitsEx(LCD_WIDTH - 19, BASE, POS_R, C_FILL, "%4u.%03u", fp1,
+                         fp2);
+    PrintMediumEx(LCD_WIDTH - 1, BASE, POS_R, C_FILL, "%02u", fp3);
+    PrintSmallEx(LCD_WIDTH - 1, BASE - 8, POS_R, C_FILL, mod);
+  }
 }
