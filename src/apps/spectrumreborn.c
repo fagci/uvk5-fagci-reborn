@@ -57,12 +57,7 @@ static void scanFn(bool forward) {
     startNewScan(false);
   }
 
-  if (elapsedMilliseconds - lastRender >= 500) {
-    lastRender = elapsedMilliseconds;
-    gRedrawScreen = true;
-  }
-
-  if (gIsListening) {
+  if (gIsListening && (loot && !loot->blacklist)) {
     return;
   }
 
@@ -85,6 +80,10 @@ void SPECTRUM_init(void) {
 }
 
 void SPECTRUM_update(void) {
+  if (elapsedMilliseconds - lastRender >= 500) {
+    lastRender = elapsedMilliseconds;
+    gRedrawScreen = true;
+  }
 }
 
 void SPECTRUM_deinit(void) { SVC_Toggle(SVC_SCAN, false, 0); }
