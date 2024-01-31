@@ -6,6 +6,7 @@
 #include "../misc.h"
 #include "../radio.h"
 #include "../settings.h"
+#include "../svc_scan.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
 #include "../ui/statusline.h"
@@ -16,6 +17,8 @@ typedef enum {
   M_NONE,
   M_UPCONVERTER,
   M_MAIN_APP,
+  M_SQL_TO_OPEN,
+  M_SQL_TO_CLOSE,
   M_BRIGHTNESS,
   M_BL_TIME,
   M_BL_SQL,
@@ -41,6 +44,8 @@ const uint16_t BAT_CAL_MAX = 2155;
 static const MenuItem menu[] = {
     {"Upconverter", M_UPCONVERTER, ARRAY_SIZE(upConverterFreqNames)},
     {"Main app", M_MAIN_APP, ARRAY_SIZE(appsAvailableToRun)},
+    {"SQL open t/o", M_SQL_TO_OPEN, ARRAY_SIZE(SCAN_TIMEOUT_NAMES)},
+    {"SQL closed t/o", M_SQL_TO_CLOSE, ARRAY_SIZE(SCAN_TIMEOUT_NAMES)},
     {"Brightness", M_BRIGHTNESS, 16},
     {"BL time", M_BL_TIME, ARRAY_SIZE(BL_TIME_VALUES)},
     {"BL SQL mode", M_BL_SQL, ARRAY_SIZE(BL_SQL_MODE_NAMES)},
@@ -62,6 +67,12 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     return;
   case M_MAIN_APP:
     strncpy(name, apps[appsAvailableToRun[index]].name, 31);
+    return;
+  case M_SQL_TO_OPEN:
+    strncpy(name, SCAN_TIMEOUT_NAMES[index], 31);
+    return;
+  case M_SQL_TO_CLOSE:
+    strncpy(name, SCAN_TIMEOUT_NAMES[index], 31);
     return;
   case M_BL_SQL:
     strncpy(name, BL_SQL_MODE_NAMES[index], 31);
@@ -106,6 +117,14 @@ static void accept(void) {
   }; break;
   case M_MAIN_APP:
     gSettings.mainApp = appsAvailableToRun[subMenuIndex];
+    SETTINGS_Save();
+    break;
+  case M_SQL_TO_OPEN:
+    gSettings.sqOpenedTimeout = subMenuIndex;
+    SETTINGS_Save();
+    break;
+  case M_SQL_TO_CLOSE:
+    gSettings.sqClosedTimeout = subMenuIndex;
     SETTINGS_Save();
     break;
   case M_BL_SQL:
@@ -164,6 +183,10 @@ static const char *getValue(Menu type) {
     return BATTERY_STYLE_NAMES[gSettings.batteryStyle];
   case M_MAIN_APP:
     return apps[gSettings.mainApp].name;
+  case M_SQL_TO_OPEN:
+    return SCAN_TIMEOUT_NAMES[gSettings.sqOpenedTimeout];
+  case M_SQL_TO_CLOSE:
+    return SCAN_TIMEOUT_NAMES[gSettings.sqClosedTimeout];
   case M_BL_TIME:
     return BL_TIME_NAMES[gSettings.backlight];
   case M_BL_SQL:
@@ -204,6 +227,12 @@ static void setInitialSubmenuIndex(void) {
     break;
   case M_BL_TIME:
     subMenuIndex = gSettings.backlight;
+    break;
+  case M_SQL_TO_OPEN:
+    subMenuIndex = gSettings.sqOpenedTimeout;
+    break;
+  case M_SQL_TO_CLOSE:
+    subMenuIndex = gSettings.sqClosedTimeout;
     break;
   case M_BL_SQL:
     subMenuIndex = gSettings.backlightOnSquelch;
