@@ -6,7 +6,7 @@
 uint16_t gScanSwitchT = 10;
 bool gScanForward = true;
 
-uint32_t SCAN_TIMEOUTS[] = {
+uint32_t SCAN_TIMEOUTS[9] = {
     1000 * 1,  1000 * 2,      1000 * 5,      1000 * 10,         1000 * 30,
     1000 * 60, 1000 * 60 * 2, 1000 * 60 * 5, ((uint32_t)0) - 1,
 };
