@@ -95,9 +95,9 @@ typedef struct {
   uint16_t batteryCalibration : 12;
   BatteryType batteryType : 2;
   BatteryStyle batteryStyle : 2; // 2
-  bool bound_240_280 : 1;
   ScanTimeout sqOpenedTimeout : 4;
-  ScanTimeout sqClosedTimeout : 4;
+  ScanTimeout sqClosedTimeout : 4; // 1
+  bool bound_240_280 : 1;
   uint8_t reserved2 : 7;
   uint8_t reserved3 : 8;
   uint8_t reserved4 : 6;
