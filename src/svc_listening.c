@@ -9,5 +9,7 @@ void SVC_LISTEN_Init(void) {
     gListenFn = RADIO_UpdateMeasurements;
   }
 }
+
 void SVC_LISTEN_Update(void) { gListenFn(); }
+
 void SVC_LISTEN_Deinit(void) { gListenFn = NULL; }

@@ -52,6 +52,18 @@ typedef enum {
   TX_POW_HIGH,
 } TXOutputPower;
 
+typedef enum {
+  SCAN_TO_1s,
+  SCAN_TO_2s,
+  SCAN_TO_5s,
+  SCAN_TO_10s,
+  SCAN_TO_30s,
+  SCAN_TO_1min,
+  SCAN_TO_2min,
+  SCAN_TO_5min,
+  SCAN_TO_NONE,
+} ScanTimeout;
+
 typedef struct {
   uint8_t squelch : 4;
   uint8_t scrambler : 4; // 1
@@ -84,8 +96,9 @@ typedef struct {
   BatteryType batteryType : 2;
   BatteryStyle batteryStyle : 2; // 2
   bool bound_240_280 : 1;
-  uint8_t reserved1 : 7;
-  uint8_t reserved2 : 8;
+  ScanTimeout sqOpenedTimeout : 4;
+  ScanTimeout sqClosedTimeout : 4;
+  uint8_t reserved2 : 7;
   uint8_t reserved3 : 8;
   uint8_t reserved4 : 6;
   uint8_t activeVFO : 2;
