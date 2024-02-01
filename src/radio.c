@@ -461,11 +461,9 @@ void RADIO_SetupBandParams(Band *b) {
 uint16_t RADIO_GetRSSI(void) { return isBK1080 ? 128 : BK4819_GetRSSI(); }
 
 void RADIO_UpdateMeasurements(void) {
-  // TODO: timeout logic here
   Loot *msm = &gLoot[gSettings.activeVFO];
   msm->rssi = RADIO_GetRSSI();
-  if (gTxState == TX_ON) {
-  } else {
+  if (gTxState != TX_ON) {
     msm->open =
         gMonitorMode ? true : (isBK1080 ? true : BK4819_IsSquelchOpen());
     RADIO_ToggleRX(msm->open);

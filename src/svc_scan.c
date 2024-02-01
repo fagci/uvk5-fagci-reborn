@@ -1,4 +1,5 @@
 #include "svc_scan.h"
+#include "driver/st7565.h"
 #include "radio.h"
 #include "scheduler.h"
 #include "settings.h"
@@ -42,10 +43,10 @@ void SVC_SCAN_Update(void) {
     gScanFn(gScanForward);
     SetTimeout(&timeout, gScanSwitchT);
     lastListenState = false;
+    gRedrawScreen = true;
   }
 }
 
 void SVC_SCAN_Deinit(void) {
-  // TODO: restore some freq
   gScanFn = NULL; // to make simple scan on start
 }
