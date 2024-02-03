@@ -23,6 +23,7 @@ static bool lastListenState = false;
 
 void SVC_SCAN_Init(void) {
   gScanForward = true;
+  lastListenState = false;
   if (!gScanFn) {
     gScanFn = RADIO_NextPresetFreq;
   }
