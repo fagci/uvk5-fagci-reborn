@@ -20,6 +20,7 @@ void (*gScanFn)(bool) = NULL;
 
 static uint32_t timeout = 0;
 static bool lastListenState = false;
+static uint32_t oldF = 0;
 
 void SVC_SCAN_Init(void) {
   gScanForward = true;
@@ -27,6 +28,7 @@ void SVC_SCAN_Init(void) {
   if (!gScanFn) {
     gScanFn = RADIO_NextPresetFreq;
   }
+  oldF = gCurrentVFO->fRX;
   gScanFn(gScanForward);
   SetTimeout(&timeout, gScanSwitchT);
 }
@@ -42,9 +44,15 @@ void SVC_SCAN_Update(void) {
 
   if (CheckTimeout(&timeout)) {
     gScanFn(gScanForward);
+    oldF = gCurrentVFO->fRX;
+
     SetTimeout(&timeout, gScanSwitchT);
     lastListenState = false;
     gRedrawScreen = true;
+  }
+
+  if (oldF != gCurrentVFO->fRX) {
+    SetTimeout(&timeout, 0);
   }
 }
 

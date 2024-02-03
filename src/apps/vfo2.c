@@ -41,14 +41,14 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_UP:
       if (SVC_Running(SVC_SCAN)) {
         gScanForward = true;
-        return true;
+        // return true;
       }
       RADIO_NextFreq(true);
       return true;
     case KEY_DOWN:
       if (SVC_Running(SVC_SCAN)) {
         gScanForward = false;
-        return true;
+        // return true;
       }
       RADIO_NextFreq(false);
       return true;
