@@ -276,7 +276,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {43480000, 44599999},
+                .bounds = {43480000, 44600624},
                 .name = "434.7-446",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -291,7 +291,7 @@ static Preset defaultPresets[] = {
     (Preset){
         .band =
             {
-                .bounds = {44600000, 44619999},
+                .bounds = {44600625, 44619375},
                 .name = "PMR",
                 .step = STEP_6_25kHz,
                 .modulation = MOD_FM,
@@ -512,6 +512,7 @@ void RESET_Init(void) {
 void RESET_Update(void) {
   if (!settingsWrote) {
     gSettings = (Settings){
+        .checkbyte = 0b10101010,
         .squelch = 4,
         .scrambler = 0,
         .batsave = 4,

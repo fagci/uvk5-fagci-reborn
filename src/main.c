@@ -2,6 +2,7 @@
 #include "board.h"
 #include "driver/audio.h"
 #include "driver/backlight.h"
+#include "driver/eeprom.h"
 #include "driver/keyboard.h"
 #include "driver/st7565.h"
 #include "driver/system.h"
@@ -16,6 +17,7 @@
 #include "ui/graphics.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
 void _putchar(char c) {}
 
@@ -24,6 +26,24 @@ void selfTest(void) {
   PrintSmall(0, 18, "SET O:%u SZ:%u", SETTINGS_OFFSET, SETTINGS_SIZE);
   ST7565_Blit();
 
+  while (true)
+    continue;
+}
+
+static void unreborn(void) {
+  uint8_t tpl[8];
+  memset(tpl, 0xFF, 8);
+  UI_ClearScreen();
+  for (uint16_t i = 0; i < 0x2000; i += 8) {
+    EEPROM_WriteBuffer(i, tpl, 8);
+    UI_ClearScreen();
+    PrintMediumEx(LCD_XCENTER, LCD_YCENTER, POS_C, C_FILL, "0xFFing... %u",
+                  i * 100 / 0x2000);
+    ST7565_Blit();
+  }
+  UI_ClearScreen();
+  PrintMediumEx(LCD_XCENTER, LCD_YCENTER, POS_C, C_FILL, "0xFFed !!!");
+  ST7565_Blit();
   while (true)
     continue;
 }
@@ -40,7 +60,6 @@ static void AddTasks(void) {
   SVC_Toggle(SVC_LISTEN, true, 10);
   SVC_Toggle(SVC_APPS, true, 1);
   SVC_Toggle(SVC_SYS, true, 1000);
-  SVC_Toggle(SVC_RENDER, true, 25);
 
   APPS_run(gSettings.mainApp);
 }
@@ -74,8 +93,21 @@ void Main(void) {
 
   BOARD_Init();
   BACKLIGHT_Toggle(true);
+  SVC_Toggle(SVC_RENDER, true, 25);
 
   SETTINGS_Load();
+
+  if (gSettings.checkbyte != 0b10101010) {
+    BACKLIGHT_SetDuration(120);
+    BACKLIGHT_SetBrightness(15);
+    BACKLIGHT_On();
+    APPS_run(APP_RESET);
+    SVC_Toggle(SVC_RENDER, true, 25);
+    TaskAdd("Update", APPS_update, 1, true, 100);
+    while (true) {
+      TasksUpdate(); // TODO: check if delay not needed or something
+    }
+  }
 
   UART_Init();
 
@@ -97,6 +129,9 @@ void Main(void) {
   } else if (KEYBOARD_Poll() == KEY_F) {
     UART_IsLogEnabled = 5;
     TaskAdd("Intro", Intro, 2, true, 5);
+  } else if (KEYBOARD_Poll() == KEY_7) {
+    unreborn();
+
   } else if (KEYBOARD_Poll() == KEY_MENU) {
     // selfTest();
     PrintMediumEx(LCD_WIDTH - 1, 7, POS_R, C_FILL, "%u", PRESETS_Size());
@@ -112,6 +147,6 @@ void Main(void) {
   }
 
   while (true) {
-    TasksUpdate();
+    TasksUpdate(); // TODO: check if delay not needed or something
   }
 }

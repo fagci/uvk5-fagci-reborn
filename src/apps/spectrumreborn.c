@@ -65,14 +65,15 @@ void SPECTRUM_init(void) {
   RADIO_LoadCurrentVFO();
   startNewScan(true);
   gRedrawScreen = true;
+  gMonitorMode = false;
   gScanFn = scanFn;
   SVC_Toggle(SVC_SCAN, true, 10);
 }
 
 void SPECTRUM_update(void) {
-  if (elapsedMilliseconds - lastRender >= 500) {
-    lastRender = elapsedMilliseconds;
-    gRedrawScreen = true;
+  if (gIsListening) {
+    Loot *msm = &gLoot[gSettings.activeVFO];
+    SP_AddPoint(msm);
   }
 }
 
@@ -158,7 +159,6 @@ void SPECTRUM_render(void) {
   LOOT_Sort(LOOT_SortByLastOpenTime, false);
 
   const uint8_t LOOT_BL = 13;
-  Log("[SPECTRUM] Loot size: %u", LOOT_Size());
 
   for (uint8_t i = 0, ni = 0; ni < 8 && i < LOOT_Size(); i++) {
     Loot *p = LOOT_Item(i);

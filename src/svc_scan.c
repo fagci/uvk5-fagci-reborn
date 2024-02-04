@@ -1,6 +1,5 @@
 #include "svc_scan.h"
 #include "driver/st7565.h"
-#include "helper/lootlist.h"
 #include "radio.h"
 #include "scheduler.h"
 #include "settings.h"
@@ -45,12 +44,6 @@ void SVC_SCAN_Update(void) {
   }
 
   if (CheckTimeout(&timeout)) {
-    next();
-    return;
-  }
-
-  Loot *loot = LOOT_Get(gCurrentVFO->fRX);
-  if (loot->blacklist || loot->goodKnown) {
     next();
     return;
   }

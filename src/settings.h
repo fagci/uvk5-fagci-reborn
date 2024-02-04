@@ -65,6 +65,7 @@ typedef enum {
 } ScanTimeout;
 
 typedef struct {
+  uint8_t checkbyte : 8;
   uint8_t squelch : 4;
   uint8_t scrambler : 4; // 1
   uint8_t batsave : 4;

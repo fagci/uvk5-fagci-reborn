@@ -109,6 +109,9 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_F:
       APPS_run(APP_VFO_CFG);
       return true;
+    case KEY_STAR:
+      APPS_run(APP_LOOT_LIST);
+      return true;
     case KEY_SIDE1:
       if (SVC_Running(SVC_SCAN)) {
         LOOT_BlacklistLast();

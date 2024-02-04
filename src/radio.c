@@ -466,6 +466,7 @@ void RADIO_UpdateMeasurements(void) {
   if (gTxState != TX_ON) {
     msm->open =
         gMonitorMode ? true : (isBK1080 ? true : BK4819_IsSquelchOpen());
+    LOOT_Update(msm);
     RADIO_ToggleRX(msm->open);
   }
 }

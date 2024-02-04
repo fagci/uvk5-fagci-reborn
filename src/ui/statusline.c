@@ -4,6 +4,7 @@
 #include "../driver/uart.h"
 #include "../helper/battery.h"
 #include "../scheduler.h"
+#include "../svc.h"
 #include "components.h"
 #include "graphics.h"
 #include <string.h>
@@ -82,6 +83,10 @@ void STATUSLINE_render(void) {
     icons[idx++] = SYM_EEPROM_W;
     /* } else if (gEepromRead) {
       icons[idx++] = SYM_EEPROM_R; */
+  }
+
+  if (SVC_Running(SVC_SCAN)) {
+    icons[idx++] = SYM_SCAN;
   }
 
   if (gMonitorMode) {
