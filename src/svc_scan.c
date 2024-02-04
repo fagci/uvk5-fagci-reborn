@@ -16,21 +16,23 @@ char *SCAN_TIMEOUT_NAMES[9] = {
     "1s", "2s", "5s", "10s", "30s", "1min", "2min", "5min", "None",
 };
 
-void (*gScanFn)(bool) = NULL;
+void (*gScanFn)(bool) = RADIO_NextPresetFreq;
 
+static uint32_t lastSettedF = 0;
 static uint32_t timeout = 0;
 static bool lastListenState = false;
-static uint32_t oldF = 0;
+
+static void next(void) {
+  lastListenState = false;
+  gScanFn(gScanForward);
+  lastSettedF = gCurrentVFO->fRX;
+  SetTimeout(&timeout, gScanSwitchT);
+  gRedrawScreen = true;
+}
 
 void SVC_SCAN_Init(void) {
   gScanForward = true;
-  lastListenState = false;
-  if (!gScanFn) {
-    gScanFn = RADIO_NextPresetFreq;
-  }
-  oldF = gCurrentVFO->fRX;
-  gScanFn(gScanForward);
-  SetTimeout(&timeout, gScanSwitchT);
+  next();
 }
 
 void SVC_SCAN_Update(void) {
@@ -43,19 +45,12 @@ void SVC_SCAN_Update(void) {
   }
 
   if (CheckTimeout(&timeout)) {
-    gScanFn(gScanForward);
-    oldF = gCurrentVFO->fRX;
-
-    SetTimeout(&timeout, gScanSwitchT);
-    lastListenState = false;
-    gRedrawScreen = true;
+    next();
   }
 
-  if (oldF != gCurrentVFO->fRX) {
+  if (lastSettedF != gCurrentVFO->fRX) {
     SetTimeout(&timeout, 0);
   }
 }
 
-void SVC_SCAN_Deinit(void) {
-  gScanFn = NULL; // to make simple scan on start
-}
+void SVC_SCAN_Deinit(void) { gScanFn = RADIO_NextPresetFreq; }
