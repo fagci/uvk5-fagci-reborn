@@ -21,7 +21,7 @@ void SETTINGS_Load(void) {
 
 void SETTINGS_DelayedSave(void) {
   TaskRemove(SETTINGS_Save);
-  TaskAdd("Settings save", SETTINGS_Save, 5000, false, 100);
+  TaskAdd("Settings save", SETTINGS_Save, 5000, false, 0);
 }
 
 uint32_t SETTINGS_GetFilterBound(void) {

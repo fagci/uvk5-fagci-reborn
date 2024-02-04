@@ -2,7 +2,6 @@
 #include "board.h"
 #include "driver/audio.h"
 #include "driver/backlight.h"
-#include "driver/gpio.h"
 #include "driver/keyboard.h"
 #include "driver/st7565.h"
 #include "driver/system.h"
@@ -10,13 +9,11 @@
 #include "driver/uart.h"
 #include "helper/battery.h"
 #include "helper/presetlist.h"
-#include "inc/dp32g030/gpio.h"
 #include "radio.h"
 #include "scheduler.h"
 #include "settings.h"
 #include "svc.h"
 #include "ui/graphics.h"
-#include "ui/statusline.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -31,71 +28,6 @@ void selfTest(void) {
     continue;
 }
 
-// NOTE: Important!
-// If app runs app on keypress, keyup passed to next app
-// Common practice:
-//
-// keypress (up)
-// keyhold
-static void onKey(KEY_Code_t key, bool pressed, bool hold) {
-  if (key != KEY_INVALID) {
-    BACKLIGHT_On();
-    TaskTouch(BACKLIGHT_Update);
-  }
-
-  // apps needed this events:
-  // - keyup (!pressed)
-  // - keyhold pressed (hold && pressed)
-  // - keyup hold (hold && !pressed)
-  if ((hold || !pressed) && APPS_key(key, pressed, hold)) {
-    if (gSettings.beep)
-      AUDIO_PlayTone(1000, 20);
-    gRedrawScreen = true;
-    return;
-  }
-
-  if (key == KEY_SIDE2 && !hold && !pressed) {
-    GPIO_FlipBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
-    return;
-  }
-
-  if (key != KEY_MENU) {
-    return;
-  }
-
-  if (pressed) {
-    if (hold) {
-      APPS_run(APP_SETTINGS);
-      return;
-    }
-  } else {
-    if (!hold) {
-      APPS_run(APP_APPS_LIST);
-      return;
-    }
-  }
-}
-
-static void Render(void) {
-  STATUSLINE_render();
-  APPS_render();
-  ST7565_Render();
-}
-
-static void Update(void) {
-  APPS_update();
-  if (gRedrawScreen && !TaskExists(Render)) {
-    TaskAdd("Render", Render, 25, false, 255);
-  }
-}
-
-static void Keys(void) { KEYBOARD_CheckKeys(onKey); }
-
-static void sysUpdate(void) {
-  STATUSLINE_update();
-  BACKLIGHT_Update();
-}
-
 // TODO:
 
 // static void TX(void) {
@@ -104,12 +36,11 @@ static void sysUpdate(void) {
 // }
 
 static void AddTasks(void) {
-  TaskAdd("Keys", Keys, 10, true, 0);
-
+  SVC_Toggle(SVC_KEYBOARD, true, 10);
   SVC_Toggle(SVC_LISTEN, true, 10);
-
-  TaskAdd("Update", Update, 1, true, 5);
-  TaskAdd("1s sys upd", sysUpdate, 1000, true, 6);
+  SVC_Toggle(SVC_APPS, true, 1);
+  SVC_Toggle(SVC_SYS, true, 1000);
+  SVC_Toggle(SVC_RENDER, true, 25);
 
   APPS_run(gSettings.mainApp);
 }
@@ -157,7 +88,7 @@ void Main(void) {
 
   if (KEYBOARD_Poll() == KEY_EXIT) {
     APPS_run(APP_RESET);
-    TaskAdd("Update", Update, 1, true, 5);
+    TaskAdd("Update", APPS_update, 1, true, 100);
   } else if (KEYBOARD_Poll() == KEY_STAR) {
     PrintMediumEx(0, 7, POS_L, C_FILL, "SET: %u %u", SETTINGS_OFFSET,
                   SETTINGS_SIZE);

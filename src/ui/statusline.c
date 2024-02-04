@@ -49,7 +49,7 @@ void STATUSLINE_update(void) {
     lastEepromRead = gEepromRead;
     lastEepromWrite = gEepromWrite;
     gRedrawScreen = true;
-    TaskAdd("EEPROM RW-", eepromRWReset, 500, false, 100);
+    TaskAdd("EEPROM RW-", eepromRWReset, 500, false, 0);
   }
 }
 

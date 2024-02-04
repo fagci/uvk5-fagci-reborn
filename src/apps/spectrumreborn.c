@@ -22,13 +22,11 @@ static bool noListen = false;
 static bool bandFilled = false;
 
 static uint32_t lastRender = 0;
-static uint32_t lastUpdate = 0;
 
 static void startNewScan(bool reset) {
   if (reset) {
     LOOT_Standby();
     RADIO_TuneTo(gCurrentPreset->band.bounds.start);
-    lastUpdate = elapsedMilliseconds;
     SP_Init(PRESETS_GetSteps(gCurrentPreset), spectrumWidth);
     bandFilled = false;
   } else {
@@ -41,8 +39,6 @@ static void scanFn(bool forward) {
   RADIO_UpdateMeasurements();
 
   Loot *msm = &gLoot[gSettings.activeVFO];
-
-  LOOT_Update(msm);
 
   SP_AddPoint(msm);
 
@@ -57,7 +53,6 @@ static void scanFn(bool forward) {
   }
 
   RADIO_NextPresetFreq(true);
-  lastUpdate = elapsedMilliseconds;
 
   if (gCurrentVFO->fRX == gCurrentPreset->band.bounds.start) {
     startNewScan(false);

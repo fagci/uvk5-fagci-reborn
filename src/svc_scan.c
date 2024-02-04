@@ -55,8 +55,6 @@ void SVC_SCAN_Update(void) {
     return;
   }
 
-  LOOT_Update(&gLoot[gSettings.activeVFO]);
-
   if (lastSettedF != gCurrentVFO->fRX) {
     SetTimeout(&timeout, 0);
   }

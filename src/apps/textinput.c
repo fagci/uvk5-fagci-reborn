@@ -81,93 +81,121 @@ void TEXTINPUT_init(void) {
   inputIndex = strlen(inputField);
   TaskAdd("Coursor blink", blink, 250, true, 100);
 }
+
 void TEXTINPUT_deinit(void) { TaskRemove(blink); }
+
 void TEXTINPUT_update(void) {}
+
 bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  switch (key) {
-  case KEY_1:
-  case KEY_2:
-  case KEY_3:
-  case KEY_4:
-  case KEY_5:
-  case KEY_6:
-  case KEY_7:
-  case KEY_8:
-  case KEY_9:
-    if (currentSet == numbers) {
-      if (strlen(inputField) < gTextInputSize) {
-        insert(key - KEY_0 + '0');
+
+  // up-down keys
+  if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
+    switch (key) {
+    case KEY_UP:
+      if (inputIndex < 14 && inputField[inputIndex] != '\0') {
+        inputIndex++;
       }
       return true;
-    }
-    if (currentRow) {
-      if (key - KEY_1 < strlen(currentRow)) {
-        if (strlen(inputField) < gTextInputSize) {
-          insert(currentRow[key - KEY_1]);
-        }
-        currentRow = NULL;
+    case KEY_DOWN:
+      if (inputIndex > 0) {
+        inputIndex--;
       }
       return true;
+    default:
+      break;
     }
-    if (key == KEY_1) {
-      if (strlen(inputField) < gTextInputSize) {
-        insert(' ');
-      }
-    } else {
-      currentRow = currentSet[key - KEY_1];
-    }
-    return true;
-  case KEY_0:
-    if (currentSet == numbers && strlen(inputField) < gTextInputSize) {
-      insert(key - KEY_0 + '0');
-      return true;
-    }
-    if (!currentRow) {
-      currentSet = currentSet == numbers ? symbols : numbers;
-      return true;
-    }
-    return true;
-  case KEY_STAR:
-    if (currentSet != symbols) {
-      currentSet = symbols;
-      return true;
-    }
-    return true;
-  case KEY_F:
-    currentSet = currentSet == lettersCapital ? letters : lettersCapital;
-    return true;
-  case KEY_UP:
-    if (inputIndex < 14 && inputField[inputIndex] != '\0') {
-      inputIndex++;
-    }
-    return true;
-  case KEY_DOWN:
-    if (inputIndex > 0) {
-      inputIndex--;
-    }
-    return true;
-  case KEY_EXIT:
-    if (currentRow) {
-      currentRow = NULL;
-    } else {
-      if (inputIndex) {
-        backspace();
-      } else {
-        APPS_exit();
-      }
-    }
-    return true;
-  case KEY_MENU:
-    strncpy(gTextinputText, inputField, gTextInputSize);
-    if (gTextInputCallback) {
-      gTextInputCallback();
-      gTextInputCallback = NULL;
-    }
-    APPS_exit();
-    return true;
-  default:
-    break;
   }
+
+  // long held
+  if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
+    switch (key) {
+    case KEY_EXIT:
+      memset(inputField, 0, 15);
+      inputIndex = 0;
+      return true;
+    default:
+      break;
+    }
+  }
+
+  // Simple keypress
+  if (!bKeyPressed && !bKeyHeld) {
+    switch (key) {
+    case KEY_1:
+    case KEY_2:
+    case KEY_3:
+    case KEY_4:
+    case KEY_5:
+    case KEY_6:
+    case KEY_7:
+    case KEY_8:
+    case KEY_9:
+      if (currentSet == numbers) {
+        if (strlen(inputField) < gTextInputSize) {
+          insert(key - KEY_0 + '0');
+        }
+        return true;
+      }
+      if (currentRow) {
+        if (key - KEY_1 < strlen(currentRow)) {
+          if (strlen(inputField) < gTextInputSize) {
+            insert(currentRow[key - KEY_1]);
+          }
+          currentRow = NULL;
+        }
+        return true;
+      }
+      if (key == KEY_1) {
+        if (strlen(inputField) < gTextInputSize) {
+          insert(' ');
+        }
+      } else {
+        currentRow = currentSet[key - KEY_1];
+      }
+      return true;
+    case KEY_0:
+      if (currentSet == numbers && strlen(inputField) < gTextInputSize) {
+        insert(key - KEY_0 + '0');
+        return true;
+      }
+      if (!currentRow) {
+        currentSet = currentSet == numbers ? symbols : numbers;
+        return true;
+      }
+      return true;
+    case KEY_STAR:
+      if (currentSet != symbols) {
+        currentSet = symbols;
+        return true;
+      }
+      return true;
+    case KEY_F:
+      currentSet = currentSet == lettersCapital ? letters : lettersCapital;
+      return true;
+    case KEY_EXIT:
+      if (currentRow) {
+        currentRow = NULL;
+      } else {
+        if (inputIndex) {
+          backspace();
+        } else {
+          APPS_exit();
+        }
+      }
+      return true;
+    case KEY_MENU:
+      strncpy(gTextinputText, inputField, gTextInputSize);
+      if (gTextInputCallback) {
+        gTextInputCallback();
+        gTextInputCallback = NULL;
+      }
+      APPS_exit();
+      return true;
+    default:
+      break;
+    }
+  }
+
   return false;
 }
 
