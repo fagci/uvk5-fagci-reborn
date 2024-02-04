@@ -46,6 +46,7 @@ void SVC_SCAN_Update(void) {
 
   if (CheckTimeout(&timeout)) {
     next();
+    return;
   }
 
   if (lastSettedF != gCurrentVFO->fRX) {

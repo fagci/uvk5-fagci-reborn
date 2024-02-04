@@ -16,7 +16,7 @@ static bool lastEepromWrite = false;
 
 static char statuslineText[32] = {0};
 
-static void eepromRWReset() {
+static void eepromRWReset(void) {
   lastEepromRead = lastEepromWrite = gEepromRead = gEepromWrite = false;
   gRedrawScreen = true;
 }
@@ -33,7 +33,7 @@ void STATUSLINE_SetText(const char *pattern, ...) {
   }
 }
 
-void STATUSLINE_update() {
+void STATUSLINE_update(void) {
   BATTERY_UpdateBatteryInfo();
   uint8_t level = gBatteryPercent / 10;
   if (gBatteryPercent < BAT_WARN_PERCENT) {
@@ -49,11 +49,11 @@ void STATUSLINE_update() {
     lastEepromRead = gEepromRead;
     lastEepromWrite = gEepromWrite;
     gRedrawScreen = true;
-    TaskAdd("EEPROM RW-", eepromRWReset, 500, false);
+    TaskAdd("EEPROM RW-", eepromRWReset, 500, false, 100);
   }
 }
 
-void STATUSLINE_render() {
+void STATUSLINE_render(void) {
   UI_ClearStatus();
 
   const uint8_t BASE_Y = 4;

@@ -25,7 +25,7 @@ void SVC_Toggle(Svc svc, bool on, uint16_t interval) {
   if (on) {
     if (!exists) {
       s->init();
-      TaskAdd(s->name, s->update, interval, true);
+      TaskAdd(s->name, s->update, interval, true, 50 + (uint8_t)svc);
     }
   } else {
     if (exists) {

@@ -73,7 +73,7 @@ void FINPUT_init(void) {
   freqInputIndex = 0;
   freqInputDotIndex = 0;
   ResetFreqInput();
-  TaskAdd("Dot blink", dotBlinkFn, 250, true);
+  TaskAdd("Dot blink", dotBlinkFn, 250, true, 100);
 }
 
 void FINPUT_deinit(void) { TaskRemove(dotBlinkFn); }

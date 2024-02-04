@@ -85,7 +85,7 @@ static void Render(void) {
 static void Update(void) {
   APPS_update();
   if (gRedrawScreen && !TaskExists(Render)) {
-    TaskAdd("Render", Render, 25, false);
+    TaskAdd("Render", Render, 25, false, 255);
   }
 }
 
@@ -97,7 +97,6 @@ static void sysUpdate(void) {
 }
 
 // TODO:
-// - menu hold in still mode
 
 // static void TX(void) {
 // DEV = 300 for SSB
@@ -105,12 +104,12 @@ static void sysUpdate(void) {
 // }
 
 static void AddTasks(void) {
-  TaskAdd("Keys", Keys, 10, true);
+  TaskAdd("Keys", Keys, 10, true, 0);
 
   SVC_Toggle(SVC_LISTEN, true, 10);
 
-  TaskAdd("Update", Update, 1, true);
-  TaskAdd("1s sys upd", sysUpdate, 1000, true);
+  TaskAdd("Update", Update, 1, true, 5);
+  TaskAdd("1s sys upd", sysUpdate, 1000, true, 6);
 
   APPS_run(gSettings.mainApp);
 }
@@ -158,7 +157,7 @@ void Main(void) {
 
   if (KEYBOARD_Poll() == KEY_EXIT) {
     APPS_run(APP_RESET);
-    TaskAdd("Update", Update, 1, true);
+    TaskAdd("Update", Update, 1, true, 5);
   } else if (KEYBOARD_Poll() == KEY_STAR) {
     PrintMediumEx(0, 7, POS_L, C_FILL, "SET: %u %u", SETTINGS_OFFSET,
                   SETTINGS_SIZE);
@@ -166,19 +165,19 @@ void Main(void) {
     ST7565_Blit();
   } else if (KEYBOARD_Poll() == KEY_F) {
     UART_IsLogEnabled = 5;
-    TaskAdd("Intro", Intro, 2, true);
+    TaskAdd("Intro", Intro, 2, true, 5);
   } else if (KEYBOARD_Poll() == KEY_MENU) {
     // selfTest();
     PrintMediumEx(LCD_WIDTH - 1, 7, POS_R, C_FILL, "%u", PRESETS_Size());
     for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
-      Preset p = {};
+      Preset p;
       PRESETS_LoadPreset(i, &p);
       PrintSmall(i / 10 * 40, 6 * (i % 10) + 6, "%u - %u",
                  p.band.bounds.start / 100000, p.band.bounds.end / 100000);
     }
     ST7565_Blit();
   } else {
-    TaskAdd("Intro", Intro, 2, true);
+    TaskAdd("Intro", Intro, 2, true, 5);
   }
 
   while (true) {

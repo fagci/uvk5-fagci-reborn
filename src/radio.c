@@ -112,12 +112,12 @@ uint32_t GetTuneF(uint32_t f) {
 
 static void onVfoUpdate(void) {
   TaskRemove(RADIO_SaveCurrentVFO);
-  TaskAdd("VFO save", RADIO_SaveCurrentVFO, 2000, false);
+  TaskAdd("VFO save", RADIO_SaveCurrentVFO, 2000, false, 100);
 }
 
 static void onPresetUpdate(void) {
   TaskRemove(PRESETS_SaveCurrent);
-  TaskAdd("Preset save", PRESETS_SaveCurrent, 2000, false);
+  TaskAdd("Preset save", PRESETS_SaveCurrent, 2000, false, 100);
 }
 
 bool RADIO_IsBK1080Range(uint32_t f) { return f >= 6400000 && f <= 10800000; }

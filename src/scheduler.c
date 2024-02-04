@@ -1,21 +1,34 @@
 #include "scheduler.h"
 #include "driver/uart.h"
-#include "helper/battery.h"
-#include "misc.h"
 
 volatile Task tasks[TASKS_MAX];
 uint8_t tasksCount = 0;
 volatile uint32_t elapsedMilliseconds = 0;
 
 Task *TaskAdd(const char *name, void (*handler)(void), uint16_t interval,
-              bool continuous) {
+              bool continuous, uint8_t priority) {
   UART_logf(3, "TaskAdd(%s)", name);
-  if (tasksCount != TASKS_MAX) {
-    tasks[tasksCount] =
-        (Task){name, handler, interval, interval, continuous, 128, false};
-    return &tasks[tasksCount++];
+  if (tasksCount == TASKS_MAX) {
+    return NULL;
   }
-  return NULL;
+
+  uint8_t insertI;
+  for (insertI = 0; insertI < tasksCount; ++insertI) {
+    if (tasks[insertI].priority > priority) {
+      break;
+    }
+  }
+
+  if (insertI < tasksCount) {
+    for (uint8_t i = tasksCount; i > insertI; --i) {
+      tasks[i] = tasks[i - 1];
+    }
+  }
+
+  tasks[insertI] =
+      (Task){name, handler, interval, interval, continuous, 128, false};
+  tasksCount++;
+  return &tasks[insertI];
 }
 
 void TaskRemove(void (*handler)(void)) {
@@ -62,18 +75,6 @@ void TaskTouch(void (*handler)(void)) {
   }
 }
 
-void TaskSetPriority(void (*handler)(void), uint8_t priority) {
-  Task *t;
-  for (uint8_t i = 0; i < tasksCount; ++i) {
-    t = &tasks[i];
-    if (t->handler == handler) {
-      t->priority = priority;
-      UART_logf(3, "TaskSetPrio(%s, %u)", t->name, priority);
-      return;
-    }
-  }
-}
-
 static void handle(Task *task) {
   UART_logf(3, "%s::handle() start", task->name);
   task->handler();
@@ -81,29 +82,13 @@ static void handle(Task *task) {
 }
 
 void TasksUpdate(void) {
-  bool prioritized = false;
   Task *task;
   for (uint8_t i = 0; i < tasksCount; ++i) {
     tasks[i].active = true;
   }
   for (uint8_t i = 0; i < tasksCount; ++i) {
     task = &tasks[i];
-    if (task->handler && !task->countdown && task->priority == 0) {
-      handle(task);
-      prioritized = true;
-      if (task->continuous) {
-        task->countdown = task->interval;
-      } else {
-        TaskRemove(task->handler);
-        prioritized = false;
-      }
-    }
-  }
-  if (prioritized)
-    return;
-  for (uint8_t i = 0; i < tasksCount; ++i) {
-    task = &tasks[i];
-    if (task->handler && !task->countdown && task->priority != 0) {
+    if (task->handler && !task->countdown) {
       handle(task);
       if (task->continuous) {
         task->countdown = task->interval;
