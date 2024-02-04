@@ -26,7 +26,7 @@ Task *TaskAdd(const char *name, void (*handler)(void), uint16_t interval,
   }
 
   tasks[insertI] =
-      (Task){name, handler, interval, interval, continuous, 128, false};
+      (Task){name, handler, interval, interval, continuous, priority, false};
   tasksCount++;
   return &tasks[insertI];
 }

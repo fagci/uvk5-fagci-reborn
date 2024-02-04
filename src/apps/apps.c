@@ -18,6 +18,7 @@
 #include "settings.h"
 #include "spectrumreborn.h"
 #include "still.h"
+#include "taskman.h"
 #include "test.h"
 #include "textinput.h"
 #include "vfo1.h"
@@ -64,10 +65,12 @@ const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
     APP_CH_SCANNER,   //
     APP_SPECTRUM,     //
     APP_FASTSCAN,     //
+    APP_LOOT_LIST,    //
     APP_SCANLISTS,    //
     APP_PRESETS_LIST, //
     APP_ANT,          //
-    APP_TASK_MANAGER, //
+    APP_TASKMAN,      //
+    APP_TEST,         //
     APP_ABOUT,        //
 };
 
@@ -102,6 +105,7 @@ const App apps[APPS_COUNT] = {
     {"ABOUT", ABOUT_Init, ABOUT_Update, ABOUT_Render, ABOUT_key, ABOUT_Deinit},
     {"Antenna len", ANTENNA_init, ANTENNA_update, ANTENNA_render, ANTENNA_key,
      ANTENNA_deinit},
+    {"Task manager", TASKMAN_Init, NULL, TASKMAN_Render, TASKMAN_Key},
 };
 
 bool APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {

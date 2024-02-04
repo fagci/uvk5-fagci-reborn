@@ -110,8 +110,18 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       APPS_run(APP_VFO_CFG);
       return true;
     case KEY_SIDE1:
+      if (SVC_Running(SVC_SCAN)) {
+        LOOT_BlacklistLast();
+        return true;
+      }
       gMonitorMode = !gMonitorMode;
       return true;
+    case KEY_SIDE2:
+      if (SVC_Running(SVC_SCAN)) {
+        LOOT_BlacklistLast();
+        return true;
+      }
+      break;
     case KEY_EXIT:
       if (SVC_Running(SVC_SCAN)) {
         SVC_Toggle(SVC_SCAN, false, 0);

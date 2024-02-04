@@ -1,5 +1,6 @@
 #include "svc_scan.h"
 #include "driver/st7565.h"
+#include "helper/lootlist.h"
 #include "radio.h"
 #include "scheduler.h"
 #include "settings.h"
@@ -16,11 +17,11 @@ char *SCAN_TIMEOUT_NAMES[9] = {
     "1s", "2s", "5s", "10s", "30s", "1min", "2min", "5min", "None",
 };
 
-void (*gScanFn)(bool) = RADIO_NextPresetFreq;
-
 static uint32_t lastSettedF = 0;
 static uint32_t timeout = 0;
 static bool lastListenState = false;
+
+void (*gScanFn)(bool) = RADIO_NextPresetFreq;
 
 static void next(void) {
   lastListenState = false;
@@ -36,7 +37,6 @@ void SVC_SCAN_Init(void) {
 }
 
 void SVC_SCAN_Update(void) {
-  RADIO_UpdateMeasurements();
   if (lastListenState != gIsListening) {
     lastListenState = gIsListening;
     SetTimeout(&timeout, gIsListening
@@ -48,6 +48,14 @@ void SVC_SCAN_Update(void) {
     next();
     return;
   }
+
+  Loot *loot = LOOT_Get(gCurrentVFO->fRX);
+  if (loot->blacklist || loot->goodKnown) {
+    next();
+    return;
+  }
+
+  LOOT_Update(&gLoot[gSettings.activeVFO]);
 
   if (lastSettedF != gCurrentVFO->fRX) {
     SetTimeout(&timeout, 0);
