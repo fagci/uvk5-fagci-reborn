@@ -7,6 +7,7 @@
 #include "../svc_scan.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
+#include "../ui/statusline.h"
 #include "apps.h"
 #include "finput.h"
 
@@ -199,14 +200,21 @@ static void render2VFOPart(uint8_t i) {
     PrintSmallEx(0, bl + 6, POS_L, C_FILL, "D%03oN(fake)",
                  DCS_Options[loot->cd]);
   }
-  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%s :%u", p->band.name,
-               PRESETS_GetChannel(p, vfo->fRX) + 1);
-  PrintSmallEx(LCD_WIDTH - 1, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,
-               est % 60, loot->duration / 1000);
+  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%s st: %d.%02dKHz",
+               bwNames[p->band.bw], StepFrequencyTable[p->band.step] / 100,
+               StepFrequencyTable[p->band.step] % 100);
+
+  if (loot->lastTimeOpen) {
+    PrintSmallEx(LCD_WIDTH - 1, bl + 6, POS_R, C_FILL, "%02u:%02u %us",
+                 est / 60, est % 60, loot->duration / 1000);
+  }
 }
 
 void VFO2_render(void) {
   UI_ClearScreen();
+
+  STATUSLINE_SetText("%s:%u", gCurrentPreset->band.name,
+                     PRESETS_GetChannel(gCurrentPreset, gCurrentVFO->fRX) + 1);
 
   render2VFOPart(0);
   render2VFOPart(1);

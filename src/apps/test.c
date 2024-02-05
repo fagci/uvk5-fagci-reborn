@@ -29,7 +29,7 @@ void TEST_Render(void) {
                buf[i] >= 32 && buf[i] < 128 ? buf[i] : '.');
     if (offset == SETTINGS_OFFSET || offset == VFOS_OFFSET ||
         offset == PRESETS_OFFSET ||
-        (offset > PRESETS_OFFSET &&
+        (offset >= PRESETS_OFFSET &&
          (offset - PRESETS_OFFSET) % PRESET_SIZE == 0)) {
       FillRect(16 + (i % 8) * 9 - 1, (i / 8) * 6 + 8, 9, 7, C_INVERT);
     }

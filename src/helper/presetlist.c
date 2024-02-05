@@ -22,6 +22,8 @@ Preset defaultPreset = {
 };
 
 void PRESETS_SavePreset(uint8_t num, Preset *p) {
+  Log("P%02u SAVE at %u sz %u BW %u", num, PRESETS_OFFSET + num * PRESET_SIZE,
+      PRESET_SIZE, p->band.bw);
   EEPROM_WriteBuffer(PRESETS_OFFSET + num * PRESET_SIZE, p, PRESET_SIZE);
 }
 
@@ -61,10 +63,11 @@ bool PRESET_InRange(const uint32_t f, const Preset *p) {
 }
 
 bool PRESET_InRangeOffset(const uint32_t f, const Preset *p) {
-  return f >= p->band.bounds.start + p->offset && f <= p->band.bounds.end + p->offset;
+  return f >= p->band.bounds.start + p->offset &&
+         f <= p->band.bounds.end + p->offset;
 }
 
-int8_t PRESET_SelectByFrequency(uint32_t f) {
+int8_t PRESET_SelectByFrequency(uint32_t f) { // FIXME: похоже выбирается криво
   if (PRESET_InRange(f, gCurrentPreset)) {
     return gSettings.activePreset;
   }

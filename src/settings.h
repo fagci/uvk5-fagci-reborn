@@ -100,7 +100,7 @@ typedef struct {
   ScanTimeout sqClosedTimeout : 4; // 1
   bool bound_240_280 : 1;
   uint8_t reserved2 : 7;
-  uint8_t reserved3 : 8;
+  // uint8_t reserved3 : 8;
   uint8_t reserved4 : 6;
   uint8_t activeVFO : 2;
 } __attribute__((packed)) Settings;
@@ -158,7 +158,7 @@ typedef struct {
   uint8_t s;
   uint8_t m;
   uint8_t e;
-} PowerCalibration;
+} __attribute__((packed)) PowerCalibration;
 
 typedef struct {           // 29 bytes
   Band band;               // 21

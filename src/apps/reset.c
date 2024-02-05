@@ -35,35 +35,6 @@ static VFO defaultVFOs[2] = {
 
 static Preset defaultPresets[] = {
     (Preset){
-
-        /*
-  FRange bounds; // 8
-  char name[10]; // 18
-  Step step : 4;
-  ModulationType modulation : 4; // 19
-  BK4819_FilterBandwidth_t bw : 2;
-  SquelchType squelchType : 2;
-  uint8_t squelch : 4; // 20
-  uint8_t gainIndex : 7;
-  bool reserved1 : 1; // 21
-  uint32_t offset;         // 25
-  uint8_t memoryBanks : 8; // 26
-  uint8_t codeTypeRx : 4;
-  uint8_t codeTypeTx : 4; // 27
-  uint8_t codeRx : 8;     // 28
-  uint8_t codeTx : 8;     // 29
-  TXOutputPower power : 2;
-  bool allowTx : 1;
-  uint8_t a : 5;             // 30
-  PowerCalibration powCalib; // 33
-        */
-
-        /* .band =
-            {
-                .bounds = {0x12345678, 0x12345678},
-                .name = "\1\2\3\4\5\1\2\3\4\5",
-            }, */
-
         .band =
             {
                 .bounds = {1500000, 2999999},
@@ -556,14 +527,19 @@ void RESET_Update(void) {
     PRESETS_SavePreset(presetsWrote, &defaultPresets[presetsWrote]);
     presetsWrote++;
     bytesWrote += sizeof(Preset);
-  } else if (channelsWrote < CHANNELS_GetCountMax()) {
-    CH ch = {
-        .name = {0},
-        .memoryBanks = 0,
-    };
-    CHANNELS_Save(channelsWrote, &ch);
-    channelsWrote++;
-    bytesWrote += sizeof(CH);
+    /* } else if (channelsWrote < CHANNELS_GetCountMax()) {
+      CH ch = {
+          .name = {0},
+          .memoryBanks = 0,
+      };
+      CHANNELS_Save(channelsWrote, &ch);
+      channelsWrote++;
+      bytesWrote += sizeof(CH); */
+  } else if (bytesWrote < EEPROM_SIZE) {
+    EEPROM_WriteBuffer(bytesWrote, buf,
+                       EEPROM_SIZE - bytesWrote < 8 ? EEPROM_SIZE - bytesWrote
+                                                    : 8);
+    bytesWrote += 8;
   } else {
     SETTINGS_Save();
     NVIC_SystemReset();

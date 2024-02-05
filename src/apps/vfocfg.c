@@ -102,7 +102,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     strncpy(name, TX_POWER_NAMES[index], 31);
     return;
   case M_STEP:
-    sprintf(name, "%d.%02dKHz", StepFrequencyTable[index] / 100,
+    sprintf(name, "%u.%02uKHz", StepFrequencyTable[index] / 100,
             StepFrequencyTable[index] % 100);
     return;
   case M_SQ_TYPE:

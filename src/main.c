@@ -2,6 +2,7 @@
 #include "board.h"
 #include "driver/audio.h"
 #include "driver/backlight.h"
+#include "driver/bk4819.h"
 #include "driver/eeprom.h"
 #include "driver/keyboard.h"
 #include "driver/st7565.h"
@@ -21,9 +22,30 @@
 
 void _putchar(char c) {}
 
-void selfTest(void) {
-  PrintSmall(0, 0, "PRS O:%u SZ:%u", PRESETS_OFFSET, PRESET_SIZE);
-  PrintSmall(0, 18, "SET O:%u SZ:%u", SETTINGS_OFFSET, SETTINGS_SIZE);
+static void selfTest(void) {
+
+  Preset p = (Preset){
+      .band =
+          {
+              .bounds = {43307500, 43479999},
+              .name = "LPD",
+              .step = STEP_25_0kHz,
+              .modulation = MOD_FM,
+              .bw = BK4819_FILTER_BW_NARROWER,
+              .gainIndex = 90,
+              .squelch = 3,
+              .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+          },
+      .allowTx = true,
+      .powCalib = {0x8C, 0x8C, 0x8C},
+  };
+
+  // PRESETS_SavePreset(22, &p);
+  PRESETS_LoadPreset(22, &p);
+
+  PrintSmall(0, 8, "PRS O:%u SZ:%u ch:%u", PRESETS_OFFSET, PRESET_SIZE,
+             p.band.bw == BK4819_FILTER_BW_NARROWER);
+  PrintSmall(0, 16, "SET O:%u SZ:%u", SETTINGS_OFFSET, SETTINGS_SIZE);
   ST7565_Blit();
 
   while (true)
@@ -46,6 +68,14 @@ static void unreborn(void) {
   ST7565_Blit();
   while (true)
     continue;
+}
+
+static void reset(void) {
+  APPS_run(APP_RESET);
+  SVC_Toggle(SVC_APPS, true, 1);
+  while (true) {
+    TasksUpdate();
+  }
 }
 
 // TODO:
@@ -73,17 +103,21 @@ static void Intro(void) {
   PrintMedium(72, 2 * 8 + 12, "%c", pb[introIndex & 3]);
   PrintSmall(96, 46, "by fagci");
   ST7565_Blit();
+
   if (PRESETS_Load()) {
     if (gSettings.beep)
       AUDIO_PlayTone(1400, 50);
 
     RADIO_LoadCurrentVFO();
-    // RADIO_SetupByCurrentVFO();
 
     TaskRemove(Intro);
     if (gSettings.beep)
       AUDIO_PlayTone(1400, 50);
     AddTasks();
+    Log("SETTINGS %02u sz %02u", SETTINGS_OFFSET, SETTINGS_SIZE);
+    Log("VFO1 %02u sz %02u", VFOS_OFFSET, VFO_SIZE);
+    Log("VFO2 %02u sz %02u", VFOS_OFFSET + VFO_SIZE, VFO_SIZE);
+    Log("PRESET %02u sz %02u", PRESETS_OFFSET, PRESET_SIZE);
   }
 }
 
@@ -94,6 +128,17 @@ void Main(void) {
   BOARD_Init();
   BACKLIGHT_Toggle(true);
   SVC_Toggle(SVC_RENDER, true, 25);
+  if (KEYBOARD_Poll() == KEY_EXIT) {
+    BACKLIGHT_SetDuration(120);
+    BACKLIGHT_SetBrightness(15);
+    BACKLIGHT_On();
+    reset();
+  } else if (KEYBOARD_Poll() == KEY_7) {
+    BACKLIGHT_SetDuration(120);
+    BACKLIGHT_SetBrightness(15);
+    BACKLIGHT_On();
+    unreborn();
+  }
 
   SETTINGS_Load();
 
@@ -105,7 +150,7 @@ void Main(void) {
     SVC_Toggle(SVC_RENDER, true, 25);
     TaskAdd("Update", APPS_update, 1, true, 100);
     while (true) {
-      TasksUpdate(); // TODO: check if delay not needed or something
+      TasksUpdate();
     }
   }
 
@@ -118,10 +163,7 @@ void Main(void) {
   BACKLIGHT_SetBrightness(gSettings.brightness);
   BACKLIGHT_On();
 
-  if (KEYBOARD_Poll() == KEY_EXIT) {
-    APPS_run(APP_RESET);
-    TaskAdd("Update", APPS_update, 1, true, 100);
-  } else if (KEYBOARD_Poll() == KEY_STAR) {
+  if (KEYBOARD_Poll() == KEY_STAR) {
     PrintMediumEx(0, 7, POS_L, C_FILL, "SET: %u %u", SETTINGS_OFFSET,
                   SETTINGS_SIZE);
     PrintMediumEx(0, 7 + 8, POS_L, C_FILL, "VFO: %u %u", VFOS_OFFSET, VFO_SIZE);
@@ -129,19 +171,16 @@ void Main(void) {
   } else if (KEYBOARD_Poll() == KEY_F) {
     UART_IsLogEnabled = 5;
     TaskAdd("Intro", Intro, 2, true, 5);
-  } else if (KEYBOARD_Poll() == KEY_7) {
-    unreborn();
-
   } else if (KEYBOARD_Poll() == KEY_MENU) {
-    // selfTest();
-    PrintMediumEx(LCD_WIDTH - 1, 7, POS_R, C_FILL, "%u", PRESETS_Size());
+    selfTest();
+    /* PrintMediumEx(LCD_WIDTH - 1, 7, POS_R, C_FILL, "%u", PRESETS_Size());
     for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
       Preset p;
       PRESETS_LoadPreset(i, &p);
       PrintSmall(i / 10 * 40, 6 * (i % 10) + 6, "%u - %u",
                  p.band.bounds.start / 100000, p.band.bounds.end / 100000);
     }
-    ST7565_Blit();
+    ST7565_Blit(); */
   } else {
     TaskAdd("Intro", Intro, 2, true, 5);
   }

@@ -4,6 +4,7 @@
 #include "../scheduler.h"
 #include "../svc.h"
 #include "../svc_scan.h"
+#include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "apps.h"
 #include "finput.h"
@@ -137,6 +138,9 @@ void VFO1_render(void) {
   uint16_t fp2 = vfo->fRX / 100 % 1000;
   uint8_t fp3 = vfo->fRX % 100;
   const char *mod = modulationTypeOptions[p->band.modulation];
+  if (gIsListening) {
+    UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, vfo->fRX, BASE + 2);
+  }
 
   if (gTxState && gTxState != TX_ON) {
     PrintMediumBoldEx(LCD_XCENTER, BASE, POS_C, C_FILL, "%s",
