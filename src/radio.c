@@ -422,9 +422,6 @@ void RADIO_LoadCurrentVFO(void) {
       RADIO_VfoLoadCH(i);
     }
     gVFOPresets[i] = PRESET_ByFrequency(gVFO[i].fRX);
-    Log("LOAD PRESET vfo %u f=%u (%s) BW %u", i, gVFO[i].fRX, gVFOPresets[i]->band.name,
-        gVFOPresets[i]->band.bw);
-    Log("BUUUT! P22 (%s) BW: %u",PRESETS_Item(22)->band.name, PRESETS_Item(22)->band.bw);
 
     LOOT_Replace(&gLoot[i], gVFO[i].fRX);
   }

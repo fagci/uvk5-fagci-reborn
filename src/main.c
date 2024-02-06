@@ -72,8 +72,8 @@ static void unreborn(void) {
 }
 
 static void reset(void) {
-  APPS_run(APP_RESET);
   SVC_Toggle(SVC_APPS, true, 1);
+  APPS_run(APP_RESET);
   while (true) {
     TasksUpdate();
   }
@@ -130,12 +130,13 @@ void Main(void) {
   BOARD_Init();
   BACKLIGHT_Toggle(true);
   SVC_Toggle(SVC_RENDER, true, 25);
-  if (KEYBOARD_Poll() == KEY_EXIT) {
+  KEY_Code_t pressedKey = KEYBOARD_Poll();
+  if (pressedKey == KEY_EXIT) {
     BACKLIGHT_SetDuration(120);
     BACKLIGHT_SetBrightness(15);
     BACKLIGHT_On();
     reset();
-  } else if (KEYBOARD_Poll() == KEY_7) {
+  } else if (pressedKey == KEY_7) {
     BACKLIGHT_SetDuration(120);
     BACKLIGHT_SetBrightness(15);
     BACKLIGHT_On();

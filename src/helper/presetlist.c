@@ -22,8 +22,6 @@ Preset defaultPreset = {
 };
 
 void PRESETS_SavePreset(uint8_t num, Preset *p) {
-  Log("P%02u SAVE at %u sz %u BW %u", num, PRESETS_OFFSET + num * PRESET_SIZE,
-      PRESET_SIZE, p->band.bw);
   EEPROM_WriteBuffer(PRESETS_OFFSET + num * PRESET_SIZE, p, PRESET_SIZE);
 }
 
@@ -50,7 +48,10 @@ void PRESETS_SelectPresetRelative(bool next) {
   SETTINGS_DelayedSave();
 }
 
-uint8_t PRESET_GetCurrentIndex(void) { return PRESET_IndexOf(gCurrentPreset); }
+uint8_t PRESET_GetCurrentIndex(void) {
+  // FIXME: выстроить правильную схему работы с текущим пресетом
+  return PRESET_IndexOf(gCurrentPreset);
+}
 
 uint8_t PRESET_Select(uint8_t i) {
   gCurrentPreset = &presets[i];
@@ -76,7 +77,7 @@ int8_t PRESET_IndexOf(Preset *p) {
   return -1;
 }
 
-int8_t PRESET_SelectByFrequency(uint32_t f) { // FIXME: похоже выбирается криво
+int8_t PRESET_SelectByFrequency(uint32_t f) {
   if (PRESET_InRange(f, gCurrentPreset)) {
     return gSettings.activePreset;
   }
@@ -90,10 +91,8 @@ int8_t PRESET_SelectByFrequency(uint32_t f) { // FIXME: похоже выбир�
 }
 
 Preset *PRESET_ByFrequency(uint32_t f) {
-  Log("BPF: f:%u", f);
   for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
     if (PRESET_InRange(f, &presets[i])) {
-      Log("BPF SELECTED: i:%u, f:%u", i, f);
       return &presets[i];
     }
   }
