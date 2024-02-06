@@ -24,11 +24,11 @@ void _putchar(char c) {}
 
 static void selfTest(void) {
 
-  /* Preset p = (Preset){
+  Preset p = (Preset){
       .band =
           {
               .bounds = {43307500, 43479999},
-              .name = "LPD",
+              .name = "LPD456789",
               .step = STEP_25_0kHz,
               .modulation = MOD_FM,
               .bw = BK4819_FILTER_BW_NARROWER,
@@ -38,10 +38,10 @@ static void selfTest(void) {
           },
       .allowTx = true,
       .powCalib = {0x8C, 0x8C, 0x8C},
-  }; */
+  };
   Preset p2;
 
-  // PRESETS_SavePreset(22, &p);
+  PRESETS_SavePreset(22, &p);
   PRESETS_LoadPreset(22, &p2);
 
   PrintSmall(0, 8, "PRS O:%u SZ:%u BW:%u", PRESETS_OFFSET, PRESET_SIZE,

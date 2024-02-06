@@ -173,7 +173,7 @@ static Preset defaultPresets[] = {
         .band =
             {
                 .bounds = {17400000, VHF_UHF_BOUND2 - 2500},
-                .name = "174-BOUND",
+                .name = "174-BND",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,
@@ -188,7 +188,7 @@ static Preset defaultPresets[] = {
         .band =
             {
                 .bounds = {VHF_UHF_BOUND2, 34999999},
-                .name = "BOUND-350",
+                .name = "BND-350",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,
@@ -248,7 +248,7 @@ static Preset defaultPresets[] = {
         .band =
             {
                 .bounds = {43480000, 44600624},
-                .name = "434.7-446",
+                .name = "435-446",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,
@@ -293,7 +293,7 @@ static Preset defaultPresets[] = {
         .band =
             {
                 .bounds = {46256250, 46273749},
-                .name = "FRS/GM462",
+                .name = "FRS/G462",
                 .step = STEP_12_5kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,
@@ -323,7 +323,7 @@ static Preset defaultPresets[] = {
         .band =
             {
                 .bounds = {46756250, 46774999},
-                .name = "FRS/GM467",
+                .name = "FRS/G467",
                 .step = STEP_12_5kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,
@@ -458,7 +458,7 @@ static Preset defaultPresets[] = {
         .band =
             {
                 .bounds = {126000000, 134000000},
-                .name = "1300-1340",
+                .name = "1.3-1.34",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,
@@ -518,15 +518,18 @@ void RESET_Update(void) {
         .batteryStyle = BAT_PERCENT,
     };
     settingsWrote = true;
-    bytesWrote += sizeof(Settings);
+    bytesWrote += SETTINGS_SIZE;
   } else if (vfosWrote < ARRAY_SIZE(defaultVFOs)) {
     VFOS_Save(vfosWrote, &defaultVFOs[vfosWrote]);
     vfosWrote++;
-    bytesWrote += sizeof(VFO);
+    bytesWrote += VFO_SIZE;
   } else if (presetsWrote < ARRAY_SIZE(defaultPresets)) {
-    PRESETS_SavePreset(presetsWrote, &defaultPresets[presetsWrote]);
+    uint8_t tpl[33];
+    memset(tpl, presetsWrote, 33);
+    EEPROM_WriteBuffer(PRESETS_OFFSET + 33*presetsWrote, tpl, 33);
+    // PRESETS_SavePreset(presetsWrote, &defaultPresets[presetsWrote]);
     presetsWrote++;
-    bytesWrote += sizeof(Preset);
+    bytesWrote += 33;
     /* } else if (channelsWrote < CHANNELS_GetCountMax()) {
       CH ch = {
           .name = {0},
@@ -535,12 +538,13 @@ void RESET_Update(void) {
       CHANNELS_Save(channelsWrote, &ch);
       channelsWrote++;
       bytesWrote += sizeof(CH); */
-  } else if (bytesWrote < EEPROM_SIZE) {
-    EEPROM_WriteBuffer(bytesWrote, buf,
-                       EEPROM_SIZE - bytesWrote < 8 ? EEPROM_SIZE - bytesWrote
-                                                    : 8);
-    bytesWrote += 8;
+    /* } else if (bytesWrote < EEPROM_SIZE) {
+      EEPROM_WriteBuffer(bytesWrote, buf,
+                         EEPROM_SIZE - bytesWrote < 8 ? EEPROM_SIZE - bytesWrote
+                                                      : 8);
+      bytesWrote += 8; */
   } else {
+
     SETTINGS_Save();
     NVIC_SystemReset();
   }
