@@ -118,7 +118,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     return;
   case M_GAIN:
     sprintf(name, "%ddB%s", gainTable[index].gainDb,
-            index == 90 ? "(def)" : "");
+            index == 16 ? "(def)" : "");
     return;
   case M_TX:
     strncpy(name, yesNo[index], 31);

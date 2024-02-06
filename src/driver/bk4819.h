@@ -92,7 +92,7 @@ typedef struct {
 
 typedef enum BK4819_CssScanResult_t BK4819_CssScanResult_t;
 extern const uint16_t BWRegValues[3];
-extern const Gain gainTable[96];
+extern const Gain gainTable[19];
 
 extern bool gRxIdleMode;
 extern const uint8_t SQ[2][6][11];

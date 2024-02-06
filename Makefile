@@ -30,7 +30,9 @@ SIZE = arm-none-eabi-size
 GIT_HASH := $(shell git rev-parse --short HEAD)
 
 ASFLAGS = -c -mcpu=cortex-m0
-CFLAGS = -Os  -Wall -Werror -mcpu=cortex-m0 -fno-delete-null-pointer-checks -std=c11 -MMD -ffunction-sections -fdata-sections
+# CFLAGS = -Os  -Wall -Werror -mcpu=cortex-m0 -fno-delete-null-pointer-checks -std=c11 -MMD -ffunction-sections -fdata-sections
+CFLAGS = -Os -Wall -Wno-error -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c2x -MMD -flto=auto -Wextra
+# CFLAGS = -Os -Wall -Wno-error -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c2x -MMD -ffunction-sections -fdata-sections -Wextra
 CFLAGS += -DPRINTF_INCLUDE_CONFIG_H
 CFLAGS += -DGIT_HASH=\"$(GIT_HASH)\"
 LDFLAGS = -mcpu=cortex-m0 -nostartfiles -Wl,-T,firmware.ld

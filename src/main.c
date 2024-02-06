@@ -32,7 +32,7 @@ static void selfTest(void) {
               .step = STEP_25_0kHz,
               .modulation = MOD_FM,
               .bw = BK4819_FILTER_BW_NARROWER,
-              .gainIndex = 90,
+              .gainIndex = 16,
               .squelch = 3,
               .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
           },

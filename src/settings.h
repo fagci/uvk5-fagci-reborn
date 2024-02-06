@@ -150,8 +150,8 @@ typedef struct { // 21 bytes
   BK4819_FilterBandwidth_t bw : 2;
   SquelchType squelchType : 2;
   uint8_t squelch : 4; // 20
-  uint8_t gainIndex : 7;
-  bool reserved1 : 1; // 21
+  uint8_t gainIndex : 5;
+  uint8_t reserved1 : 3; // 21
 } __attribute__((packed)) Band;
 
 typedef struct {

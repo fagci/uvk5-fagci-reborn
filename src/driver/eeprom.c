@@ -63,7 +63,7 @@ void EEPROM_ReadBuffer(uint16_t address, void *pBuffer, uint8_t size) {
 }
 
 void EEPROM_WriteBuffer(uint16_t address, const void *pBuffer, uint8_t size) {
-  const uint8_t CHUNK_SZ = 1;
+  const uint8_t CHUNK_SZ = 8;
   const uint8_t *buf = (const uint8_t *)pBuffer;
   while (size > 0) {
     uint8_t n = size > CHUNK_SZ ? CHUNK_SZ : size;
@@ -105,5 +105,6 @@ void EEPROM_WriteBuffer(uint16_t address, const void *pBuffer, uint8_t size) {
     I2C_Stop();
   }
   SYSTEM_DelayMs(8); */
+
   gEepromWrite = true;
 }
