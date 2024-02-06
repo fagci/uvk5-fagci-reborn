@@ -24,7 +24,7 @@ void _putchar(char c) {}
 
 static void selfTest(void) {
 
-  Preset p = (Preset){
+  /* Preset p = (Preset){
       .band =
           {
               .bounds = {43307500, 43479999},
@@ -38,13 +38,14 @@ static void selfTest(void) {
           },
       .allowTx = true,
       .powCalib = {0x8C, 0x8C, 0x8C},
-  };
+  }; */
+  Preset p2;
 
   // PRESETS_SavePreset(22, &p);
-  PRESETS_LoadPreset(22, &p);
+  PRESETS_LoadPreset(22, &p2);
 
-  PrintSmall(0, 8, "PRS O:%u SZ:%u ch:%u", PRESETS_OFFSET, PRESET_SIZE,
-             p.band.bw == BK4819_FILTER_BW_NARROWER);
+  PrintSmall(0, 8, "PRS O:%u SZ:%u BW:%u", PRESETS_OFFSET, PRESET_SIZE,
+             p2.band.bw);
   PrintSmall(0, 16, "SET O:%u SZ:%u", SETTINGS_OFFSET, SETTINGS_SIZE);
   ST7565_Blit();
 
@@ -108,8 +109,6 @@ static void Intro(void) {
     if (gSettings.beep)
       AUDIO_PlayTone(1400, 50);
 
-    RADIO_LoadCurrentVFO();
-
     TaskRemove(Intro);
     if (gSettings.beep)
       AUDIO_PlayTone(1400, 50);
@@ -118,6 +117,9 @@ static void Intro(void) {
     Log("VFO1 %02u sz %02u", VFOS_OFFSET, VFO_SIZE);
     Log("VFO2 %02u sz %02u", VFOS_OFFSET + VFO_SIZE, VFO_SIZE);
     Log("PRESET %02u sz %02u", PRESETS_OFFSET, PRESET_SIZE);
+    Log("P22 BW: %u", PRESETS_Item(22)->band.bw);
+
+    RADIO_LoadCurrentVFO();
   }
 }
 

@@ -9,6 +9,7 @@
 bool PRESETS_Load();
 uint8_t PRESETS_Size();
 Preset *PRESETS_Item(uint8_t i);
+int8_t PRESET_IndexOf(Preset *p);
 void PRESETS_SelectPresetRelative(bool next);
 uint8_t PRESET_GetCurrentIndex();
 uint8_t PRESET_Select(uint8_t i);

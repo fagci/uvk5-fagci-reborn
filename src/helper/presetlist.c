@@ -50,7 +50,7 @@ void PRESETS_SelectPresetRelative(bool next) {
   SETTINGS_DelayedSave();
 }
 
-uint8_t PRESET_GetCurrentIndex(void) { return gSettings.activePreset; }
+uint8_t PRESET_GetCurrentIndex(void) { return PRESET_IndexOf(gCurrentPreset); }
 
 uint8_t PRESET_Select(uint8_t i) {
   gCurrentPreset = &presets[i];
@@ -67,6 +67,15 @@ bool PRESET_InRangeOffset(const uint32_t f, const Preset *p) {
          f <= p->band.bounds.end + p->offset;
 }
 
+int8_t PRESET_IndexOf(Preset *p) {
+  for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
+    if (PRESETS_Item(i) == p) {
+      return i;
+    }
+  }
+  return -1;
+}
+
 int8_t PRESET_SelectByFrequency(uint32_t f) { // FIXME: похоже выбирается криво
   if (PRESET_InRange(f, gCurrentPreset)) {
     return gSettings.activePreset;
@@ -81,9 +90,10 @@ int8_t PRESET_SelectByFrequency(uint32_t f) { // FIXME: похоже выбир�
 }
 
 Preset *PRESET_ByFrequency(uint32_t f) {
+  Log("BPF: f:%u", f);
   for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
-    FRange *range = &presets[i].band.bounds;
-    if (f >= range->start && f <= range->end) {
+    if (PRESET_InRange(f, &presets[i])) {
+      Log("BPF SELECTED: i:%u, f:%u", i, f);
       return &presets[i];
     }
   }
