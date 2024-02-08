@@ -120,7 +120,8 @@ void BK4819_SetupSquelch(uint8_t SquelchOpenRSSIThresh,
                          uint8_t SquelchOpenNoiseThresh,
                          uint8_t SquelchCloseNoiseThresh,
                          uint8_t SquelchCloseGlitchThresh,
-                         uint8_t SquelchOpenGlitchThresh);
+                         uint8_t SquelchOpenGlitchThresh, uint8_t OpenDelay,
+                         uint8_t CloseDelay);
 void BK4819_Squelch(uint8_t sql, uint32_t f);
 void BK4819_SquelchType(SquelchType t);
 

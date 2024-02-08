@@ -229,6 +229,11 @@ void BK4819_SetAGC(bool useDefault) {
   BK4819_WriteRegister(BK4819_REG_11, 0x027B);
   BK4819_WriteRegister(BK4819_REG_10, 0x007A);
 
+  /* BK4819_WriteRegister(BK4819_REG_12, 0x0393);
+  BK4819_WriteRegister(BK4819_REG_11, 0x01B5);
+  BK4819_WriteRegister(BK4819_REG_10, 0x0145);
+  BK4819_WriteRegister(BK4819_REG_14, 0x0019); */
+
   uint8_t Lo = 0;    // 0-1 - auto, 2 - low, 3 high
   uint8_t low = 56;  // 1dB / LSB
   uint8_t high = 84; // 1dB / LSB
@@ -239,8 +244,8 @@ void BK4819_SetAGC(bool useDefault) {
     BK4819_WriteRegister(BK4819_REG_14, 0x0000);
     // slow 25 45
     // fast 15 50
-    low = 21;
-    high = 46;
+    low = 25;
+    high = 50;
   }
   BK4819_WriteRegister(BK4819_REG_49, (Lo << 14) | (high << 7) | (low << 0));
   BK4819_WriteRegister(BK4819_REG_7B, 0x8420);
@@ -335,10 +340,10 @@ void BK4819_EnableVox(uint16_t VoxEnableThreshold,
 }
 
 void BK4819_SetFilterBandwidth(BK4819_FilterBandwidth_t Bandwidth) {
-  if (BK4819_ReadRegister(BK4819_REG_43) !=
-      BWRegValues[Bandwidth]) { // TODO: maybe slow
-    BK4819_WriteRegister(BK4819_REG_43, BWRegValues[Bandwidth]);
-  }
+  /* if (BK4819_ReadRegister(BK4819_REG_43) !=
+      BWRegValues[Bandwidth]) { // TODO: maybe slow */
+  BK4819_WriteRegister(BK4819_REG_43, BWRegValues[Bandwidth]);
+  // }
 }
 
 void BK4819_SetupPowerAmplifier(uint16_t Bias, uint32_t Frequency) {
@@ -375,14 +380,16 @@ void BK4819_SetupSquelch(uint8_t SquelchOpenRSSIThresh,
                          uint8_t SquelchOpenNoiseThresh,
                          uint8_t SquelchCloseNoiseThresh,
                          uint8_t SquelchCloseGlitchThresh,
-                         uint8_t SquelchOpenGlitchThresh) {
+                         uint8_t SquelchOpenGlitchThresh, uint8_t OpenDelay,
+                         uint8_t CloseDelay) {
   BK4819_WriteRegister(BK4819_REG_70, 0);
   BK4819_WriteRegister(BK4819_REG_4D, 0xA000 | SquelchCloseGlitchThresh);
-  BK4819_WriteRegister(BK4819_REG_4E,
-                       (1u << 14) |     //  1 ???
-                           (1u << 11) | // *5  squelch = open  delay .. 0 ~ 7
-                           (2u << 9) |  // *3  squelch = close delay .. 0 ~ 3
-                           SquelchOpenGlitchThresh);
+  BK4819_WriteRegister(
+      BK4819_REG_4E,
+      (1u << 14) |                      //  1 ???
+          (uint16_t)(OpenDelay << 11) | // *5  squelch = open  delay .. 0 ~ 7
+          (uint16_t)(CloseDelay << 9) | // *3  squelch = close delay .. 0 ~ 3
+          SquelchOpenGlitchThresh);
   BK4819_WriteRegister(BK4819_REG_4F,
                        (SquelchCloseNoiseThresh << 8) | SquelchOpenNoiseThresh);
   BK4819_WriteRegister(BK4819_REG_78,
@@ -394,7 +401,8 @@ void BK4819_SetupSquelch(uint8_t SquelchOpenRSSIThresh,
 void BK4819_Squelch(uint8_t sql, uint32_t f) {
   uint8_t band = f > SETTINGS_GetFilterBound() ? 1 : 0;
   BK4819_SetupSquelch(SQ[band][0][sql], SQ[band][1][sql], SQ[band][2][sql],
-                      SQ[band][3][sql], SQ[band][4][sql], SQ[band][5][sql]);
+                      SQ[band][3][sql], SQ[band][4][sql], SQ[band][5][sql],
+                      gSettings.sqlOpenTime, gSettings.sqlCloseTime);
 }
 
 void BK4819_SquelchType(SquelchType t) {
@@ -420,18 +428,18 @@ void BK4819_SetRegValue(RegisterSpec s, uint16_t v) {
 static uint8_t modTypeCurrent = 255;
 
 void BK4819_SetModulation(ModulationType type) {
-  if (modTypeCurrent == type) {
+  /* if (modTypeCurrent == type) {
     return;
-  }
+  } */
   modTypeCurrent = type;
   const uint16_t modTypeReg47Values[] = {BK4819_AF_FM,  BK4819_AF_AM,
                                          BK4819_AF_USB, BK4819_AF_BYPASS,
                                          BK4819_AF_RAW, BK4819_AF_FM};
   BK4819_SetAF(modTypeReg47Values[type]);
-  BK4819_SetRegValue(afDacGainRegSpec, 0xF);
-  BK4819_SetAGC(type != MOD_AM);
+  // BK4819_SetRegValue(afDacGainRegSpec, 0xF);
+  /* BK4819_SetAGC(type != MOD_AM);
   BK4819_WriteRegister(0x3D, type == MOD_USB ? 0 : 0x2AAB);
-  BK4819_SetRegValue(afcDisableRegSpec, type != MOD_FM);
+  BK4819_SetRegValue(afcDisableRegSpec, type != MOD_FM); */
 }
 
 void BK4819_RX_TurnOn(void) {
@@ -1044,7 +1052,8 @@ void BK4819_ResetRSSI(void) {
 }
 
 void BK4819_SetGain(uint8_t gainIndex) {
-  BK4819_WriteRegister(BK4819_REG_13, gainTable[gainIndex].regValue);
+  BK4819_WriteRegister(BK4819_REG_13,
+                       gainTable[gainIndex].regValue | 6 | (3 << 3));
 }
 
 void BK4819_HandleInterrupts(void (*handler)(uint16_t intStatus)) {

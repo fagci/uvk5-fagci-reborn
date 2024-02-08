@@ -26,7 +26,7 @@ static void next(void) {
   lastListenState = false;
   gScanFn(gScanForward);
   lastSettedF = gCurrentVFO->fRX;
-  SetTimeout(&timeout, gScanSwitchT);
+  SetTimeout(&timeout, gSettings.scanTimeout);
   gRedrawScreen = true;
 }
 

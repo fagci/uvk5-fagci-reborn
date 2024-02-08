@@ -22,8 +22,25 @@ static char String[16];
 static const RegisterSpec registerSpecs[] = {
     {},
     {"ATT", BK4819_REG_13, 0, 0xFFFF, 1},
+    /* {"RF", BK4819_REG_43, 12, 0b111, 1},
+    {"RFwe", BK4819_REG_43, 9, 0b111, 1}, */
+    {"AFad", BK4819_REG_43, 0, 0x1, 1},
+    {"AFG1", BK4819_REG_48, 0, 0x1111, 1},
+    {"AFG2", BK4819_REG_48, 4, 0x11111, 1},
+    {"AFG3", BK4819_REG_48, 10, 0x11, 1},
 
     {"IF", 0x3D, 0, 0xFFFF, 100},
+    // TODO: 7 values:
+    /* 0: Zero IF
+    0x2aab: 8.46 kHz IF
+    0x4924: 7.25 kHz IF
+    0x6800: 6.35 kHz IF
+    0x871c: 5.64 kHz IF
+    0xa666: 5.08 kHz IF
+    0xc5d1: 4.62 kHz IF
+    0xe555: 4.23 kHz IF
+    If REG_43<5> = 1, IF = IF*2. */
+
     {"DEV", 0x40, 0, 0xFFF, 10},
     {"CMP", 0x31, 3, 1, 1},
     {"MIC", 0x7D, 0, 0xF, 1},
@@ -48,17 +65,16 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
 
   if (s.num == BK4819_REG_13) {
     RADIO_SetGain(v);
-    v = gainTable[v].regValue;
+  } else {
+    BK4819_SetRegValue(s, v);
   }
-
-  BK4819_SetRegValue(s, v);
 }
 
-void STILL_init() { RADIO_SetupByCurrentVFO(); }
+void STILL_init(void) { RADIO_SetupByCurrentVFO(); }
 
-void STILL_deinit() { RADIO_ToggleRX(false); }
+void STILL_deinit(void) { RADIO_ToggleRX(false); }
 
-void STILL_update() {
+void STILL_update(void) {
   RADIO_UpdateMeasurementsEx(gCurrentLoot);
 
   if (elapsedMilliseconds - lastUpdate >= 500) {
@@ -165,7 +181,7 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-static void DrawRegs() {
+static void DrawRegs(void) {
   const uint8_t PAD_LEFT = 1;
   const uint8_t PAD_TOP = 31;
   const uint8_t CELL_WIDTH = 31;
@@ -200,7 +216,7 @@ static void DrawRegs() {
   }
 }
 
-void STILL_render() {
+void STILL_render(void) {
   UI_ClearScreen();
   STATUSLINE_SetText(gCurrentPreset->band.name);
   UI_FSmall(GetScreenF(gCurrentVFO->fRX));

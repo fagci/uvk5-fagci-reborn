@@ -17,6 +17,9 @@ typedef enum {
   M_NONE,
   M_UPCONVERTER,
   M_MAIN_APP,
+  M_SCAN_DELAY,
+  M_SQL_OPEN_T,
+  M_SQL_CLOSE_T,
   M_SQL_TO_OPEN,
   M_SQL_TO_CLOSE,
   M_BRIGHTNESS,
@@ -44,6 +47,9 @@ const uint16_t BAT_CAL_MAX = 2155;
 static const MenuItem menu[] = {
     {"Upconverter", M_UPCONVERTER, ARRAY_SIZE(upConverterFreqNames)},
     {"Main app", M_MAIN_APP, ARRAY_SIZE(appsAvailableToRun)},
+    {"Scan delay", M_SCAN_DELAY, 255},
+    {"SQL open time", M_SQL_OPEN_T, 7},
+    {"SQL close time", M_SQL_CLOSE_T, 3},
     {"SQL open t/o", M_SQL_TO_OPEN, ARRAY_SIZE(SCAN_TIMEOUT_NAMES)},
     {"SQL closed t/o", M_SQL_TO_CLOSE, ARRAY_SIZE(SCAN_TIMEOUT_NAMES)},
     {"Brightness", M_BRIGHTNESS, 16},
@@ -67,6 +73,15 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     return;
   case M_MAIN_APP:
     strncpy(name, apps[appsAvailableToRun[index]].name, 31);
+    return;
+  case M_SCAN_DELAY:
+    sprintf(name, "%ums", index);
+    return;
+  case M_SQL_OPEN_T:
+    sprintf(name, "%ums", index * 5);
+    return;
+  case M_SQL_CLOSE_T:
+    sprintf(name, "%ums", index * 5);
     return;
   case M_SQL_TO_OPEN:
     strncpy(name, SCAN_TIMEOUT_NAMES[index], 31);
@@ -117,6 +132,20 @@ static void accept(void) {
   }; break;
   case M_MAIN_APP:
     gSettings.mainApp = appsAvailableToRun[subMenuIndex];
+    SETTINGS_Save();
+    break;
+  case M_SCAN_DELAY:
+    gSettings.scanTimeout = subMenuIndex;
+    SETTINGS_Save();
+    break;
+  case M_SQL_OPEN_T:
+    gSettings.sqlOpenTime = subMenuIndex;
+    RADIO_SetupByCurrentVFO();
+    SETTINGS_Save();
+    break;
+  case M_SQL_CLOSE_T:
+    gSettings.sqlCloseTime = subMenuIndex;
+    RADIO_SetupByCurrentVFO();
     SETTINGS_Save();
     break;
   case M_SQL_TO_OPEN:
@@ -177,6 +206,15 @@ static const char *getValue(Menu type) {
   case M_BAT_CAL:
     sprintf(Output, "%u", gSettings.batteryCalibration);
     return Output;
+  case M_SCAN_DELAY:
+    sprintf(Output, "%ums", gSettings.scanTimeout);
+    return Output;
+  case M_SQL_OPEN_T:
+    sprintf(Output, "%ums", gSettings.sqlOpenTime * 5);
+    return Output;
+  case M_SQL_CLOSE_T:
+    sprintf(Output, "%ums", gSettings.sqlCloseTime * 5);
+    return Output;
   case M_BAT_TYPE:
     return BATTERY_TYPE_NAMES[gSettings.batteryType];
   case M_BAT_STYLE:
@@ -227,6 +265,15 @@ static void setInitialSubmenuIndex(void) {
     break;
   case M_BL_TIME:
     subMenuIndex = gSettings.backlight;
+    break;
+  case M_SCAN_DELAY:
+    subMenuIndex = gSettings.scanTimeout;
+    break;
+  case M_SQL_OPEN_T:
+    subMenuIndex = gSettings.sqlOpenTime;
+    break;
+  case M_SQL_CLOSE_T:
+    subMenuIndex = gSettings.sqlCloseTime;
     break;
   case M_SQL_TO_OPEN:
     subMenuIndex = gSettings.sqOpenedTimeout;

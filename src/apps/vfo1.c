@@ -146,7 +146,7 @@ void VFO1_render(void) {
     PrintMediumBoldEx(LCD_XCENTER, BASE, POS_C, C_FILL, "%s",
                       TX_STATE_NAMES[gTxState]);
   } else {
-    PrintBiggestDigitsEx(LCD_WIDTH - 20, BASE, POS_R, C_FILL, "%4u.%03u", fp1,
+    PrintBiggestDigitsEx(LCD_WIDTH - 22, BASE, POS_R, C_FILL, "%4u.%03u", fp1,
                          fp2);
     PrintBigDigitsEx(LCD_WIDTH - 1, BASE, POS_R, C_FILL, "%02u", fp3);
     PrintMediumEx(LCD_WIDTH - 1, BASE - 12, POS_R, C_FILL, mod);

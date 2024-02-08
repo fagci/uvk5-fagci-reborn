@@ -170,10 +170,6 @@ static void render2VFOPart(uint8_t i) {
     }
   }
 
-  if (p->allowTx) {
-    PrintMedium(29, bl - 8, "%c", TX_POWER_NAMES[p->power][0]);
-  }
-
   if (gTxState && gTxState != TX_ON && isActive) {
     PrintMediumBoldEx(LCD_XCENTER, bl - 8 + 4, POS_C, C_FILL, "%s",
                       TX_STATE_NAMES[gTxState]);
@@ -184,10 +180,10 @@ static void render2VFOPart(uint8_t i) {
       PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "MR %03u", vfo->channel + 1);
     } else {
       PrintBigDigitsEx(LCD_WIDTH - 19, bl, POS_R, C_FILL, "%4u.%03u", fp1, fp2);
-      PrintMediumBoldEx(LCD_WIDTH - 1, bl, POS_R, C_FILL, "%02u", fp3);
+      PrintMediumBoldEx(LCD_WIDTH, bl, POS_R, C_FILL, "%02u", fp3);
       PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "VFO");
     }
-    PrintSmallEx(LCD_WIDTH - 1, bl - 9, POS_R, C_FILL, mod);
+    PrintSmallEx(LCD_WIDTH, bl - 9, POS_R, C_FILL, mod);
   }
 
   uint32_t est = loot->lastTimeOpen
@@ -200,13 +196,17 @@ static void render2VFOPart(uint8_t i) {
     PrintSmallEx(0, bl + 6, POS_L, C_FILL, "D%03oN(fake)",
                  DCS_Options[loot->cd]);
   }
-  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%s st: %d.%02dKHz",
-               bwNames[p->band.bw], StepFrequencyTable[p->band.step] / 100,
-               StepFrequencyTable[p->band.step] % 100);
+  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %c",
+               p->allowTx ? TX_POWER_NAMES[p->power][0] : ' ',
+               "WNn"[p->band.bw]);
 
   if (loot->lastTimeOpen) {
-    PrintSmallEx(LCD_WIDTH - 1, bl + 6, POS_R, C_FILL, "%02u:%02u %us",
-                 est / 60, est % 60, loot->duration / 1000);
+    PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,
+                 est % 60, loot->duration / 1000);
+  } else {
+    PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%d.%02dk",
+                 StepFrequencyTable[p->band.step] / 100,
+                 StepFrequencyTable[p->band.step] % 100);
   }
 }
 

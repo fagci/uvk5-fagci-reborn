@@ -509,6 +509,9 @@ void RESET_Update(void) {
         .mainApp = APP_VFO2,
         .sqOpenedTimeout = SCAN_TO_NONE,
         .sqClosedTimeout = SCAN_TO_2s,
+        .sqlOpenTime = 0,
+        .sqlCloseTime = 0,
+        .scanTimeout = 10,
         .activeVFO = 0,
         .activePreset = 22,
         .presetsCount = ARRAY_SIZE(defaultPresets),
@@ -524,20 +527,17 @@ void RESET_Update(void) {
     vfosWrote++;
     bytesWrote += VFO_SIZE;
   } else if (presetsWrote < ARRAY_SIZE(defaultPresets)) {
-    uint8_t tpl[33];
-    memset(tpl, presetsWrote, 33);
-    EEPROM_WriteBuffer(PRESETS_OFFSET + 33*presetsWrote, tpl, 33);
-    // PRESETS_SavePreset(presetsWrote, &defaultPresets[presetsWrote]);
+    PRESETS_SavePreset(presetsWrote, &defaultPresets[presetsWrote]);
     presetsWrote++;
-    bytesWrote += 33;
-    /* } else if (channelsWrote < CHANNELS_GetCountMax()) {
-      CH ch = {
-          .name = {0},
-          .memoryBanks = 0,
-      };
-      CHANNELS_Save(channelsWrote, &ch);
-      channelsWrote++;
-      bytesWrote += sizeof(CH); */
+    bytesWrote += PRESET_SIZE;
+  } else if (channelsWrote < CHANNELS_GetCountMax()) {
+    CH ch = {
+        .name = {0},
+        .memoryBanks = 0,
+    };
+    CHANNELS_Save(channelsWrote, &ch);
+    channelsWrote++;
+    bytesWrote += sizeof(CH);
     /* } else if (bytesWrote < EEPROM_SIZE) {
       EEPROM_WriteBuffer(bytesWrote, buf,
                          EEPROM_SIZE - bytesWrote < 8 ? EEPROM_SIZE - bytesWrote
