@@ -57,42 +57,6 @@ static void setInitialSubmenuIndex(void) {
   }
 }
 
-static void accept(void) {
-  const MenuItem *item = &menu[menuIndex];
-  switch (item->type) {
-  case M_BW:
-    gCurrentPreset->band.bw = subMenuIndex;
-    PRESETS_SaveCurrent();
-    break;
-  case M_MODULATION:
-    gCurrentPreset->band.modulation = subMenuIndex;
-    PRESETS_SaveCurrent();
-    break;
-  case M_STEP:
-    gCurrentPreset->band.step = subMenuIndex;
-    PRESETS_SaveCurrent();
-    break;
-  case M_SQ_TYPE:
-    gCurrentPreset->band.squelchType = subMenuIndex;
-    PRESETS_SaveCurrent();
-    break;
-  case M_SQ:
-    gCurrentPreset->band.squelch = subMenuIndex;
-    PRESETS_SaveCurrent();
-    break;
-  case M_GAIN:
-    gCurrentPreset->band.gainIndex = subMenuIndex;
-    PRESETS_SaveCurrent();
-    break;
-  case M_TX:
-    gCurrentPreset->allowTx = subMenuIndex;
-    PRESETS_SaveCurrent();
-    break;
-  default:
-    break;
-  }
-}
-
 static void getMenuItemText(uint16_t index, char *name) {
   strncpy(name, menu[index].name, 31);
 }
@@ -183,7 +147,7 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       break;
     }
     if (isSubMenu) {
-      accept();
+      AcceptRadioConfig(item, subMenuIndex);
       isSubMenu = false;
     } else {
       isSubMenu = true;

@@ -24,10 +24,6 @@ static const RegisterSpec registerSpecs[] = {
     {"ATT", BK4819_REG_13, 0, 0xFFFF, 1},
     /* {"RF", BK4819_REG_43, 12, 0b111, 1},
     {"RFwe", BK4819_REG_43, 9, 0b111, 1}, */
-    {"AFad", BK4819_REG_43, 0, 0x1, 1},
-    {"AFG1", BK4819_REG_48, 0, 0x1111, 1},
-    {"AFG2", BK4819_REG_48, 4, 0x11111, 1},
-    {"AFG3", BK4819_REG_48, 10, 0x11, 1},
 
     {"IF", 0x3D, 0, 0xFFFF, 100},
     // TODO: 7 values:

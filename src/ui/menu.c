@@ -122,3 +122,49 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
     break;
   }
 }
+
+void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
+  switch (item->type) {
+  case M_BW:
+    gCurrentPreset->band.bw = subMenuIndex;
+    BK4819_SetFilterBandwidth(subMenuIndex);
+    PRESETS_SaveCurrent();
+    break;
+  case M_F_TXP:
+    gCurrentPreset->power = subMenuIndex;
+    PRESETS_SaveCurrent();
+    break;
+  case M_MODULATION:
+    gCurrentPreset->band.modulation = subMenuIndex;
+    BK4819_SetModulation(subMenuIndex);
+    PRESETS_SaveCurrent();
+    break;
+  case M_STEP:
+    gCurrentPreset->band.step = subMenuIndex;
+    PRESETS_SaveCurrent();
+    break;
+  case M_SQ_TYPE:
+    gCurrentPreset->band.squelchType = subMenuIndex;
+    BK4819_SquelchType(subMenuIndex);
+    PRESETS_SaveCurrent();
+    break;
+  case M_SQ:
+    gCurrentPreset->band.squelch = subMenuIndex;
+    BK4819_Squelch(subMenuIndex, gCurrentVFO->fRX);
+    PRESETS_SaveCurrent();
+    break;
+
+  case M_GAIN:
+    gCurrentPreset->band.gainIndex = subMenuIndex;
+    BK4819_SetGain(subMenuIndex);
+    PRESETS_SaveCurrent();
+    break;
+  case M_TX:
+    gCurrentPreset->allowTx = subMenuIndex;
+    PRESETS_SaveCurrent();
+    break;
+
+  default:
+    break;
+  }
+}
