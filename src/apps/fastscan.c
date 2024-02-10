@@ -4,6 +4,7 @@
 #include "../ui/graphics.h"
 
 static uint32_t scanF = 0;
+static uint32_t gotF = 0;
 static bool isDone = false;
 static uint8_t hits = 0;
 
@@ -28,6 +29,7 @@ void FASTSCAN_update(void) {
     if (delta(f, scanF) < 100) {
       if (hits++ >= 3) {
         isDone = true;
+        gotF = scanF;
         gRedrawScreen = true;
       }
     } else {
@@ -45,7 +47,7 @@ bool FASTSCAN_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld) {
     switch (key) {
     case KEY_MENU:
-      if (isDone) {
+      if (gotF > 0) {
         RADIO_TuneToSave(scanF);
         APPS_exit();
       }
@@ -63,9 +65,9 @@ bool FASTSCAN_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 void FASTSCAN_render(void) {
   UI_ClearScreen();
   PrintMediumEx(LCD_XCENTER, LCD_HEIGHT / 2, POS_C, C_FILL, "Scanning...");
-  if (isDone) {
+  if (gotF > 0) {
     PrintMediumEx(LCD_XCENTER, LCD_HEIGHT / 2 + 8, POS_C, C_FILL, "%u.%05u",
-                  scanF / 100000, scanF % 100000);
+                  gotF / 100000, gotF % 100000);
   }
 }
 
