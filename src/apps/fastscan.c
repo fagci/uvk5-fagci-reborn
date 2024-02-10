@@ -1,8 +1,6 @@
 #include "fastscan.h"
 #include "../driver/bk4819.h"
-#include "../helper/presetlist.h"
-#include "../scheduler.h"
-#include "../ui/components.h"
+#include "../radio.h"
 #include "../ui/graphics.h"
 
 static uint32_t scanF = 0;
@@ -10,20 +8,20 @@ static bool isDone = false;
 static uint8_t hits = 0;
 
 static uint32_t delta(uint32_t f1, uint32_t f2) {
-  int32_t d = f1 - f2;
+  int64_t d = f1 - f2;
   if (d < 0) {
     d = -d;
   }
   return d;
 }
 
-void FASTSCAN_init() {
+void FASTSCAN_init(void) {
   BK4819_StopScan();
   BK4819_DisableFilter();
   BK4819_EnableFrequencyScanEx(F_SC_T_0_2s);
 }
 
-void FASTSCAN_update() {
+void FASTSCAN_update(void) {
   uint32_t f = 0;
 
   if (BK4819_GetFrequencyScanResult(&f)) {
@@ -47,8 +45,10 @@ bool FASTSCAN_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld) {
     switch (key) {
     case KEY_MENU:
-      RADIO_TuneToSave(scanF);
-      APPS_exit();
+      if (isDone) {
+        RADIO_TuneToSave(scanF);
+        APPS_exit();
+      }
       return true;
     case KEY_EXIT:
       APPS_exit();
@@ -60,7 +60,7 @@ bool FASTSCAN_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void FASTSCAN_render() {
+void FASTSCAN_render(void) {
   UI_ClearScreen();
   PrintMediumEx(LCD_XCENTER, LCD_HEIGHT / 2, POS_C, C_FILL, "Scanning...");
   if (isDone) {
@@ -69,6 +69,4 @@ void FASTSCAN_render() {
   }
 }
 
-void FASTSCAN_deinit() {
-  BK4819_StopScan();
-}
+void FASTSCAN_deinit(void) { BK4819_StopScan(); }

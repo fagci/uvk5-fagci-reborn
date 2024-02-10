@@ -38,6 +38,7 @@ typedef enum {
 typedef enum {
   BAT_1600,
   BAT_2200,
+  BAT_3500,
 } BatteryType;
 
 typedef enum {

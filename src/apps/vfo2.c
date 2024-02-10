@@ -196,9 +196,9 @@ static void render2VFOPart(uint8_t i) {
     PrintSmallEx(0, bl + 6, POS_L, C_FILL, "D%03oN(fake)",
                  DCS_Options[loot->cd]);
   }
-  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %c",
+  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %c %u",
                p->allowTx ? TX_POWER_NAMES[p->power][0] : ' ',
-               "WNn"[p->band.bw]);
+               "WNn"[p->band.bw], p->band.squelch);
 
   if (loot->lastTimeOpen) {
     PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,

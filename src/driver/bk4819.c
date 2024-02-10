@@ -34,6 +34,7 @@ static const uint16_t FSK_RogerTable[7] = {
 
 static uint16_t gBK4819_GpioOutState;
 static Filter selectedFilter = FILTER_OFF;
+static uint8_t modTypeCurrent = 255;
 
 bool gRxIdleMode;
 
@@ -224,19 +225,27 @@ void BK4819_WriteRegister(BK4819_REGISTER_t Register, uint16_t Data) {
 }
 
 void BK4819_SetAGC(bool useDefault) {
-  BK4819_WriteRegister(BK4819_REG_13, 0x03BE);
+  // QS
+  /* BK4819_WriteRegister(BK4819_REG_13, 0x03BE);
   BK4819_WriteRegister(BK4819_REG_12, 0x037B);
   BK4819_WriteRegister(BK4819_REG_11, 0x027B);
-  BK4819_WriteRegister(BK4819_REG_10, 0x007A);
+  BK4819_WriteRegister(BK4819_REG_10, 0x007A); */
 
+  // BK
+  BK4819_WriteRegister(BK4819_REG_13, 0x03DE);
+  BK4819_WriteRegister(BK4819_REG_12, 0x037B);
+  BK4819_WriteRegister(BK4819_REG_11, 0x025A);
+  BK4819_WriteRegister(BK4819_REG_10, 0x0038);
+
+  // 1o11
   /* BK4819_WriteRegister(BK4819_REG_12, 0x0393);
   BK4819_WriteRegister(BK4819_REG_11, 0x01B5);
   BK4819_WriteRegister(BK4819_REG_10, 0x0145);
   BK4819_WriteRegister(BK4819_REG_14, 0x0019); */
 
   uint8_t Lo = 0;    // 0-1 - auto, 2 - low, 3 high
-  uint8_t low = 56;  // 1dB / LSB
-  uint8_t high = 84; // 1dB / LSB
+  uint8_t low = 48;  // 1dB / LSB 56
+  uint8_t high = 80; // 1dB / LSB 84
 
   if (useDefault) {
     BK4819_WriteRegister(BK4819_REG_14, 0x0019);
@@ -244,7 +253,7 @@ void BK4819_SetAGC(bool useDefault) {
     BK4819_WriteRegister(BK4819_REG_14, 0x0000);
     // slow 25 45
     // fast 15 50
-    low = 25;
+    low = 48;
     high = 50;
   }
   BK4819_WriteRegister(BK4819_REG_49, (Lo << 14) | (high << 7) | (low << 0));
@@ -396,6 +405,9 @@ void BK4819_SetupSquelch(uint8_t SquelchOpenRSSIThresh,
                        (SquelchOpenRSSIThresh << 8) | SquelchCloseRSSIThresh);
   BK4819_SetAF(BK4819_AF_MUTE);
   BK4819_RX_TurnOn();
+
+  // NOTE: check if it works to prevent muting output
+  BK4819_SetAF(modTypeCurrent);
 }
 
 void BK4819_Squelch(uint8_t sql, uint32_t f) {
@@ -425,21 +437,19 @@ void BK4819_SetRegValue(RegisterSpec s, uint16_t v) {
   BK4819_WriteRegister(s.num, reg | (v << s.offset));
 }
 
-static uint8_t modTypeCurrent = 255;
-
 void BK4819_SetModulation(ModulationType type) {
-  /* if (modTypeCurrent == type) {
+  if (modTypeCurrent == type) {
     return;
-  } */
+  }
   modTypeCurrent = type;
   const uint16_t modTypeReg47Values[] = {BK4819_AF_FM,  BK4819_AF_AM,
                                          BK4819_AF_USB, BK4819_AF_BYPASS,
                                          BK4819_AF_RAW, BK4819_AF_FM};
   BK4819_SetAF(modTypeReg47Values[type]);
-  // BK4819_SetRegValue(afDacGainRegSpec, 0xF);
-  /* BK4819_SetAGC(type != MOD_AM);
+  BK4819_SetRegValue(afDacGainRegSpec, 0xF);
+  BK4819_SetAGC(type != MOD_AM);
   BK4819_WriteRegister(0x3D, type == MOD_USB ? 0 : 0x2AAB);
-  BK4819_SetRegValue(afcDisableRegSpec, type != MOD_FM); */
+  BK4819_SetRegValue(afcDisableRegSpec, type == MOD_AM || type == MOD_USB);
 }
 
 void BK4819_RX_TurnOn(void) {
