@@ -1038,12 +1038,15 @@ void BK4819_ToggleAFDAC(bool on) {
   BK4819_WriteRegister(BK4819_REG_30, Reg);
 }
 
-void BK4819_TuneTo(uint32_t f) {
+void BK4819_TuneTo(uint32_t f, bool precise) {
   BK4819_SelectFilter(f);
   BK4819_SetFrequency(f);
   uint16_t reg = BK4819_ReadRegister(BK4819_REG_30);
-  // BK4819_WriteRegister(BK4819_REG_30, reg & ~BK4819_REG_30_ENABLE_VCO_CALIB);
-  BK4819_WriteRegister(BK4819_REG_30, 0);
+    if(precise) {
+        BK4819_WriteRegister(BK4819_REG_30, 0);
+    } else {
+        BK4819_WriteRegister(BK4819_REG_30, reg & ~BK4819_REG_30_ENABLE_VCO_CALIB);
+    }
   BK4819_WriteRegister(BK4819_REG_30, reg);
 }
 

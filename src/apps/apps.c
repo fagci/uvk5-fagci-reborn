@@ -4,6 +4,7 @@
 #include "../ui/graphics.h"
 #include "../ui/statusline.h"
 #include "about.h"
+#include "analyzer.h"
 #include "antenna.h"
 #include "appslist.h"
 #include "channelscanner.h"
@@ -64,6 +65,7 @@ const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
     APP_VFO2,         //
     APP_CH_SCANNER,   //
     APP_SPECTRUM,     //
+    APP_ANALYZER,     //
     APP_FASTSCAN,     //
     APP_LOOT_LIST,    //
     APP_SCANLISTS,    //
@@ -77,8 +79,10 @@ const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
 const App apps[APPS_COUNT] = {
     {"None"},
     {"Test", TEST_Init, TEST_Update, TEST_Render, TEST_key},
-    {"Band Spectrum", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render,
+    {"Spectrum band", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render,
      SPECTRUM_key, SPECTRUM_deinit},
+    {"Spectrum analyzer", ANALYZER_init, ANALYZER_update, ANALYZER_render,
+     ANALYZER_key, ANALYZER_deinit},
     {"CH Scan", CHSCANNER_init, CHSCANNER_update, CHSCANNER_render,
      CHSCANNER_key, CHSCANNER_deinit},
     {"Freq catch", FASTSCAN_init, FASTSCAN_update, FASTSCAN_render,

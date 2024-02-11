@@ -53,7 +53,7 @@ void RADIO_ToggleRX(bool on);
 void RADIO_ToggleTX(bool on);
 
 void RADIO_TuneTo(uint32_t f);
-void RADIO_TuneToPure(uint32_t f);
+void RADIO_TuneToPure(uint32_t f, bool precise);
 void RADIO_TuneToSave(uint32_t f);
 void RADIO_SetupBandParams(Band *b);
 
@@ -78,6 +78,7 @@ void RADIO_UpdateSquelchLevel(bool next);
 
 uint32_t GetScreenF(uint32_t f);
 uint32_t GetTuneF(uint32_t f);
+uint16_t RADIO_GetRSSI(void);
 
 bool RADIO_IsBK1080Range(uint32_t f);
 

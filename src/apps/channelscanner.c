@@ -43,7 +43,7 @@ static void scanFn(bool forward) {
 
   if (!gIsListening) {
     IncDec8(&scanIndex, 0, gScanlistSize, forward ? 1 : -1);
-    RADIO_TuneToPure(LOOT_Item(scanIndex)->f);
+    RADIO_TuneToPure(LOOT_Item(scanIndex)->f, true);
   }
 }
 
@@ -61,7 +61,7 @@ void CHSCANNER_init(void) {
     loot->lastTimeOpen = 0;
   }
   if (gScanlistSize) {
-    RADIO_TuneToPure(LOOT_Item(scanIndex)->f);
+    RADIO_TuneToPure(LOOT_Item(scanIndex)->f, true);
   }
 
   gScanFn = scanFn;

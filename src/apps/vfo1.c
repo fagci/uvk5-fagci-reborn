@@ -117,7 +117,6 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       if (!APPS_exit()) {
         LOOT_Standby();
         RADIO_NextVFO();
-        RADIO_TuneToPure(gCurrentVFO->fRX);
       }
       return true;
     default:

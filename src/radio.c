@@ -374,12 +374,12 @@ void RADIO_SetSquelchPure(uint32_t f, uint8_t sql) {
   BK4819_Squelch(sql, f, gSettings.sqlOpenTime, gSettings.sqlCloseTime);
 }
 
-void RADIO_TuneToPure(uint32_t f) {
+void RADIO_TuneToPure(uint32_t f, bool precise) {
   LOOT_Replace(&gLoot[gSettings.activeVFO], f);
   if (isBK1080) {
     BK1080_SetFrequency(f);
   } else {
-    BK4819_TuneTo(f);
+    BK4819_TuneTo(f, precise);
   }
 }
 
@@ -400,7 +400,7 @@ void RADIO_SetupByCurrentVFO(void) {
                        RADIO_IsBK1080Range(f));
   }
 
-  RADIO_TuneToPure(f);
+  RADIO_TuneToPure(f, true);
 }
 
 void RADIO_TuneTo(uint32_t f) {
@@ -593,5 +593,5 @@ void RADIO_NextPresetFreq(bool next) {
   uint16_t step = PRESETS_GetChannel(gCurrentPreset, gCurrentVFO->fRX);
   IncDec16(&step, 0, steps, next ? 1 : -1);
   gCurrentVFO->fRX = PRESETS_GetF(gCurrentPreset, step);
-  RADIO_TuneToPure(gCurrentVFO->fRX);
+  RADIO_TuneToPure(gCurrentVFO->fRX, true);
 }
