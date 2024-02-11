@@ -17,7 +17,6 @@ static const uint8_t ANALYZER_Y = 16;
 static const uint8_t ANALYZER_HEIGHT = 40;
 
 static Loot msm;
-static uint32_t initialF = 0;
 static uint32_t centerF = 0;
 static uint8_t initialScanInterval = 0;
 static uint8_t scanInterval = 2;
@@ -96,7 +95,7 @@ void ANALYZER_init(void) {
   gMonitorMode = false;
   gNoListen = true;
 
-  initialF = centerF = gCurrentVFO->fRX;
+  centerF = gCurrentVFO->fRX;
   initialScanInterval = gSettings.scanTimeout;
   opt.band.step = gCurrentPreset->band.step;
   opt.band.squelch = 0;
@@ -117,7 +116,6 @@ void ANALYZER_deinit(void) {
   SVC_Toggle(SVC_SCAN, false, 0);
   gNoListen = false;
   gSettings.scanTimeout = initialScanInterval;
-  RADIO_TuneTo(initialF);
   SVC_Toggle(SVC_LISTEN, true, 1);
 }
 

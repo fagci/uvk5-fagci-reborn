@@ -157,10 +157,9 @@ void APPS_run(AppType_t app) {
   if (appsStack[stackIndex] == app) {
     return;
   }
-  if (pushApp(app)) {
-    APPS_deinit();
-    APPS_init(app);
-  }
+  APPS_deinit();
+  pushApp(app);
+  APPS_init(app);
 }
 
 void APPS_runManual(AppType_t app) {
