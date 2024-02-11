@@ -166,7 +166,7 @@ void APPS_run(AppType_t app) {
 void APPS_runManual(AppType_t app) {
   APPS_deinit();
   stackIndex = 0;
-  appsStack[stackIndex++] = app;
+  appsStack[stackIndex] = app;
   APPS_init(app);
 }
 
