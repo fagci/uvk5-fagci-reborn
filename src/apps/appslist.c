@@ -13,7 +13,7 @@ static const uint8_t MENU_SIZE = ARRAY_SIZE(appsAvailableToRun);
 static uint8_t menuIndex = 0;
 
 static void getMenuItemText(uint16_t index, char *name) {
-  strncpy(name, apps[appsAvailableToRun[index]].name, 15);
+  strncpy(name, apps[appsAvailableToRun[index]].name, 31);
 }
 
 void APPSLIST_render(void) {
@@ -33,7 +33,7 @@ bool APPSLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_MENU:
     APPS_exit();
-    APPS_run(appsAvailableToRun[menuIndex]);
+    APPS_runManual(appsAvailableToRun[menuIndex]);
     return true;
   case KEY_EXIT:
     APPS_exit();

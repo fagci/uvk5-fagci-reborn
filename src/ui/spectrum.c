@@ -17,7 +17,7 @@ static uint8_t exLen;
 
 static uint16_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 
-void SP_ResetHistory() {
+void SP_ResetHistory(void) {
   for (uint8_t i = 0; i < MAX_POINTS; ++i) {
     rssiHistory[i] = 0;
     markers[i] = false;
@@ -26,9 +26,9 @@ void SP_ResetHistory() {
   currentStep = 0;
 }
 
-void SP_Begin() { currentStep = 0; }
+void SP_Begin(void) { currentStep = 0; }
 
-void SP_Next() {
+void SP_Next(void) {
   if (currentStep < stepsCount - 1) {
     currentStep++;
   }
@@ -63,7 +63,7 @@ void SP_AddPoint(Loot *msm) {
   }
 }
 
-void SP_ResetPoint() {
+void SP_ResetPoint(void) {
   for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
     uint8_t lx = historySize * currentStep / stepsCount + exIndex;
     rssiHistory[lx] = 0;

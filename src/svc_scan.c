@@ -6,6 +6,7 @@
 
 uint16_t gScanSwitchT = 10;
 bool gScanForward = true;
+bool gScanRedraw = true;
 
 uint32_t SCAN_TIMEOUTS[9] = {
     1000 * 1,  1000 * 2,      1000 * 5,      1000 * 10,         1000 * 30,
@@ -27,7 +28,9 @@ static void next(void) {
   gScanFn(gScanForward);
   lastSettedF = gCurrentVFO->fRX;
   SetTimeout(&timeout, gSettings.scanTimeout);
-  gRedrawScreen = true;
+  if (gScanRedraw) {
+    gRedrawScreen = true;
+  }
 }
 
 void SVC_SCAN_Init(void) {
@@ -53,4 +56,7 @@ void SVC_SCAN_Update(void) {
   }
 }
 
-void SVC_SCAN_Deinit(void) { gScanFn = RADIO_NextPresetFreq; }
+void SVC_SCAN_Deinit(void) {
+  gScanFn = RADIO_NextPresetFreq;
+  gScanRedraw = true;
+}
