@@ -12,5 +12,7 @@ void SP_Init(uint16_t steps, uint8_t width);
 void SP_Begin();
 void SP_Next();
 void SP_Render(Preset *p, uint8_t x, uint8_t y, uint8_t h);
+void SP_RenderRssi(uint16_t rssi, char *text, bool top, uint8_t sx, uint8_t sy,
+                   uint8_t sh);
 
 #endif /* end of include guard: UI_SPECTRUM_H */

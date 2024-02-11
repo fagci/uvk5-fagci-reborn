@@ -82,11 +82,11 @@ static void scanFn(bool forward) {
 }
 
 static void setup(void) {
-  const uint32_t bandwidth = StepFrequencyTable[opt.band.step] * 128;
-  opt.band.bounds.start = centerF - bandwidth / 2;
-  opt.band.bounds.end = centerF + bandwidth / 2;
+  const uint32_t halfBW = StepFrequencyTable[opt.band.step] * 64;
+  opt.band.bounds.start = centerF - halfBW;
+  opt.band.bounds.end = centerF + halfBW;
   gSettings.scanTimeout = scanInterval;
-  newScan = true;
+  startNewScan(true);
 }
 
 void ANALYZER_init(void) {
@@ -99,7 +99,7 @@ void ANALYZER_init(void) {
   initialF = centerF = gCurrentVFO->fRX;
   initialScanInterval = gSettings.scanTimeout;
   opt.band.step = gCurrentPreset->band.step;
-  opt.band.squelch = gCurrentPreset->band.squelch;
+  opt.band.squelch = 0;
 
   setup();
   startNewScan(true);
@@ -123,14 +123,24 @@ void ANALYZER_deinit(void) {
 
 bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
-    if (Key == KEY_SIDE1) {
+    switch (Key) {
+    case KEY_SIDE1:
       gNoListen = !gNoListen;
       RADIO_ToggleRX(false);
       return true;
-    }
-    if (Key == KEY_0) {
+    case KEY_0:
       LOOT_Clear();
       return true;
+    case KEY_UP:
+      centerF += StepFrequencyTable[opt.band.step] * 64;
+      setup();
+      return true;
+    case KEY_DOWN:
+      centerF -= StepFrequencyTable[opt.band.step] * 64;
+      setup();
+      return true;
+    default:
+      break;
     }
   }
 
@@ -142,26 +152,22 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_UP:
       centerF += StepFrequencyTable[opt.band.step];
       setup();
-      startNewScan(true);
       return true;
     case KEY_DOWN:
       centerF -= StepFrequencyTable[opt.band.step];
       setup();
-      startNewScan(true);
       return true;
     case KEY_2:
       if (opt.band.step < STEP_200_0kHz) {
         opt.band.step++;
       }
       setup();
-      startNewScan(true);
       return true;
     case KEY_8:
       if (opt.band.step > 0) {
         opt.band.step--;
       }
       setup();
-      startNewScan(true);
       return true;
     case KEY_SIDE1:
       LOOT_BlacklistLast();
@@ -181,13 +187,13 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_5:
       return true;
     case KEY_3:
-      RADIO_UpdateSquelchLevel(true);
-      startNewScan(true);
+      if (opt.band.squelch < 9) {
+        opt.band.squelch++;
+      }
       return true;
     case KEY_9:
-      if (opt.band.squelch > 1) {
-        RADIO_UpdateSquelchLevel(false);
-        startNewScan(true);
+      if (opt.band.squelch > 0) {
+        opt.band.squelch--;
       }
       return true;
     case KEY_PTT:
@@ -219,13 +225,21 @@ void ANALYZER_render(void) {
 
   SP_Render(&opt, 0, ANALYZER_Y, ANALYZER_HEIGHT);
 
+  if (opt.band.squelch) {
+    uint8_t band = centerF > SETTINGS_GetFilterBound() ? 1 : 0;
+    SP_RenderRssi(SQ[band][0][opt.band.squelch], "SQLo", true, 0, ANALYZER_Y,
+                  ANALYZER_HEIGHT);
+    SP_RenderRssi(SQ[band][1][opt.band.squelch], "SQLc", false, 0, ANALYZER_Y,
+                  ANALYZER_HEIGHT);
+  }
+
   PrintSmallEx(spectrumWidth - 2, ANALYZER_Y - 3, POS_R, C_FILL, "SQ:%u",
                opt.band.squelch);
   if (gNoListen) {
     PrintSmallEx(0, ANALYZER_Y - 3, POS_L, C_FILL, "No listen");
   }
   PrintSmallEx(0, ANALYZER_Y - 3 + 6, POS_L, C_FILL, "%ums", scanInterval);
-  PrintSmallEx(LCD_WIDTH, ANALYZER_Y - 3 + 6, POS_R, C_FILL, "Step: %u.%02uk",
+  PrintSmallEx(LCD_XCENTER, ANALYZER_Y - 3, POS_C, C_FILL, "Step: %u.%02uk",
                StepFrequencyTable[opt.band.step] / 100,
                StepFrequencyTable[opt.band.step] % 100);
 
