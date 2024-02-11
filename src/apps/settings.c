@@ -367,6 +367,7 @@ bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   }
   return false;
 }
+
 void SETTINGS_render(void) {
   UI_ClearScreen();
   const MenuItem *item = &menu[menuIndex];
