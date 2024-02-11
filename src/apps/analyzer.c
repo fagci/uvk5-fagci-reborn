@@ -167,12 +167,6 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       }
       setup();
       return true;
-    case KEY_SIDE1:
-      LOOT_BlacklistLast();
-      return true;
-    case KEY_SIDE2:
-      LOOT_GoodKnownLast();
-      return true;
     case KEY_F:
       APPS_run(APP_PRESET_CFG);
       return true;
