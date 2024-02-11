@@ -28,6 +28,7 @@ extern char gVFONames[2][10];
 
 extern bool gIsListening;
 extern bool gMonitorMode;
+extern bool gNoListen;
 extern bool isBK1080;
 extern TXState gTxState;
 
@@ -80,7 +81,7 @@ uint32_t GetTuneF(uint32_t f);
 
 bool RADIO_IsBK1080Range(uint32_t f);
 
-void RADIO_UpdateMeasurements();
+Loot *RADIO_UpdateMeasurements();
 bool RADIO_UpdateMeasurementsEx(Loot *dest);
 
 #endif /* end of include guard: RADIO_H */

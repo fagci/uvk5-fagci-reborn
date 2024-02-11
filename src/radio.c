@@ -39,6 +39,7 @@ char gVFONames[2][10] = {0};
 
 bool gIsListening = false;
 bool gMonitorMode = false;
+bool gNoListen = false;
 
 bool isBK1080 = false;
 
@@ -248,7 +249,7 @@ void RADIO_ToggleTX(bool on) {
       gTxState = TX_DISABLED;
       return;
     }
-    if (gBatteryPercent < 5) {
+    if (gBatteryPercent == 0) {
       gTxState = TX_BAT_LOW;
       return;
     }
@@ -369,7 +370,9 @@ void RADIO_ToggleTxPower(void) {
   onPresetUpdate();
 }
 
-void RADIO_SetSquelchPure(uint32_t f, uint8_t sql) { BK4819_Squelch(sql, f); }
+void RADIO_SetSquelchPure(uint32_t f, uint8_t sql) {
+  BK4819_Squelch(sql, f, gSettings.sqlOpenTime, gSettings.sqlCloseTime);
+}
 
 void RADIO_TuneToPure(uint32_t f) {
   LOOT_Replace(&gLoot[gSettings.activeVFO], f);
@@ -457,7 +460,8 @@ void RADIO_SetupBandParams(Band *b) {
   uint32_t fMid = b->bounds.start + (b->bounds.end - b->bounds.start) / 2;
   BK4819_SelectFilter(fMid);
   BK4819_SquelchType(b->squelchType);
-  BK4819_Squelch(b->squelch, fMid);
+  BK4819_Squelch(b->squelch, fMid, gSettings.sqlOpenTime,
+                 gSettings.sqlCloseTime);
   BK4819_SetFilterBandwidth(b->bw);
   BK4819_SetModulation(b->modulation);
   BK4819_SetGain(b->gainIndex);
@@ -466,15 +470,24 @@ void RADIO_SetupBandParams(Band *b) {
 
 uint16_t RADIO_GetRSSI(void) { return isBK1080 ? 128 : BK4819_GetRSSI(); }
 
-void RADIO_UpdateMeasurements(void) {
+Loot *RADIO_UpdateMeasurements(void) {
   Loot *msm = &gLoot[gSettings.activeVFO];
   msm->rssi = RADIO_GetRSSI();
+  msm->open = isBK1080 ? true : BK4819_IsSquelchOpen();
+  LOOT_Update(msm);
+
+  bool rx = msm->open;
   if (gTxState != TX_ON) {
-    msm->open =
-        gMonitorMode ? true : (isBK1080 ? true : BK4819_IsSquelchOpen());
-    LOOT_Update(msm);
-    RADIO_ToggleRX(msm->open);
+    if (gMonitorMode) {
+      rx = true;
+    } else if (gNoListen) {
+      rx = false;
+    } else {
+      rx = msm->open;
+    }
+    RADIO_ToggleRX(rx);
   }
+  return msm;
 }
 
 bool RADIO_UpdateMeasurementsEx(Loot *dest) {

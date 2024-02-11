@@ -226,16 +226,16 @@ void BK4819_WriteRegister(BK4819_REGISTER_t Register, uint16_t Data) {
 
 void BK4819_SetAGC(bool useDefault) {
   // QS
-  /* BK4819_WriteRegister(BK4819_REG_13, 0x03BE);
+  BK4819_WriteRegister(BK4819_REG_13, 0x03BE);
   BK4819_WriteRegister(BK4819_REG_12, 0x037B);
   BK4819_WriteRegister(BK4819_REG_11, 0x027B);
-  BK4819_WriteRegister(BK4819_REG_10, 0x007A); */
+  BK4819_WriteRegister(BK4819_REG_10, 0x007A);
 
   // BK
-  BK4819_WriteRegister(BK4819_REG_13, 0x03DE);
+  /* BK4819_WriteRegister(BK4819_REG_13, 0x03DE);
   BK4819_WriteRegister(BK4819_REG_12, 0x037B);
   BK4819_WriteRegister(BK4819_REG_11, 0x025A);
-  BK4819_WriteRegister(BK4819_REG_10, 0x0038);
+  BK4819_WriteRegister(BK4819_REG_10, 0x0038); */
 
   // 1o11
   /* BK4819_WriteRegister(BK4819_REG_12, 0x0393);
@@ -253,7 +253,7 @@ void BK4819_SetAGC(bool useDefault) {
     BK4819_WriteRegister(BK4819_REG_14, 0x0000);
     // slow 25 45
     // fast 15 50
-    low = 48;
+    low = 15;
     high = 50;
   }
   BK4819_WriteRegister(BK4819_REG_49, (Lo << 14) | (high << 7) | (low << 0));
@@ -410,11 +410,12 @@ void BK4819_SetupSquelch(uint8_t SquelchOpenRSSIThresh,
   BK4819_SetAF(modTypeCurrent);
 }
 
-void BK4819_Squelch(uint8_t sql, uint32_t f) {
+void BK4819_Squelch(uint8_t sql, uint32_t f, uint8_t OpenDelay,
+                    uint8_t CloseDelay) {
   uint8_t band = f > SETTINGS_GetFilterBound() ? 1 : 0;
   BK4819_SetupSquelch(SQ[band][0][sql], SQ[band][1][sql], SQ[band][2][sql],
                       SQ[band][3][sql], SQ[band][4][sql], SQ[band][5][sql],
-                      gSettings.sqlOpenTime, gSettings.sqlCloseTime);
+                      OpenDelay, CloseDelay);
 }
 
 void BK4819_SquelchType(SquelchType t) {
@@ -1041,7 +1042,8 @@ void BK4819_TuneTo(uint32_t f) {
   BK4819_SelectFilter(f);
   BK4819_SetFrequency(f);
   uint16_t reg = BK4819_ReadRegister(BK4819_REG_30);
-  BK4819_WriteRegister(BK4819_REG_30, reg & ~BK4819_REG_30_ENABLE_VCO_CALIB);
+  // BK4819_WriteRegister(BK4819_REG_30, reg & ~BK4819_REG_30_ENABLE_VCO_CALIB);
+  BK4819_WriteRegister(BK4819_REG_30, 0);
   BK4819_WriteRegister(BK4819_REG_30, reg);
 }
 

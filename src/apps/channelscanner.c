@@ -12,7 +12,7 @@
 #include "apps.h"
 
 static uint16_t currentIndex = 0;
-static uint16_t scanIndex = 0;
+static uint8_t scanIndex = 0;
 static const uint8_t LIST_Y = MENU_Y + 10;
 
 int16_t lastActiveLootIndex = -1;
@@ -34,7 +34,7 @@ static void showItem(uint16_t i, uint16_t index, bool isCurrent) {
   }
 }
 
-static void scanFn(bool fowward) {
+static void scanFn(bool forward) {
   RADIO_UpdateMeasurementsEx(LOOT_Item(scanIndex));
 
   if (gIsListening) {
@@ -42,7 +42,7 @@ static void scanFn(bool fowward) {
   }
 
   if (!gIsListening) {
-    IncDec16(&scanIndex, 0, gScanlistSize, fowward ? 1 : -1);
+    IncDec8(&scanIndex, 0, gScanlistSize, forward ? 1 : -1);
     RADIO_TuneToPure(LOOT_Item(scanIndex)->f);
   }
 }

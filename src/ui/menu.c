@@ -150,7 +150,8 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
     break;
   case M_SQ:
     gCurrentPreset->band.squelch = subMenuIndex;
-    BK4819_Squelch(subMenuIndex, gCurrentVFO->fRX);
+    BK4819_Squelch(subMenuIndex, gCurrentVFO->fRX, gSettings.sqlOpenTime,
+                   gSettings.sqlCloseTime);
     PRESETS_SaveCurrent();
     break;
 

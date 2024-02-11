@@ -18,7 +18,6 @@ static const uint8_t SPECTRUM_HEIGHT = 40;
 static uint8_t spectrumWidth = 84;
 
 static bool newScan = false;
-static bool noListen = false;
 static bool bandFilled = false;
 
 static uint32_t lastRender = 0;
@@ -36,23 +35,14 @@ static void startNewScan(bool reset) {
 }
 
 static void scanFn(bool forward) {
-  RADIO_UpdateMeasurements();
-
-  Loot *msm = &gLoot[gSettings.activeVFO];
-
-  SP_AddPoint(msm);
+  SP_AddPoint(RADIO_UpdateMeasurements());
 
   if (newScan) {
     newScan = false;
     startNewScan(false);
   }
 
-  Loot *loot = LOOT_Get(msm->f);
-  if (gIsListening && (loot && !loot->blacklist)) {
-    return;
-  }
-
-  RADIO_NextPresetFreq(true);
+  RADIO_NextPresetFreq(forward);
 
   if (gCurrentVFO->fRX == gCurrentPreset->band.bounds.start) {
     startNewScan(false);
@@ -66,6 +56,7 @@ void SPECTRUM_init(void) {
   startNewScan(true);
   gRedrawScreen = true;
   gMonitorMode = false;
+  gNoListen = true;
   gScanFn = scanFn;
   SVC_Toggle(SVC_SCAN, true, 10);
 }
@@ -77,12 +68,15 @@ void SPECTRUM_update(void) {
   }
 }
 
-void SPECTRUM_deinit(void) { SVC_Toggle(SVC_SCAN, false, 0); }
+void SPECTRUM_deinit(void) {
+  SVC_Toggle(SVC_SCAN, false, 0);
+  gNoListen = false;
+}
 
 bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     if (Key == KEY_SIDE1) {
-      noListen = !noListen;
+      gNoListen = !gNoListen;
       RADIO_ToggleRX(false);
       return true;
     }
@@ -181,7 +175,7 @@ void SPECTRUM_render(void) {
 
   PrintSmallEx(spectrumWidth - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "SQ:%u",
                gCurrentPreset->band.squelch);
-  if (noListen) {
+  if (gNoListen) {
     PrintSmallEx(0, SPECTRUM_Y - 3, POS_L, C_FILL, "No listen");
   }
 

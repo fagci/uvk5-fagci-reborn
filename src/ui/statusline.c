@@ -40,6 +40,8 @@ void STATUSLINE_update(void) {
   if (gBatteryPercent < BAT_WARN_PERCENT) {
     showBattery = !showBattery;
     gRedrawScreen = true;
+  } else {
+    showBattery = true;
   }
   if (previousBatteryLevel != level) {
     previousBatteryLevel = level;
