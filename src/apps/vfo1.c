@@ -132,10 +132,11 @@ void VFO1_render(void) {
 
   VFO *vfo = &gVFO[gSettings.activeVFO];
   Preset *p = gVFOPresets[gSettings.activeVFO];
+  uint32_t f = gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(vfo->fRX);
 
-  uint16_t fp1 = vfo->fRX / 100000;
-  uint16_t fp2 = vfo->fRX / 100 % 1000;
-  uint8_t fp3 = vfo->fRX % 100;
+  uint16_t fp1 = f / 100000;
+  uint16_t fp2 = f / 100 % 1000;
+  uint8_t fp3 = f % 100;
   const char *mod = modulationTypeOptions[p->band.modulation];
   if (gIsListening) {
     UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, vfo->fRX, BASE + 2);

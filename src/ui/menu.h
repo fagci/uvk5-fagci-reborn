@@ -23,6 +23,8 @@ typedef enum {
   M_TX,
   M_F_RX,
   M_F_TX,
+  M_TX_OFFSET,
+  M_TX_OFFSET_DIR,
   M_F_TXP,
   M_SAVE,
 } PresetCfgMenu;

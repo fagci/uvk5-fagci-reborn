@@ -224,6 +224,22 @@ static uint8_t calculateOutputPower(Preset *p, uint32_t Frequency) {
   return TxpMid;
 }
 
+uint32_t RADIO_GetTXFEx(VFO *vfo, Preset *p) {
+  uint32_t fTX = vfo->fRX;
+
+  if (vfo->fTX) {
+    fTX = vfo->fTX;
+  } else if (p->offset && p->offsetDir != OFFSET_NONE) {
+    fTX = vfo->fRX + (p->offsetDir == OFFSET_PLUS ? p->offset : -p->offset);
+  }
+
+  return fTX;
+}
+
+uint32_t RADIO_GetTXF(void) {
+  return RADIO_GetTXFEx(gCurrentVFO, gCurrentPreset);
+}
+
 TXState gTxState = TX_UNKNOWN;
 
 void RADIO_ToggleTX(bool on) {
@@ -232,23 +248,21 @@ void RADIO_ToggleTX(bool on) {
   }
 
   uint8_t power = 0;
-  uint32_t fTX = gCurrentVFO->fTX ? gCurrentVFO->fTX
-                                  : gCurrentVFO->fRX + gCurrentPreset->offset;
+  uint32_t fTX = RADIO_GetTXF();
 
   if (on) {
     if (gSettings.upconverter) {
       gTxState = TX_DISABLED_UPCONVERTER;
       return;
     }
-    if (!gCurrentPreset->allowTx) {
+
+    Preset *txPreset = PRESET_ByFrequency(fTX);
+
+    if (!txPreset->allowTx) {
       gTxState = TX_DISABLED;
       return;
     }
-    if (!(PRESET_InRange(fTX, gCurrentPreset) ||
-          PRESET_InRangeOffset(fTX, gCurrentPreset))) {
-      gTxState = TX_DISABLED;
-      return;
-    }
+
     if (gBatteryPercent == 0) {
       gTxState = TX_BAT_LOW;
       return;

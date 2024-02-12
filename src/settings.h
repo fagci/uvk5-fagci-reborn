@@ -30,6 +30,12 @@ typedef enum {
 } UpconverterTypes;
 
 typedef enum {
+  OFFSET_NONE,
+  OFFSET_PLUS,
+  OFFSET_MINUS,
+} OffsetDirection;
+
+typedef enum {
   BL_SQL_OFF,
   BL_SQL_ON,
   BL_SQL_OPEN,
@@ -163,10 +169,11 @@ typedef struct {
   uint8_t e;
 } __attribute__((packed)) PowerCalibration;
 
-typedef struct {           // 29 bytes
-  Band band;               // 21
-  uint32_t offset;         // 25
-  uint8_t memoryBanks : 8; // 26
+typedef struct { // 29 bytes
+  Band band;     // 21
+  uint32_t offset : 30;
+  OffsetDirection offsetDir : 2; // 25
+  uint8_t memoryBanks : 8;       // 26
   uint8_t codeTypeRx : 4;
   uint8_t codeTypeTx : 4; // 27
   uint8_t codeRx : 8;     // 28
@@ -199,6 +206,7 @@ extern uint8_t BL_TIME_VALUES[7];
 extern const char *BL_TIME_NAMES[7];
 extern const char *BL_SQL_MODE_NAMES[3];
 extern const char *TX_POWER_NAMES[3];
+extern const char *TX_OFFSET_NAMES[3];
 
 void SETTINGS_Save();
 void SETTINGS_Load();

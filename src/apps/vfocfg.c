@@ -17,6 +17,8 @@ static bool isSubMenu = false;
 static MenuItem menu[] = {
     {"RX freq", M_F_RX, 0},
     {"TX freq", M_F_TX, 0},
+    {"TX offset", M_TX_OFFSET, 0},
+    {"TX offset dir", M_TX_OFFSET_DIR, ARRAY_SIZE(TX_OFFSET_NAMES)},
     {"TX power", M_F_TXP, ARRAY_SIZE(TX_POWER_NAMES)},
     {"Step", M_STEP, ARRAY_SIZE(StepFrequencyTable)},
     {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions)},
@@ -34,6 +36,9 @@ static void setInitialSubmenuIndex(void) {
     break;
   case M_F_TXP:
     subMenuIndex = gCurrentPreset->power;
+    break;
+  case M_TX_OFFSET_DIR:
+    subMenuIndex = gCurrentPreset->offsetDir;
     break;
   case M_MODULATION:
     subMenuIndex = gCurrentPreset->band.modulation;
@@ -64,10 +69,13 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     strncpy(name, modulationTypeOptions[index], 31);
     return;
   case M_BW:
-    strncpy(name, bwNames[index], 31);
+    strncpy(name, bwNames[index], 15);
     return;
   case M_F_TXP:
-    strncpy(name, TX_POWER_NAMES[index], 31);
+    strncpy(name, TX_POWER_NAMES[index], 15);
+    return;
+  case M_TX_OFFSET_DIR:
+    strncpy(name, TX_OFFSET_NAMES[index], 15);
     return;
   case M_STEP:
     sprintf(name, "%u.%02uKHz", StepFrequencyTable[index] / 100,
@@ -89,17 +97,29 @@ static void setTXF(uint32_t f) {
   RADIO_SaveCurrentVFO();
 }
 
+static void setTXOffset(uint32_t f) {
+  gCurrentPreset->offset = f;
+  PRESETS_SaveCurrent();
+}
+
 void VFOCFG_init(void) {
   gRedrawScreen = true;
-  menu[3].size -= (RADIO_IsBK1080Range(gCurrentVFO->fRX) ? 0 : 1);
+  for (uint8_t i = 0; i < ARRAY_SIZE(menu); ++i) {
+    if (menu[i].type == M_MODULATION) {
+      menu[i].size = RADIO_IsBK1080Range(gCurrentVFO->fRX)
+                         ? ARRAY_SIZE(modulationTypeOptions)
+                         : ARRAY_SIZE(modulationTypeOptions) - 1;
+      break;
+    }
+  }
 }
 
 void VFOCFG_update(void) {}
 
 bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  const MenuItem *item = &menu[menuIndex];
-  const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
-  const uint8_t SUBMENU_SIZE = item->size;
+  MenuItem *item = &menu[menuIndex];
+  uint8_t MENU_SIZE = ARRAY_SIZE(menu);
+  uint8_t SUBMENU_SIZE = item->size;
   switch (key) {
   case KEY_UP:
     if (isSubMenu) {
@@ -124,6 +144,10 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case M_F_TX:
       gFInputCallback = setTXF;
+      APPS_run(APP_FINPUT);
+      return true;
+    case M_TX_OFFSET:
+      gFInputCallback = setTXOffset;
       APPS_run(APP_FINPUT);
       return true;
     case M_SAVE:
@@ -155,7 +179,7 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
 void VFOCFG_render(void) {
   UI_ClearScreen();
-  const MenuItem *item = &menu[menuIndex];
+  MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {
     UI_ShowMenu(getSubmenuItemText, item->size, subMenuIndex);
     STATUSLINE_SetText(item->name);

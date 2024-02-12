@@ -115,6 +115,13 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
     sprintf(Output, "%u.%05u", gCurrentVFO->fTX / 100000,
             gCurrentVFO->fTX % 100000);
     break;
+  case M_TX_OFFSET:
+    sprintf(Output, "%u.%05u", gCurrentPreset->offset / 100000,
+            gCurrentPreset->offset % 100000);
+    break;
+  case M_TX_OFFSET_DIR:
+    snprintf(Output, 15, TX_OFFSET_NAMES[gCurrentPreset->offsetDir]);
+    break;
   case M_F_TXP:
     snprintf(Output, 15, TX_POWER_NAMES[gCurrentPreset->power]);
     break;
@@ -132,6 +139,10 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
     break;
   case M_F_TXP:
     gCurrentPreset->power = subMenuIndex;
+    PRESETS_SaveCurrent();
+    break;
+  case M_TX_OFFSET_DIR:
+    gCurrentPreset->offsetDir = subMenuIndex;
     PRESETS_SaveCurrent();
     break;
   case M_MODULATION:

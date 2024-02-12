@@ -148,11 +148,12 @@ static void render2VFOPart(uint8_t i) {
   const uint8_t bl = BASE + 34 * i;
 
   Preset *p = gVFOPresets[i];
-  const VFO *vfo = &gVFO[i];
+  VFO *vfo = &gVFO[i];
   const bool isActive = gSettings.activeVFO == i;
   const Loot *loot = &gLoot[i];
 
-  uint32_t f = GetScreenF(vfo->fRX);
+  uint32_t f =
+      gTxState == TX_ON && isActive ? RADIO_GetTXF() : GetScreenF(vfo->fRX);
 
   const uint16_t fp1 = f / 100000;
   const uint16_t fp2 = f / 100 % 1000;
@@ -171,8 +172,9 @@ static void render2VFOPart(uint8_t i) {
   }
 
   if (gTxState && gTxState != TX_ON && isActive) {
-    PrintMediumBoldEx(LCD_XCENTER, bl - 8 + 4, POS_C, C_FILL, "%s",
+    PrintMediumBoldEx(LCD_XCENTER, bl - 8, POS_C, C_FILL, "%s",
                       TX_STATE_NAMES[gTxState]);
+    PrintSmallEx(LCD_XCENTER, bl - 8 + 6, POS_C, C_FILL, "%u", RADIO_GetTXF());
   } else {
     if (vfo->isMrMode) {
       PrintMediumBoldEx(LCD_XCENTER, bl - 8, POS_C, C_FILL, gVFONames[i]);
@@ -196,9 +198,12 @@ static void render2VFOPart(uint8_t i) {
     PrintSmallEx(0, bl + 6, POS_L, C_FILL, "D%03oN(fake)",
                  DCS_Options[loot->cd]);
   }
-  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %c %u",
+  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %c %u %c",
                p->allowTx ? TX_POWER_NAMES[p->power][0] : ' ',
-               "WNn"[p->band.bw], p->band.squelch);
+               "WNn"[p->band.bw], p -> band.squelch,
+               RADIO_GetTXFEx(vfo, p) != vfo->fRX
+                   ? (p->offsetDir ? TX_OFFSET_NAMES[p->offsetDir][0] : '*')
+                   : ' ');
 
   if (loot->lastTimeOpen) {
     PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,
