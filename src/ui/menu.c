@@ -17,7 +17,8 @@ void UI_DrawScrollBar(const uint16_t size, const uint16_t iCurrent,
 }
 
 void UI_ShowMenuItem(uint8_t line, const char *name, bool isCurrent) {
-  PrintMedium(6, MENU_Y + line * MENU_ITEM_H + 8, name);
+  uint8_t by = MENU_Y + line * MENU_ITEM_H + 8;
+  PrintMedium(4, by, name);
   if (isCurrent) {
     FillRect(0, MENU_Y + line * MENU_ITEM_H, LCD_WIDTH - 3, MENU_ITEM_H,
              C_INVERT);
@@ -34,6 +35,8 @@ void UI_ShowMenuSimple(const MenuItem *menu, uint16_t size,
   for (uint16_t i = 0; i < maxItems; ++i) {
     uint16_t itemIndex = i + offset;
     strncpy(name, menu[itemIndex].name, 31);
+    PrintSmallEx(LCD_WIDTH - 4, MENU_Y + i * MENU_ITEM_H + 8, POS_R, C_FILL,
+                 "%u", itemIndex + 1);
     UI_ShowMenuItem(i, name, currentIndex == itemIndex);
   }
 
@@ -50,6 +53,8 @@ void UI_ShowMenu(void (*getItemText)(uint16_t index, char *name), uint16_t size,
     char name[32] = "";
     uint16_t itemIndex = i + offset;
     getItemText(itemIndex, name);
+    PrintSmallEx(LCD_WIDTH - 4, MENU_Y + i * MENU_ITEM_H + 8, POS_R, C_FILL,
+                 "%u", itemIndex + 1);
     UI_ShowMenuItem(i, name, currentIndex == itemIndex);
   }
 

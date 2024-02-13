@@ -6,8 +6,8 @@
 void SVC_RENDER_Init(void) {}
 void SVC_RENDER_Update(void) {
   if (gRedrawScreen) {
-    STATUSLINE_render();
     APPS_render();
+    STATUSLINE_render();
     ST7565_Render();
     gRedrawScreen = false;
   }

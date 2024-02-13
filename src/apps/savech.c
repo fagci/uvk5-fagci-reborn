@@ -29,7 +29,7 @@ static void getChannelName(uint16_t i, char *name) {
 
 static void saveNamed(void) {
   CH ch;
-  VFO2CH(gCurrentVFO, &ch);
+  VFO2CH(gCurrentVFO, gCurrentPreset, &ch);
   strncpy(ch.name, tempName, 9);
   CHANNELS_Save(currentChannelIndex, &ch);
   for (uint8_t i = 0; i < 2; ++i) {
