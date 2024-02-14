@@ -27,21 +27,26 @@ void EEPROM_ReadBuffer(uint16_t address, void *pBuffer, uint8_t size) {
 }
 
 void EEPROM_WriteBuffer(uint16_t address, const void *pBuffer, uint8_t size) {
+  // TODO: write until new page starts
   const uint8_t *buf = (const uint8_t *)pBuffer;
-  while (size--) {
+  while (size) {
+    uint16_t pageNum = address / 32;
+    uint8_t rest = (pageNum + 1) * 32 - address;
+    uint8_t n = size < rest ? size : rest;
     I2C_Start();
 
     I2C_Write(0xA0);
     I2C_Write(address >> 8);
     I2C_Write(address & 0xFF);
 
-    I2C_WriteBuffer(buf, 1);
+    I2C_WriteBuffer(buf, n);
 
     I2C_Stop();
     SYSTEM_DelayMs(5);
 
-    buf++;
-    address++;
+    buf += n;
+    address += n;
+    size -= n;
   }
 
   gEepromWrite = true;

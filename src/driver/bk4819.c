@@ -450,7 +450,7 @@ void BK4819_SetModulation(ModulationType type) {
   BK4819_SetRegValue(afDacGainRegSpec, 0xF);
   BK4819_SetAGC(type != MOD_AM);
   BK4819_WriteRegister(0x3D, type == MOD_USB ? 0 : 0x2AAB);
-  BK4819_SetRegValue(afcDisableRegSpec, type == MOD_AM || type == MOD_USB);
+  BK4819_SetRegValue(afcDisableRegSpec, type == MOD_AM || type == MOD_USB || type == MOD_BYP);
 }
 
 void BK4819_RX_TurnOn(void) {
