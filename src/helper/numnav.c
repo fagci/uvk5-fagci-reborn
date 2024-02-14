@@ -46,6 +46,11 @@ uint16_t NUMNAV_GetCurrentValue(void) {
 }
 
 uint16_t NUMNAV_Input(KEY_Code_t key) {
+  Log("numnav key=%u", key);
+  if (pos == 0 && key == KEY_0) {
+    NUMNAV_Deinit();
+    return initV;
+  }
   if (key == KEY_EXIT) {
     if (pos) {
       pos--;
@@ -69,15 +74,24 @@ uint16_t NUMNAV_Input(KEY_Code_t key) {
   gNumNavInput[pos] = '0' + nextNum;
 
   pos++;
-  if ((pos == maxDigits || NUMNAV_GetCurrentValue() * 10 > maxV) &&
-      gNumNavCallback) {
-    NUMNAV_Accept();
+
+  uint16_t v = NUMNAV_GetCurrentValue();
+  if ((pos == maxDigits || v * 10 > maxV) && gNumNavCallback) {
+    Log("Bound, check value...");
+    if (v >= minV && v <= maxV) {
+      Log("Accept! %u < %u < %u", minV, v, maxV);
+      NUMNAV_Accept();
+      return v;
+    } else {
+      Log("Decline.");
+      return NUMNAV_Deinit();
+    }
   }
-  gRedrawScreen = true;
   return NUMNAV_GetCurrentValue();
 }
 
 uint16_t NUMNAV_Deinit(void) {
+  Log("NUMNAV_Deinit %u", initV);
   pos = 0;
   gNumNavCallback = NULL;
   gIsNumNavInput = false;
@@ -85,6 +99,7 @@ uint16_t NUMNAV_Deinit(void) {
 }
 
 void NUMNAV_Accept(void) {
+  Log("NUMNAV_Accept %u", NUMNAV_GetCurrentValue());
   gNumNavCallback(NUMNAV_GetCurrentValue());
   NUMNAV_Deinit();
 }

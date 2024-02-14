@@ -23,7 +23,7 @@ void APPSLIST_render(void) {
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
   } else {
-    STATUSLINE_SetText("Run app");
+    STATUSLINE_SetText(apps[APP_APPS_LIST].name);
   }
 
   UI_ShowMenu(getMenuItemText, MENU_SIZE, menuIndex);
@@ -40,7 +40,7 @@ void APPSLIST_update(void) {}
 bool APPSLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld) {
     if (!gIsNumNavInput && key >= KEY_0 && key <= KEY_9) {
-      NUMNAV_Init(menuIndex + 1, 1, MENU_SIZE + 1);
+      NUMNAV_Init(menuIndex + 1, 1, MENU_SIZE);
       gNumNavCallback = setMenuIndexAndRun;
     }
     if (gIsNumNavInput) {

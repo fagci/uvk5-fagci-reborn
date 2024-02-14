@@ -419,6 +419,7 @@ void RADIO_SetupByCurrentVFO(void) {
 
 void RADIO_TuneTo(uint32_t f) {
   gCurrentVFO->isMrMode = false;
+  gCurrentVFO->fTX = 0;
   gCurrentVFO->fRX = f;
   RADIO_SetupByCurrentVFO();
 }

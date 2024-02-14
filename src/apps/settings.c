@@ -3,6 +3,7 @@
 #include "../driver/st7565.h"
 #include "../helper/battery.h"
 #include "../helper/measurements.h"
+#include "../helper/numnav.h"
 #include "../misc.h"
 #include "../radio.h"
 #include "../settings.h"
@@ -62,6 +63,8 @@ static const MenuItem menu[] = {
     {"BAT style", M_BAT_STYLE, ARRAY_SIZE(BATTERY_STYLE_NAMES)},
     {"EEPROM reset", M_RESET, 2},
 };
+
+static const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
 
 static void getSubmenuItemText(uint16_t index, char *name) {
   const MenuItem *item = &menu[menuIndex];
@@ -320,9 +323,24 @@ void SETTINGS_init(void) { gRedrawScreen = true; }
 
 void SETTINGS_update(void) {}
 
+static void setMenuIndexAndRun(uint16_t v) {
+  menuIndex = v - 1;
+  setInitialSubmenuIndex();
+  isSubMenu = true;
+}
+
 bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  if (!bKeyPressed && !bKeyHeld) {
+    if (!gIsNumNavInput && key >= KEY_0 && key <= KEY_9) {
+      NUMNAV_Init(menuIndex + 1, 1, MENU_SIZE);
+      gNumNavCallback = setMenuIndexAndRun;
+    }
+    if (gIsNumNavInput) {
+      menuIndex = NUMNAV_Input(key) - 1;
+      return true;
+    }
+  }
   const MenuItem *item = &menu[menuIndex];
-  const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
   const uint8_t SUBMENU_SIZE = item->size;
   switch (key) {
   case KEY_UP:
@@ -342,11 +360,6 @@ bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     }
     return true;
   case KEY_MENU:
-    // RUN APPS HERE
-    switch (item->type) {
-    default:
-      break;
-    }
     if (isSubMenu) {
       accept();
       isSubMenu = false;
@@ -370,6 +383,11 @@ bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
 void SETTINGS_render(void) {
   UI_ClearScreen();
+  if (gIsNumNavInput) {
+    STATUSLINE_SetText("Select: %s", gNumNavInput);
+  } else {
+    STATUSLINE_SetText(apps[APP_SETTINGS].name);
+  }
   const MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {
     UI_ShowMenu(getSubmenuItemText, item->size, subMenuIndex);

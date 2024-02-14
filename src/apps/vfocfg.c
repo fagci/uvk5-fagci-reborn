@@ -1,6 +1,7 @@
 #include "vfocfg.h"
 #include "../driver/st7565.h"
 #include "../helper/measurements.h"
+#include "../helper/numnav.h"
 #include "../helper/presetlist.h"
 #include "../misc.h"
 #include "../radio.h"
@@ -27,6 +28,7 @@ static MenuItem menu[] = {
     {"SQ level", M_SQ, 10},
     {"Save", M_SAVE, 0},
 };
+static const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
 
 static void setInitialSubmenuIndex(void) {
   const MenuItem *item = &menu[menuIndex];
@@ -104,7 +106,7 @@ static void setTXOffset(uint32_t f) {
 
 void VFOCFG_init(void) {
   gRedrawScreen = true;
-  for (uint8_t i = 0; i < ARRAY_SIZE(menu); ++i) {
+  for (uint8_t i = 0; i < MENU_SIZE; ++i) {
     if (menu[i].type == M_MODULATION) {
       menu[i].size = RADIO_IsBK1080Range(gCurrentVFO->fRX)
                          ? ARRAY_SIZE(modulationTypeOptions)
@@ -116,9 +118,64 @@ void VFOCFG_init(void) {
 
 void VFOCFG_update(void) {}
 
-bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+static bool accept(void) {
   MenuItem *item = &menu[menuIndex];
-  uint8_t MENU_SIZE = ARRAY_SIZE(menu);
+  // RUN APPS HERE
+  switch (item->type) {
+  case M_F_RX:
+    gFInputCallback = RADIO_TuneTo;
+    APPS_run(APP_FINPUT);
+    return true;
+  case M_F_TX:
+    gFInputCallback = setTXF;
+    APPS_run(APP_FINPUT);
+    return true;
+  case M_TX_OFFSET:
+    gFInputCallback = setTXOffset;
+    APPS_run(APP_FINPUT);
+    return true;
+  case M_SAVE:
+    APPS_run(APP_SAVECH);
+    return true;
+  default:
+    break;
+  }
+  if (isSubMenu) {
+    AcceptRadioConfig(item, subMenuIndex);
+    isSubMenu = false;
+  } else {
+    isSubMenu = true;
+    setInitialSubmenuIndex();
+  }
+  return true;
+}
+
+static void setMenuIndexAndRun(uint16_t v) {
+  if (isSubMenu) {
+    subMenuIndex = v - 1;
+  } else {
+    menuIndex = v - 1;
+  }
+  accept();
+}
+
+bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  if (!bKeyPressed && !bKeyHeld) {
+    if (!gIsNumNavInput && key >= KEY_0 && key <= KEY_9) {
+      NUMNAV_Init(menuIndex + 1, 1, MENU_SIZE);
+      gNumNavCallback = setMenuIndexAndRun;
+    }
+    if (gIsNumNavInput) {
+      uint8_t v = NUMNAV_Input(key) - 1;
+      if (isSubMenu) {
+        subMenuIndex = v;
+      } else {
+        menuIndex = v;
+      }
+      return true;
+    }
+  }
+  MenuItem *item = &menu[menuIndex];
   uint8_t SUBMENU_SIZE = item->size;
   switch (key) {
   case KEY_UP:
@@ -136,34 +193,7 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     }
     return true;
   case KEY_MENU:
-    // RUN APPS HERE
-    switch (item->type) {
-    case M_F_RX:
-      gFInputCallback = RADIO_TuneTo;
-      APPS_run(APP_FINPUT);
-      return true;
-    case M_F_TX:
-      gFInputCallback = setTXF;
-      APPS_run(APP_FINPUT);
-      return true;
-    case M_TX_OFFSET:
-      gFInputCallback = setTXOffset;
-      APPS_run(APP_FINPUT);
-      return true;
-    case M_SAVE:
-      APPS_run(APP_SAVECH);
-      return true;
-    default:
-      break;
-    }
-    if (isSubMenu) {
-      AcceptRadioConfig(item, subMenuIndex);
-      isSubMenu = false;
-    } else {
-      isSubMenu = true;
-      setInitialSubmenuIndex();
-    }
-    return true;
+    return accept();
   case KEY_EXIT:
     if (isSubMenu) {
       isSubMenu = false;
@@ -179,6 +209,11 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
 void VFOCFG_render(void) {
   UI_ClearScreen();
+  if (gIsNumNavInput) {
+    STATUSLINE_SetText("Select: %s", gNumNavInput);
+  } else {
+    STATUSLINE_SetText(apps[APP_VFO_CFG].name);
+  }
   MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {
     UI_ShowMenu(getSubmenuItemText, item->size, subMenuIndex);

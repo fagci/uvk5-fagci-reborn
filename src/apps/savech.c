@@ -4,6 +4,7 @@
 #include "../helper/adapter.h"
 #include "../helper/channels.h"
 #include "../helper/measurements.h"
+#include "../helper/numnav.h"
 #include "../helper/presetlist.h"
 #include "../helper/vfos.h"
 #include "../ui/components.h"
@@ -43,7 +44,30 @@ static void saveNamed(void) {
 void SAVECH_init(void) { chCount = CHANNELS_GetCountMax(); }
 void SAVECH_update(void) {}
 
+static void save(void) {
+  gTextinputText = tempName;
+  snprintf(gTextinputText, 9, "%lu.%05lu", gCurrentVFO->fRX / 100000,
+           gCurrentVFO->fRX % 100000);
+  gTextInputSize = 9;
+  gTextInputCallback = saveNamed;
+}
+
+static void setMenuIndexAndRun(uint16_t v) {
+  currentChannelIndex = v - 1;
+  save();
+}
+
 bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  if (!bKeyPressed && !bKeyHeld) {
+    if (!gIsNumNavInput && key >= KEY_0 && key <= KEY_9) {
+      NUMNAV_Init(currentChannelIndex + 1, 1, chCount);
+      gNumNavCallback = setMenuIndexAndRun;
+    }
+    if (gIsNumNavInput) {
+      currentChannelIndex = NUMNAV_Input(key) - 1;
+      return true;
+    }
+  }
   CH ch;
   switch (key) {
   case KEY_UP:
@@ -53,11 +77,7 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     IncDec16(&currentChannelIndex, 0, chCount, 1);
     return true;
   case KEY_MENU:
-    gTextinputText = tempName;
-    snprintf(gTextinputText, 9, "%lu.%05lu", gCurrentVFO->fRX / 100000,
-             gCurrentVFO->fRX % 100000);
-    gTextInputSize = 9;
-    gTextInputCallback = saveNamed;
+    save();
     APPS_run(APP_TEXTINPUT);
     return true;
   case KEY_EXIT:

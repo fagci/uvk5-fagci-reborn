@@ -198,7 +198,7 @@ static void render2VFOPart(uint8_t i) {
     PrintSmallEx(0, bl + 6, POS_L, C_FILL, "D%03oN(fake)",
                  DCS_Options[loot->cd]);
   }
-  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %c %u %c",
+  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %c SQ%u %c",
                p->allowTx ? TX_POWER_NAMES[p->power][0] : ' ',
                "WNn"[p->band.bw], p -> band.squelch,
                RADIO_GetTXFEx(vfo, p) != vfo->fRX

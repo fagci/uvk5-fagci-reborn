@@ -91,7 +91,7 @@ const App apps[APPS_COUNT] = {
      STILL_deinit},
     {"Frequency input", FINPUT_init, NULL, FINPUT_render, FINPUT_key,
      FINPUT_deinit},
-    {"Apps", APPSLIST_init, NULL, APPSLIST_render, APPSLIST_key},
+    {"Run app", APPSLIST_init, NULL, APPSLIST_render, APPSLIST_key},
     {"Loot", LOOTLIST_init, NULL, LOOTLIST_render, LOOTLIST_key},
     {"Presets", PRESETLIST_init, NULL, PRESETLIST_render, PRESETLIST_key},
     {"Reset", RESET_Init, RESET_Update, RESET_Render, RESET_key},
