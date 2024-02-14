@@ -10,6 +10,7 @@
 #include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
+#include "../ui/statusline.h"
 #include "apps.h"
 #include "textinput.h"
 #include <stdio.h>
@@ -99,5 +100,10 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
 void SAVECH_render(void) {
   UI_ClearScreen();
+  if (gIsNumNavInput) {
+    STATUSLINE_SetText("Select: %s", gNumNavInput);
+  } else {
+    STATUSLINE_SetText(apps[APP_SAVECH].name);
+  }
   UI_ShowMenu(getChannelName, chCount, currentChannelIndex);
 }

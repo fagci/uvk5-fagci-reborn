@@ -1,6 +1,9 @@
 #include "vfo2.h"
 #include "../dcs.h"
+#include "../helper/adapter.h"
+#include "../helper/channels.h"
 #include "../helper/lootlist.h"
+#include "../helper/numnav.h"
 #include "../helper/presetlist.h"
 #include "../scheduler.h"
 #include "../svc.h"
@@ -30,7 +33,21 @@ void VFO2_update(void) {
   }
 }
 
+static void setChannel(uint16_t v) {
+    RADIO_TuneToCH(v-1);
+}
+
 bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  if (!bKeyPressed && !bKeyHeld) {
+    if (!gIsNumNavInput && key >= KEY_0 && key <= KEY_9) {
+      NUMNAV_Init(gCurrentVFO->channel + 1, 1, CHANNELS_GetCountMax());
+      gNumNavCallback = setChannel;
+    }
+    if (gIsNumNavInput) {
+      NUMNAV_Input(key);
+      return true;
+    }
+  }
   if (key == KEY_PTT) {
     RADIO_ToggleTX(bKeyHeld);
     return true;
@@ -218,8 +235,13 @@ static void render2VFOPart(uint8_t i) {
 void VFO2_render(void) {
   UI_ClearScreen();
 
-  STATUSLINE_SetText("%s:%u", gCurrentPreset->band.name,
-                     PRESETS_GetChannel(gCurrentPreset, gCurrentVFO->fRX) + 1);
+  if (gIsNumNavInput) {
+    STATUSLINE_SetText("Select: %s", gNumNavInput);
+  } else {
+    STATUSLINE_SetText("%s:%u", gCurrentPreset->band.name,
+                       PRESETS_GetChannel(gCurrentPreset, gCurrentVFO->fRX) +
+                           1);
+  }
 
   render2VFOPart(0);
   render2VFOPart(1);

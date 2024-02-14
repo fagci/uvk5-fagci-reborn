@@ -578,6 +578,21 @@ void RADIO_UpdateSquelchLevel(bool next) {
   RADIO_SetSquelch(sq);
 }
 
+bool RADIO_TuneToCH(uint16_t num) {
+  if (CHANNELS_Existing(num)) {
+    CH ch;
+    CHANNELS_Load(num, &ch);
+    CH2VFO(&ch, gCurrentVFO);
+    strncpy(gVFONames[gSettings.activeVFO], ch.name, 9);
+    gCurrentVFO->isMrMode = true;
+    gCurrentVFO->channel = num;
+    onVfoUpdate();
+    RADIO_SetupByCurrentVFO();
+    return true;
+  }
+  return false;
+}
+
 // TODO: бесшовное
 void RADIO_NextFreq(bool next) {
   int8_t dir = next ? 1 : -1;
