@@ -115,6 +115,16 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_5:
       return true;
+    case KEY_1:
+      if (gSettings.scanTimeout < 255) {
+        gSettings.scanTimeout++;
+      }
+      return true;
+    case KEY_7:
+      if (gSettings.scanTimeout > 1) {
+        gSettings.scanTimeout--;
+      }
+      return true;
     case KEY_3:
       RADIO_UpdateSquelchLevel(true);
       return true;
@@ -126,10 +136,6 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_PTT:
       RADIO_TuneToSave(gLastActiveLoot->f);
       APPS_run(APP_STILL);
-      return true;
-    case KEY_1:
-      return true;
-    case KEY_7:
       return true;
     default:
       break;
@@ -146,6 +152,7 @@ void SPECTRUM_render(void) {
 
   PrintSmallEx(spectrumWidth - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "SQ:%u",
                gCurrentPreset->band.squelch);
+  PrintSmallEx(0, SPECTRUM_Y - 3, POS_L, C_FILL, "%ums", gSettings.scanTimeout);
 
   uint32_t fs = gCurrentPreset->band.bounds.start;
   uint32_t fe = gCurrentPreset->band.bounds.end;
@@ -154,6 +161,11 @@ void SPECTRUM_render(void) {
                fs % 100000);
   PrintSmallEx(LCD_WIDTH, LCD_HEIGHT - 1, POS_R, C_FILL, "%u.%05u", fe / 100000,
                fe % 100000);
+
+  if (gLastActiveLoot) {
+    PrintMediumBoldEx(LCD_XCENTER, 16, POS_C, C_FILL, "%u.%05u",
+                      gLastActiveLoot->f / 100000, gLastActiveLoot->f % 100000);
+  }
 
   lastRender = elapsedMilliseconds;
 }

@@ -135,8 +135,10 @@ void LOOTLIST_init(void) {
   gRedrawScreen = true;
   sortType = SORT_F;
   sort(SORT_LOT);
-  Loot *item = LOOT_Item(menuIndex);
-  RADIO_TuneToSave(item->f);
+  if (LOOT_Size()) {
+    Loot *item = LOOT_Item(menuIndex);
+    RADIO_TuneTo(item->f);
+  }
 }
 
 void LOOTLIST_update(void) {}
@@ -154,17 +156,18 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_UP:
     IncDec8(&menuIndex, 0, MENU_SIZE, -1);
     item = LOOT_Item(menuIndex);
-    RADIO_TuneToSave(item->f);
+    RADIO_TuneTo(item->f);
     return true;
   case KEY_DOWN:
     IncDec8(&menuIndex, 0, MENU_SIZE, 1);
     item = LOOT_Item(menuIndex);
-    RADIO_TuneToSave(item->f);
+    RADIO_TuneTo(item->f);
     return true;
   case KEY_EXIT:
     APPS_exit();
     return true;
   case KEY_PTT:
+    RADIO_TuneTo(item->f);
     APPS_run(APP_STILL);
     return true;
   case KEY_1:
