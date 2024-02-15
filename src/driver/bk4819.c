@@ -407,7 +407,7 @@ void BK4819_SetupSquelch(uint8_t SquelchOpenRSSIThresh,
   BK4819_RX_TurnOn();
 
   // NOTE: check if it works to prevent muting output
-  BK4819_SetAF(modTypeCurrent);
+  // BK4819_SetAF(modTypeCurrent);
 }
 
 void BK4819_Squelch(uint8_t sql, uint32_t f, uint8_t OpenDelay,

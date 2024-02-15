@@ -15,7 +15,7 @@
 static const uint8_t SPECTRUM_Y = 16;
 static const uint8_t SPECTRUM_HEIGHT = 40;
 
-static uint8_t spectrumWidth = 84;
+static uint8_t spectrumWidth = LCD_WIDTH;
 
 static bool newScan = false;
 static bool bandFilled = false;
@@ -142,37 +142,18 @@ void SPECTRUM_render(void) {
   UI_ClearScreen();
   STATUSLINE_SetText(gCurrentPreset->band.name);
 
-  DrawVLine(spectrumWidth - 1, 8, LCD_HEIGHT - 8, C_FILL);
   SP_Render(gCurrentPreset, 0, SPECTRUM_Y, SPECTRUM_HEIGHT);
-
-  LOOT_Sort(LOOT_SortByLastOpenTime, false);
-
-  const uint8_t LOOT_BL = 13;
-
-  for (uint8_t i = 0, ni = 0; ni < 8 && i < LOOT_Size(); i++) {
-    Loot *p = LOOT_Item(i);
-    if (p->blacklist) {
-      continue;
-    }
-
-    const uint8_t ybl = ni * 6 + LOOT_BL;
-    ni++;
-
-    if (p->open) {
-      PrintSmall(spectrumWidth + 1, ybl, ">");
-    } else if (p->goodKnown) {
-      PrintSmall(spectrumWidth + 1, ybl, "+");
-    }
-
-    PrintSmallEx(LCD_WIDTH - 1, ybl, POS_R, C_FILL, "%u.%05u", p->f / 100000,
-                 p->f % 100000);
-  }
 
   PrintSmallEx(spectrumWidth - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "SQ:%u",
                gCurrentPreset->band.squelch);
-  if (gNoListen) {
-    PrintSmallEx(0, SPECTRUM_Y - 3, POS_L, C_FILL, "No listen");
-  }
+
+  uint32_t fs = gCurrentPreset->band.bounds.start;
+  uint32_t fe = gCurrentPreset->band.bounds.end;
+
+  PrintSmallEx(0, LCD_HEIGHT - 1, POS_L, C_FILL, "%u.%05u", fs / 100000,
+               fs % 100000);
+  PrintSmallEx(LCD_WIDTH, LCD_HEIGHT - 1, POS_R, C_FILL, "%u.%05u", fe / 100000,
+               fe % 100000);
 
   lastRender = elapsedMilliseconds;
 }

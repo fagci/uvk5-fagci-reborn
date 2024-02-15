@@ -33,12 +33,10 @@ void VFO2_update(void) {
   }
 }
 
-static void setChannel(uint16_t v) {
-    RADIO_TuneToCH(v-1);
-}
+static void setChannel(uint16_t v) { RADIO_TuneToCH(v - 1); }
 
 bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  if (!bKeyPressed && !bKeyHeld) {
+  if (!bKeyPressed && !bKeyHeld && gCurrentVFO->isMrMode) {
     if (!gIsNumNavInput && key >= KEY_0 && key <= KEY_9) {
       NUMNAV_Init(gCurrentVFO->channel + 1, 1, CHANNELS_GetCountMax());
       gNumNavCallback = setChannel;

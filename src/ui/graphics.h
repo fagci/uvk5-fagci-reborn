@@ -36,6 +36,7 @@ typedef enum {
   SYM_MONITOR = 0x3B,
   SYM_BROADCAST = 0x3C,
   SYM_SCAN = 0x3D,
+  SYM_NO_LISTEN = 0x3E,
 } Symbol;
 
 typedef struct {

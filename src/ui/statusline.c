@@ -103,6 +103,10 @@ void STATUSLINE_render(void) {
     icons[idx++] = SYM_CONVERTER;
   }
 
+  if (gNoListen) {
+    icons[idx++] = SYM_NO_LISTEN;
+  }
+
   PrintSymbolsEx(LCD_WIDTH - 1 -
                      (gSettings.batteryStyle == BAT_VOLTAGE ? 38 : 18),
                  BASE_Y, POS_R, C_FILL, "%s", icons);

@@ -44,7 +44,7 @@ Sort sortType = SORT_LOT;
 static bool shortList = true;
 static bool sortRev = false;
 
-static void exportLootList() {
+static void exportLootList(void) {
   UART_printf("--- 8< ---\n");
   UART_printf("F,duration,ct,cd,rssi,noise\n");
   for (uint8_t i = 0; i < LOOT_Size(); ++i) {
@@ -125,19 +125,21 @@ static void sort(Sort type) {
   STATUSLINE_SetText("By %s %s", sortNames[sortType], sortRev ? "desc" : "asc");
 }
 
-void LOOTLIST_render() {
+void LOOTLIST_render(void) {
   UI_ClearScreen();
   UI_ShowMenuEx(shortList ? getLootItemShort : getLootItem, LOOT_Size(),
                 menuIndex, shortList ? 6 : 3);
 }
 
-void LOOTLIST_init() {
+void LOOTLIST_init(void) {
   gRedrawScreen = true;
   sortType = SORT_F;
   sort(SORT_LOT);
+  Loot *item = LOOT_Item(menuIndex);
+  RADIO_TuneToSave(item->f);
 }
 
-void LOOTLIST_update() {}
+void LOOTLIST_update(void) {}
 
 bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   Loot *item = LOOT_Item(menuIndex);
@@ -151,15 +153,18 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   switch (key) {
   case KEY_UP:
     IncDec8(&menuIndex, 0, MENU_SIZE, -1);
+    item = LOOT_Item(menuIndex);
+    RADIO_TuneToSave(item->f);
     return true;
   case KEY_DOWN:
     IncDec8(&menuIndex, 0, MENU_SIZE, 1);
+    item = LOOT_Item(menuIndex);
+    RADIO_TuneToSave(item->f);
     return true;
   case KEY_EXIT:
     APPS_exit();
     return true;
   case KEY_PTT:
-    RADIO_TuneToSave(item->f);
     APPS_run(APP_STILL);
     return true;
   case KEY_1:
