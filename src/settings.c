@@ -50,4 +50,6 @@ uint32_t SETTINGS_GetFilterBound(void) {
   return gSettings.bound_240_280 ? VHF_UHF_BOUND2 : VHF_UHF_BOUND1;
 }
 
-uint32_t SETTINGS_GetEEPROMSize(void) {}
+uint32_t SETTINGS_GetEEPROMSize(void) {
+  return EEPROM_SIZES[gSettings.eepromType];
+}

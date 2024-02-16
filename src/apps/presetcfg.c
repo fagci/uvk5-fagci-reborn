@@ -134,10 +134,12 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case M_START:
       gFInputCallback = setLowerBound;
+      gFInputTempFreq = gCurrentPreset->band.bounds.start;
       APPS_run(APP_FINPUT);
       return true;
     case M_END:
       gFInputCallback = setUpperBound;
+      gFInputTempFreq = gCurrentPreset->band.bounds.end;
       APPS_run(APP_FINPUT);
       return true;
     /* case M_SAVE:

@@ -146,15 +146,11 @@ void Main(void) {
   SETTINGS_Load();
 
   if (gSettings.checkbyte != EEPROM_CHECKBYTE) {
+    gSettings.eepromType = EEPROM_BL24C64;
     BACKLIGHT_SetDuration(120);
     BACKLIGHT_SetBrightness(15);
     BACKLIGHT_On();
-    APPS_run(APP_RESET);
-    SVC_Toggle(SVC_RENDER, true, 25);
-    TaskAdd("Update", APPS_update, 1, true, 100);
-    while (true) {
-      TasksUpdate();
-    }
+    reset();
   }
 
   UART_Init();

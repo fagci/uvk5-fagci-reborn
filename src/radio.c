@@ -85,7 +85,7 @@ void RADIO_SetupRegisters(void) {
     SYSTEM_DelayMs(1);
   }
   BK4819_WriteRegister(BK4819_REG_3F, 0);
-  BK4819_WriteRegister(BK4819_REG_7D, 0xE940); // TODO: maybe add some value
+  BK4819_WriteRegister(BK4819_REG_7D, 0xE94F);
   BK4819_SetFrequency(Frequency);
   BK4819_SelectFilter(Frequency);
   BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, true);

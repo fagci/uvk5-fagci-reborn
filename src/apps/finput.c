@@ -7,6 +7,7 @@
 #include "apps.h"
 #include <string.h>
 
+uint32_t gFInputTempFreq;
 void (*gFInputCallback)(uint32_t f);
 
 static const uint8_t FREQ_INPUT_LENGTH = 10;
@@ -16,11 +17,7 @@ static KEY_Code_t freqInputArr[10];
 static uint8_t freqInputDotIndex = 0;
 static uint8_t freqInputIndex = 0;
 
-static uint32_t tempFreq;
-
 static bool dotBlink = true;
-
-static void ResetFreqInput(void) { tempFreq = 0; }
 
 static void dotBlinkFn(void) {
   if (!freqInputDotIndex) {
@@ -48,22 +45,46 @@ static void input(KEY_Code_t key) {
     freqInputArr[freqInputIndex++] = key;
   }
 
-  ResetFreqInput();
+  gFInputTempFreq = 0;
 
   uint8_t dotIndex =
       freqInputDotIndex == 0 ? freqInputIndex : freqInputDotIndex;
 
   uint32_t base = 100000; // 1MHz in BK units
   for (int i = dotIndex - 1; i >= 0; --i) {
-    tempFreq += freqInputArr[i] * base;
+    gFInputTempFreq += freqInputArr[i] * base;
     base *= 10;
   }
 
   base = 10000; // 0.1MHz in BK units
   if (dotIndex < freqInputIndex) {
     for (uint8_t i = dotIndex + 1; i < freqInputIndex; ++i) {
-      tempFreq += freqInputArr[i] * base;
+      gFInputTempFreq += freqInputArr[i] * base;
       base /= 10;
+    }
+  }
+}
+
+static void fillFromTempFreq(void) {
+  if (gFInputTempFreq == 0) {
+    return;
+  }
+  uint32_t mul = 1000000000;
+  uint32_t v = gFInputTempFreq;
+  gFInputTempFreq = 0;
+
+  while (mul > v) {
+    v /= mul;
+    mul /= 10;
+  }
+
+  while (v) {
+    uint8_t t = (v / mul) % 10;
+    input(KEY_0 + t);
+    v -= t * mul;
+    mul /= 10;
+    if (freqInputDotIndex == 0 && v < 1000 && v > 0) {
+      input(KEY_STAR);
     }
   }
 }
@@ -72,7 +93,7 @@ void FINPUT_init(void) {
   UI_ClearStatus();
   freqInputIndex = 0;
   freqInputDotIndex = 0;
-  ResetFreqInput();
+  fillFromTempFreq();
   TaskAdd("Dot blink", dotBlinkFn, 250, true, 100);
 }
 
@@ -95,7 +116,7 @@ bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_9:
   case KEY_STAR:
     input(key);
-    if (tempFreq > 13000000) {
+    if (gFInputTempFreq > 13000000) {
       input(KEY_STAR);
     }
     gRedrawScreen = true;
@@ -112,10 +133,11 @@ bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_MENU:
   case KEY_F:
   case KEY_PTT:
-    if (tempFreq <= F_MAX && gFInputCallback) {
+    if (gFInputTempFreq <= F_MAX && gFInputCallback) {
       APPS_exit();
-      gFInputCallback(tempFreq);
+      gFInputCallback(gFInputTempFreq);
       gFInputCallback = NULL;
+      gFInputTempFreq = 0;
     }
     return true;
   default:
@@ -161,14 +183,4 @@ void FINPUT_render(void) {
       i++;
     }
   }
-
-  /* char String[] = "  ";
-  if (freqInputDotIndex) {
-    uint8_t hz = freqInputIndex - freqInputDotIndex;
-    if (hz > 3) {
-      String[0] = hz > 4 ? '0' + freqInputArr[freqInputDotIndex + 4] : ' ';
-      String[1] = hz > 5 ? '0' + freqInputArr[freqInputDotIndex + 5] : ' ';
-      PrintMediumEx(LCD_WIDTH - 1 - 18, BASE_Y, POS_L, C_FILL, String);
-    }
-  } */
 }

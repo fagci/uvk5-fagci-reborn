@@ -11,17 +11,6 @@ bool gEepromRead = false;
 void EEPROM_ReadBuffer(uint32_t address, void *pBuffer, uint8_t size) {
 
   uint8_t IIC_ADD = 0xA0 | ((address / 0x10000) << 1);
-#if ENABLE_EEPROM_TYPE == 1
-  if (address >= 0x40000) {
-    IIC_ADD = 0xA8 | (((address - 0x40000) / 0x10000) << 1);
-    address -= 0x40000;
-  }
-#elif ENABLE_EEPROM_4M == 2
-  if (address >= 0x20000) {
-    IIC_ADD = 0xA4 | (((address - 0x20000) / 0x10000) << 1);
-    address -= 0x20000;
-  }
-#endif
 
   __disable_irq();
   I2C_Start();
@@ -57,14 +46,6 @@ void EEPROM_WriteBuffer(uint32_t address, const void *pBuffer, uint8_t size) {
       uint8_t n = size < rest ? size : rest;
       uint8_t IIC_ADD = 0xA0 | ((address / 0x10000) << 1);
       I2C_Start();
-#if ENABLE_EEPROM_TYPE == 1
-      if (address >= 0x40000)
-        IIC_ADD = 0xA8 | (((address - 0x40000) / 0x10000) << 1);
-#elif ENABLE_EEPROM_TYPE == 2
-      if (address >= 0x20000)
-        IIC_ADD = 0xA4 | (((address - 0x20000) / 0x10000) << 1);
-
-#endif
       I2C_Write(IIC_ADD);
       I2C_Write(address >> 8);
       I2C_Write(address & 0xFF);
