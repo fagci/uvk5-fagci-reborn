@@ -204,3 +204,12 @@ void LOOT_Update(Loot *msm) {
 
   LOOT_UpdateEx(item, msm);
 }
+void LOOT_RemoveBlacklisted(void) {
+  LOOT_Sort(LOOT_SortByBlacklist, true);
+  for (uint8_t i = 0; i < LOOT_Size(); ++i) {
+    if (loot[i].blacklist) {
+      lootIndex = i;
+      return;
+    }
+  }
+}

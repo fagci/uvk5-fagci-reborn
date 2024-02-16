@@ -1,4 +1,5 @@
 #include "spectrumreborn.h"
+#include "../dcs.h"
 #include "../driver/st7565.h"
 #include "../driver/uart.h"
 #include "../helper/lootlist.h"
@@ -165,6 +166,11 @@ void SPECTRUM_render(void) {
   if (gLastActiveLoot) {
     PrintMediumBoldEx(LCD_XCENTER, 16, POS_C, C_FILL, "%u.%05u",
                       gLastActiveLoot->f / 100000, gLastActiveLoot->f % 100000);
+    if (gLastActiveLoot->ct != 0xFF) {
+      PrintSmallEx(0, 16 + 6, POS_C, C_FILL, "CT:%u.%uHz",
+                   CTCSS_Options[gLastActiveLoot->ct] / 10,
+                   CTCSS_Options[gLastActiveLoot->ct] % 10);
+    }
   }
 
   lastRender = elapsedMilliseconds;

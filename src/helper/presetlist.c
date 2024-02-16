@@ -1,12 +1,11 @@
 #include "presetlist.h"
 #include "../driver/eeprom.h"
-#include "../driver/uart.h"
 #include "../helper/measurements.h"
 #include "../settings.h"
 
 Preset *gCurrentPreset;
 static Preset presets[PRESETS_SIZE_MAX] = {0};
-static uint8_t loadedCount = 0;
+static int8_t loadedCount = 0;
 
 // to use instead of predefined when we need to keep step, etc
 Preset defaultPreset = {
@@ -21,12 +20,16 @@ Preset defaultPreset = {
         },
 };
 
-void PRESETS_SavePreset(uint8_t num, Preset *p) {
-  EEPROM_WriteBuffer(PRESETS_OFFSET + num * PRESET_SIZE, p, PRESET_SIZE);
+void PRESETS_SavePreset(int8_t num, Preset *p) {
+  if (num >= 0) {
+    EEPROM_WriteBuffer(PRESETS_OFFSET + num * PRESET_SIZE, p, PRESET_SIZE);
+  }
 }
 
-void PRESETS_LoadPreset(uint8_t num, Preset *p) {
-  EEPROM_ReadBuffer(PRESETS_OFFSET + num * PRESET_SIZE, p, PRESET_SIZE);
+void PRESETS_LoadPreset(int8_t num, Preset *p) {
+  if (num >= 0) {
+    EEPROM_ReadBuffer(PRESETS_OFFSET + num * PRESET_SIZE, p, PRESET_SIZE);
+  }
 }
 
 void PRESETS_SaveCurrent(void) {
@@ -35,28 +38,27 @@ void PRESETS_SaveCurrent(void) {
   }
 }
 
-uint8_t PRESETS_Size(void) { return gSettings.presetsCount; }
+int8_t PRESETS_Size(void) { return gSettings.presetsCount; }
 
-Preset *PRESETS_Item(uint8_t i) { return &presets[i]; }
+Preset *PRESETS_Item(int8_t i) { return &presets[i]; }
 
 void PRESETS_SelectPresetRelative(bool next) {
-  uint8_t activePreset = gSettings.activePreset;
-  IncDec8(&activePreset, 0, PRESETS_Size(), next ? 1 : -1);
+  int8_t activePreset = gSettings.activePreset;
+  IncDecI8(&activePreset, 0, PRESETS_Size(), next ? 1 : -1);
   gSettings.activePreset = activePreset;
   gCurrentPreset = &presets[gSettings.activePreset];
   gCurrentVFO->fRX = gCurrentPreset->band.bounds.start;
   SETTINGS_DelayedSave();
 }
 
-uint8_t PRESET_GetCurrentIndex(void) {
+int8_t PRESET_GetCurrentIndex(void) {
   // FIXME: выстроить правильную схему работы с текущим пресетом
   return PRESET_IndexOf(gCurrentPreset);
 }
 
-uint8_t PRESET_Select(uint8_t i) {
+void PRESET_Select(int8_t i) {
   gCurrentPreset = &presets[i];
   gSettings.activePreset = i;
-  return i;
 }
 
 bool PRESET_InRange(const uint32_t f, const Preset *p) {
@@ -69,7 +71,7 @@ bool PRESET_InRangeOffset(const uint32_t f, const Preset *p) {
 }
 
 int8_t PRESET_IndexOf(Preset *p) {
-  for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
+  for (int8_t i = 0; i < PRESETS_Size(); ++i) {
     if (PRESETS_Item(i) == p) {
       return i;
     }
@@ -81,9 +83,10 @@ int8_t PRESET_SelectByFrequency(uint32_t f) {
   if (PRESET_InRange(f, gCurrentPreset)) {
     return gSettings.activePreset;
   }
-  for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
+  for (int8_t i = 0; i < PRESETS_Size(); ++i) {
     if (PRESET_InRange(f, &presets[i])) {
-      return PRESET_Select(i);
+      PRESET_Select(i);
+      return i;
     }
   }
   gCurrentPreset = &defaultPreset; // TODO: make preset between near bands
@@ -112,15 +115,15 @@ uint16_t PRESETS_GetStepSize(Preset *p) {
   return StepFrequencyTable[p->band.step];
 }
 
-uint16_t PRESETS_GetSteps(Preset *p) {
+uint32_t PRESETS_GetSteps(Preset *p) {
   return (p->band.bounds.end - p->band.bounds.start) / PRESETS_GetStepSize(p) +
          1;
 }
 
-uint32_t PRESETS_GetF(Preset *p, uint16_t channel) {
+uint32_t PRESETS_GetF(Preset *p, uint32_t channel) {
   return p->band.bounds.start + channel * PRESETS_GetStepSize(p);
 }
 
-uint16_t PRESETS_GetChannel(Preset *p, uint32_t f) {
+uint32_t PRESETS_GetChannel(Preset *p, uint32_t f) {
   return (f - p->band.bounds.start) / PRESETS_GetStepSize(p);
 }

@@ -44,6 +44,8 @@ bool LOOT_SortByDuration(Loot *a, Loot *b);
 bool LOOT_SortByF(Loot *a, Loot *b);
 bool LOOT_SortByBlacklist(Loot *a, Loot *b);
 
+void LOOT_RemoveBlacklisted(void);
+
 extern Loot *gLastActiveLoot;
 extern int16_t gLastActiveLootIndex;
 

@@ -2,17 +2,13 @@
 #include "../driver/st7565.h"
 #include "../helper/measurements.h"
 #include "../helper/presetlist.h"
-#include "../misc.h"
-#include "../radio.h"
-#include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
 #include "apps.h"
-#include <string.h>
 
 static uint8_t menuIndex = 0;
 
-static void getPresetText(uint16_t i, char *name) {
+static void getPresetText(int32_t i, char *name) {
   Preset *item = PRESETS_Item(i);
   uint32_t fs = item->band.bounds.start;
   uint32_t fe = item->band.bounds.end;
@@ -24,18 +20,17 @@ static void getPresetText(uint16_t i, char *name) {
   }
 }
 
-void PRESETLIST_render() {
+void PRESETLIST_render(void) {
   UI_ClearScreen();
   UI_ShowMenu(getPresetText, PRESETS_Size(), menuIndex);
 }
 
-void PRESETLIST_init() {
+void PRESETLIST_init(void) {
   gRedrawScreen = true;
   menuIndex = gSettings.activePreset;
 }
-void PRESETLIST_update() {}
+void PRESETLIST_update(void) {}
 bool PRESETLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  // const Preset *item = PRESETS_Item(menuIndex);
   const uint8_t MENU_SIZE = PRESETS_Size();
   switch (key) {
   case KEY_UP:

@@ -145,7 +145,7 @@ void Main(void) {
 
   SETTINGS_Load();
 
-  if (gSettings.checkbyte != 0b10101010) {
+  if (gSettings.checkbyte != EEPROM_CHECKBYTE) {
     BACKLIGHT_SetDuration(120);
     BACKLIGHT_SetBrightness(15);
     BACKLIGHT_On();

@@ -21,7 +21,7 @@ static uint32_t lastSettedF = 0;
 static uint32_t timeout = 0;
 static bool lastListenState = false;
 
-void (*gScanFn)(bool) = RADIO_NextPresetFreq;
+void (*gScanFn)(bool) = NULL;
 
 static void next(void) {
   lastListenState = false;
@@ -35,6 +35,13 @@ static void next(void) {
 
 void SVC_SCAN_Init(void) {
   gScanForward = true;
+  if (!gScanFn) {
+    if (gCurrentVFO->isMrMode) {
+      gScanFn = RADIO_NextCH;
+    } else {
+      gScanFn = RADIO_NextPresetFreq;
+    }
+  }
   next();
 }
 
@@ -57,6 +64,6 @@ void SVC_SCAN_Update(void) {
 }
 
 void SVC_SCAN_Deinit(void) {
-  gScanFn = RADIO_NextPresetFreq;
+  gScanFn = NULL;
   gScanRedraw = true;
 }

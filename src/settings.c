@@ -11,6 +11,27 @@ const char *BL_TIME_NAMES[7] = {"Off",  "5s",   "10s", "20s",
 const char *BL_SQL_MODE_NAMES[3] = {"Off", "On", "Open"};
 const char *TX_POWER_NAMES[3] = {"Low", "Mid", "High"};
 const char *TX_OFFSET_NAMES[3] = {"Unset", "+", "-"};
+const char *EEPROM_TYPE_NAMES[8] = {
+    "Undefined 1",       // 000
+    "Undefined 2",       // 001
+    "BL24C64 (default)", // 010
+    "BL24C128",          // 011
+    "BL24C256",          // 100
+    "BL24C512",          // 101
+    "BL24C1024",         // 110
+    "M24M02 (x1)",       // 111
+};
+
+const uint32_t EEPROM_SIZES[8] = {
+    8192,   // 000
+    8192,   // 001
+    8192,   // 010
+    16384,  // 011
+    32768,  // 100
+    65536,  // 101
+    131072, // 110
+    262144, // 111
+};
 
 void SETTINGS_Save(void) {
   EEPROM_WriteBuffer(SETTINGS_OFFSET, &gSettings, SETTINGS_SIZE);
@@ -28,3 +49,5 @@ void SETTINGS_DelayedSave(void) {
 uint32_t SETTINGS_GetFilterBound(void) {
   return gSettings.bound_240_280 ? VHF_UHF_BOUND2 : VHF_UHF_BOUND1;
 }
+
+uint32_t SETTINGS_GetEEPROMSize(void) {}

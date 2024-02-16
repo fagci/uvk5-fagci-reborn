@@ -520,33 +520,44 @@ void RADIO_EnableToneDetection(void) {
                                           BK4819_REG_3F_SQUELCH_FOUND */);
 }
 
+bool RADIO_TuneToCH(int32_t num) {
+  if (CHANNELS_Existing(num)) {
+    CH ch;
+    CHANNELS_Load(num, &ch);
+    CH2VFO(&ch, gCurrentVFO);
+    strncpy(gVFONames[gSettings.activeVFO], ch.name, 9);
+    gCurrentVFO->isMrMode = true;
+    gCurrentVFO->channel = num;
+    onVfoUpdate();
+    RADIO_SetupByCurrentVFO();
+    return true;
+  }
+  return false;
+}
+
 void RADIO_NextCH(bool next) {
-  int16_t i;
+  int32_t i;
   if (gCurrentVFO->isMrMode) {
     i = CHANNELS_Next(gCurrentVFO->channel, next);
     if (i > -1) {
       gCurrentVFO->channel = i;
       RADIO_VfoLoadCH(gSettings.activeVFO);
     }
-  } else {
-    CH ch;
-    i = gCurrentVFO->channel;
-
-    if (!CHANNELS_Existing(gCurrentVFO->channel)) {
-      i = CHANNELS_Next(gCurrentVFO->channel, true);
-      if (i == -1) {
-        return;
-      }
-    }
-
-    gCurrentVFO->channel = i;
-    CHANNELS_Load(gCurrentVFO->channel, &ch);
-    CH2VFO(&ch, gCurrentVFO);
-    strncpy(gVFONames[gSettings.activeVFO], ch.name, 9);
-    gCurrentVFO->isMrMode = true;
+    onVfoUpdate();
+    RADIO_SetupByCurrentVFO();
+    return;
   }
-  onVfoUpdate();
-  RADIO_SetupByCurrentVFO();
+
+  i = gCurrentVFO->channel;
+
+  if (!CHANNELS_Existing(gCurrentVFO->channel)) {
+    i = CHANNELS_Next(gCurrentVFO->channel, true);
+    if (i == -1) {
+      return;
+    }
+  }
+
+  RADIO_TuneToCH(i);
 }
 
 void RADIO_NextVFO(void) {
@@ -578,21 +589,6 @@ void RADIO_UpdateSquelchLevel(bool next) {
   RADIO_SetSquelch(sq);
 }
 
-bool RADIO_TuneToCH(uint16_t num) {
-  if (CHANNELS_Existing(num)) {
-    CH ch;
-    CHANNELS_Load(num, &ch);
-    CH2VFO(&ch, gCurrentVFO);
-    strncpy(gVFONames[gSettings.activeVFO], ch.name, 9);
-    gCurrentVFO->isMrMode = true;
-    gCurrentVFO->channel = num;
-    onVfoUpdate();
-    RADIO_SetupByCurrentVFO();
-    return true;
-  }
-  return false;
-}
-
 // TODO: бесшовное
 void RADIO_NextFreq(bool next) {
   int8_t dir = next ? 1 : -1;
@@ -619,9 +615,9 @@ void RADIO_NextFreq(bool next) {
 }
 
 void RADIO_NextPresetFreq(bool next) {
-  uint16_t steps = PRESETS_GetSteps(gCurrentPreset);
-  uint16_t step = PRESETS_GetChannel(gCurrentPreset, gCurrentVFO->fRX);
-  IncDec16(&step, 0, steps, next ? 1 : -1);
+  uint32_t steps = PRESETS_GetSteps(gCurrentPreset);
+  uint32_t step = PRESETS_GetChannel(gCurrentPreset, gCurrentVFO->fRX);
+  IncDec32(&step, 0, steps, next ? 1 : -1);
   gCurrentVFO->fRX = PRESETS_GetF(gCurrentPreset, step);
   RADIO_TuneToPure(gCurrentVFO->fRX, true);
 }

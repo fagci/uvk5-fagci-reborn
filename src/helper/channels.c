@@ -1,50 +1,52 @@
 #include "channels.h"
 #include "../driver/eeprom.h"
-#include "../driver/uart.h"
-#include "../external/printf/printf.h"
 #include "../helper/measurements.h"
-#include "../radio.h"
-#include "vfos.h"
-#include <string.h>
 
-uint16_t gScanlistSize = 0;
-uint16_t gScanlist[350] = {0};
+int32_t gScanlistSize = 0;
+int32_t gScanlist[350] = {0};
 
 static uint16_t presetsSizeBytes(void) {
   return gSettings.presetsCount * PRESET_SIZE;
 }
 
-uint16_t CHANNELS_GetCountMax(void) {
-  return (EEPROM_SIZE - PRESETS_OFFSET - presetsSizeBytes()) / CH_SIZE;
+int32_t CHANNELS_GetCountMax(void) {
+  return (SETTINGS_GetEEPROMSize() - PRESETS_OFFSET - presetsSizeBytes()) /
+         CH_SIZE;
 }
 
-void CHANNELS_Load(uint16_t num, CH *p) {
-  EEPROM_ReadBuffer(EEPROM_SIZE - (num + 1) * CH_SIZE, p, CH_SIZE);
+void CHANNELS_Load(int32_t num, CH *p) {
+  if (num >= 0) {
+    EEPROM_ReadBuffer(SETTINGS_GetEEPROMSize() - (num + 1) * CH_SIZE, p,
+                      CH_SIZE);
+  }
 }
 
-void CHANNELS_Save(uint16_t num, CH *p) {
-  EEPROM_WriteBuffer(EEPROM_SIZE - (num + 1) * CH_SIZE, p, CH_SIZE);
+void CHANNELS_Save(int32_t num, CH *p) {
+  if (num >= 0) {
+    EEPROM_WriteBuffer(SETTINGS_GetEEPROMSize() - (num + 1) * CH_SIZE, p,
+                       CH_SIZE);
+  }
 }
 
-bool CHANNELS_Existing(uint16_t i) {
+bool CHANNELS_Existing(int32_t i) {
   char name[2] = {0};
-  uint16_t addr = EEPROM_SIZE - ((i + 1) * CH_SIZE) + 4 + 4;
+  uint32_t addr = SETTINGS_GetEEPROMSize() - ((i + 1) * CH_SIZE) + 4 + 4;
   EEPROM_ReadBuffer(addr, name, 1);
   return IsReadable(name);
 }
 
-uint8_t CHANNELS_Scanlists(uint16_t i) {
+uint8_t CHANNELS_Scanlists(int32_t i) {
   uint8_t scanlists;
-  uint16_t addr = EEPROM_SIZE - ((i + 1) * CH_SIZE) + 4 + 4 + 10;
+  uint32_t addr = SETTINGS_GetEEPROMSize() - ((i + 1) * CH_SIZE) + 4 + 4 + 10;
   EEPROM_ReadBuffer(addr, &scanlists, 1);
   return scanlists;
 }
 
-int16_t CHANNELS_Next(int16_t base, bool next) {
-  int16_t si = base;
-  uint16_t max = CHANNELS_GetCountMax();
-  IncDecI16(&si, 0, max, next ? 1 : -1);
-  int16_t i = si;
+int32_t CHANNELS_Next(int32_t base, bool next) {
+  int32_t si = base;
+  int32_t max = CHANNELS_GetCountMax();
+  IncDecI32(&si, 0, max, next ? 1 : -1);
+  int32_t i = si;
   if (next) {
     for (; i < max; ++i) {
       if (CHANNELS_Existing(i)) {
@@ -71,17 +73,17 @@ int16_t CHANNELS_Next(int16_t base, bool next) {
   return -1;
 }
 
-void CHANNELS_Delete(uint16_t i) {
+void CHANNELS_Delete(int32_t i) {
   CH v = {0};
   CHANNELS_Save(i, &v);
 }
 
 void CHANNELS_LoadScanlist(uint8_t n) {
   gSettings.currentScanlist = n;
-  uint16_t max = CHANNELS_GetCountMax();
+  int32_t max = CHANNELS_GetCountMax();
   uint8_t scanlistMask = 1 << n;
   gScanlistSize = 0;
-  for (uint16_t i = 0; i < max; ++i) {
+  for (int32_t i = 0; i < max; ++i) {
     if ((n == 15 && CHANNELS_Existing(i)) ||
         (CHANNELS_Scanlists(i) & scanlistMask) == scanlistMask) {
       gScanlist[gScanlistSize] = i;

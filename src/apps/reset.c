@@ -20,6 +20,8 @@ static bool settingsWrote = 0;
 static uint8_t buf[8];
 static uint16_t bytesWrote = 0;
 
+static EEPROMType eepromType;
+
 static VFO defaultVFOs[2] = {
     (VFO){
         .fRX = 14550000,
@@ -472,6 +474,7 @@ static Preset defaultPresets[] = {
 };
 
 void RESET_Init(void) {
+  eepromType = gSettings.eepromType;
   presetsWrote = 0;
   vfosWrote = 0;
   bytesWrote = 0;
@@ -483,7 +486,8 @@ void RESET_Init(void) {
 void RESET_Update(void) {
   if (!settingsWrote) {
     gSettings = (Settings){
-        .checkbyte = 0b10101010,
+        .checkbyte = EEPROM_CHECKBYTE,
+        .eepromType = eepromType,
         .squelch = 4,
         .scrambler = 0,
         .batsave = 4,
@@ -538,11 +542,6 @@ void RESET_Update(void) {
     CHANNELS_Save(channelsWrote, &ch);
     channelsWrote++;
     bytesWrote += sizeof(CH);
-    /* } else if (bytesWrote < EEPROM_SIZE) {
-      EEPROM_WriteBuffer(bytesWrote, buf,
-                         EEPROM_SIZE - bytesWrote < 8 ? EEPROM_SIZE - bytesWrote
-                                                      : 8);
-      bytesWrote += 8; */
   } else {
 
     SETTINGS_Save();
@@ -553,14 +552,14 @@ void RESET_Update(void) {
 
 void RESET_Render(void) {
   uint8_t progressX =
-      ConvertDomain(bytesWrote, 0, EEPROM_SIZE, 1, LCD_WIDTH - 2);
+      ConvertDomain(bytesWrote, 0, SETTINGS_GetEEPROMSize(), 1, LCD_WIDTH - 2);
   uint8_t POS_Y = LCD_HEIGHT / 2;
 
   UI_ClearScreen();
   DrawRect(0, POS_Y, LCD_WIDTH, 10, C_FILL);
   FillRect(1, POS_Y, progressX, 10, C_FILL);
   PrintMediumEx(LCD_XCENTER, POS_Y + 8, POS_C, C_INVERT, "%u%",
-                bytesWrote * 100 / EEPROM_SIZE);
+                bytesWrote * 100 / SETTINGS_GetEEPROMSize());
 }
 
 bool RESET_key(KEY_Code_t k, bool p, bool h) { return true; }

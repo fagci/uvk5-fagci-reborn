@@ -14,6 +14,8 @@
 #include "apps.h"
 #include <string.h>
 
+const uint8_t EEPROM_CHECKBYTE = 0b10101;
+
 typedef enum {
   M_NONE,
   M_UPCONVERTER,
@@ -31,6 +33,7 @@ typedef enum {
   M_BAT_CAL,
   M_BAT_TYPE,
   M_BAT_STYLE,
+  M_EEPROM_TYPE,
   M_RESET,
 } Menu;
 
@@ -61,6 +64,7 @@ static const MenuItem menu[] = {
     {"BAT calibration", M_BAT_CAL, 255},
     {"BAT type", M_BAT_TYPE, ARRAY_SIZE(BATTERY_TYPE_NAMES)},
     {"BAT style", M_BAT_STYLE, ARRAY_SIZE(BATTERY_STYLE_NAMES)},
+    {"EEPROM type", M_EEPROM_TYPE, ARRAY_SIZE(EEPROM_TYPE_NAMES)},
     {"EEPROM reset", M_RESET, 2},
 };
 
@@ -115,6 +119,9 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     return;
   case M_BAT_STYLE:
     strncpy(name, BATTERY_STYLE_NAMES[index], 31);
+    return;
+  case M_EEPROM_TYPE:
+    strncpy(name, EEPROM_TYPE_NAMES[index], 31);
     return;
   case M_RESET:
     strncpy(name, yesNo[index], 31);
@@ -191,6 +198,10 @@ static void accept(void) {
     gSettings.batteryStyle = subMenuIndex;
     SETTINGS_Save();
     break;
+  case M_EEPROM_TYPE:
+    gSettings.eepromType = subMenuIndex;
+    SETTINGS_Save();
+    break;
   case M_RESET:
     if (subMenuIndex) {
       APPS_run(APP_RESET);
@@ -222,6 +233,8 @@ static const char *getValue(Menu type) {
     return BATTERY_TYPE_NAMES[gSettings.batteryType];
   case M_BAT_STYLE:
     return BATTERY_STYLE_NAMES[gSettings.batteryStyle];
+  case M_EEPROM_TYPE:
+    return EEPROM_TYPE_NAMES[gSettings.eepromType];
   case M_MAIN_APP:
     return apps[gSettings.mainApp].name;
   case M_SQL_TO_OPEN:
@@ -304,6 +317,9 @@ static void setInitialSubmenuIndex(void) {
     break;
   case M_BAT_STYLE:
     subMenuIndex = gSettings.batteryStyle;
+    break;
+  case M_EEPROM_TYPE:
+    subMenuIndex = gSettings.eepromType;
     break;
   case M_MAIN_APP:
     for (i = 0; i < ARRAY_SIZE(appsAvailableToRun); ++i) {

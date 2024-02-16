@@ -2,6 +2,7 @@
 #include "../dcs.h"
 #include "../driver/st7565.h"
 #include "../driver/uart.h"
+#include "../helper/channels.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
 #include "../helper/presetlist.h"
@@ -141,15 +142,49 @@ void LOOTLIST_init(void) {
   }
 }
 
+static void saveAllToFreeChannels(void) {
+  uint16_t chnum = 0;
+  for (uint8_t i = 0; i < LOOT_Size(); ++i) {
+    Loot *loot = LOOT_Item(i);
+    if (!loot->blacklist) {
+      while (CHANNELS_Existing(chnum)) {
+        chnum++;
+        if (chnum >= CHANNELS_GetCountMax()) {
+          return;
+        }
+      }
+      CH ch;
+      ch.fRX = loot->f;
+      snprintf(ch.name, 9, "%lu.%05lu", ch.fRX / 100000, ch.fRX % 100000);
+
+      CHANNELS_Save(chnum, &ch);
+      loot->blacklist = true;
+      chnum++;
+    }
+  }
+}
+
 void LOOTLIST_update(void) {}
 
 bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   Loot *item = LOOT_Item(menuIndex);
   const uint8_t MENU_SIZE = LOOT_Size();
 
-  if (bKeyHeld && key == KEY_0 && !gRepeatHeld) {
-    LOOT_Clear();
-    return true;
+  if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
+    switch (key) {
+    case KEY_0:
+      LOOT_Clear();
+      return true;
+    case KEY_SIDE1:
+      gMonitorMode = !gMonitorMode;
+      return true;
+    case KEY_5:
+      saveAllToFreeChannels();
+      LOOT_RemoveBlacklisted();
+      return true;
+    default:
+      break;
+    }
   }
 
   switch (key) {
@@ -163,49 +198,57 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     item = LOOT_Item(menuIndex);
     RADIO_TuneTo(item->f);
     return true;
-  case KEY_EXIT:
-    APPS_exit();
-    return true;
-  case KEY_PTT:
-    RADIO_TuneTo(item->f);
-    APPS_run(APP_STILL);
-    return true;
-  case KEY_1:
-    sort(SORT_LOT);
-    return true;
-  case KEY_2:
-    sort(SORT_DUR);
-    return true;
-  case KEY_3:
-    sort(SORT_BL);
-    return true;
-  case KEY_4:
-    sort(SORT_F);
-    return true;
-  case KEY_SIDE1:
-    item->goodKnown = false;
-    item->blacklist = !item->blacklist;
-    return true;
-  case KEY_SIDE2:
-    item->blacklist = false;
-    item->goodKnown = !item->goodKnown;
-    return true;
-  case KEY_7:
-    shortList = !shortList;
-    return true;
-  case KEY_9:
-    exportLootList();
-    return true;
-  case KEY_5:
-    gCurrentVFO->fRX = item->f;
-    gCurrentVFO->codeTx = item->cd != 0xFF ? item->cd : item->ct;
-    APPS_run(APP_SAVECH);
-    return true;
-  case KEY_0:
-    LOOT_Remove(menuIndex);
-    return true;
   default:
     break;
   }
+
+  if (!bKeyPressed && !bKeyHeld) {
+    switch (key) {
+    case KEY_EXIT:
+      APPS_exit();
+      return true;
+    case KEY_PTT:
+      RADIO_TuneTo(item->f);
+      APPS_run(APP_STILL);
+      return true;
+    case KEY_1:
+      sort(SORT_LOT);
+      return true;
+    case KEY_2:
+      sort(SORT_DUR);
+      return true;
+    case KEY_3:
+      sort(SORT_BL);
+      return true;
+    case KEY_4:
+      sort(SORT_F);
+      return true;
+    case KEY_SIDE1:
+      item->goodKnown = false;
+      item->blacklist = !item->blacklist;
+      return true;
+    case KEY_SIDE2:
+      item->blacklist = false;
+      item->goodKnown = !item->goodKnown;
+      return true;
+    case KEY_7:
+      shortList = !shortList;
+      return true;
+    case KEY_9:
+      exportLootList();
+      return true;
+    case KEY_5:
+      gCurrentVFO->fRX = item->f;
+      gCurrentVFO->codeTx = item->cd != 0xFF ? item->cd : item->ct;
+      APPS_run(APP_SAVECH);
+      return true;
+    case KEY_0:
+      LOOT_Remove(menuIndex);
+      return true;
+    default:
+      break;
+    }
+  }
+
   return false;
 }

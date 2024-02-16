@@ -5,6 +5,8 @@
 #include "driver/bk4819.h"
 #include <stdint.h>
 
+extern const uint8_t EEPROM_CHECKBYTE;
+
 typedef enum {
   STEP_0_01kHz,
   STEP_0_1kHz,
@@ -71,8 +73,22 @@ typedef enum {
   SCAN_TO_NONE,
 } ScanTimeout;
 
+typedef enum {
+  EEPROM_A,        // 000
+  EEPROM_B,        // 001
+  EEPROM_STANDARD, // 010 checkbyte default
+  EEPROM_C,        // 011
+  EEPROM_D,        // 100
+  EEPROM_E,        // 101
+  EEPROM_F,        // 110
+  EEPROM_G,        // 111
+} EEPROMType;
+
+extern const char *EEPROM_TYPE_NAMES[8];
+
 typedef struct {
-  uint8_t checkbyte : 8;
+  uint8_t checkbyte : 5;
+  EEPROMType eepromType : 3;
   uint8_t squelch : 4;
   uint8_t scrambler : 4; // 1
   uint8_t batsave : 4;
@@ -97,16 +113,16 @@ typedef struct {
   uint8_t contrast : 4;  // 1
   AppType_t mainApp : 8; // 1
 
-  uint8_t presetsCount : 8; // 1
-  BacklightOnSquelchMode backlightOnSquelch : 2;
-  uint8_t activePreset : 6; // 2
+  int8_t presetsCount : 8; // 1
+  int8_t activePreset : 8; // 2
   uint16_t batteryCalibration : 12;
   BatteryType batteryType : 2;
   BatteryStyle batteryStyle : 2; // 2
   ScanTimeout sqOpenedTimeout : 4;
   ScanTimeout sqClosedTimeout : 4; // 1
   bool bound_240_280 : 1;
-  uint8_t reserved2 : 7;
+  uint8_t reserved2 : 5;
+  BacklightOnSquelchMode backlightOnSquelch : 2;
   uint8_t scanTimeout : 8;
   uint8_t sqlOpenTime : 2;
   uint8_t sqlCloseTime : 3;
@@ -133,17 +149,14 @@ typedef struct { // 24 bytes
   uint32_t fRX;  // 4
   uint32_t fTX;  // 4
   uint8_t reserved00 : 4;
-  uint8_t reserved01 : 2;
+  bool reserved01 : 1;
+  bool isMrMode : 1;
   TXOutputPower power : 2;
   uint8_t codeRx : 8; // 1
   uint8_t codeTx : 8; // 1
   uint8_t codeTypeRx : 4;
   uint8_t codeTypeTx : 4; // 1
-  int16_t channel : 12;   // 1
-  bool isMrMode : 1;
-  uint8_t reserved0 : 3;
-  uint8_t reserved1 : 8;
-  uint8_t reserved2 : 8;
+  int32_t channel : 32;   // 1
 } __attribute__((packed)) VFO;
 
 typedef struct { // 8 bytes
@@ -212,5 +225,6 @@ void SETTINGS_Save();
 void SETTINGS_Load();
 void SETTINGS_DelayedSave();
 uint32_t SETTINGS_GetFilterBound();
+uint32_t SETTINGS_GetEEPROMSize();
 
 #endif /* end of include guard: SETTINGS_H */
