@@ -236,12 +236,12 @@ void KEYBOARD_CheckKeys(void onKey(KEY_Code_t, bool, bool)) {
   } else {
     // subsequent fast key repeats
     // fast key repeats for up/down buttons
-    if (Key == KEY_UP || Key == KEY_DOWN) {
+    // if (Key == KEY_UP || Key == KEY_DOWN) {
       gKeyBeingHeld = true;
       gRepeatHeld = true;
       if ((gDebounceCounter % KEY_REPEAT) == 0)
         onKey(Key, true, true); // key held event
-    }
+    // }
 
     if (gDebounceCounter < 0xFFFF)
       return;

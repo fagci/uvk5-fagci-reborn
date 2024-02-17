@@ -71,4 +71,7 @@ void FASTSCAN_render(void) {
   }
 }
 
-void FASTSCAN_deinit(void) { BK4819_StopScan(); }
+void FASTSCAN_deinit(void) { 
+    BK4819_StopScan();
+    BK4819_EnableRX();
+}

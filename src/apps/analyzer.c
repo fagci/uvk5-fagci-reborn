@@ -237,9 +237,6 @@ void ANALYZER_render(void) {
 
   PrintSmallEx(spectrumWidth - 2, ANALYZER_Y - 3, POS_R, C_FILL, "SQ:%u",
                opt.band.squelch);
-  if (gNoListen) {
-    PrintSmallEx(0, ANALYZER_Y - 3, POS_L, C_FILL, "No listen");
-  }
   PrintSmallEx(0, ANALYZER_Y - 3 + 6, POS_L, C_FILL, "%ums", scanInterval);
   PrintSmallEx(LCD_XCENTER, ANALYZER_Y - 3, POS_C, C_FILL, "Step: %u.%02uk",
                StepFrequencyTable[opt.band.step] / 100,
