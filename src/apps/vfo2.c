@@ -137,7 +137,7 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_SIDE2:
       if (SVC_Running(SVC_SCAN)) {
-        LOOT_BlacklistLast();
+        LOOT_GoodKnownLast();
         return true;
       }
       break;
@@ -182,7 +182,9 @@ static void render2VFOPart(uint8_t i) {
     }
     if (gIsListening) {
       PrintMediumEx(0, bl, POS_L, C_INVERT, "RX");
-      UI_RSSIBar(gLoot[i].rssi, vfo->fRX, 31);
+      if (!isBK1080) {
+        UI_RSSIBar(gLoot[i].rssi, vfo->fRX, 31);
+      }
     }
   }
 

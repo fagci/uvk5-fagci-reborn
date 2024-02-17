@@ -106,9 +106,22 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_F:
       APPS_run(APP_VFO_CFG);
       return true;
+    case KEY_STAR:
+      APPS_run(APP_LOOT_LIST);
+      return true;
     case KEY_SIDE1:
+      if (SVC_Running(SVC_SCAN)) {
+        LOOT_BlacklistLast();
+        return true;
+      }
       gMonitorMode = !gMonitorMode;
       return true;
+    case KEY_SIDE2:
+      if (SVC_Running(SVC_SCAN)) {
+        LOOT_GoodKnownLast();
+        return true;
+      }
+      break;
     case KEY_EXIT:
       if (SVC_Running(SVC_SCAN)) {
         SVC_Toggle(SVC_SCAN, false, 0);
@@ -139,7 +152,9 @@ void VFO1_render(void) {
   uint8_t fp3 = f % 100;
   const char *mod = modulationTypeOptions[p->band.modulation];
   if (gIsListening) {
-    UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, vfo->fRX, BASE + 2);
+    if (!isBK1080) {
+      UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, vfo->fRX, BASE + 2);
+    }
   }
 
   if (gTxState && gTxState != TX_ON) {

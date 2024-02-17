@@ -74,7 +74,6 @@ static void fillFromTempFreq(void) {
   gFInputTempFreq = 0;
 
   while (mul > v) {
-    v /= mul;
     mul /= 10;
   }
 
@@ -83,7 +82,7 @@ static void fillFromTempFreq(void) {
     input(KEY_0 + t);
     v -= t * mul;
     mul /= 10;
-    if (freqInputDotIndex == 0 && v < 1000 && v > 0) {
+    if (freqInputDotIndex == 0 && v < 100000 && v > 0) {
       input(KEY_STAR);
     }
   }
@@ -100,48 +99,54 @@ void FINPUT_init(void) {
 void FINPUT_deinit(void) { TaskRemove(dotBlinkFn); }
 
 bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  if (bKeyHeld) {
-    return false;
+  if (bKeyHeld && bKeyPressed && !gRepeatHeld && key == KEY_EXIT) {
+    freqInputIndex = 0;
+    freqInputDotIndex = 0;
+    gFInputTempFreq = 0;
+    memset(freqInputArr, 0, FREQ_INPUT_LENGTH);
+    return true;
   }
-  switch (key) {
-  case KEY_0:
-  case KEY_1:
-  case KEY_2:
-  case KEY_3:
-  case KEY_4:
-  case KEY_5:
-  case KEY_6:
-  case KEY_7:
-  case KEY_8:
-  case KEY_9:
-  case KEY_STAR:
-    input(key);
-    if (gFInputTempFreq > 13000000) {
-      input(KEY_STAR);
-    }
-    gRedrawScreen = true;
-    return true;
-  case KEY_EXIT:
-    if (freqInputIndex == 0) {
-      gFInputCallback = NULL;
-      APPS_exit();
+  if (!bKeyPressed && !bKeyHeld) {
+    switch (key) {
+    case KEY_0:
+    case KEY_1:
+    case KEY_2:
+    case KEY_3:
+    case KEY_4:
+    case KEY_5:
+    case KEY_6:
+    case KEY_7:
+    case KEY_8:
+    case KEY_9:
+    case KEY_STAR:
+      input(key);
+      if (gFInputTempFreq > 13000000) {
+        input(KEY_STAR);
+      }
+      gRedrawScreen = true;
       return true;
+    case KEY_EXIT:
+      if (freqInputIndex == 0) {
+        gFInputCallback = NULL;
+        APPS_exit();
+        return true;
+      }
+      input(key);
+      gRedrawScreen = true;
+      return true;
+    case KEY_MENU:
+    case KEY_F:
+    case KEY_PTT:
+      if (gFInputTempFreq <= F_MAX && gFInputCallback) {
+        APPS_exit();
+        gFInputCallback(gFInputTempFreq);
+        gFInputCallback = NULL;
+        gFInputTempFreq = 0;
+      }
+      return true;
+    default:
+      break;
     }
-    input(key);
-    gRedrawScreen = true;
-    return true;
-  case KEY_MENU:
-  case KEY_F:
-  case KEY_PTT:
-    if (gFInputTempFreq <= F_MAX && gFInputCallback) {
-      APPS_exit();
-      gFInputCallback(gFInputTempFreq);
-      gFInputCallback = NULL;
-      gFInputTempFreq = 0;
-    }
-    return true;
-  default:
-    break;
   }
   return false;
 }

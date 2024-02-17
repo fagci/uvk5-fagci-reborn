@@ -12,7 +12,7 @@ extern bool gScanForward;
 extern bool gScanRedraw;
 extern uint16_t gScanSwitchT;
 extern void (*gScanFn)(bool);
-extern char *SCAN_TIMEOUT_NAMES[9];
-extern uint32_t SCAN_TIMEOUTS[9];
+extern char *SCAN_TIMEOUT_NAMES[11];
+extern uint32_t SCAN_TIMEOUTS[11];
 
 #endif /* end of include guard: SVC_SCAN_H */

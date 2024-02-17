@@ -124,17 +124,17 @@ static bool accept(void) {
   switch (item->type) {
   case M_F_RX:
     gFInputCallback = RADIO_TuneTo;
-    gFInputTempFreq = gCurrentPreset->band.bounds.end;
+    gFInputTempFreq = gCurrentVFO->fRX;
     APPS_run(APP_FINPUT);
     return true;
   case M_F_TX:
     gFInputCallback = setTXF;
-    gFInputTempFreq = gCurrentPreset->band.bounds.end;
+    gFInputTempFreq = gCurrentVFO->fTX;
     APPS_run(APP_FINPUT);
     return true;
   case M_TX_OFFSET:
     gFInputCallback = setTXOffset;
-    gFInputTempFreq = gCurrentPreset->band.bounds.end;
+    gFInputTempFreq = gCurrentPreset->offset;
     APPS_run(APP_FINPUT);
     return true;
   case M_SAVE:

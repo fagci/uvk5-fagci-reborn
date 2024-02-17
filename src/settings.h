@@ -62,6 +62,8 @@ typedef enum {
 } TXOutputPower;
 
 typedef enum {
+  SCAN_TO_0,
+  SCAN_TO_500ms,
   SCAN_TO_1s,
   SCAN_TO_2s,
   SCAN_TO_5s,

@@ -122,6 +122,22 @@ void ANALYZER_deinit(void) {
 }
 
 bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
+
+  if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
+    switch (Key) {
+    case KEY_1:
+      IncDec8(&scanInterval, 1, 255, 1);
+      setup();
+      return true;
+    case KEY_7:
+      IncDec8(&scanInterval, 1, 255, -1);
+      setup();
+      return true;
+    default:
+      break;
+    }
+  }
+
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     switch (Key) {
     case KEY_SIDE1:
@@ -193,14 +209,6 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_PTT:
       RADIO_TuneToSave(centerF);
       APPS_run(APP_STILL);
-      return true;
-    case KEY_1:
-      IncDec8(&scanInterval, 1, 255, 1);
-      setup();
-      return true;
-    case KEY_7:
-      IncDec8(&scanInterval, 1, 255, -1);
-      setup();
       return true;
     default:
       break;
