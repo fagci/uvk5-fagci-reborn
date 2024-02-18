@@ -93,10 +93,12 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_UP:
       PRESETS_SelectPresetRelative(true);
+      RADIO_SelectPresetSave(gSettings.activePreset);
       startNewScan(true);
       return true;
     case KEY_DOWN:
       PRESETS_SelectPresetRelative(false);
+      RADIO_SelectPresetSave(gSettings.activePreset);
       startNewScan(true);
       return true;
     case KEY_SIDE1:

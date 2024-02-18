@@ -1,6 +1,7 @@
 #include "presetlist.h"
 #include "../driver/st7565.h"
 #include "../helper/measurements.h"
+#include "../helper/numnav.h"
 #include "../helper/presetlist.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
@@ -29,9 +30,27 @@ void PRESETLIST_init(void) {
   gRedrawScreen = true;
   menuIndex = gSettings.activePreset;
 }
+
 void PRESETLIST_update(void) {}
+
+static void setMenuIndexAndRun(uint16_t v) {
+  menuIndex = v - 1;
+  RADIO_SelectPresetSave(menuIndex);
+  APPS_exit();
+}
+
 bool PRESETLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   const uint8_t MENU_SIZE = PRESETS_Size();
+  if (!bKeyPressed && !bKeyHeld) {
+    if (!gIsNumNavInput && key >= KEY_0 && key <= KEY_9) {
+      NUMNAV_Init(menuIndex + 1, 1, MENU_SIZE);
+      gNumNavCallback = setMenuIndexAndRun;
+    }
+    if (gIsNumNavInput) {
+      menuIndex = NUMNAV_Input(key) - 1;
+      return true;
+    }
+  }
   switch (key) {
   case KEY_UP:
     IncDec8(&menuIndex, 0, MENU_SIZE, -1);
@@ -42,12 +61,8 @@ bool PRESETLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_EXIT:
     APPS_exit();
     return true;
-  case KEY_PTT:
-    PRESET_Select(menuIndex);
-    APPS_run(APP_SPECTRUM);
-    return true;
   case KEY_MENU:
-    PRESET_Select(menuIndex);
+    RADIO_SelectPresetSave(menuIndex);
     APPS_exit();
     return true;
   case KEY_F:

@@ -417,6 +417,7 @@ void RADIO_SetupByCurrentVFO(void) {
   RADIO_TuneToPure(f, true);
 }
 
+// USE CASE: set vfo temporary for current app
 void RADIO_TuneTo(uint32_t f) {
   gCurrentVFO->isMrMode = false;
   gCurrentVFO->fTX = 0;
@@ -424,6 +425,7 @@ void RADIO_TuneTo(uint32_t f) {
   RADIO_SetupByCurrentVFO();
 }
 
+// USE CASE: set vfo and use in another app
 void RADIO_TuneToSave(uint32_t f) {
   RADIO_TuneTo(f);
   RADIO_SaveCurrentVFO();

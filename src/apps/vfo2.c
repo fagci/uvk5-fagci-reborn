@@ -74,14 +74,12 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
   // long held
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
-    int8_t presetNum = gSettings.activePreset;
     OffsetDirection offsetDirection = gCurrentPreset->offsetDir;
     switch (key) {
     case KEY_EXIT:
       return true;
     case KEY_1:
-      IncDecI8(&presetNum, 0, PRESETS_Size() - 1, 1);
-      RADIO_SelectPresetSave(presetNum);
+      APPS_run(APP_PRESETS_LIST);
       return true;
     case KEY_2:
       LOOT_Standby();
