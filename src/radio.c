@@ -427,6 +427,8 @@ void RADIO_TuneTo(uint32_t f) {
 void RADIO_TuneToSave(uint32_t f) {
   RADIO_TuneTo(f);
   RADIO_SaveCurrentVFO();
+  gCurrentPreset->lastUsedFreq = gCurrentVFO->fRX;
+  PRESETS_SaveCurrent();
 }
 
 void RADIO_SaveCurrentVFO(void) { VFOS_Save(gSettings.activeVFO, gCurrentVFO); }
@@ -437,6 +439,17 @@ void RADIO_VfoLoadCH(uint8_t i) {
   CH2VFO(&ch, &gVFO[i]);
   strncpy(gVFONames[i], ch.name, 9);
   gVFO[i].isMrMode = true;
+}
+
+void RADIO_SelectPreset(int8_t num) {
+  PRESET_Select(num);
+  RADIO_TuneTo(gCurrentPreset->lastUsedFreq);
+}
+
+void RADIO_SelectPresetSave(int8_t num) {
+  PRESET_Select(num);
+  PRESETS_SaveCurrent();
+  RADIO_TuneToSave(gCurrentPreset->lastUsedFreq);
 }
 
 void RADIO_LoadCurrentVFO(void) {

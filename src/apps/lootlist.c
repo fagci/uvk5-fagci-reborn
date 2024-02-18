@@ -245,6 +245,10 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_0:
       LOOT_Remove(menuIndex);
       return true;
+    case KEY_MENU:
+      RADIO_TuneToSave(item->f);
+      APPS_exit();
+      return true;
     default:
       break;
     }

@@ -56,6 +56,8 @@ void RADIO_TuneTo(uint32_t f);
 bool RADIO_TuneToCH(int32_t num);
 void RADIO_TuneToPure(uint32_t f, bool precise);
 void RADIO_TuneToSave(uint32_t f);
+void RADIO_SelectPreset(int8_t num);
+void RADIO_SelectPresetSave(int8_t num);
 void RADIO_SetupBandParams(Band *b);
 
 void RADIO_EnableToneDetection();

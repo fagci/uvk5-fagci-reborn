@@ -197,6 +197,7 @@ typedef struct { // 29 bytes
   bool allowTx : 1;
   uint8_t a : 5;             // 30
   PowerCalibration powCalib; // 33
+  uint32_t lastUsedFreq;
 } __attribute__((packed)) Preset;
 
 #define SETTINGS_OFFSET (0)

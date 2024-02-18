@@ -49,6 +49,7 @@ bool APPSLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     }
   }
 
+  AppType_t app = appsAvailableToRun[menuIndex];
   switch (key) {
   case KEY_UP:
     IncDec8(&menuIndex, 0, MENU_SIZE, -1);
@@ -58,7 +59,12 @@ bool APPSLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_MENU:
     APPS_exit();
-    APPS_runManual(appsAvailableToRun[menuIndex]);
+    if (app == APP_PRESETS_LIST || app == APP_LOOT_LIST ||
+        app == APP_SCANLISTS) {
+      APPS_run(app);
+    } else {
+      APPS_runManual(app);
+    }
     return true;
   case KEY_EXIT:
     APPS_exit();

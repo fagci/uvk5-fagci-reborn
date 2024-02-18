@@ -66,7 +66,10 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   }
 }
 
-void STILL_init(void) { RADIO_SetupByCurrentVFO(); }
+void STILL_init(void) {
+  RADIO_LoadCurrentVFO();
+  gRedrawScreen = true;
+}
 
 void STILL_deinit(void) { RADIO_ToggleRX(false); }
 

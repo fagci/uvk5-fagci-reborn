@@ -1,11 +1,12 @@
 #include "vfo2.h"
 #include "../dcs.h"
-#include "../helper/adapter.h"
 #include "../helper/channels.h"
 #include "../helper/lootlist.h"
+#include "../helper/measurements.h"
 #include "../helper/numnav.h"
 #include "../helper/presetlist.h"
 #include "../scheduler.h"
+#include "../settings.h"
 #include "../svc.h"
 #include "../svc_scan.h"
 #include "../ui/components.h"
@@ -19,7 +20,7 @@ static uint32_t lastRender = 0;
 static void tuneTo(uint32_t f) { RADIO_TuneToSave(GetTuneF(f)); }
 
 void VFO2_init(void) {
-  RADIO_SetupByCurrentVFO();
+  RADIO_LoadCurrentVFO();
 
   gRedrawScreen = true;
 }
@@ -73,27 +74,40 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
   // long held
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
+    int8_t presetNum = gSettings.activePreset;
+    OffsetDirection offsetDirection = gCurrentPreset->offsetDir;
     switch (key) {
+    case KEY_EXIT:
+      return true;
+    case KEY_1:
+      IncDecI8(&presetNum, 0, PRESETS_Size() - 1, 1);
+      RADIO_SelectPresetSave(presetNum);
+      return true;
     case KEY_2:
       LOOT_Standby();
       RADIO_NextVFO();
       return true;
-    case KEY_EXIT:
-      return true;
     case KEY_3:
       RADIO_ToggleVfoMR();
       return true;
-    case KEY_1:
-      RADIO_UpdateStep(true);
+    case KEY_4: // freq catch
       return true;
-    case KEY_7:
-      RADIO_UpdateStep(false);
-      return true;
-    case KEY_0:
-      RADIO_ToggleModulation();
+    case KEY_5: // noaa
       return true;
     case KEY_6:
       RADIO_ToggleTxPower();
+      return true;
+    case KEY_7:
+      RADIO_UpdateStep(true);
+      return true;
+    case KEY_8:
+      IncDec8(&offsetDirection, 0, OFFSET_MINUS, 1);
+      gCurrentPreset->offsetDir = offsetDirection;
+      return true;
+    case KEY_9: // call
+      return true;
+    case KEY_0:
+      RADIO_ToggleModulation();
       return true;
     case KEY_STAR:
       SVC_Toggle(SVC_SCAN, true, 10);

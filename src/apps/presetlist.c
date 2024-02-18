@@ -48,6 +48,10 @@ bool PRESETLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_MENU:
     PRESET_Select(menuIndex);
+    APPS_exit();
+    return true;
+  case KEY_F:
+    PRESET_Select(menuIndex);
     APPS_run(APP_PRESET_CFG);
     return true;
   default:

@@ -12,7 +12,7 @@
 static uint32_t lastUpdate = 0;
 
 void VFO1_init(void) {
-  RADIO_SetupByCurrentVFO();
+  RADIO_LoadCurrentVFO();
   gRedrawScreen = true;
 }
 
