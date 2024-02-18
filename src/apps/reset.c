@@ -540,7 +540,7 @@ void RESET_Update(void) {
         .repeaterSte = true,
         .dtmfdecode = false,
         .brightness = 8,
-        .contrast = 0,
+        .contrast = 8,
         .mainApp = APP_VFO2,
         .sqOpenedTimeout = SCAN_TO_NONE,
         .sqClosedTimeout = SCAN_TO_2s,

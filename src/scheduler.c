@@ -111,6 +111,7 @@ void SystickHandler(void) {
 }
 
 uint32_t Now(void) { return elapsedMilliseconds; }
+
 void SetTimeout(uint32_t *v, uint32_t t) {
   uint32_t max = (uint32_t)0 - 1;
   if (t == max) {
@@ -119,4 +120,5 @@ void SetTimeout(uint32_t *v, uint32_t t) {
   }
   *v = Now() + t;
 }
+
 bool CheckTimeout(uint32_t *v) { return Now() >= *v; }

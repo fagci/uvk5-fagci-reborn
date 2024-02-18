@@ -500,10 +500,28 @@ void RADIO_SetupBandParams(Band *b) {
 
 uint16_t RADIO_GetRSSI(void) { return isBK1080 ? 128 : BK4819_GetRSSI(); }
 
+static uint32_t lastTailTone = 0;
 Loot *RADIO_UpdateMeasurements(void) {
   Loot *msm = &gLoot[gSettings.activeVFO];
   msm->rssi = RADIO_GetRSSI();
   msm->open = isBK1080 ? true : BK4819_IsSquelchOpen();
+
+  while (BK4819_ReadRegister(BK4819_REG_0C) & 1u) {
+    BK4819_WriteRegister(BK4819_REG_02, 0);
+
+    uint16_t interrupt_status_bits = BK4819_ReadRegister(BK4819_REG_02);
+
+    if (interrupt_status_bits & BK4819_REG_02_CxCSS_TAIL) {
+      msm->open = false;
+      lastTailTone = Now();
+    }
+  }
+
+  // else sql reopens
+  if ((Now() - lastTailTone) < 250) {
+    msm->open = false;
+  }
+
   LOOT_Update(msm);
 
   bool rx = msm->open;
@@ -512,8 +530,6 @@ Loot *RADIO_UpdateMeasurements(void) {
       rx = true;
     } else if (gNoListen) {
       rx = false;
-    } else {
-      rx = msm->open;
     }
     RADIO_ToggleRX(rx);
   }

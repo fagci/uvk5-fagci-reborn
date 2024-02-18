@@ -26,6 +26,7 @@ typedef enum {
   M_SQL_TO_OPEN,
   M_SQL_TO_CLOSE,
   M_BRIGHTNESS,
+  M_CONTRAST,
   M_BL_TIME,
   M_BL_SQL,
   M_FLT_BOUND,
@@ -57,6 +58,7 @@ static const MenuItem menu[] = {
     {"SCAN listen time", M_SQL_TO_OPEN, ARRAY_SIZE(SCAN_TIMEOUT_NAMES)},
     {"SCAN after close time", M_SQL_TO_CLOSE, ARRAY_SIZE(SCAN_TIMEOUT_NAMES)},
     {"Brightness", M_BRIGHTNESS, 16},
+    {"Contrast", M_CONTRAST, 16},
     {"BL time", M_BL_TIME, ARRAY_SIZE(BL_TIME_VALUES)},
     {"BL SQL mode", M_BL_SQL, ARRAY_SIZE(BL_SQL_MODE_NAMES)},
     {"Filter bound", M_FLT_BOUND, 2},
@@ -104,6 +106,9 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     return;
   case M_BRIGHTNESS:
     sprintf(name, "%u", index);
+    return;
+  case M_CONTRAST:
+    sprintf(name, "%d", index - 8);
     return;
   case M_BL_TIME:
     strncpy(name, BL_TIME_NAMES[index], 31);
@@ -178,6 +183,10 @@ static void accept(void) {
     gSettings.brightness = subMenuIndex;
     SETTINGS_Save();
     break;
+  case M_CONTRAST:
+    gSettings.contrast = subMenuIndex;
+    SETTINGS_Save();
+    break;
   case M_BL_TIME:
     gSettings.backlight = subMenuIndex;
     SETTINGS_Save();
@@ -216,6 +225,9 @@ static const char *getValue(Menu type) {
   switch (type) {
   case M_BRIGHTNESS:
     sprintf(Output, "%u", gSettings.brightness);
+    return Output;
+  case M_CONTRAST:
+    sprintf(Output, "%d", gSettings.contrast - 8);
     return Output;
   case M_BAT_CAL:
     sprintf(Output, "%u", gSettings.batteryCalibration);
@@ -267,6 +279,9 @@ static void onSubChange(void) {
   case M_BL_TIME:
     BACKLIGHT_SetDuration(BL_TIME_VALUES[subMenuIndex]);
     break;
+  case M_CONTRAST:
+    gSettings.contrast = subMenuIndex;
+    break;
   default:
     break;
   }
@@ -278,6 +293,9 @@ static void setInitialSubmenuIndex(void) {
   switch (item->type) {
   case M_BRIGHTNESS:
     subMenuIndex = gSettings.brightness;
+    break;
+  case M_CONTRAST:
+    subMenuIndex = gSettings.contrast;
     break;
   case M_BL_TIME:
     subMenuIndex = gSettings.backlight;

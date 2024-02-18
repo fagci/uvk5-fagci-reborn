@@ -18,6 +18,7 @@
 #include "../inc/dp32g030/gpio.h"
 #include "../inc/dp32g030/spi.h"
 #include "../misc.h"
+#include "../settings.h"
 #include "gpio.h"
 #include "spi.h"
 #include "system.h"
@@ -70,7 +71,7 @@ static void ST7565_FillScreen(uint8_t Value) {
   SPI_ToggleMasterMode(&SPI0->CR, true);
 }
 
-static void fix() {
+static void fix(void) {
   SPI_ToggleMasterMode(&SPI0->CR, false);
 
   ST7565_WriteByte(0xA2); // bias 9
@@ -85,8 +86,8 @@ static void fix() {
 
   ST7565_WriteByte(0x24); // ???
 
-  ST7565_WriteByte(0x81); //
-  ST7565_WriteByte(31);   // brightness 0 ~ 63
+  ST7565_WriteByte(0x81);                    //
+  ST7565_WriteByte(23 + gSettings.contrast); // brightness 0 ~ 63
 
   ST7565_WriteByte(0x40); // start line ?
   ST7565_WriteByte(0xAF); // display on ?
@@ -131,7 +132,8 @@ void ST7565_Init(void) {
   ST7565_WriteByte(0xA4);
   ST7565_WriteByte(0x24);
   ST7565_WriteByte(0x81);
-  ST7565_WriteByte(0x1F); // contrast
+  // ST7565_WriteByte(0x1F); // contrast
+  ST7565_WriteByte(23 + gSettings.contrast); // brightness 0 ~ 63
   ST7565_WriteByte(0x2B);
   SYSTEM_DelayMs(1);
   ST7565_WriteByte(0x2E);
@@ -155,7 +157,7 @@ void ST7565_WriteByte(uint8_t Value) {
   SPI0->WDR = Value;
 }
 
-void ST7565_Render() {
+void ST7565_Render(void) {
   if (gRedrawScreen) {
     ST7565_Blit();
     gRedrawScreen = false;
