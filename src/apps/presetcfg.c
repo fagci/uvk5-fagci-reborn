@@ -93,11 +93,19 @@ static void getSubmenuItemText(uint16_t index, char *name) {
 
 static void setUpperBound(uint32_t f) {
   gCurrentPreset->band.bounds.end = f;
+  if (gCurrentPreset->lastUsedFreq > f) {
+    gCurrentPreset->lastUsedFreq = f;
+    RADIO_TuneToSave(f);
+  }
   PRESETS_SaveCurrent();
 }
 
 static void setLowerBound(uint32_t f) {
   gCurrentPreset->band.bounds.start = f;
+  if (gCurrentPreset->lastUsedFreq < f) {
+    gCurrentPreset->lastUsedFreq = f;
+    RADIO_TuneToSave(f);
+  }
   PRESETS_SaveCurrent();
 }
 
