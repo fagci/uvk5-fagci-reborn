@@ -1,19 +1,14 @@
 #include "savech.h"
-#include "../driver/eeprom.h"
-#include "../driver/st7565.h"
 #include "../helper/adapter.h"
 #include "../helper/channels.h"
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"
 #include "../helper/presetlist.h"
-#include "../helper/vfos.h"
-#include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
 #include "../ui/statusline.h"
 #include "apps.h"
 #include "textinput.h"
-#include <stdio.h>
 
 static uint16_t currentChannelIndex = 0;
 static uint16_t chCount = 0;

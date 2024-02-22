@@ -323,7 +323,7 @@ static Preset
                         .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
                     },
                 .allowTx = false,
-                .lastUsedFreq = 46242500,
+                .lastUsedFreq = 46256250,
                 .powCalib = {0x8C, 0x8C, 0x8C},
             },
             (Preset){
@@ -355,7 +355,7 @@ static Preset
                         .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
                     },
                 .allowTx = false,
-                .lastUsedFreq = 46745000,
+                .lastUsedFreq = 46756250,
                 .powCalib = {0x8C, 0x8C, 0x8C},
             },
             (Preset){
@@ -554,6 +554,7 @@ void RESET_Update(void) {
         .batteryCalibration = 2000,
         .batteryType = BAT_1600,
         .batteryStyle = BAT_PERCENT,
+        .nickName = "Anonymous",
     };
     settingsWrote = true;
     bytesWrote += SETTINGS_SIZE;

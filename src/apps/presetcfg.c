@@ -8,7 +8,6 @@
 #include "finput.h"
 #include "textinput.h"
 #include <stdint.h>
-#include <stdio.h>
 
 static uint8_t menuIndex = 0;
 static uint8_t subMenuIndex = 0;

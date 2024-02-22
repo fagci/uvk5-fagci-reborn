@@ -12,6 +12,7 @@
 #include "helper/channels.h"
 #include "helper/lootlist.h"
 #include "helper/measurements.h"
+#include "helper/msghelper.h"
 #include "helper/presetlist.h"
 #include "helper/vfos.h"
 #include "inc/dp32g030/gpio.h"
@@ -287,6 +288,7 @@ void RADIO_ToggleTX(bool on) {
     RADIO_SetupBandParams(&gCurrentPreset->band);
 
     BK4819_SetFrequency(fTX);
+    BK4819_SelectFilter(fTX);
 
     BK4819_PrepareTransmit();
 
@@ -429,7 +431,7 @@ void RADIO_TuneTo(uint32_t f) {
 void RADIO_TuneToSave(uint32_t f) {
   RADIO_TuneTo(f);
   RADIO_SaveCurrentVFO();
-  gCurrentPreset->lastUsedFreq = gCurrentVFO->fRX;
+  gCurrentPreset->lastUsedFreq = f;
   PRESETS_SaveCurrent();
 }
 
@@ -509,9 +511,11 @@ Loot *RADIO_UpdateMeasurements(void) {
   while (BK4819_ReadRegister(BK4819_REG_0C) & 1u) {
     BK4819_WriteRegister(BK4819_REG_02, 0);
 
-    uint16_t interrupt_status_bits = BK4819_ReadRegister(BK4819_REG_02);
+    uint16_t intBits = BK4819_ReadRegister(BK4819_REG_02);
 
-    if (interrupt_status_bits & BK4819_REG_02_CxCSS_TAIL) {
+    // MSG_StorePacket(intBits);
+
+    if (intBits & BK4819_REG_02_CxCSS_TAIL) {
       msm->open = false;
       lastTailTone = Now();
     }
@@ -522,7 +526,9 @@ Loot *RADIO_UpdateMeasurements(void) {
     msm->open = false;
   }
 
-  LOOT_Update(msm);
+  if (!gMonitorMode && gCurrentPreset->band.squelch != 0) {
+    LOOT_Update(msm);
+  }
 
   bool rx = msm->open;
   if (gTxState != TX_ON) {

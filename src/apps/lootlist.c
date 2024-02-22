@@ -129,7 +129,7 @@ static void sort(Sort type) {
 void LOOTLIST_render(void) {
   UI_ClearScreen();
   UI_ShowMenuEx(shortList ? getLootItemShort : getLootItem, LOOT_Size(),
-                menuIndex, shortList ? 6 : 3);
+                menuIndex, shortList ? 5 : 3);
 }
 
 void LOOTLIST_init(void) {
@@ -208,7 +208,7 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       APPS_exit();
       return true;
     case KEY_PTT:
-      RADIO_TuneTo(item->f);
+      RADIO_TuneToSave(item->f);
       APPS_run(APP_STILL);
       return true;
     case KEY_1:

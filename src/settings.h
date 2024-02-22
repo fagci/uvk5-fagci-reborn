@@ -130,6 +130,7 @@ typedef struct {
   uint8_t sqlCloseTime : 3;
   uint8_t reserved4 : 1;
   uint8_t activeVFO : 2;
+  char nickName[10];
 } __attribute__((packed)) Settings;
 
 typedef struct {           // 24 bytes

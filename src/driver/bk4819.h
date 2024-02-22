@@ -36,14 +36,14 @@ typedef enum {
 enum BK4819_AF_Type_t {
   BK4819_AF_MUTE,
   BK4819_AF_FM,
-  BK4819_AF_ALAM,
-  BK4819_AF_BEEP,
-  BK4819_AF_RAW,
-  BK4819_AF_USB,
-  BK4819_AF_CTCO,
+  BK4819_AF_ALAM, // tone
+  BK4819_AF_BEEP, // for tx
+  BK4819_AF_RAW, // (ssb without if filter = raw in sdr sharp)
+  BK4819_AF_USB, // (or ssb = lsb and usb at the same time)
+  BK4819_AF_CTCO, // ctcss/dcs (fm with narrow filters for ctcss/dcs)
   BK4819_AF_AM,
-  BK4819_AF_FSKO,
-  BK4819_AF_BYPASS,
+  BK4819_AF_FSKO, // fsk out test with special fsk filters (need reg58 fsk on to give sound on speaker )
+  BK4819_AF_BYPASS, // (fm without filter = discriminator output)
 };
 
 typedef enum {
@@ -142,6 +142,9 @@ void BK4819_Sleep(void);
 void BK4819_TurnsOffTones_TurnsOnRX(void);
 void BK4819_SetupAircopy(void);
 void BK4819_ResetFSK(void);
+void BK4819_FskClearFifo(void);
+void BK4819_FskEnableRx(void);
+void BK4819_FskEnableTx(void);
 void BK4819_Idle(void);
 void BK4819_ExitBypass(void);
 void BK4819_PrepareTransmit(void);

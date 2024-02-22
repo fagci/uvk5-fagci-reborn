@@ -11,6 +11,7 @@
 #include "fastscan.h"
 #include "finput.h"
 #include "lootlist.h"
+#include "messenger.h"
 #include "presetcfg.h"
 #include "presetlist.h"
 #include "reset.h"

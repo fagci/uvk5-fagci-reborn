@@ -17,7 +17,7 @@
 #include "../helper/measurements.h"
 #include <stdint.h>
 
-int Clamp(int v, int min, int max) {
+long long Clamp(long long v, long long min, long long max) {
   return v <= min ? min : (v >= max ? max : v);
 }
 

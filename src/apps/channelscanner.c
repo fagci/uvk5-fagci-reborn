@@ -15,7 +15,7 @@ static uint16_t currentIndex = 0;
 static uint8_t scanIndex = 0;
 static const uint8_t LIST_Y = MENU_Y + 10;
 
-int16_t lastActiveLootIndex = -1;
+static int16_t lastActiveLootIndex = -1;
 
 static void showItem(uint16_t i, uint16_t index, bool isCurrent) {
   CH ch;
@@ -36,12 +36,9 @@ static void showItem(uint16_t i, uint16_t index, bool isCurrent) {
 
 static void scanFn(bool forward) {
   RADIO_UpdateMeasurementsEx(LOOT_Item(scanIndex));
-
   if (gIsListening) {
     lastActiveLootIndex = scanIndex;
-  }
-
-  if (!gIsListening) {
+  } else {
     IncDec8(&scanIndex, 0, gScanlistSize, forward ? 1 : -1);
     RADIO_TuneToPure(LOOT_Item(scanIndex)->f, true);
   }

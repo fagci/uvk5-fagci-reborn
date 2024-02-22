@@ -166,6 +166,7 @@ void Main(void) {
     PrintMediumEx(0, 7, POS_L, C_FILL, "SET: %u %u", SETTINGS_OFFSET,
                   SETTINGS_SIZE);
     PrintMediumEx(0, 7 + 8, POS_L, C_FILL, "VFO: %u %u", VFOS_OFFSET, VFO_SIZE);
+    PrintMediumEx(0, 7 + 16, POS_L, C_FILL, "PRES CNT: %u", gSettings.presetsCount);
     ST7565_Blit();
   } else if (KEYBOARD_Poll() == KEY_F) {
     UART_IsLogEnabled = 5;

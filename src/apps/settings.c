@@ -12,6 +12,7 @@
 #include "../ui/menu.h"
 #include "../ui/statusline.h"
 #include "apps.h"
+#include "textinput.h"
 #include <string.h>
 
 const uint8_t EEPROM_CHECKBYTE = 0b10101;
@@ -35,6 +36,7 @@ typedef enum {
   M_BAT_TYPE,
   M_BAT_STYLE,
   M_EEPROM_TYPE,
+  M_NICKNAME,
   M_RESET,
 } Menu;
 
@@ -67,6 +69,7 @@ static const MenuItem menu[] = {
     {"BAT type", M_BAT_TYPE, ARRAY_SIZE(BATTERY_TYPE_NAMES)},
     {"BAT style", M_BAT_STYLE, ARRAY_SIZE(BATTERY_STYLE_NAMES)},
     {"EEPROM type", M_EEPROM_TYPE, ARRAY_SIZE(EEPROM_TYPE_NAMES)},
+    {"Nickname", M_NICKNAME, 0},
     {"EEPROM reset", M_RESET, 2},
 };
 
@@ -131,9 +134,17 @@ static void getSubmenuItemText(uint16_t index, char *name) {
   case M_RESET:
     strncpy(name, yesNo[index], 31);
     return;
+  case M_NICKNAME:
+    strncpy(name, gSettings.nickName, 31);
+    return;
   default:
     break;
   }
+}
+
+static void setNickname(void) {
+  strncpy(gSettings.nickName, gTextinputText, gTextInputSize);
+  SETTINGS_Save();
 }
 
 static void accept(void) {
@@ -264,6 +275,8 @@ static const char *getValue(Menu type) {
     return upConverterFreqNames[gSettings.upconverter];
   case M_BEEP:
     return onOff[gSettings.beep];
+  case M_NICKNAME:
+    return gSettings.nickName;
   default:
     break;
   }
@@ -394,6 +407,13 @@ bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     }
     return true;
   case KEY_MENU:
+    if (item->type == M_NICKNAME) {
+      gTextInputSize = 9;
+      gTextinputText = gSettings.nickName;
+      gTextInputCallback = setNickname;
+      APPS_run(APP_TEXTINPUT);
+      return true;
+    }
     if (isSubMenu) {
       accept();
       isSubMenu = false;
