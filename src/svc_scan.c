@@ -1,5 +1,6 @@
 #include "svc_scan.h"
 #include "driver/st7565.h"
+#include "driver/system.h"
 #include "radio.h"
 #include "scheduler.h"
 #include "settings.h"

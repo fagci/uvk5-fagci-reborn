@@ -22,13 +22,31 @@ static bool newScan = false;
 static bool bandFilled = false;
 
 static uint32_t lastRender = 0;
+static uint32_t stepsCount = 0;
+
+static uint32_t lastReady = 0;
+static uint32_t chPerSec = 0;
+static uint32_t scanTime = 0;
+
+static void scanFn(bool forward);
 
 static void startNewScan(bool reset) {
   if (reset) {
+    SVC_Toggle(SVC_SCAN, false, 0);
+    SVC_Toggle(SVC_LISTEN, false, 10);
     LOOT_Standby();
     RADIO_TuneTo(gCurrentPreset->band.bounds.start);
-    SP_Init(PRESETS_GetSteps(gCurrentPreset), spectrumWidth);
+    stepsCount = PRESETS_GetSteps(gCurrentPreset);
+    SP_Init(stepsCount, spectrumWidth);
     bandFilled = false;
+
+    gScanRedraw = stepsCount * gSettings.scanTimeout >= 500;
+    gScanFn = scanFn;
+    uint16_t t = gSettings.scanTimeout < 10 ? gSettings.scanTimeout : 10;
+    lastReady = elapsedMilliseconds;
+    SVC_Toggle(SVC_SCAN, true, t);
+    SVC_Toggle(SVC_LISTEN, true, t);
+
   } else {
     SP_Begin();
     bandFilled = true;
@@ -43,7 +61,14 @@ static void scanFn(bool forward) {
     startNewScan(false);
   }
 
-  RADIO_NextPresetFreq(forward);
+  RADIO_NextPresetFreqEx(forward, gSettings.scanTimeout >= 10);
+
+  if (PRESETS_GetChannel(gCurrentPreset, gCurrentVFO->fRX) == stepsCount - 1) {
+    scanTime = elapsedMilliseconds - lastReady;
+    chPerSec = stepsCount * 1000 / scanTime;
+    lastReady = elapsedMilliseconds;
+    gRedrawScreen = true;
+  }
 
   if (gCurrentVFO->fRX == gCurrentPreset->band.bounds.start) {
     startNewScan(false);
@@ -57,9 +82,8 @@ void SPECTRUM_init(void) {
   startNewScan(true);
   gRedrawScreen = true;
   gMonitorMode = false;
-  gNoListen = true;
   gScanFn = scanFn;
-  SVC_Toggle(SVC_SCAN, true, 10);
+  SVC_Toggle(SVC_SCAN, true, 1);
 }
 
 void SPECTRUM_update(void) {
@@ -70,13 +94,15 @@ void SPECTRUM_update(void) {
 
 void SPECTRUM_deinit(void) {
   SVC_Toggle(SVC_SCAN, false, 0);
-  gNoListen = false;
+  SVC_Toggle(SVC_LISTEN, false, 0);
+  SVC_Toggle(SVC_LISTEN, true, 10);
 }
 
 bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     if (Key == KEY_SIDE1) {
-      gNoListen = !gNoListen;
+      gSettings.noListen = !gSettings.noListen;
+      SETTINGS_Save();
       RADIO_ToggleRX(false);
       return true;
     }
@@ -117,6 +143,12 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       APPS_run(APP_LOOT_LIST);
       return true;
     case KEY_5:
+      if (gCurrentPreset->band.squelchType == SQUELCH_RSSI) {
+        gCurrentPreset->band.squelchType = SQUELCH_RSSI_NOISE_GLITCH;
+      } else {
+        gCurrentPreset->band.squelchType++;
+      }
+      startNewScan(true);
       return true;
     case KEY_1:
       if (gSettings.scanTimeout < 255) {
@@ -130,11 +162,13 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_3:
       RADIO_UpdateSquelchLevel(true);
+      startNewScan(true);
       return true;
     case KEY_9:
       if (gCurrentPreset->band.squelch > 1) {
         RADIO_UpdateSquelchLevel(false);
       }
+      startNewScan(true);
       return true;
     case KEY_PTT:
       RADIO_TuneToSave(gLastActiveLoot->f);
@@ -153,9 +187,12 @@ void SPECTRUM_render(void) {
 
   SP_Render(gCurrentPreset, 0, SPECTRUM_Y, SPECTRUM_HEIGHT);
 
-  PrintSmallEx(spectrumWidth - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "SQ:%u",
-               gCurrentPreset->band.squelch);
+  PrintSmallEx(spectrumWidth - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "SQ%u %s",
+               gCurrentPreset->band.squelch,
+               sqTypeNames[gCurrentPreset->band.squelchType]);
   PrintSmallEx(0, SPECTRUM_Y - 3, POS_L, C_FILL, "%ums", gSettings.scanTimeout);
+  PrintSmallEx(0, SPECTRUM_Y - 3 + 6, POS_L, C_FILL, "%ums", scanTime);
+  PrintSmallEx(0, SPECTRUM_Y - 3 + 12, POS_L, C_FILL, "%uCHps", chPerSec);
 
   uint32_t fs = gCurrentPreset->band.bounds.start;
   uint32_t fe = gCurrentPreset->band.bounds.end;
@@ -173,6 +210,13 @@ void SPECTRUM_render(void) {
                    CTCSS_Options[gLastActiveLoot->ct] / 10,
                    CTCSS_Options[gLastActiveLoot->ct] % 10);
     }
+  }
+
+  if (gCurrentPreset->band.squelchType == SQUELCH_RSSI) {
+    uint8_t band =
+        gCurrentPreset->band.bounds.start > SETTINGS_GetFilterBound() ? 1 : 0;
+    SP_RenderRssi(SQ[band][0][gCurrentPreset->band.squelch], "", true, 0,
+                  SPECTRUM_Y, SPECTRUM_HEIGHT);
   }
 
   lastRender = elapsedMilliseconds;

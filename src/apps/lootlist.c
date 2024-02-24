@@ -64,7 +64,7 @@ static void getLootItem(uint16_t i, uint16_t index, bool isCurrent) {
   uint32_t f = item->f;
   const uint8_t y = MENU_Y + i * MENU_ITEM_H_LARGER;
   if (isCurrent) {
-    FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
+    FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H_LARGER, C_FILL);
   }
   PrintMediumEx(8, y + 7, POS_L, C_INVERT, "%u.%05u", f / 100000, f % 100000);
   PrintSmallEx(LCD_WIDTH - 6, y + 7, POS_R, C_INVERT, "%us",

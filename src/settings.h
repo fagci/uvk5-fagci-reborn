@@ -123,12 +123,13 @@ typedef struct {
   ScanTimeout sqOpenedTimeout : 4;
   ScanTimeout sqClosedTimeout : 4; // 1
   bool bound_240_280 : 1;
-  uint8_t reserved2 : 5;
+  bool noListen : 1;
+  uint8_t reserved2 : 4;
   BacklightOnSquelchMode backlightOnSquelch : 2;
   uint8_t scanTimeout : 8;
   uint8_t sqlOpenTime : 2;
   uint8_t sqlCloseTime : 3;
-  uint8_t reserved4 : 1;
+  bool skipGarbageFrequencies : 1;
   uint8_t activeVFO : 2;
   char nickName[10];
 } __attribute__((packed)) Settings;

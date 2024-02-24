@@ -95,7 +95,6 @@ void ANALYZER_init(void) {
   RADIO_ToggleBK1080(false);
 
   gMonitorMode = false;
-  gNoListen = true;
 
   centerF = gCurrentVFO->fRX;
   initialScanInterval = gSettings.scanTimeout;
@@ -116,7 +115,6 @@ void ANALYZER_update(void) {}
 
 void ANALYZER_deinit(void) {
   SVC_Toggle(SVC_SCAN, false, 0);
-  gNoListen = false;
   gSettings.scanTimeout = initialScanInterval;
   SVC_Toggle(SVC_LISTEN, true, 1);
 }
@@ -141,7 +139,8 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     switch (Key) {
     case KEY_SIDE1:
-      gNoListen = !gNoListen;
+      gSettings.noListen = !gSettings.noListen;
+      SETTINGS_Save();
       RADIO_ToggleRX(false);
       return true;
     case KEY_0:

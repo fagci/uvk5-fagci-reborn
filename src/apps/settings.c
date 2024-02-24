@@ -37,6 +37,7 @@ typedef enum {
   M_BAT_STYLE,
   M_EEPROM_TYPE,
   M_NICKNAME,
+  M_SKIP_GARBAGE_FREQS,
   M_RESET,
 } Menu;
 
@@ -70,6 +71,7 @@ static const MenuItem menu[] = {
     {"BAT style", M_BAT_STYLE, ARRAY_SIZE(BATTERY_STYLE_NAMES)},
     {"EEPROM type", M_EEPROM_TYPE, ARRAY_SIZE(EEPROM_TYPE_NAMES)},
     {"Nickname", M_NICKNAME, 0},
+    {"Skip garbage freqs", M_SKIP_GARBAGE_FREQS, 2},
     {"EEPROM reset", M_RESET, 2},
 };
 
@@ -132,6 +134,9 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     strncpy(name, EEPROM_TYPE_NAMES[index], 31);
     return;
   case M_RESET:
+    strncpy(name, yesNo[index], 31);
+    return;
+  case M_SKIP_GARBAGE_FREQS:
     strncpy(name, yesNo[index], 31);
     return;
   case M_NICKNAME:
@@ -222,6 +227,10 @@ static void accept(void) {
     gSettings.eepromType = subMenuIndex;
     SETTINGS_Save();
     break;
+  case M_SKIP_GARBAGE_FREQS:
+    gSettings.skipGarbageFrequencies = subMenuIndex;
+    SETTINGS_Save();
+    break;
   case M_RESET:
     if (subMenuIndex) {
       APPS_run(APP_RESET);
@@ -275,6 +284,8 @@ static const char *getValue(Menu type) {
     return upConverterFreqNames[gSettings.upconverter];
   case M_BEEP:
     return onOff[gSettings.beep];
+  case M_SKIP_GARBAGE_FREQS:
+    return yesNo[gSettings.skipGarbageFrequencies];
   case M_NICKNAME:
     return gSettings.nickName;
   default:
@@ -351,6 +362,9 @@ static void setInitialSubmenuIndex(void) {
     break;
   case M_EEPROM_TYPE:
     subMenuIndex = gSettings.eepromType;
+    break;
+  case M_SKIP_GARBAGE_FREQS:
+    subMenuIndex = gSettings.skipGarbageFrequencies;
     break;
   case M_MAIN_APP:
     for (i = 0; i < ARRAY_SIZE(appsAvailableToRun); ++i) {

@@ -28,7 +28,6 @@ extern char gVFONames[2][10];
 
 extern bool gIsListening;
 extern bool gMonitorMode;
-extern bool gNoListen;
 extern bool isBK1080;
 extern TXState gTxState;
 
@@ -68,6 +67,7 @@ void RADIO_NextVFO(void);
 void RADIO_NextCH(bool next);
 void RADIO_NextFreq(bool next);
 void RADIO_NextPresetFreq(bool next);
+void RADIO_NextPresetFreqEx(bool next, bool precise);
 void RADIO_ToggleVfoMR();
 
 void RADIO_SetSquelchPure(uint32_t f, uint8_t sql);

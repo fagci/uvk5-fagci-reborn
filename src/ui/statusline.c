@@ -103,7 +103,8 @@ void STATUSLINE_render(void) {
     icons[idx++] = SYM_CONVERTER;
   }
 
-  if (gNoListen) {
+  if (gSettings.noListen &&
+      (gCurrentApp == APP_SPECTRUM || gCurrentApp == APP_ANALYZER)) {
     icons[idx++] = SYM_NO_LISTEN;
   }
 

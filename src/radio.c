@@ -1,4 +1,5 @@
 #include "radio.h"
+#include "apps/apps.h"
 #include "driver/audio.h"
 #include "driver/backlight.h"
 #include "driver/bk1080.h"
@@ -40,7 +41,6 @@ char gVFONames[2][10] = {0};
 
 bool gIsListening = false;
 bool gMonitorMode = false;
-bool gNoListen = false;
 
 bool isBK1080 = false;
 
@@ -354,13 +354,9 @@ void RADIO_ToggleModulation(void) {
 }
 
 void RADIO_UpdateStep(bool inc) {
-  if (inc && gCurrentPreset->band.step < STEP_100_0kHz) {
-    ++gCurrentPreset->band.step;
-  } else if (!inc && gCurrentPreset->band.step > 0) {
-    --gCurrentPreset->band.step;
-  } else {
-    return;
-  }
+  uint8_t step = gCurrentPreset->band.step;
+  IncDec8(&step, 0, STEP_200_0kHz, inc ? 1 : -1);
+  gCurrentPreset->band.step = step;
   onPresetUpdate();
 }
 
@@ -502,11 +498,62 @@ void RADIO_SetupBandParams(Band *b) {
 
 uint16_t RADIO_GetRSSI(void) { return isBK1080 ? 128 : BK4819_GetRSSI(); }
 
+static bool isSqOpenSimple(uint16_t r) {
+  uint8_t band = gCurrentVFO->fRX > SETTINGS_GetFilterBound() ? 1 : 0;
+  uint8_t sq = gCurrentPreset->band.squelch;
+  uint16_t ro = SQ[band][0][sq];
+  uint16_t rc = SQ[band][1][sq];
+  uint8_t no = SQ[band][2][sq];
+  uint8_t nc = SQ[band][3][sq];
+  uint8_t go = SQ[band][4][sq];
+  uint8_t gc = SQ[band][5][sq];
+
+  uint8_t n, g;
+
+  bool open;
+
+  switch (gCurrentPreset->band.squelchType) {
+  case SQUELCH_RSSI_NOISE_GLITCH:
+    n = BK4819_GetNoise();
+    g = BK4819_GetGlitch();
+    open = r >= ro && n <= no && g <= go;
+    if (r < rc || n > nc || g > gc) {
+      open = false;
+    }
+    break;
+  case SQUELCH_RSSI_NOISE:
+    n = BK4819_GetNoise();
+    open = r >= ro && n <= no;
+    if (r < rc || n > nc) {
+      open = false;
+    }
+    break;
+  case SQUELCH_RSSI_GLITCH:
+    g = BK4819_GetGlitch();
+    open = r >= ro && g <= go;
+    if (r < rc || g > gc) {
+      open = false;
+    }
+    break;
+  case SQUELCH_RSSI:
+    open = r >= ro;
+    if (r < rc) {
+      open = false;
+    }
+    break;
+  }
+
+  return open;
+}
+
 static uint32_t lastTailTone = 0;
 Loot *RADIO_UpdateMeasurements(void) {
   Loot *msm = &gLoot[gSettings.activeVFO];
   msm->rssi = RADIO_GetRSSI();
-  msm->open = isBK1080 ? true : BK4819_IsSquelchOpen();
+  msm->open = isBK1080 ? true
+                       : (gSettings.sqlOpenTime || gSettings.sqlCloseTime
+                              ? BK4819_IsSquelchOpen()
+                              : isSqOpenSimple(msm->rssi));
 
   while (BK4819_ReadRegister(BK4819_REG_0C) & 1u) {
     BK4819_WriteRegister(BK4819_REG_02, 0);
@@ -534,7 +581,11 @@ Loot *RADIO_UpdateMeasurements(void) {
   if (gTxState != TX_ON) {
     if (gMonitorMode) {
       rx = true;
-    } else if (gNoListen) {
+    } else if (gSettings.noListen &&
+               (gCurrentApp == APP_SPECTRUM || gCurrentApp == APP_ANALYZER)) {
+      rx = false;
+    } else if (gSettings.skipGarbageFrequencies &&
+               (gCurrentVFO->fRX % 1300000 == 0)) {
       rx = false;
     }
     RADIO_ToggleRX(rx);
@@ -657,4 +708,12 @@ void RADIO_NextPresetFreq(bool next) {
   IncDec32(&step, 0, steps, next ? 1 : -1);
   gCurrentVFO->fRX = PRESETS_GetF(gCurrentPreset, step);
   RADIO_TuneToPure(gCurrentVFO->fRX, true);
+}
+
+void RADIO_NextPresetFreqEx(bool next, bool precise) {
+  uint32_t steps = PRESETS_GetSteps(gCurrentPreset);
+  uint32_t step = PRESETS_GetChannel(gCurrentPreset, gCurrentVFO->fRX);
+  IncDec32(&step, 0, steps, next ? 1 : -1);
+  gCurrentVFO->fRX = PRESETS_GetF(gCurrentPreset, step);
+  RADIO_TuneToPure(gCurrentVFO->fRX, precise);
 }

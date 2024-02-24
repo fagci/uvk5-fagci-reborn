@@ -546,6 +546,7 @@ void RESET_Update(void) {
         .sqClosedTimeout = SCAN_TO_2s,
         .sqlOpenTime = 1,
         .sqlCloseTime = 1,
+        .skipGarbageFrequencies = true,
         .scanTimeout = 50,
         .activeVFO = 0,
         .activePreset = 22,
