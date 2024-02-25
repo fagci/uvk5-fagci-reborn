@@ -182,20 +182,21 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void SPECTRUM_render(void) {
+  Band *band = &gCurrentPreset->band;
+
   UI_ClearScreen();
-  STATUSLINE_SetText(gCurrentPreset->band.name);
+  STATUSLINE_SetText(band->name);
 
   SP_Render(gCurrentPreset, 0, SPECTRUM_Y, SPECTRUM_HEIGHT);
 
   PrintSmallEx(spectrumWidth - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "SQ%u %s",
-               gCurrentPreset->band.squelch,
-               sqTypeNames[gCurrentPreset->band.squelchType]);
+               band->squelch, sqTypeNames[band->squelchType]);
   PrintSmallEx(0, SPECTRUM_Y - 3, POS_L, C_FILL, "%ums", gSettings.scanTimeout);
   PrintSmallEx(0, SPECTRUM_Y - 3 + 6, POS_L, C_FILL, "%ums", scanTime);
   PrintSmallEx(0, SPECTRUM_Y - 3 + 12, POS_L, C_FILL, "%uCHps", chPerSec);
 
-  uint32_t fs = gCurrentPreset->band.bounds.start;
-  uint32_t fe = gCurrentPreset->band.bounds.end;
+  uint32_t fs = band->bounds.start;
+  uint32_t fe = band->bounds.end;
 
   PrintSmallEx(0, LCD_HEIGHT - 1, POS_L, C_FILL, "%u.%05u", fs / 100000,
                fs % 100000);
@@ -206,17 +207,16 @@ void SPECTRUM_render(void) {
     PrintMediumBoldEx(LCD_XCENTER, 16, POS_C, C_FILL, "%u.%05u",
                       gLastActiveLoot->f / 100000, gLastActiveLoot->f % 100000);
     if (gLastActiveLoot->ct != 0xFF) {
-      PrintSmallEx(0, 16 + 6, POS_C, C_FILL, "CT:%u.%uHz",
+      PrintSmallEx(LCD_XCENTER, 16 + 6, POS_C, C_FILL, "CT:%u.%uHz",
                    CTCSS_Options[gLastActiveLoot->ct] / 10,
                    CTCSS_Options[gLastActiveLoot->ct] % 10);
     }
   }
 
-  if (gCurrentPreset->band.squelchType == SQUELCH_RSSI) {
-    uint8_t band =
-        gCurrentPreset->band.bounds.start > SETTINGS_GetFilterBound() ? 1 : 0;
-    SP_RenderRssi(SQ[band][0][gCurrentPreset->band.squelch], "", true, 0,
-                  SPECTRUM_Y, SPECTRUM_HEIGHT);
+  if (band->squelchType == SQUELCH_RSSI) {
+    uint8_t b = band->bounds.start > SETTINGS_GetFilterBound() ? 1 : 0;
+    SP_RenderRssi(SQ[b][0][band->squelch], "", true, 0, SPECTRUM_Y,
+                  SPECTRUM_HEIGHT);
   }
 
   lastRender = elapsedMilliseconds;

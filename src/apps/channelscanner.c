@@ -76,19 +76,19 @@ bool CHSCANNER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     }
   }
 
-    uint32_t f = LOOT_Item(scanIndex)->f;
-
   if (!bKeyPressed && !bKeyHeld) {
     switch (Key) {
     case KEY_EXIT:
       APPS_exit();
       return true;
     case KEY_PTT:
-      RADIO_TuneToSave(f);
+      RADIO_TuneToCH(gScanlist[currentIndex]);
+      RADIO_SaveCurrentVFO();
       APPS_run(APP_STILL);
       return true;
     case KEY_5:
-      RADIO_TuneToSave(f);
+      RADIO_TuneToCH(gScanlist[currentIndex]);
+      RADIO_SaveCurrentVFO();
       APPS_run(APP_ANALYZER);
       return true;
 

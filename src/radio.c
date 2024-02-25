@@ -307,6 +307,7 @@ void RADIO_ToggleTX(bool on) {
     BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, true);
 
     BK4819_SetFrequency(gCurrentVFO->fRX);
+    BK4819_SelectFilter(gCurrentVFO->fRX);
     BK4819_RX_TurnOn();
   }
 
