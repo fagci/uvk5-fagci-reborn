@@ -2,21 +2,21 @@
 #include "../radio.h"
 
 void VFO2CH(VFO *src, Preset *p, CH *dst) {
-  dst->fRX = src->fRX;
-  dst->fTX = RADIO_GetTXFEx(src, p);
-  dst->codeRx = src->codeRx;
-  dst->codeTx = src->codeTx;
-  dst->codeTypeRx = src->codeTypeRx;
-  dst->codeTypeTx = src->codeTypeTx;
+  dst->rx.f = src->rx.f;
+  dst->tx.f = RADIO_GetTXFEx(src, p);
+  dst->rx.code = src->rx.code;
+  dst->tx.code = src->tx.code;
+  dst->rx.codeType = src->rx.codeType;
+  dst->tx.codeType = src->tx.codeType;
   dst->power = src->power;
 }
 
 void CH2VFO(CH *src, VFO *dst) {
-  dst->fRX = src->fRX;
-  dst->fTX = src->fTX;
-  dst->codeRx = src->codeRx;
-  dst->codeTx = src->codeTx;
-  dst->codeTypeRx = src->codeTypeRx;
-  dst->codeTypeTx = src->codeTypeTx;
+  dst->rx.f = src->rx.f;
+  dst->tx.f = src->tx.f;
+  dst->rx.code = src->rx.code;
+  dst->tx.code = src->tx.code;
+  dst->rx.codeType = src->rx.codeType;
+  dst->tx.codeType = src->tx.codeType;
   dst->power = src->power;
 }

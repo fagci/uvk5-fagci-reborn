@@ -154,8 +154,8 @@ static void saveAllToFreeChannels(void) {
         }
       }
       CH ch;
-      ch.fRX = loot->f;
-      snprintf(ch.name, 9, "%lu.%05lu", ch.fRX / 100000, ch.fRX % 100000);
+      ch.rx.f = loot->f;
+      snprintf(ch.name, 9, "%lu.%05lu", ch.rx.f / 100000, ch.rx.f % 100000);
 
       CHANNELS_Save(chnum, &ch);
       loot->blacklist = true;
@@ -238,8 +238,8 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       exportLootList();
       return true;
     case KEY_5:
-      gCurrentVFO->fRX = item->f;
-      gCurrentVFO->codeTx = item->cd != 0xFF ? item->cd : item->ct;
+      radio->rx.f = item->f;
+      radio->tx.code = item->cd != 0xFF ? item->cd : item->ct;
       APPS_run(APP_SAVECH);
       return true;
     case KEY_0:

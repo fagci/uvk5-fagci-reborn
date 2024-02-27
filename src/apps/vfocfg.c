@@ -95,7 +95,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
 }
 
 static void setTXF(uint32_t f) {
-  gCurrentVFO->fTX = f;
+  radio->tx.f = f;
   RADIO_SaveCurrentVFO();
 }
 
@@ -108,7 +108,7 @@ void VFOCFG_init(void) {
   gRedrawScreen = true;
   for (uint8_t i = 0; i < MENU_SIZE; ++i) {
     if (menu[i].type == M_MODULATION) {
-      menu[i].size = RADIO_IsBK1080Range(gCurrentVFO->fRX)
+      menu[i].size = RADIO_IsBK1080Range(radio->rx.f)
                          ? ARRAY_SIZE(modulationTypeOptions)
                          : ARRAY_SIZE(modulationTypeOptions) - 1;
       break;
@@ -124,12 +124,12 @@ static bool accept(void) {
   switch (item->type) {
   case M_F_RX:
     gFInputCallback = RADIO_TuneTo;
-    gFInputTempFreq = gCurrentVFO->fRX;
+    gFInputTempFreq = radio->rx.f;
     APPS_run(APP_FINPUT);
     return true;
   case M_F_TX:
     gFInputCallback = setTXF;
-    gFInputTempFreq = gCurrentVFO->fTX;
+    gFInputTempFreq = radio->tx.f;
     APPS_run(APP_FINPUT);
     return true;
   case M_TX_OFFSET:

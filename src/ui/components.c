@@ -51,7 +51,7 @@ void UI_FSmall(uint32_t f) {
   PrintSmall(0, 21, "%u.%02uk", step / 100, step % 100);
 
   if (gSettings.upconverter) {
-    UI_FSmallest(gCurrentVFO->fRX, 32, 21);
+    UI_FSmallest(radio->rx.f, 32, 21);
   }
 
   PrintSmall(74, 21, "SQ:%u", gCurrentPreset->band.squelch);

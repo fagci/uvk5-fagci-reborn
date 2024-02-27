@@ -156,7 +156,7 @@ static void accept(void) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_UPCONVERTER: {
-    uint32_t f = GetScreenF(gCurrentVFO->fRX);
+    uint32_t f = GetScreenF(radio->rx.f);
     gSettings.upconverter = subMenuIndex;
     RADIO_TuneToSave(GetTuneF(f));
     SETTINGS_Save();

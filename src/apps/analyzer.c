@@ -96,7 +96,7 @@ void ANALYZER_init(void) {
 
   gMonitorMode = false;
 
-  centerF = gCurrentVFO->fRX;
+  centerF = radio->rx.f;
   initialScanInterval = gSettings.scanTimeout;
   opt.band.step = gCurrentPreset->band.step;
   opt.band.squelch = 0;

@@ -47,7 +47,7 @@ void PRESETS_SelectPresetRelative(bool next) {
   IncDecI8(&activePreset, 0, PRESETS_Size(), next ? 1 : -1);
   gSettings.activePreset = activePreset;
   gCurrentPreset = &presets[gSettings.activePreset];
-  gCurrentVFO->fRX = gCurrentPreset->band.bounds.start;
+  radio->rx.f = gCurrentPreset->band.bounds.start;
   SETTINGS_DelayedSave();
 }
 

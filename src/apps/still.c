@@ -218,8 +218,8 @@ static void DrawRegs(void) {
 void STILL_render(void) {
   UI_ClearScreen();
   STATUSLINE_SetText(gCurrentPreset->band.name);
-  UI_FSmall(gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(gCurrentVFO->fRX));
-  UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, gCurrentVFO->fRX, 23);
+  UI_FSmall(gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(radio->rx.f));
+  UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, radio->rx.f, 23);
 
   if (!isBK1080) {
     DrawRegs();

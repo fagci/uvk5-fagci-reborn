@@ -59,7 +59,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     /* case KEY_2:
       LOOT_Standby();
       RADIO_NextVFO(true);
-      msm.f = gCurrentVFO->fRX;
+      msm.f = radio->rx.f;
       return true; */
     case KEY_STAR:
       SVC_Toggle(SVC_SCAN, true, 10);
@@ -145,7 +145,7 @@ void VFO1_render(void) {
 
   VFO *vfo = &gVFO[gSettings.activeVFO];
   Preset *p = gVFOPresets[gSettings.activeVFO];
-  uint32_t f = gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(vfo->fRX);
+  uint32_t f = gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(vfo->rx.f);
 
   uint16_t fp1 = f / 100000;
   uint16_t fp2 = f / 100 % 1000;
@@ -153,7 +153,7 @@ void VFO1_render(void) {
   const char *mod = modulationTypeOptions[p->band.modulation];
   if (gIsListening) {
     if (!isBK1080) {
-      UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, vfo->fRX, BASE + 2);
+      UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, vfo->rx.f, BASE + 2);
     }
   }
 

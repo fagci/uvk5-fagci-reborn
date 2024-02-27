@@ -37,9 +37,9 @@ void VFO2_update(void) {
 static void setChannel(uint16_t v) { RADIO_TuneToCH(v - 1); }
 
 bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  if (!bKeyPressed && !bKeyHeld && gCurrentVFO->isMrMode) {
+  if (!bKeyPressed && !bKeyHeld && radio->channel >= 0) {
     if (!gIsNumNavInput && key >= KEY_0 && key <= KEY_9) {
-      NUMNAV_Init(gCurrentVFO->channel + 1, 1, CHANNELS_GetCountMax());
+      NUMNAV_Init(radio->channel + 1, 1, CHANNELS_GetCountMax());
       gNumNavCallback = setChannel;
     }
     if (gIsNumNavInput) {
@@ -178,7 +178,7 @@ static void render2VFOPart(uint8_t i) {
   const Loot *loot = &gLoot[i];
 
   uint32_t f =
-      gTxState == TX_ON && isActive ? RADIO_GetTXF() : GetScreenF(vfo->fRX);
+      gTxState == TX_ON && isActive ? RADIO_GetTXF() : GetScreenF(vfo->rx.f);
 
   const uint16_t fp1 = f / 100000;
   const uint16_t fp2 = f / 100 % 1000;
@@ -193,7 +193,7 @@ static void render2VFOPart(uint8_t i) {
     if (gIsListening) {
       PrintMediumEx(0, bl, POS_L, C_INVERT, "RX");
       if (!isBK1080) {
-        UI_RSSIBar(gLoot[i].rssi, vfo->fRX, 31);
+        UI_RSSIBar(gLoot[i].rssi, vfo->rx.f, 31);
       }
     }
   }
@@ -203,7 +203,7 @@ static void render2VFOPart(uint8_t i) {
                       TX_STATE_NAMES[gTxState]);
     PrintSmallEx(LCD_XCENTER, bl - 8 + 6, POS_C, C_FILL, "%u", RADIO_GetTXF());
   } else {
-    if (vfo->isMrMode) {
+    if (vfo->channel >= 0) {
       PrintMediumBoldEx(LCD_XCENTER, bl - 8, POS_C, C_FILL, gVFONames[i]);
       PrintMediumEx(LCD_XCENTER, bl, POS_C, C_FILL, "%4u.%03u", fp1, fp2);
       PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "MR %03u", vfo->channel + 1);
@@ -228,7 +228,7 @@ static void render2VFOPart(uint8_t i) {
   PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %c SQ%u %c",
                p->allowTx ? TX_POWER_NAMES[p->power][0] : ' ',
                "WNn"[p->band.bw], p -> band.squelch,
-               RADIO_GetTXFEx(vfo, p) != vfo->fRX
+               RADIO_GetTXFEx(vfo, p) != vfo->rx.f
                    ? (p->offsetDir ? TX_OFFSET_NAMES[p->offsetDir][0] : '*')
                    : ' ');
 
@@ -249,8 +249,7 @@ void VFO2_render(void) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
   } else {
     STATUSLINE_SetText("%s:%u", gCurrentPreset->band.name,
-                       PRESETS_GetChannel(gCurrentPreset, gCurrentVFO->fRX) +
-                           1);
+                       PRESETS_GetChannel(gCurrentPreset, radio->rx.f) + 1);
   }
 
   render2VFOPart(0);

@@ -47,7 +47,7 @@ void CHSCANNER_init(void) {
     CH ch;
     int32_t num = gScanlist[i];
     CHANNELS_Load(num, &ch);
-    Loot *loot = LOOT_AddEx(ch.fRX, false);
+    Loot *loot = LOOT_AddEx(ch.rx.f, false);
     loot->open = false;
     loot->lastTimeOpen = 0;
   }
@@ -112,7 +112,7 @@ void CHSCANNER_render(void) {
 
   if (gIsListening) {
     currentIndex = scanIndex; // HACK
-    if (LOOT_Item(scanIndex)->f != currentChannel.fRX) {
+    if (LOOT_Item(scanIndex)->f != currentChannel.rx.f) {
       CHANNELS_Load(gScanlist[scanIndex], &currentChannel);
     }
     PrintMediumBoldEx(LCD_XCENTER, MENU_Y + 7, POS_C, C_FILL, "%s",

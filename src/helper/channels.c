@@ -30,6 +30,7 @@ void CHANNELS_Save(int32_t num, CH *p) {
 
 bool CHANNELS_Existing(int32_t i) {
   char name[2] = {0};
+  // TODO: offsetof
   uint32_t addr = SETTINGS_GetEEPROMSize() - ((i + 1) * CH_SIZE) + 4 + 4;
   EEPROM_ReadBuffer(addr, name, 1);
   return IsReadable(name);
@@ -37,6 +38,7 @@ bool CHANNELS_Existing(int32_t i) {
 
 uint8_t CHANNELS_Scanlists(int32_t i) {
   uint8_t scanlists;
+  // TODO: offsetof
   uint32_t addr = SETTINGS_GetEEPROMSize() - ((i + 1) * CH_SIZE) + 4 + 4 + 10;
   EEPROM_ReadBuffer(addr, &scanlists, 1);
   return scanlists;

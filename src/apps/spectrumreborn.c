@@ -63,14 +63,14 @@ static void scanFn(bool forward) {
 
   RADIO_NextPresetFreqEx(forward, gSettings.scanTimeout >= 10);
 
-  if (PRESETS_GetChannel(gCurrentPreset, gCurrentVFO->fRX) == stepsCount - 1) {
+  if (PRESETS_GetChannel(gCurrentPreset, radio->rx.f) == stepsCount - 1) {
     scanTime = elapsedMilliseconds - lastReady;
     chPerSec = stepsCount * 1000 / scanTime;
     lastReady = elapsedMilliseconds;
     gRedrawScreen = true;
   }
 
-  if (gCurrentVFO->fRX == gCurrentPreset->band.bounds.start) {
+  if (radio->rx.f == gCurrentPreset->band.bounds.start) {
     startNewScan(false);
     return;
   }

@@ -15,7 +15,7 @@ static void setF(uint32_t nf) {
 
 void ANTENNA_init(void) {
   RADIO_LoadCurrentVFO();
-  f = GetScreenF(gCurrentVFO->fRX);
+  f = GetScreenF(radio->rx.f);
 }
 
 void ANTENNA_update(void) {}

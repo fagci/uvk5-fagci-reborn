@@ -1,12 +1,9 @@
 #include "reset.h"
-#include "../driver/eeprom.h"
 #include "../driver/st7565.h"
-#include "../driver/system.h"
 #include "../helper/channels.h"
 #include "../helper/measurements.h"
 #include "../helper/presetlist.h"
 #include "../helper/vfos.h"
-#include "../radio.h"
 #include "../settings.h"
 #include "../ui/graphics.h"
 #include "ARMCM0.h"
@@ -24,14 +21,12 @@ static EEPROMType eepromType;
 
 static VFO defaultVFOs[2] = {
     (VFO){
-        .fRX = 14550000,
-        .channel = 0,
-        .isMrMode = false,
+        .rx.f = 14550000,
+        .channel = -1,
     },
     (VFO){
-        .fRX = 43307500,
-        .channel = 0,
-        .isMrMode = false,
+        .rx.f = 43307500,
+        .channel = -1,
     },
 };
 
@@ -503,6 +498,7 @@ static Preset
                 .powCalib = {0x8C, 0x8C, 0x8C},
             },
 };
+// char (*__defpres)[sizeof(defaultPresets)/sizeof(Preset)] = 1;
 
 void RESET_Init(void) {
   eepromType = gSettings.eepromType;

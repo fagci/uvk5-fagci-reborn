@@ -17,7 +17,7 @@ typedef enum {
   TX_POW_OVERDRIVE,
 } TXState;
 
-extern VFO *gCurrentVFO;
+extern VFO *radio;
 extern VFO gVFO[2];
 extern Preset *gVFOPresets[2];
 
