@@ -28,4 +28,17 @@ void IncDecI32(int32_t *val, int32_t min, int32_t max, int32_t inc);
 void IncDec32(uint32_t *val, uint32_t min, uint32_t max, int32_t inc);
 bool IsReadable(char *name);
 
+#define INC_DEC(val, min, max, inc)                                            \
+  do {                                                                         \
+    if (inc > 0) {                                                             \
+      val = ((((val - min) + inc) % (max - min + 1)) + (max - min + 1)) %      \
+                (max - min + 1) +                                              \
+            min;                                                               \
+    } else if (inc < 0) {                                                      \
+      val = ((((val - min) + inc) % (max - min + 1)) + (max - min + 1)) %      \
+                (max - min + 1) +                                              \
+            min;                                                               \
+    }                                                                          \
+  } while (0)
+
 #endif /* end of include guard: MEASUREMENTS_H */

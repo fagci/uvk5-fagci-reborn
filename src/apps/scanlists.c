@@ -1,5 +1,4 @@
 #include "scanlists.h"
-#include "../external/printf/printf.h"
 #include "../helper/channels.h"
 #include "../helper/measurements.h"
 #include "../ui/graphics.h"
@@ -8,18 +7,16 @@
 #include "apps.h"
 #include "textinput.h"
 #include <stdbool.h>
-#include <string.h>
 
-static uint16_t count = 0;
+static int32_t count = 0;
 
-static uint16_t currentIndex = 0;
+static int32_t currentIndex = 0;
 CH ch;
-uint16_t chNum = 0;
+int32_t chNum = 0;
 
-static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
-  CH ch;
+static void getItem(uint16_t i, uint16_t index, bool isCurrent, bool scanlist) {
   const uint8_t y = MENU_Y + i * MENU_ITEM_H;
-  CHANNELS_Load(index, &ch);
+  CHANNELS_Load(scanlist ? gScanlist[index] : index, &ch);
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
   }
@@ -30,59 +27,45 @@ static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
     return;
   }
   char scanlistsStr[9] = "";
-  for (uint8_t i = 0; i < 8; ++i) {
-    scanlistsStr[i] = ch.memoryBanks & (1 << i) ? '1' + i : '-';
-  }
-  PrintSmallEx(LCD_WIDTH - 1, y + 8, POS_R, C_INVERT, "%s", scanlistsStr);
-}
-
-static void getScanlistItem(uint16_t i, uint16_t index, bool isCurrent) {
-  uint16_t chNum = gScanlist[index];
-  CH ch;
-  const uint8_t y = MENU_Y + i * MENU_ITEM_H;
-  CHANNELS_Load(chNum, &ch);
-  if (isCurrent) {
-    FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
-  }
-  if (IsReadable(ch.name)) {
-    PrintMediumEx(8, y + 8, POS_L, C_INVERT, "%s", ch.name);
-  } else {
-    PrintMediumEx(8, y + 8, POS_L, C_INVERT, "CH-%u", index + 1);
-    return;
-  }
-  char scanlistsStr[9] = "";
-  for (uint8_t i = 0; i < 8; ++i) {
-    scanlistsStr[i] = ch.memoryBanks & (1 << i) ? '1' + i : '-';
+  for (uint8_t n = 0; n < 8; ++n) {
+    scanlistsStr[n] = ch.memoryBanks & (1 << n) ? '1' + n : '-';
   }
   PrintSmallEx(LCD_WIDTH - 1 - 3, y + 8, POS_R, C_INVERT, "%s", scanlistsStr);
 }
 
+static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
+  getItem(i, index, isCurrent, false);
+}
+
+static void getScanlistItem(uint16_t i, uint16_t index, bool isCurrent) {
+  getItem(i, index, isCurrent, true);
+}
+
 static void toggleScanlist(uint8_t n) {
-  CH ch;
   CHANNELS_Load(gScanlist[currentIndex], &ch);
   ch.memoryBanks ^= 1 << n;
   CHANNELS_Save(gScanlist[currentIndex], &ch);
 }
 
-void SCANLISTS_init() {
+void SCANLISTS_init(void) {
   gRedrawScreen = true;
   CHANNELS_LoadScanlist(gSettings.currentScanlist);
   count = gScanlistSize;
 }
 
-void SCANLISTS_update() {}
+void SCANLISTS_update(void) {}
 
-static void saveRenamed() { CHANNELS_Save(chNum, &ch); }
+static void saveRenamed(void) { CHANNELS_Save(chNum, &ch); }
 
 bool SCANLISTS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   chNum = gScanlist[currentIndex];
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (key) {
     case KEY_UP:
-      IncDec16(&currentIndex, 0, count, -1);
+      IncDecI32(&currentIndex, 0, count, -1);
       return true;
     case KEY_DOWN:
-      IncDec16(&currentIndex, 0, count, 1);
+      IncDecI32(&currentIndex, 0, count, 1);
       return true;
     default:
       break;
@@ -108,10 +91,10 @@ bool SCANLISTS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       currentIndex = 0;
       return true;
     case KEY_UP:
-      IncDec16(&currentIndex, 0, count, -1);
+      IncDecI32(&currentIndex, 0, count, -1);
       return true;
     case KEY_DOWN:
-      IncDec16(&currentIndex, 0, count, 1);
+      IncDecI32(&currentIndex, 0, count, 1);
       return true;
     default:
       break;
@@ -148,7 +131,7 @@ bool SCANLISTS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void SCANLISTS_render() {
+void SCANLISTS_render(void) {
   UI_ClearScreen();
   if (gSettings.currentScanlist == 15) {
     STATUSLINE_SetText("CH scanlists");

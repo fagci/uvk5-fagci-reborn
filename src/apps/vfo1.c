@@ -8,6 +8,7 @@
 #include "../ui/graphics.h"
 #include "apps.h"
 #include "finput.h"
+#include "vfo2.h"
 
 static uint32_t lastUpdate = 0;
 
@@ -26,117 +27,7 @@ void VFO1_update(void) {
 }
 
 bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  if (key == KEY_PTT) {
-    RADIO_ToggleTX(bKeyHeld);
-    return true;
-  }
-
-  // up-down keys
-  if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
-    switch (key) {
-    case KEY_UP:
-      if (SVC_Running(SVC_SCAN)) {
-        gScanForward = true;
-        return true;
-      }
-      RADIO_NextFreq(true);
-      return true;
-    case KEY_DOWN:
-      if (SVC_Running(SVC_SCAN)) {
-        gScanForward = false;
-        return true;
-      }
-      RADIO_NextFreq(false);
-      return true;
-    default:
-      break;
-    }
-  }
-
-  // long held
-  if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
-    switch (key) {
-    /* case KEY_2:
-      LOOT_Standby();
-      RADIO_NextVFO(true);
-      msm.f = radio->rx.f;
-      return true; */
-    case KEY_STAR:
-      SVC_Toggle(SVC_SCAN, true, 10);
-      return true;
-    case KEY_EXIT:
-      return true;
-    case KEY_3:
-      RADIO_ToggleVfoMR();
-      return true;
-    case KEY_1:
-      RADIO_UpdateStep(true);
-      return true;
-    case KEY_7:
-      RADIO_UpdateStep(false);
-      return true;
-    case KEY_0:
-      RADIO_ToggleModulation();
-      return true;
-    case KEY_6:
-      RADIO_ToggleListeningBW();
-      return true;
-    default:
-      break;
-    }
-  }
-
-  // Simple keypress
-  if (!bKeyPressed && !bKeyHeld) {
-    switch (key) {
-    case KEY_0:
-    case KEY_1:
-    case KEY_2:
-    case KEY_3:
-    case KEY_4:
-    case KEY_5:
-    case KEY_6:
-    case KEY_7:
-    case KEY_8:
-    case KEY_9:
-      gFInputCallback = RADIO_TuneToSave;
-      APPS_run(APP_FINPUT);
-      APPS_key(key, bKeyPressed, bKeyHeld);
-      return true;
-    case KEY_F:
-      APPS_run(APP_VFO_CFG);
-      return true;
-    case KEY_STAR:
-      APPS_run(APP_LOOT_LIST);
-      return true;
-    case KEY_SIDE1:
-      if (SVC_Running(SVC_SCAN)) {
-        LOOT_BlacklistLast();
-        return true;
-      }
-      gMonitorMode = !gMonitorMode;
-      return true;
-    case KEY_SIDE2:
-      if (SVC_Running(SVC_SCAN)) {
-        LOOT_GoodKnownLast();
-        return true;
-      }
-      break;
-    case KEY_EXIT:
-      if (SVC_Running(SVC_SCAN)) {
-        SVC_Toggle(SVC_SCAN, false, 0);
-        return true;
-      }
-      if (!APPS_exit()) {
-        LOOT_Standby();
-        RADIO_NextVFO();
-      }
-      return true;
-    default:
-      break;
-    }
-  }
-  return false;
+  return VFO2_key(key, bKeyPressed, bKeyHeld);
 }
 
 void VFO1_render(void) {
