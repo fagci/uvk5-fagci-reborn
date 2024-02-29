@@ -215,7 +215,7 @@ void VFOCFG_render(void) {
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
   } else {
-    STATUSLINE_SetText(apps[APP_VFO_CFG].name);
+    STATUSLINE_SetText(apps[APP_VFO_CFG]->name);
   }
   MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {
@@ -228,3 +228,15 @@ void VFOCFG_render(void) {
     PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 4, POS_C, C_FILL, Output);
   }
 }
+
+static VFO vfo;
+
+REGISTER_APP({
+    .id = APP_VFO_CFG,
+    .name = "VFO cfg",
+    .init = VFOCFG_init,
+    .update = VFOCFG_update,
+    .render = VFOCFG_render,
+    .key = VFOCFG_key,
+    .vfo = &vfo,
+})

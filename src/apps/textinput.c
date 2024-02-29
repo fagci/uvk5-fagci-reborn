@@ -260,3 +260,16 @@ void TEXTINPUT_render(void) {
               currentSet != lettersCapital ? "ABC" : "abc");
   FillRect(0 + 86, LCD_HEIGHT - 9, 7, 9, C_INVERT);
 }
+
+static VFO vfo;
+
+REGISTER_APP({
+    .id = APP_TEXTINPUT,
+    .name = "TEXTINPUT",
+    .init = TEXTINPUT_init,
+    .update = TEXTINPUT_update,
+    .render = TEXTINPUT_render,
+    .key = TEXTINPUT_key,
+    .deinit = TEXTINPUT_deinit,
+    .vfo = &vfo,
+})

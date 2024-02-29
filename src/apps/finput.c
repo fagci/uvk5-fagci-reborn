@@ -189,3 +189,16 @@ void FINPUT_render(void) {
     }
   }
 }
+
+static VFO vfo;
+
+REGISTER_APP({
+    .id = APP_FINPUT,
+    .name = "FINPUT",
+    .init = FINPUT_init,
+    // .update = FINPUT_update,
+    .render = FINPUT_render,
+    .key = FINPUT_key,
+    .deinit = FINPUT_deinit,
+    .vfo = &vfo,
+})

@@ -85,3 +85,16 @@ void ANTENNA_render(void) {
 }
 
 void ANTENNA_deinit(void) {}
+
+static VFO vfo;
+
+REGISTER_APP({
+    .id = APP_ANT,
+    .name = "ANTENNA",
+    .init = ANTENNA_init,
+    .update = ANTENNA_update,
+    .render = ANTENNA_render,
+    .key = ANTENNA_key,
+    .deinit = ANTENNA_deinit,
+    .vfo = &vfo,
+})

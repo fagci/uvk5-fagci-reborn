@@ -2,6 +2,7 @@
 #include "../driver/bk4819.h"
 #include "../radio.h"
 #include "../ui/graphics.h"
+#include "apps.h"
 
 static uint32_t scanF = 0;
 static uint32_t gotF = 0;
@@ -71,7 +72,20 @@ void FASTSCAN_render(void) {
   }
 }
 
-void FASTSCAN_deinit(void) { 
-    BK4819_StopScan();
-    BK4819_EnableRX();
+void FASTSCAN_deinit(void) {
+  BK4819_StopScan();
+  BK4819_EnableRX();
 }
+
+static VFO vfo;
+
+REGISTER_APP({
+    .id = APP_FASTSCAN,
+    .name = "FASTSCAN",
+    .init = FASTSCAN_init,
+    .update = FASTSCAN_update,
+    .render = FASTSCAN_render,
+    .key = FASTSCAN_key,
+    .deinit = FASTSCAN_deinit,
+    .vfo = &vfo,
+})

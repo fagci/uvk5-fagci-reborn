@@ -20,7 +20,6 @@
 #include <stdint.h>
 #include <string.h>
 
-void _putchar(char c);
 
 static void selfTest(void) {
 

@@ -246,3 +246,16 @@ void ANALYZER_render(void) {
 
   lastRender = elapsedMilliseconds;
 }
+
+static VFO vfo;
+
+REGISTER_APP({
+    .id = APP_ANALYZER,
+    .name = "SPECTRUM Analyzer",
+    .init = ANALYZER_init,
+    .update = ANALYZER_update,
+    .render = ANALYZER_render,
+    .key = ANALYZER_key,
+    .deinit = ANALYZER_deinit,
+    .vfo = &vfo,
+})

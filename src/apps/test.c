@@ -57,9 +57,15 @@ static bool TEST_key(KEY_Code_t k, bool p, bool h) {
   return true;
 }
 
-const App DECL_TEST = {
-    .name = "Test",
+static VFO vfo;
+
+REGISTER_APP({
+    .id = APP_TEST,
+    .name = "TEST",
+    // .init = TEST_init,
     .update = TEST_Update,
     .render = TEST_Render,
     .key = TEST_key,
-};
+    // .deinit = TEST_deinit,
+    .vfo = &vfo,
+})

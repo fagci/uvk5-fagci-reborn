@@ -122,3 +122,16 @@ void CHSCANNER_render(void) {
   }
   UI_ShowMenuEx(showItem, gScanlistSize, currentIndex, 4);
 }
+
+static VFO vfo;
+
+REGISTER_APP({
+    .id = APP_CH_SCANNER,
+    .name = "CHSCANNER",
+    .init = CHSCANNER_init,
+    .update = CHSCANNER_update,
+    .render = CHSCANNER_render,
+    .key = CHSCANNER_key,
+    .deinit = CHSCANNER_deinit,
+    .vfo = &vfo,
+})

@@ -515,7 +515,6 @@ void RESET_Update(void) {
     gSettings = (Settings){
         .checkbyte = EEPROM_CHECKBYTE,
         .eepromType = eepromType,
-        .squelch = 4,
         .scrambler = 0,
         .batsave = 4,
         .vox = 0,
@@ -538,12 +537,7 @@ void RESET_Update(void) {
         .brightness = 8,
         .contrast = 8,
         .mainApp = APP_VFO2,
-        .sqOpenedTimeout = SCAN_TO_NONE,
-        .sqClosedTimeout = SCAN_TO_2s,
-        .sqlOpenTime = 1,
-        .sqlCloseTime = 1,
         .skipGarbageFrequencies = true,
-        .scanTimeout = 50,
         .activeVFO = 0,
         .activePreset = 22,
         .presetsCount = ARRAY_SIZE(defaultPresets),
@@ -592,3 +586,16 @@ void RESET_Render(void) {
 }
 
 bool RESET_key(KEY_Code_t k, bool p, bool h) { return true; }
+
+static VFO vfo;
+
+REGISTER_APP({
+    .id = APP_RESET,
+    .name = "RESET",
+    .init = RESET_Init,
+    .update = RESET_Update,
+    .render = RESET_Render,
+    .key = RESET_key,
+    // .deinit = RESET_deinit,
+    .vfo = &vfo,
+})

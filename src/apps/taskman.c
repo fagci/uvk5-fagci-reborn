@@ -28,3 +28,16 @@ bool TASKMAN_Key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   }
   return false;
 }
+
+static VFO vfo;
+
+REGISTER_APP({
+    .id = APP_TASKMAN,
+    .name = "TASKMAN",
+    .init = TASKMAN_Init,
+    // .update = TASKMAN_update,
+    .render = TASKMAN_Render,
+    .key = TASKMAN_Key,
+    // .deinit = TASKMAN_deinit,
+    .vfo = &vfo,
+})

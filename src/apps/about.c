@@ -88,3 +88,16 @@ bool ABOUT_key(KEY_Code_t k, bool p, bool h) {
     return false;
   }
 }
+
+static VFO vfo;
+
+REGISTER_APP({
+    .id = APP_ABOUT,
+    .name = "ABOUT",
+    .init = ABOUT_Init,
+    .update = ABOUT_Update,
+    .render = ABOUT_Render,
+    .key = ABOUT_key,
+    .deinit = ABOUT_Deinit,
+    .vfo = &vfo,
+})

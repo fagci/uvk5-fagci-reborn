@@ -224,7 +224,8 @@ void SPECTRUM_render(void) {
   lastRender = elapsedMilliseconds;
 }
 
-REGISTER_APP(APP_SPECTRUM) = {
+REGISTER_APP({
+    .id = APP_SPECTRUM,
     .name = "Spectrum band",
     .init = SPECTRUM_init,
     .update = SPECTRUM_update,
@@ -232,4 +233,4 @@ REGISTER_APP(APP_SPECTRUM) = {
     .key = SPECTRUM_key,
     .deinit = SPECTRUM_deinit,
     .vfo = &vfo,
-};
+})

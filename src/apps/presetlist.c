@@ -74,3 +74,15 @@ bool PRESETLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   }
   return false;
 }
+
+static VFO vfo;
+
+REGISTER_APP({
+    .id = APP_PRESETS_LIST,
+    .name = "Presets",
+    .init = PRESETLIST_init,
+    .update = PRESETLIST_update,
+    .render = PRESETLIST_render,
+    .key = PRESETLIST_key,
+    .vfo = &vfo,
+})

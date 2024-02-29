@@ -58,3 +58,16 @@ void VFO1_render(void) {
     PrintMediumEx(LCD_WIDTH - 1, BASE - 12, POS_R, C_FILL, mod);
   }
 }
+
+static VFO vfo;
+
+REGISTER_APP({
+    .id = APP_VFO1,
+    .name = "VFO 1",
+    .init = VFO1_init,
+    .update = VFO1_update,
+    .render = VFO1_render,
+    .key = VFO1_key,
+    .deinit = VFO1_deinit,
+    .vfo = &vfo,
+})

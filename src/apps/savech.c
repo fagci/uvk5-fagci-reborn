@@ -98,7 +98,20 @@ void SAVECH_render(void) {
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
   } else {
-    STATUSLINE_SetText(apps[APP_SAVECH].name);
+    STATUSLINE_SetText(apps[APP_SAVECH]->name);
   }
   UI_ShowMenu(getChannelName, chCount, currentChannelIndex);
 }
+
+static VFO vfo;
+
+REGISTER_APP({
+    .id = APP_SAVECH,
+    .name = "SAVECH",
+    .init = SAVECH_init,
+    .update = SAVECH_update,
+    .render = SAVECH_render,
+    .key = SAVECH_key,
+    // .deinit = SAVECH_deinit,
+    .vfo = &vfo,
+})

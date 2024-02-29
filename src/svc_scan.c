@@ -62,8 +62,8 @@ void SVC_SCAN_Update(void) {
   if (lastListenState != gIsListening) {
     lastListenState = gIsListening;
     SetTimeout(&timeout, gIsListening
-                             ? SCAN_TIMEOUTS[gSettings.sqOpenedTimeout]
-                             : SCAN_TIMEOUTS[gSettings.sqClosedTimeout]);
+                             ? SCAN_TIMEOUTS[radio->scan.openedTimeout]
+                             : SCAN_TIMEOUTS[radio->scan.closedTimeout]);
   }
 
   if (CheckTimeout(&timeout)) {

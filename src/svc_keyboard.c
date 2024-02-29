@@ -48,7 +48,7 @@ static void onKey(KEY_Code_t key, bool pressed, bool hold) {
     }
   } else {
     if (!hold) {
-      APPS_run(APP_APPS_LIST);
+      APPS_run(APP_APPSLIST);
       return;
     }
   }

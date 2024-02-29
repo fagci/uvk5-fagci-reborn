@@ -86,7 +86,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     strncpy(name, upConverterFreqNames[index], 31);
     return;
   case M_MAIN_APP:
-    strncpy(name, apps[appsAvailableToRun[index]].name, 31);
+    strncpy(name, appsAvailableToRun[index]->name, 31);
     return;
   case M_SCAN_DELAY:
     sprintf(name, "%ums", index);
@@ -180,11 +180,11 @@ static void accept(void) {
     SETTINGS_Save();
     break;
   case M_SQL_TO_OPEN:
-    gSettings.sqOpenedTimeout = subMenuIndex;
+    radio->scan.openedTimeout = subMenuIndex;
     SETTINGS_Save();
     break;
   case M_SQL_TO_CLOSE:
-    gSettings.sqClosedTimeout = subMenuIndex;
+    radio->scan.closedTimeout = subMenuIndex;
     SETTINGS_Save();
     break;
   case M_BL_SQL:
@@ -268,11 +268,11 @@ static const char *getValue(Menu type) {
   case M_EEPROM_TYPE:
     return EEPROM_TYPE_NAMES[gSettings.eepromType];
   case M_MAIN_APP:
-    return apps[gSettings.mainApp].name;
+    return apps[gSettings.mainApp]->name;
   case M_SQL_TO_OPEN:
-    return SCAN_TIMEOUT_NAMES[gSettings.sqOpenedTimeout];
+    return SCAN_TIMEOUT_NAMES[radio->scan.openedTimeout];
   case M_SQL_TO_CLOSE:
-    return SCAN_TIMEOUT_NAMES[gSettings.sqClosedTimeout];
+    return SCAN_TIMEOUT_NAMES[radio->scan.closedTimeout];
   case M_BL_TIME:
     return BL_TIME_NAMES[gSettings.backlight];
   case M_BL_SQL:
@@ -334,10 +334,10 @@ static void setInitialSubmenuIndex(void) {
     subMenuIndex = radio->sq.closeTime;
     break;
   case M_SQL_TO_OPEN:
-    subMenuIndex = gSettings.sqOpenedTimeout;
+    subMenuIndex = radio->scan.openedTimeout;
     break;
   case M_SQL_TO_CLOSE:
-    subMenuIndex = gSettings.sqClosedTimeout;
+    subMenuIndex = radio->scan.closedTimeout;
     break;
   case M_BL_SQL:
     subMenuIndex = gSettings.backlightOnSquelch;
@@ -454,7 +454,7 @@ void SETTINGS_render(void) {
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
   } else {
-    STATUSLINE_SetText(apps[APP_SETTINGS].name);
+    STATUSLINE_SetText(apps[APP_SETTINGS]->name);
   }
   const MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {
@@ -466,3 +466,15 @@ void SETTINGS_render(void) {
                   getValue(item->type));
   }
 }
+
+static VFO vfo;
+
+REGISTER_APP({
+    .id = APP_SETTINGS,
+    .name = "Settings",
+    .init = SETTINGS_init,
+    .update = SETTINGS_update,
+    .render = SETTINGS_render,
+    .key = SETTINGS_key,
+    .vfo = &vfo,
+})

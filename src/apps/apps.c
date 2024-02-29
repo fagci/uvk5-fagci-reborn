@@ -104,7 +104,8 @@ void APPS_deinit(void) {
     gCurrentApp->deinit();
   }
 }
-void APPS_run(App *app) {
+
+void APPS_RunPure(App *app) {
   if (appsStack[stackIndex] == app) {
     return;
   }
@@ -113,8 +114,17 @@ void APPS_run(App *app) {
   APPS_init(app);
 }
 
+void APPS_run(AppType_t id) {
+  for (AppType_t i = 0; i < appsCount; i++) {
+    if (apps[i]->id == id) {
+      APPS_RunPure(apps[i]);
+      return;
+    }
+  }
+}
+
 void APPS_runManual(App *app) {
-  APPS_run(app);
+  APPS_RunPure(app);
   /* APPS_deinit();
   stackIndex = 0;
   appsStack[stackIndex] = app;

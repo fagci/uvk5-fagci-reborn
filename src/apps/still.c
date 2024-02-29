@@ -225,3 +225,16 @@ void STILL_render(void) {
     DrawRegs();
   }
 }
+
+static VFO vfo;
+
+REGISTER_APP({
+    .id = APP_STILL,
+    .name = "STILL",
+    .init = STILL_init,
+    .update = STILL_update,
+    .render = STILL_render,
+    .key = STILL_key,
+    .deinit = STILL_deinit,
+    .vfo = &vfo,
+})

@@ -21,7 +21,7 @@ typedef enum {
   APP_FASTSCAN,
   APP_STILL,
   APP_FINPUT,
-  APP_APPS_LIST,
+  APP_APPSLIST,
   APP_LOOT_LIST,
   APP_PRESETS_LIST,
   APP_RESET,
@@ -61,16 +61,18 @@ bool APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
 void APPS_init(App *app);
 void APPS_update(void);
 void APPS_render(void);
-void APPS_run(App *app);
+void APPS_RunPure(App *app);
+void APPS_run(AppType_t id);
 void APPS_runManual(App *app);
 bool APPS_exit(void);
 void APPS_Register(App *app);
 
-#define REGISTER_APP(app)                                                      \
-  App app##_info __attribute__((constructor));                                 \
-  void register_##app(void) __attribute__((constructor));                      \
-  void register_##app(void) { APPS_Register(&app##_info); }                    \
-  App app##_info;                                                              \
-  app##_info.id = app
+#define CONCAT_IMPL(x, y) x##y
+#define MACRO_CONCAT(x, y) CONCAT_IMPL(x, y)
+
+#define REGISTER_APP(...)                                                      \
+  __attribute__((constructor)) static void registerApp(void) {                        \
+    APPS_Register(&(App)__VA_ARGS__);                                          \
+  }
 
 #endif /* end of include guard: APPS_H */

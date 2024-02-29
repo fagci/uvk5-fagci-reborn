@@ -14,7 +14,7 @@ static const uint8_t MENU_SIZE = ARRAY_SIZE(appsAvailableToRun);
 static uint8_t menuIndex = 0;
 
 static void getMenuItemText(uint16_t index, char *name) {
-  strncpy(name, apps[appsAvailableToRun[index]].name, 31);
+  strncpy(name, appsAvailableToRun[index]->name, 31);
 }
 
 void APPSLIST_render(void) {
@@ -23,7 +23,7 @@ void APPSLIST_render(void) {
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
   } else {
-    STATUSLINE_SetText(apps[APP_APPS_LIST].name);
+    STATUSLINE_SetText(apps[APP_APPSLIST]->name);
   }
 
   UI_ShowMenu(getMenuItemText, MENU_SIZE, menuIndex);
@@ -59,9 +59,9 @@ bool APPSLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_MENU:
     APPS_exit();
-    if (app == APP_PRESETS_LIST || app == APP_LOOT_LIST ||
-        app == APP_SCANLISTS) {
-      APPS_run(app);
+    if (app->id == APP_PRESETS_LIST || app->id == APP_LOOT_LIST ||
+        app->id == APP_SCANLISTS) {
+      APPS_RunPure(app);
     } else {
       APPS_runManual(app);
     }
@@ -74,3 +74,15 @@ bool APPSLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   }
   return false;
 }
+
+static VFO vfo;
+
+REGISTER_APP({
+    .id = APP_APPSLIST,
+    .name = "Apps",
+    .init = APPSLIST_init,
+    .update = APPSLIST_update,
+    .render = APPSLIST_render,
+    .key = APPSLIST_key,
+    .vfo = &vfo,
+})

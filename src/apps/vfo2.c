@@ -255,3 +255,16 @@ void VFO2_render(void) {
   render2VFOPart(0);
   render2VFOPart(1);
 }
+
+static VFO vfo;
+
+REGISTER_APP({
+    .id = APP_VFO2,
+    .name = "VFO2",
+    .init = VFO2_init,
+    .update = VFO2_update,
+    .render = VFO2_render,
+    .key = VFO2_key,
+    .deinit = VFO2_deinit,
+    .vfo = &vfo,
+})

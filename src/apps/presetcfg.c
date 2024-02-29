@@ -1,8 +1,8 @@
 #include "presetcfg.h"
+#include "../apps/apps.h"
 #include "../helper/measurements.h"
 #include "../helper/presetlist.h"
 #include "../misc.h"
-#include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
 #include "finput.h"
@@ -189,3 +189,15 @@ void PRESETCFG_render(void) {
     PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 4, POS_C, C_FILL, Output);
   }
 }
+
+static VFO vfo;
+
+REGISTER_APP({
+    .id = APP_PRESET_CFG,
+    .name = "Preset cfg",
+    .init = PRESETCFG_init,
+    .update = PRESETCFG_update,
+    .render = PRESETCFG_render,
+    .key = PRESETCFG_key,
+    .vfo = &vfo,
+})

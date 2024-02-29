@@ -141,3 +141,16 @@ void SCANLISTS_render(void) {
     UI_ShowMenuEx(getScanlistItem, count, currentIndex, MENU_LINES_TO_SHOW + 1);
   }
 }
+
+static VFO vfo;
+
+REGISTER_APP({
+    .id = APP_SCANLISTS,
+    .name = "SCANLISTS",
+    .init = SCANLISTS_init,
+    .update = SCANLISTS_update,
+    .render = SCANLISTS_render,
+    .key = SCANLISTS_key,
+    // .deinit = SCANLISTS_deinit,
+    .vfo = &vfo,
+})
