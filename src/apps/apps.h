@@ -12,6 +12,32 @@ typedef enum {
   APP_TAG_VFO = 2,
 } AppCategory;
 
+typedef enum {
+  APP_NONE,
+  APP_TEST,
+  APP_SPECTRUM,
+  APP_ANALYZER,
+  APP_CH_SCANNER,
+  APP_FASTSCAN,
+  APP_STILL,
+  APP_FINPUT,
+  APP_APPS_LIST,
+  APP_LOOT_LIST,
+  APP_PRESETS_LIST,
+  APP_RESET,
+  APP_TEXTINPUT,
+  APP_VFO_CFG,
+  APP_PRESET_CFG,
+  APP_SCANLISTS,
+  APP_SAVECH,
+  APP_SETTINGS,
+  APP_VFO1,
+  APP_VFO2,
+  APP_ABOUT,
+  APP_ANT,
+  APP_TASKMAN,
+} AppType_t;
+
 typedef struct {
   const char *name;
   void (*init)(void);
@@ -23,6 +49,7 @@ typedef struct {
   void *cfg;
   bool runnable;
   AppCategory tags;
+  AppType_t id;
 } App;
 
 extern App *apps[256];
@@ -43,6 +70,7 @@ void APPS_Register(App *app);
   App app##_info __attribute__((constructor));                                 \
   void register_##app(void) __attribute__((constructor));                      \
   void register_##app(void) { APPS_Register(&app##_info); }                    \
-  App app##_info
+  App app##_info;                                                              \
+  app##_info.id = app
 
 #endif /* end of include guard: APPS_H */
