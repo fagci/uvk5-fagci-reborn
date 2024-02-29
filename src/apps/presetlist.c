@@ -42,7 +42,7 @@ static void setMenuIndexAndRun(uint16_t v) {
 bool PRESETLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   const uint8_t MENU_SIZE = PRESETS_Size();
   if (!bKeyPressed && !bKeyHeld) {
-    if (!gIsNumNavInput && key >= KEY_0 && key <= KEY_9) {
+    if (!gIsNumNavInput && key <= KEY_9) {
       NUMNAV_Init(menuIndex + 1, 1, MENU_SIZE);
       gNumNavCallback = setMenuIndexAndRun;
     }

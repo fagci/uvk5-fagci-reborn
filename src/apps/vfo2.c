@@ -38,7 +38,7 @@ static void setChannel(uint16_t v) { RADIO_TuneToCH(v - 1); }
 
 bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld && radio->channel >= 0) {
-    if (!gIsNumNavInput && key >= KEY_0 && key <= KEY_9) {
+    if (!gIsNumNavInput && key <= KEY_9) {
       NUMNAV_Init(radio->channel + 1, 1, CHANNELS_GetCountMax());
       gNumNavCallback = setChannel;
     }

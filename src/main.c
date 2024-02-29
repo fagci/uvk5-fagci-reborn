@@ -20,6 +20,14 @@
 #include <stdint.h>
 #include <string.h>
 
+void _putchar(char c) {}
+
+uint8_t testval = 5;
+
+__attribute__((constructor)) void YADRENBATON(void) {
+  appsCount = 42;
+  testval = 54;
+}
 
 static void selfTest(void) {
 
@@ -78,7 +86,8 @@ static void AddTasks(void) {
   SVC_Toggle(SVC_APPS, true, 1);
   SVC_Toggle(SVC_SYS, true, 1000);
 
-  APPS_run(gSettings.mainApp);
+  // APPS_run(gSettings.mainApp);
+  APPS_run(APP_VFO2);
 }
 
 static uint8_t introIndex = 0;
@@ -89,6 +98,8 @@ static void Intro(void) {
   PrintMedium(16, 2 * 8 + 12, "reb0rn");
   PrintMedium(72, 2 * 8 + 12, "%c", pb[introIndex & 3]);
   PrintSmall(96, 46, "by fagci");
+  PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 3, POS_C, C_FILL, "APPS: %u | %u",
+                appsCount, testval);
   ST7565_Blit();
 
   if (PRESETS_Load()) {

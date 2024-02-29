@@ -39,7 +39,7 @@ void APPSLIST_init(void) { gRedrawScreen = true; }
 void APPSLIST_update(void) {}
 bool APPSLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld) {
-    if (!gIsNumNavInput && key >= KEY_0 && key <= KEY_9) {
+    if (!gIsNumNavInput && key <= KEY_9) {
       NUMNAV_Init(menuIndex + 1, 1, MENU_SIZE);
       gNumNavCallback = setMenuIndexAndRun;
     }
@@ -77,12 +77,14 @@ bool APPSLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
 static VFO vfo;
 
-REGISTER_APP({
-    .id = APP_APPSLIST,
-    .name = "Apps",
-    .init = APPSLIST_init,
-    .update = APPSLIST_update,
-    .render = APPSLIST_render,
-    .key = APPSLIST_key,
-    .vfo = &vfo,
-})
+__attribute__((constructor)) void registerApp123(void) {
+  APPS_Register(&(App){
+      .id = APP_APPSLIST,
+      .name = "Apps",
+      .init = APPSLIST_init,
+      .update = APPSLIST_update,
+      .render = APPSLIST_render,
+      .key = APPSLIST_key,
+      .vfo = &vfo,
+  });
+}

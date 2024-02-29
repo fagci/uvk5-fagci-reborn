@@ -162,7 +162,7 @@ static void accept(void) {
     SETTINGS_Save();
   }; break;
   case M_MAIN_APP:
-    gSettings.mainApp = appsAvailableToRun[subMenuIndex];
+    gSettings.mainApp = appsAvailableToRun[subMenuIndex]->id;
     SETTINGS_Save();
     break;
   case M_SCAN_DELAY:
@@ -367,8 +367,8 @@ static void setInitialSubmenuIndex(void) {
     subMenuIndex = gSettings.skipGarbageFrequencies;
     break;
   case M_MAIN_APP:
-    for (i = 0; i < ARRAY_SIZE(appsAvailableToRun); ++i) {
-      if (appsAvailableToRun[i] == gSettings.mainApp) {
+    for (i = 0; i < appsToRunCount; ++i) {
+      if (appsAvailableToRun[i]->id == gSettings.mainApp) {
         subMenuIndex = i;
         break;
       }
@@ -392,7 +392,7 @@ static void setMenuIndexAndRun(uint16_t v) {
 
 bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld) {
-    if (!gIsNumNavInput && key >= KEY_0 && key <= KEY_9) {
+    if (!gIsNumNavInput && key <= KEY_9) {
       NUMNAV_Init(menuIndex + 1, 1, MENU_SIZE);
       gNumNavCallback = setMenuIndexAndRun;
     }

@@ -91,39 +91,39 @@ extern const char *EEPROM_TYPE_NAMES[8];
 
 typedef struct {
   EEPROMType eepromType : 3;
-  uint8_t checkbyte : 5;
+  uint8_t checkbyte : 5; // 1
   uint8_t scrambler : 4;
-  uint8_t batsave : 4;
+  uint8_t batsave : 4; // 2
   uint8_t vox : 4;
-  uint8_t backlight : 4;
+  uint8_t backlight : 4; // 3
   uint8_t txTime : 4;
-  uint8_t micGain : 4;
+  uint8_t micGain : 4; // 4
   uint8_t currentScanlist : 4;
   UpconverterTypes upconverter : 2;
-  uint8_t roger : 2;
+  uint8_t roger : 2; // 5
   uint8_t scanmode : 2;
   uint8_t chDisplayMode : 2;
   uint8_t dw : 1;
   uint8_t crossBand : 1;
   uint8_t beep : 1;
-  uint8_t keylock : 1;
+  uint8_t keylock : 1; // 6
   uint8_t busyChannelTxLock : 1;
   uint8_t ste : 1;
   uint8_t repeaterSte : 1;
   uint8_t dtmfdecode : 1;
-  uint8_t brightness : 4;
-  uint8_t contrast : 4;
-  uint8_t mainApp : 8;
+  uint8_t brightness : 4; // 7
+  uint8_t mainApp : 8;    // 8
 
-  int8_t presetsCount : 8;
-  int8_t activePreset : 8;
+  int8_t presetsCount : 8; // 9
+  int8_t activePreset : 8; // 10
   uint16_t batteryCalibration : 12;
+  uint8_t contrast : 4; // 12
   BatteryType batteryType : 2;
   BatteryStyle batteryStyle : 2;
   bool bound_240_280 : 1;
   bool noListen : 1;
-  uint8_t reserved2 : 4;
-  BacklightOnSquelchMode backlightOnSquelch : 2;
+  BacklightOnSquelchMode backlightOnSquelch : 2; // 13
+  uint8_t reserved2 : 5;
   bool skipGarbageFrequencies : 1;
   uint8_t activeVFO : 2;
   char nickName[10];
@@ -137,10 +137,11 @@ typedef struct {
 } __attribute__((packed)) ScanSettings;
 
 typedef struct {
-  uint8_t level : 4;
+  uint8_t level : 6;
   uint8_t openTime : 2;
   uint8_t closeTime : 3;
 } __attribute__((packed)) SquelchSettings;
+// getsize(SquelchSettings)
 
 typedef struct {
   uint32_t f : 27;
@@ -196,11 +197,11 @@ typedef struct {
 typedef struct {
   PowerCalibration powCalib;
   uint32_t lastUsedFreq : 27;
-  uint32_t offset : 26;
-  uint8_t memoryBanks : 8;
   TXOutputPower power : 2;
   OffsetDirection offsetDir : 2;
   bool allowTx : 1;
+  uint8_t memoryBanks : 8;
+  uint32_t offset : 26;
   Band band;
 } __attribute__((packed)) Preset;
 // getsize(Preset)

@@ -1,4 +1,4 @@
-#include "spectrumreborn.h"
+// #include "spectrumreborn.h"
 #include "../dcs.h"
 #include "../driver/st7565.h"
 #include "../driver/uart.h"

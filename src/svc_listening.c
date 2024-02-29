@@ -5,7 +5,7 @@
 #include "radio.h"
 #include <stddef.h>
 
-void (*gListenFn)(void) = NULL;
+Loot *(*gListenFn)(void) = NULL;
 
 void SVC_LISTEN_Init(void) {
   if (!gListenFn) {

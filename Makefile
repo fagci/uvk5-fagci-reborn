@@ -5,10 +5,9 @@ BIN_DIR := bin
 TARGET = $(BIN_DIR)/firmware
 
 SRC = $(wildcard $(SRC_DIR)/driver/*.c)
-SRC += $(wildcard $(SRC_DIR)/external/mcufont/fonts/freesans.c)
-SRC += $(wildcard $(SRC_DIR)/external/mcufont/decoder/*.c)
 SRC += $(wildcard $(SRC_DIR)/helper/*.c)
 SRC += $(wildcard $(SRC_DIR)/ui/*.c)
+SRC += $(wildcard $(SRC_DIR)/apps/apps.c)
 SRC += $(wildcard $(SRC_DIR)/apps/*.c)
 SRC += $(wildcard $(SRC_DIR)/*.c)
 
@@ -41,8 +40,6 @@ INC =
 INC += -I ./src
 INC += -I ./src/external/CMSIS_5/CMSIS/Core/Include/
 INC += -I ./src/external/CMSIS_5/Device/ARM/ARMCM0/Include
-INC += -I ./src/external/mcufont/decoder/
-INC += -I ./src/external/mcufont/fonts/
 
 DEPS = $(OBJS:.o=.d)
 

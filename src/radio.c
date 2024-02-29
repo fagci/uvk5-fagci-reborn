@@ -580,7 +580,7 @@ Loot *RADIO_UpdateMeasurements(void) {
     if (gMonitorMode) {
       rx = true;
     } else if (gSettings.noListen &&
-               (gCurrentApp == APP_SPECTRUM || gCurrentApp == APP_ANALYZER)) {
+               (gCurrentApp->id == APP_SPECTRUM || gCurrentApp->id == APP_ANALYZER)) {
       rx = false;
     } else if (gSettings.skipGarbageFrequencies &&
                (radio->rx.f % 1300000 == 0)) {
