@@ -1,7 +1,7 @@
 #include "../driver/eeprom.h"
 #include "../driver/i2c.h"
 #include "../driver/system.h"
-#include "../external/CMSIS_5/Device/ARM/ARMCM0/Include/ARMCM0.h"
+#include "../settings.h"
 #include <stddef.h>
 #include <string.h>
 
@@ -9,14 +9,19 @@ bool gEepromWrite = false;
 bool gEepromRead = false;
 
 void EEPROM_ReadBuffer(uint32_t address, void *pBuffer, uint8_t size) {
+  uint8_t IIC_ADD = (uint8_t)(0xA0 | ((address / 0x10000) << 1));
 
-  uint8_t IIC_ADD = 0xA0 | ((address / 0x10000) << 1);
+  if (gSettings.eepromType == EEPROM_M24M02) {
+    if (address >= 0x40000) {
+      IIC_ADD = (uint8_t)(0xA8 | (((address - 0x40000) / 0x10000) << 1));
+      address -= 0x40000;
+    }
+  }
 
-  __disable_irq();
   I2C_Start();
 
   I2C_Write(IIC_ADD);
-  I2C_Write(address >> 8);
+  I2C_Write((address >> 8) & 0xFF);
   I2C_Write(address & 0xFF);
 
   I2C_Start();
@@ -26,39 +31,48 @@ void EEPROM_ReadBuffer(uint32_t address, void *pBuffer, uint8_t size) {
   I2C_ReadBuffer(pBuffer, size);
 
   I2C_Stop();
-  __enable_irq();
 
   gEepromRead = true;
 }
 
-void EEPROM_WriteBuffer(uint32_t address, const void *pBuffer, uint8_t size) {
+// static uint8_t tmpBuffer[256];
+void EEPROM_WriteBuffer(uint32_t address, void *pBuffer, uint8_t size) {
   if (pBuffer == NULL) {
     return;
   }
-  uint8_t buffer[128];
-  EEPROM_ReadBuffer(address, buffer, size);
-  if (memcmp(pBuffer, buffer, size) != 0) {
+  const uint8_t PAGE_SIZE = SETTINGS_GetPageSize();
 
-    const uint8_t *buf = (const uint8_t *)pBuffer;
-    while (size) {
-      uint16_t pageNum = address / 32;
-      uint8_t rest = (pageNum + 1) * 32 - address;
-      uint8_t n = size < rest ? size : rest;
-      uint8_t IIC_ADD = 0xA0 | ((address / 0x10000) << 1);
-      I2C_Start();
-      I2C_Write(IIC_ADD);
-      I2C_Write(address >> 8);
-      I2C_Write(address & 0xFF);
+  while (size) {
+    uint32_t pageNum = address / PAGE_SIZE;
+    uint32_t rest = (pageNum + 1) * PAGE_SIZE - address;
 
-      I2C_WriteBuffer(buf, n);
+    // TODO: assume that size < PAGE_SIZE
+    uint8_t n = rest > size ? size : (uint8_t)rest;
 
-      I2C_Stop();
-      SYSTEM_DelayMs(5);
+    /* EEPROM_ReadBuffer(address, tmpBuffer, n);
+    if (memcmp(buf, tmpBuffer, n) != 0) { */
+    uint8_t IIC_ADD = (uint8_t)(0xA0 | ((address / 0x10000) << 1));
 
-      buf += n;
-      address += n;
-      size -= n;
+    if (gSettings.eepromType == EEPROM_M24M02) {
+      if (address >= 0x40000) {
+        IIC_ADD = (uint8_t)(0xA8 | (((address - 0x40000) / 0x10000) << 1));
+      }
     }
+
+    I2C_Start();
+    I2C_Write(IIC_ADD);
+    I2C_Write((address >> 8) & 0xFF);
+    I2C_Write(address & 0xFF);
+
+    I2C_WriteBuffer(pBuffer, n);
+
+    I2C_Stop();
+    SYSTEM_DelayMs(8);
+
+    pBuffer += n;
+    address += n;
+    size -= n;
+    // }
     gEepromWrite = true;
   }
 }

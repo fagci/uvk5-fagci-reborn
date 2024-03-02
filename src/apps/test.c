@@ -10,16 +10,16 @@ void TEST_Init(void) {}
 
 void TEST_Update(void) { gRedrawScreen = true; }
 
-static uint16_t page = 0;
+static uint32_t page = 0;
+const uint8_t PAGE_SZ = 64;
 
 void TEST_Render(void) {
   UI_ClearScreen();
-  const uint8_t PAGE_SZ = 64;
   uint8_t buf[64] = {0};
   EEPROM_ReadBuffer(page * PAGE_SZ, buf, PAGE_SZ);
 
   for (uint8_t i = 0; i < PAGE_SZ; ++i) {
-    uint16_t offset = i + page * PAGE_SZ;
+    uint32_t offset = i + page * PAGE_SZ;
     if (i % 8 == 0) {
       PrintSmall(0, (i / 8) * 6 + 8 + 5, "%u", page * PAGE_SZ + i);
     }
@@ -42,10 +42,10 @@ bool TEST_key(KEY_Code_t k, bool p, bool h) {
     APPS_exit();
     return true;
   case KEY_UP:
-    IncDec16(&page, 0, 128, -1);
+    IncDec32(&page, 0, SETTINGS_GetEEPROMSize() / PAGE_SZ, -1);
     return true;
   case KEY_DOWN:
-    IncDec16(&page, 0, 128, 1);
+    IncDec32(&page, 0, SETTINGS_GetEEPROMSize() / PAGE_SZ, 1);
     return true;
   case KEY_MENU:
     return false;

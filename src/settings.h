@@ -230,5 +230,6 @@ void SETTINGS_Load();
 void SETTINGS_DelayedSave();
 uint32_t SETTINGS_GetFilterBound();
 uint32_t SETTINGS_GetEEPROMSize();
+uint8_t SETTINGS_GetPageSize();
 
 #endif /* end of include guard: SETTINGS_H */

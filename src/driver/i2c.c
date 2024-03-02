@@ -18,7 +18,6 @@
 #include "../inc/dp32g030/gpio.h"
 #include "../inc/dp32g030/portcon.h"
 #include "gpio.h"
-#include "system.h"
 #include "systick.h"
 
 void I2C_Start(void) {
@@ -151,9 +150,8 @@ int I2C_ReadBuffer(void *pBuffer, uint8_t Size) {
 
 int I2C_WriteBuffer(const void *pBuffer, uint8_t Size) {
   const uint8_t *pData = (const uint8_t *)pBuffer;
-  uint8_t i;
 
-  for (i = 0; i < Size; i++) {
+  for (uint8_t i = 0; i < Size; i++) {
     if (I2C_Write(*pData++) < 0) {
       return -1;
     }

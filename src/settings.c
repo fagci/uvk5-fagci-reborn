@@ -33,6 +33,17 @@ const uint32_t EEPROM_SIZES[8] = {
     262144, // 111
 };
 
+const uint8_t PAGE_SIZES[8] = {
+    32,  // 000
+    32,  // 001
+    32,  // 010
+    32,  // 011
+    32,  // 100
+    32,  // 101
+    32,  // 110
+    128, // 111
+};
+
 void SETTINGS_Save(void) {
   EEPROM_WriteBuffer(SETTINGS_OFFSET, &gSettings, SETTINGS_SIZE);
 }
@@ -53,3 +64,5 @@ uint32_t SETTINGS_GetFilterBound(void) {
 uint32_t SETTINGS_GetEEPROMSize(void) {
   return EEPROM_SIZES[gSettings.eepromType];
 }
+
+uint8_t SETTINGS_GetPageSize(void) { return PAGE_SIZES[gSettings.eepromType]; }
