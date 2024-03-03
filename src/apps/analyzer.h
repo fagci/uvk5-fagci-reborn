@@ -2,6 +2,7 @@
 #define ANALYZER_H
 
 #include "../driver/keyboard.h"
+#include "../helper/appsregistry.h"
 #include "../radio.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -12,6 +13,6 @@ void ANALYZER_init(void);
 void ANALYZER_deinit(void);
 void ANALYZER_update(void);
 void ANALYZER_render(void);
-
+App *ANALYZER_Meta(void);
 
 #endif /* end of include guard: ANALYZER_H */

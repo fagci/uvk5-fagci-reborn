@@ -61,7 +61,7 @@ void VFO1_render(void) {
 
 static VFO vfo;
 
-REGISTER_APP({
+App meta = {
     .id = APP_VFO1,
     .name = "VFO 1",
     .init = VFO1_init,
@@ -70,4 +70,6 @@ REGISTER_APP({
     .key = VFO1_key,
     .deinit = VFO1_deinit,
     .vfo = &vfo,
-})
+};
+
+App *VFO1_Meta(void) { return &meta; }

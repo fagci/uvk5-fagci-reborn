@@ -6,12 +6,10 @@
 #include "../ui/graphics.h"
 #include "apps.h"
 
-void TEST_Init(void) {}
-
-void TEST_Update(void) { gRedrawScreen = true; }
-
 static uint32_t page = 0;
 const uint8_t PAGE_SZ = 64;
+
+static void TEST_Init(void) {}
 
 static void TEST_Update(void) { gRedrawScreen = true; }
 
@@ -59,13 +57,13 @@ static bool TEST_key(KEY_Code_t k, bool p, bool h) {
 
 static VFO vfo;
 
-REGISTER_APP({
+App meta = {
     .id = APP_TEST,
     .name = "TEST",
-    // .init = TEST_init,
     .update = TEST_Update,
     .render = TEST_Render,
     .key = TEST_key,
-    // .deinit = TEST_deinit,
     .vfo = &vfo,
-})
+};
+
+App *TEST_Meta(void) { return &meta; }

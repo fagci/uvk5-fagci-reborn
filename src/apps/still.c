@@ -228,7 +228,7 @@ void STILL_render(void) {
 
 static VFO vfo;
 
-REGISTER_APP({
+App meta = {
     .id = APP_STILL,
     .name = "STILL",
     .init = STILL_init,
@@ -237,4 +237,6 @@ REGISTER_APP({
     .key = STILL_key,
     .deinit = STILL_deinit,
     .vfo = &vfo,
-})
+};
+
+App *STILL_Meta(void) { return &meta; }

@@ -231,7 +231,7 @@ void VFOCFG_render(void) {
 
 static VFO vfo;
 
-REGISTER_APP({
+App meta = {
     .id = APP_VFO_CFG,
     .name = "VFO cfg",
     .init = VFOCFG_init,
@@ -239,4 +239,6 @@ REGISTER_APP({
     .render = VFOCFG_render,
     .key = VFOCFG_key,
     .vfo = &vfo,
-})
+};
+
+App *VFOCFG_Meta(void) { return &meta; }

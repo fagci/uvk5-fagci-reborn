@@ -125,7 +125,7 @@ void CHSCANNER_render(void) {
 
 static VFO vfo;
 
-REGISTER_APP({
+App meta = {
     .id = APP_CH_SCANNER,
     .name = "CHSCANNER",
     .init = CHSCANNER_init,
@@ -134,4 +134,6 @@ REGISTER_APP({
     .key = CHSCANNER_key,
     .deinit = CHSCANNER_deinit,
     .vfo = &vfo,
-})
+};
+
+App *CHSCANNER_Meta(void) { return &meta; }

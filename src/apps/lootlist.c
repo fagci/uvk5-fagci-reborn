@@ -259,13 +259,12 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
 static VFO vfo;
 
-REGISTER_APP({
-    .id = APP_LOOT_LIST,
+App meta = {
     .name = "LOOTLIST",
     .init = LOOTLIST_init,
     .update = LOOTLIST_update,
     .render = LOOTLIST_render,
     .key = LOOTLIST_key,
-    // .deinit = LOOTLIST_deinit,
     .vfo = &vfo,
-})
+};
+App *LOOTLIST_Meta(void) { return &meta; }

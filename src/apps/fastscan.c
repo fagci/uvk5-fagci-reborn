@@ -79,7 +79,7 @@ void FASTSCAN_deinit(void) {
 
 static VFO vfo;
 
-REGISTER_APP({
+App meta = {
     .id = APP_FASTSCAN,
     .name = "FASTSCAN",
     .init = FASTSCAN_init,
@@ -88,4 +88,6 @@ REGISTER_APP({
     .key = FASTSCAN_key,
     .deinit = FASTSCAN_deinit,
     .vfo = &vfo,
-})
+};
+
+App *FASTSCAN_Meta(void) { return &meta; }

@@ -589,13 +589,14 @@ bool RESET_key(KEY_Code_t k, bool p, bool h) { return true; }
 
 static VFO vfo;
 
-REGISTER_APP({
+App meta = {
     .id = APP_RESET,
     .name = "RESET",
     .init = RESET_Init,
     .update = RESET_Update,
     .render = RESET_Render,
     .key = RESET_key,
-    // .deinit = RESET_deinit,
     .vfo = &vfo,
-})
+};
+
+App *RESET_Meta(void) { return &meta; }

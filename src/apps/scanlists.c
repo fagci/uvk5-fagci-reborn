@@ -144,7 +144,7 @@ void SCANLISTS_render(void) {
 
 static VFO vfo;
 
-REGISTER_APP({
+App meta = {
     .id = APP_SCANLISTS,
     .name = "SCANLISTS",
     .init = SCANLISTS_init,
@@ -153,4 +153,6 @@ REGISTER_APP({
     .key = SCANLISTS_key,
     // .deinit = SCANLISTS_deinit,
     .vfo = &vfo,
-})
+};
+
+App *SCANLISTS_Meta(void) { return &meta; }

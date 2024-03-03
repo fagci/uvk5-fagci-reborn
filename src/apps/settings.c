@@ -469,7 +469,7 @@ void SETTINGS_render(void) {
 
 static VFO vfo;
 
-REGISTER_APP({
+App meta = {
     .id = APP_SETTINGS,
     .name = "Settings",
     .init = SETTINGS_init,
@@ -477,4 +477,6 @@ REGISTER_APP({
     .render = SETTINGS_render,
     .key = SETTINGS_key,
     .vfo = &vfo,
-})
+};
+
+App *SETTINGS_Meta(void) { return &meta; }

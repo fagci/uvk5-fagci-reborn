@@ -66,3 +66,14 @@ void MESSENGER_render(void) {
 }
 
 void MESSENGER_deinit(void) {}
+
+App meta = {
+    .name = "Messenger",
+    .init = MESSENGER_init,
+    .key = MESSENGER_key,
+    .render = MESSENGER_render,
+    .deinit = MESSENGER_deinit,
+    .update = MESSENGER_update,
+};
+
+App *MESSENGER_Meta(void) { return &meta; }

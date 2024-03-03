@@ -77,7 +77,7 @@ bool PRESETLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
 static VFO vfo;
 
-REGISTER_APP({
+App meta = {
     .id = APP_PRESETS_LIST,
     .name = "Presets",
     .init = PRESETLIST_init,
@@ -85,4 +85,5 @@ REGISTER_APP({
     .render = PRESETLIST_render,
     .key = PRESETLIST_key,
     .vfo = &vfo,
-})
+};
+App *PRESETLIST_Meta(void) { return &meta; }

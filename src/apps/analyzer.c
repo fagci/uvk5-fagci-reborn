@@ -249,7 +249,7 @@ void ANALYZER_render(void) {
 
 static VFO vfo;
 
-REGISTER_APP({
+App meta = {
     .id = APP_ANALYZER,
     .name = "SPECTRUM Analyzer",
     .init = ANALYZER_init,
@@ -258,4 +258,6 @@ REGISTER_APP({
     .key = ANALYZER_key,
     .deinit = ANALYZER_deinit,
     .vfo = &vfo,
-})
+};
+
+App *ANALYZER_Meta(void) { return &meta; }

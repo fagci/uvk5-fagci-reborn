@@ -224,7 +224,7 @@ void SPECTRUM_render(void) {
   lastRender = elapsedMilliseconds;
 }
 
-REGISTER_APP({
+App meta = {
     .id = APP_SPECTRUM,
     .name = "Spectrum band",
     .init = SPECTRUM_init,
@@ -233,4 +233,6 @@ REGISTER_APP({
     .key = SPECTRUM_key,
     .deinit = SPECTRUM_deinit,
     .vfo = &vfo,
-})
+};
+
+App *SPECTRUM_Meta(void) { return &meta; }

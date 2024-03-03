@@ -1,7 +1,11 @@
 #include "appsregistry.h"
-volatile uint8_t appsCount = 0;
-volatile uint8_t appsToRunCount = 0;
-App *apps[256];
+
+uint8_t appsCount = 0;
+uint8_t appsToRunCount = 0;
+
+App *apps[256] = {
+    
+};
 App *appsAvailableToRun[256];
 
 void APPS_Register(App *app) {
@@ -10,3 +14,5 @@ void APPS_Register(App *app) {
     appsAvailableToRun[appsToRunCount++] = app;
   }
 }
+
+void APPS_RegisterAll(void) {}

@@ -105,13 +105,14 @@ void SAVECH_render(void) {
 
 static VFO vfo;
 
-REGISTER_APP({
+App meta = {
     .id = APP_SAVECH,
     .name = "SAVECH",
     .init = SAVECH_init,
     .update = SAVECH_update,
     .render = SAVECH_render,
     .key = SAVECH_key,
-    // .deinit = SAVECH_deinit,
     .vfo = &vfo,
-})
+};
+
+App *SAVECH_Meta(void) { return &meta; }

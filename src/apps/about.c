@@ -26,9 +26,9 @@ const char *qr[] = {
     "111111101101010001110101000011100",
 };
 
-void ABOUT_Init() { STATUSLINE_SetText("t.me/uvk5_spectrum_talk"); }
+void ABOUT_Init(void) { STATUSLINE_SetText("t.me/uvk5_spectrum_talk"); }
 
-void ABOUT_Deinit() {
+void ABOUT_Deinit(void) {
   BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN, false);
   BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
 }
@@ -36,7 +36,7 @@ void ABOUT_Deinit() {
 static uint32_t lastUpdate = 0;
 static bool red = false;
 
-void ABOUT_Update() {
+void ABOUT_Update(void) {
   if (elapsedMilliseconds - lastUpdate >= 500) {
     red = (elapsedMilliseconds / 500) % 3;
     BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN,
@@ -47,7 +47,7 @@ void ABOUT_Update() {
   }
 }
 
-void ABOUT_Render() {
+void ABOUT_Render(void) {
   UI_ClearScreen();
   for (uint8_t y = 0; y < ARRAY_SIZE(qr); y++) {
     for (uint8_t x = 0; x < strlen(qr[0]); x++) {
@@ -89,15 +89,13 @@ bool ABOUT_key(KEY_Code_t k, bool p, bool h) {
   }
 }
 
-static VFO vfo;
-
-REGISTER_APP({
-    .id = APP_ABOUT,
+static App meta = {
     .name = "ABOUT",
     .init = ABOUT_Init,
     .update = ABOUT_Update,
     .render = ABOUT_Render,
     .key = ABOUT_key,
     .deinit = ABOUT_Deinit,
-    .vfo = &vfo,
-})
+};
+
+App *ABOUT_Meta(void) { return &meta; }

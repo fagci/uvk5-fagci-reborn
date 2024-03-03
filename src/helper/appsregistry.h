@@ -62,7 +62,7 @@ void APPS_Register(App *app);
 
 extern App *apps[256];
 extern App *appsAvailableToRun[256];
-extern volatile uint8_t appsCount;
-extern volatile uint8_t appsToRunCount;
+extern uint8_t appsCount;
+extern uint8_t appsToRunCount;
 
 #endif /* end of include guard: APPSREGISTRY_H */

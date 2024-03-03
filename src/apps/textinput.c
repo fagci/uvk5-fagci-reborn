@@ -263,7 +263,7 @@ void TEXTINPUT_render(void) {
 
 static VFO vfo;
 
-REGISTER_APP({
+App meta = {
     .id = APP_TEXTINPUT,
     .name = "TEXTINPUT",
     .init = TEXTINPUT_init,
@@ -272,4 +272,6 @@ REGISTER_APP({
     .key = TEXTINPUT_key,
     .deinit = TEXTINPUT_deinit,
     .vfo = &vfo,
-})
+};
+
+App *TEXTINPUT_Meta(void) { return &meta; }

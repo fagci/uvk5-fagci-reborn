@@ -192,7 +192,7 @@ void PRESETCFG_render(void) {
 
 static VFO vfo;
 
-REGISTER_APP({
+App meta = {
     .id = APP_PRESET_CFG,
     .name = "Preset cfg",
     .init = PRESETCFG_init,
@@ -200,4 +200,5 @@ REGISTER_APP({
     .render = PRESETCFG_render,
     .key = PRESETCFG_key,
     .vfo = &vfo,
-})
+};
+App *PRESETCFG_Meta(void) { return &meta; }

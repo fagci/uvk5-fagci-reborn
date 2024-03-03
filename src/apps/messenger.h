@@ -2,6 +2,7 @@
 #define MESSENGER_H
 
 #include "../driver/keyboard.h"
+#include "../helper/appsregistry.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -11,5 +12,6 @@ bool MESSENGER_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
 void MESSENGER_render();
 void MESSENGER_deinit();
 void MSG_EnableRX(const bool enable);
+App *MESSENGER_Meta(void);
 
 #endif /* end of include guard: MESSENGER_H */

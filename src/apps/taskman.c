@@ -31,13 +31,13 @@ bool TASKMAN_Key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
 static VFO vfo;
 
-REGISTER_APP({
+App meta = {
     .id = APP_TASKMAN,
     .name = "TASKMAN",
     .init = TASKMAN_Init,
-    // .update = TASKMAN_update,
     .render = TASKMAN_Render,
     .key = TASKMAN_Key,
-    // .deinit = TASKMAN_deinit,
     .vfo = &vfo,
-})
+};
+
+App *TASKMAN_Meta(void) { return &meta; }

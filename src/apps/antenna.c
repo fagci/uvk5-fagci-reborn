@@ -88,7 +88,7 @@ void ANTENNA_deinit(void) {}
 
 static VFO vfo;
 
-REGISTER_APP({
+App meta = {
     .id = APP_ANT,
     .name = "ANTENNA",
     .init = ANTENNA_init,
@@ -97,4 +97,6 @@ REGISTER_APP({
     .key = ANTENNA_key,
     .deinit = ANTENNA_deinit,
     .vfo = &vfo,
-})
+};
+
+App *ANTENNA_Meta(void) { return &meta; }
