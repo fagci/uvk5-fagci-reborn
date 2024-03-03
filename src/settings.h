@@ -1,7 +1,6 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-#include "apps/apps.h"
 #include "driver/bk4819.h"
 #include <stdint.h>
 
@@ -93,7 +92,6 @@ extern const char *EEPROM_TYPE_NAMES[8];
 typedef struct {
   EEPROMType eepromType : 3;
   uint8_t checkbyte : 5;
-  uint8_t squelch : 4;
   uint8_t scrambler : 4;
   uint8_t batsave : 4;
   uint8_t vox : 4;
@@ -115,27 +113,34 @@ typedef struct {
   uint8_t dtmfdecode : 1;
   uint8_t brightness : 4;
   uint8_t contrast : 4;
-  AppType_t mainApp : 8;
+  uint8_t mainApp : 8;
 
   int8_t presetsCount : 8;
   int8_t activePreset : 8;
   uint16_t batteryCalibration : 12;
   BatteryType batteryType : 2;
   BatteryStyle batteryStyle : 2;
-  ScanTimeout sqOpenedTimeout : 4;
-  ScanTimeout sqClosedTimeout : 4;
   bool bound_240_280 : 1;
   bool noListen : 1;
   uint8_t reserved2 : 4;
   BacklightOnSquelchMode backlightOnSquelch : 2;
-  uint8_t scanTimeout : 8;
-  uint8_t sqlOpenTime : 2;
-  uint8_t sqlCloseTime : 3;
   bool skipGarbageFrequencies : 1;
   uint8_t activeVFO : 2;
   char nickName[10];
 } __attribute__((packed)) Settings;
 // getsize(Settings)
+
+typedef struct {
+  uint8_t timeout : 8;
+  ScanTimeout openedTimeout : 4;
+  ScanTimeout closedTimeout : 4;
+} __attribute__((packed)) ScanSettings;
+
+typedef struct {
+  uint8_t level : 4;
+  uint8_t openTime : 2;
+  uint8_t closeTime : 3;
+} __attribute__((packed)) SquelchSettings;
 
 typedef struct {
   uint32_t f : 27;
@@ -160,6 +165,8 @@ typedef struct {
   F tx;
   int16_t channel;
   TXOutputPower power : 2;
+  ScanSettings scan;
+  SquelchSettings sq;
 } __attribute__((packed)) VFO;
 // getsize(VFO)
 

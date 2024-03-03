@@ -1,5 +1,5 @@
-#include "test.h"
 #include "../driver/eeprom.h"
+#include "../driver/keyboard.h"
 #include "../driver/st7565.h"
 #include "../helper/measurements.h"
 #include "../settings.h"
@@ -13,7 +13,9 @@ void TEST_Update(void) { gRedrawScreen = true; }
 static uint32_t page = 0;
 const uint8_t PAGE_SZ = 64;
 
-void TEST_Render(void) {
+static void TEST_Update(void) { gRedrawScreen = true; }
+
+static void TEST_Render(void) {
   UI_ClearScreen();
   uint8_t buf[64] = {0};
   EEPROM_ReadBuffer(page * PAGE_SZ, buf, PAGE_SZ);
@@ -36,7 +38,7 @@ void TEST_Render(void) {
   }
 }
 
-bool TEST_key(KEY_Code_t k, bool p, bool h) {
+static bool TEST_key(KEY_Code_t k, bool p, bool h) {
   switch (k) {
   case KEY_EXIT:
     APPS_exit();
@@ -54,3 +56,10 @@ bool TEST_key(KEY_Code_t k, bool p, bool h) {
   }
   return true;
 }
+
+const App DECL_TEST = {
+    .name = "Test",
+    .update = TEST_Update,
+    .render = TEST_Render,
+    .key = TEST_key,
+};

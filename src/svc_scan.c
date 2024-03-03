@@ -38,7 +38,7 @@ static void next(void) {
   lastListenState = false;
   gScanFn(gScanForward);
   lastSettedF = radio->rx.f;
-  SetTimeout(&timeout, gSettings.scanTimeout);
+  SetTimeout(&timeout, radio->scan.timeout);
   if (gScanRedraw) {
     gRedrawScreen = true;
   }

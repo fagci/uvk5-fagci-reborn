@@ -28,6 +28,8 @@ static uint32_t lastReady = 0;
 static uint32_t chPerSec = 0;
 static uint32_t scanTime = 0;
 
+static VFO vfo;
+
 static void scanFn(bool forward);
 
 static void startNewScan(bool reset) {
@@ -40,9 +42,9 @@ static void startNewScan(bool reset) {
     SP_Init(stepsCount, spectrumWidth);
     bandFilled = false;
 
-    gScanRedraw = stepsCount * gSettings.scanTimeout >= 500;
+    gScanRedraw = stepsCount * vfo.scan.timeout >= 500;
     gScanFn = scanFn;
-    uint16_t t = gSettings.scanTimeout < 10 ? gSettings.scanTimeout : 10;
+    uint16_t t = vfo.scan.timeout < 10 ? vfo.scan.timeout : 10;
     lastReady = elapsedMilliseconds;
     SVC_Toggle(SVC_SCAN, true, t);
     SVC_Toggle(SVC_LISTEN, true, t);
@@ -61,7 +63,7 @@ static void scanFn(bool forward) {
     startNewScan(false);
   }
 
-  RADIO_NextPresetFreqEx(forward, gSettings.scanTimeout >= 10);
+  RADIO_NextPresetFreqEx(forward, vfo.scan.timeout >= 10);
 
   if (PRESETS_GetChannel(gCurrentPreset, radio->rx.f) == stepsCount - 1) {
     scanTime = elapsedMilliseconds - lastReady;
@@ -151,13 +153,13 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       startNewScan(true);
       return true;
     case KEY_1:
-      if (gSettings.scanTimeout < 255) {
-        gSettings.scanTimeout++;
+      if (vfo.scan.timeout < 255) {
+        vfo.scan.timeout++;
       }
       return true;
     case KEY_7:
-      if (gSettings.scanTimeout > 1) {
-        gSettings.scanTimeout--;
+      if (vfo.scan.timeout > 1) {
+        vfo.scan.timeout--;
       }
       return true;
     case KEY_3:
@@ -191,7 +193,7 @@ void SPECTRUM_render(void) {
 
   PrintSmallEx(spectrumWidth - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "SQ%u %s",
                band->squelch, sqTypeNames[band->squelchType]);
-  PrintSmallEx(0, SPECTRUM_Y - 3, POS_L, C_FILL, "%ums", gSettings.scanTimeout);
+  PrintSmallEx(0, SPECTRUM_Y - 3, POS_L, C_FILL, "%ums", vfo.scan.timeout);
   PrintSmallEx(0, SPECTRUM_Y - 3 + 6, POS_L, C_FILL, "%ums", scanTime);
   PrintSmallEx(0, SPECTRUM_Y - 3 + 12, POS_L, C_FILL, "%uCHps", chPerSec);
 
@@ -221,3 +223,13 @@ void SPECTRUM_render(void) {
 
   lastRender = elapsedMilliseconds;
 }
+
+REGISTER_APP(APP_SPECTRUM) = {
+    .name = "Spectrum band",
+    .init = SPECTRUM_init,
+    .update = SPECTRUM_update,
+    .render = SPECTRUM_render,
+    .key = SPECTRUM_key,
+    .deinit = SPECTRUM_deinit,
+    .vfo = &vfo,
+};

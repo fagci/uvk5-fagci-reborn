@@ -2,57 +2,47 @@
 #define APPS_H
 
 #include "../driver/keyboard.h"
+#include "../settings.h"
 
 #define APPS_COUNT 23
 #define RUN_APPS_COUNT 14
 
 typedef enum {
-  APP_NONE,
-  APP_TEST,
-  APP_SPECTRUM,
-  APP_ANALYZER,
-  APP_CH_SCANNER,
-  APP_FASTSCAN,
-  APP_STILL,
-  APP_FINPUT,
-  APP_APPS_LIST,
-  APP_LOOT_LIST,
-  APP_PRESETS_LIST,
-  APP_RESET,
-  APP_TEXTINPUT,
-  APP_VFO_CFG,
-  APP_PRESET_CFG,
-  APP_SCANLISTS,
-  APP_SAVECH,
-  APP_SETTINGS,
-  APP_VFO1,
-  APP_VFO2,
-  APP_ABOUT,
-  APP_ANT,
-  APP_TASKMAN,
-} AppType_t;
+  APP_TAG_SPECTRUM = 1,
+  APP_TAG_VFO = 2,
+} AppCategory;
 
-typedef struct App {
+typedef struct {
   const char *name;
   void (*init)(void);
   void (*update)(void);
   void (*render)(void);
   bool (*key)(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
   void (*deinit)(void);
+  VFO *vfo;
+  void *cfg;
+  bool runnable;
+  AppCategory tags;
 } App;
 
-extern const App apps[APPS_COUNT];
-extern AppType_t gPreviousApp;
-extern AppType_t gCurrentApp;
-extern const AppType_t appsAvailableToRun[RUN_APPS_COUNT];
+extern App *apps[256];
+extern App *appsAvailableToRun[256];
+extern App *gCurrentApp;
 
-AppType_t APPS_Peek();
+App *APPS_Peek();
 bool APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
-void APPS_init(AppType_t app);
+void APPS_init(App *app);
 void APPS_update(void);
 void APPS_render(void);
-void APPS_run(AppType_t app);
-void APPS_runManual(AppType_t app);
+void APPS_run(App *app);
+void APPS_runManual(App *app);
 bool APPS_exit(void);
+void APPS_Register(App *app);
+
+#define REGISTER_APP(app)                                                      \
+  App app##_info __attribute__((constructor));                                 \
+  void register_##app(void) __attribute__((constructor));                      \
+  void register_##app(void) { APPS_Register(&app##_info); }                    \
+  App app##_info
 
 #endif /* end of include guard: APPS_H */

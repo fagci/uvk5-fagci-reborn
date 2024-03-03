@@ -1,6 +1,7 @@
 #include "menu.h"
 #include "../driver/st7565.h"
 #include "../helper/measurements.h"
+#include "../radio.h"
 #include "graphics.h"
 
 const char *onOff[] = {"Off", "On"};
@@ -113,12 +114,10 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
     strncpy(Output, yesNo[gCurrentPreset->allowTx], 31);
     break;
   case M_F_RX:
-    sprintf(Output, "%u.%05u", radio->rx.f / 100000,
-            radio->rx.f % 100000);
+    sprintf(Output, "%u.%05u", radio->rx.f / 100000, radio->rx.f % 100000);
     break;
   case M_F_TX:
-    sprintf(Output, "%u.%05u", radio->tx.f / 100000,
-            radio->tx.f % 100000);
+    sprintf(Output, "%u.%05u", radio->tx.f / 100000, radio->tx.f % 100000);
     break;
   case M_TX_OFFSET:
     sprintf(Output, "%u.%05u", gCurrentPreset->offset / 100000,
@@ -166,8 +165,8 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
     break;
   case M_SQ:
     gCurrentPreset->band.squelch = subMenuIndex;
-    BK4819_Squelch(subMenuIndex, radio->rx.f, gSettings.sqlOpenTime,
-                   gSettings.sqlCloseTime);
+    BK4819_Squelch(subMenuIndex, radio->rx.f, radio->sq.openTime,
+                   radio->sq.closeTime);
     PRESETS_SaveCurrent();
     break;
 

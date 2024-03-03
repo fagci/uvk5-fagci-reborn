@@ -49,7 +49,7 @@ bool APPSLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     }
   }
 
-  AppType_t app = appsAvailableToRun[menuIndex];
+  uint8_t app = appsAvailableToRun[menuIndex];
   switch (key) {
   case KEY_UP:
     IncDec8(&menuIndex, 0, MENU_SIZE, -1);

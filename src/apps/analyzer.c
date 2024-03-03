@@ -84,7 +84,7 @@ static void setup(void) {
   const uint32_t halfBW = StepFrequencyTable[opt.band.step] * 64;
   opt.band.bounds.start = centerF - halfBW;
   opt.band.bounds.end = centerF + halfBW;
-  gSettings.scanTimeout = scanInterval;
+  radio->scan.timeout = scanInterval;
   startNewScan(true);
 }
 
@@ -97,7 +97,7 @@ void ANALYZER_init(void) {
   gMonitorMode = false;
 
   centerF = radio->rx.f;
-  initialScanInterval = gSettings.scanTimeout;
+  initialScanInterval = radio->scan.timeout;
   opt.band.step = gCurrentPreset->band.step;
   opt.band.squelch = 0;
 
@@ -115,7 +115,7 @@ void ANALYZER_update(void) {}
 
 void ANALYZER_deinit(void) {
   SVC_Toggle(SVC_SCAN, false, 0);
-  gSettings.scanTimeout = initialScanInterval;
+  radio->scan.timeout = initialScanInterval;
   SVC_Toggle(SVC_LISTEN, true, 1);
 }
 

@@ -1,4 +1,5 @@
 #include "statusline.h"
+#include "../apps/apps.h"
 #include "../driver/eeprom.h"
 #include "../driver/st7565.h"
 #include "../driver/uart.h"
@@ -103,8 +104,7 @@ void STATUSLINE_render(void) {
     icons[idx++] = SYM_CONVERTER;
   }
 
-  if (gSettings.noListen &&
-      (gCurrentApp == APP_SPECTRUM || gCurrentApp == APP_ANALYZER)) {
+  if (gSettings.noListen && (gCurrentApp->tags & APP_TAG_SPECTRUM)) {
     icons[idx++] = SYM_NO_LISTEN;
   }
 

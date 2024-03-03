@@ -382,7 +382,7 @@ void RADIO_ToggleTxPower(void) {
 }
 
 void RADIO_SetSquelchPure(uint32_t f, uint8_t sql) {
-  BK4819_Squelch(sql, f, gSettings.sqlOpenTime, gSettings.sqlCloseTime);
+  BK4819_Squelch(sql, f, radio->sq.openTime, radio->sq.closeTime);
 }
 
 void RADIO_TuneToPure(uint32_t f, bool precise) {
@@ -486,8 +486,8 @@ void RADIO_SetupBandParams(Band *b) {
   uint32_t fMid = b->bounds.start + (b->bounds.end - b->bounds.start) / 2;
   BK4819_SelectFilter(fMid);
   BK4819_SquelchType(b->squelchType);
-  BK4819_Squelch(b->squelch, fMid, gSettings.sqlOpenTime,
-                 gSettings.sqlCloseTime);
+  BK4819_Squelch(b->squelch, fMid, radio->sq.openTime,
+                 radio->sq.closeTime);
   BK4819_SetFilterBandwidth(b->bw);
   BK4819_SetModulation(b->modulation);
   BK4819_SetGain(b->gainIndex);
@@ -549,7 +549,7 @@ Loot *RADIO_UpdateMeasurements(void) {
   Loot *msm = &gLoot[gSettings.activeVFO];
   msm->rssi = RADIO_GetRSSI();
   msm->open = isBK1080 ? true
-                       : (gSettings.sqlOpenTime || gSettings.sqlCloseTime
+                       : (radio->sq.openTime || radio->sq.closeTime
                               ? BK4819_IsSquelchOpen()
                               : isSqOpenSimple(msm->rssi));
 

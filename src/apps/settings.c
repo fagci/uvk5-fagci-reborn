@@ -166,16 +166,16 @@ static void accept(void) {
     SETTINGS_Save();
     break;
   case M_SCAN_DELAY:
-    gSettings.scanTimeout = subMenuIndex;
+    radio->scan.timeout = subMenuIndex;
     SETTINGS_Save();
     break;
   case M_SQL_OPEN_T:
-    gSettings.sqlOpenTime = subMenuIndex;
+    radio->sq.openTime = subMenuIndex;
     RADIO_SetupByCurrentVFO();
     SETTINGS_Save();
     break;
   case M_SQL_CLOSE_T:
-    gSettings.sqlCloseTime = subMenuIndex;
+    radio->sq.closeTime = subMenuIndex;
     RADIO_SetupByCurrentVFO();
     SETTINGS_Save();
     break;
@@ -253,13 +253,13 @@ static const char *getValue(Menu type) {
     sprintf(Output, "%u", gSettings.batteryCalibration);
     return Output;
   case M_SCAN_DELAY:
-    sprintf(Output, "%ums", gSettings.scanTimeout);
+    sprintf(Output, "%ums", radio->scan.timeout);
     return Output;
   case M_SQL_OPEN_T:
-    sprintf(Output, "%ums", gSettings.sqlOpenTime * 5);
+    sprintf(Output, "%ums", radio->sq.openTime * 5);
     return Output;
   case M_SQL_CLOSE_T:
-    sprintf(Output, "%ums", gSettings.sqlCloseTime * 5);
+    sprintf(Output, "%ums", radio->sq.closeTime * 5);
     return Output;
   case M_BAT_TYPE:
     return BATTERY_TYPE_NAMES[gSettings.batteryType];
@@ -325,13 +325,13 @@ static void setInitialSubmenuIndex(void) {
     subMenuIndex = gSettings.backlight;
     break;
   case M_SCAN_DELAY:
-    subMenuIndex = gSettings.scanTimeout;
+    subMenuIndex = radio->scan.timeout;
     break;
   case M_SQL_OPEN_T:
-    subMenuIndex = gSettings.sqlOpenTime;
+    subMenuIndex = radio->sq.openTime;
     break;
   case M_SQL_CLOSE_T:
-    subMenuIndex = gSettings.sqlCloseTime;
+    subMenuIndex = radio->sq.closeTime;
     break;
   case M_SQL_TO_OPEN:
     subMenuIndex = gSettings.sqOpenedTimeout;
