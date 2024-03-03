@@ -80,10 +80,12 @@ static VFO vfo;
 static App meta = {
     .id = APP_PRESETS_LIST,
     .name = "Presets",
+    .runnable = true,
     .init = PRESETLIST_init,
     .update = PRESETLIST_update,
     .render = PRESETLIST_render,
     .key = PRESETLIST_key,
     .vfo = &vfo,
 };
+
 App *PRESETLIST_Meta(void) { return &meta; }

@@ -52,9 +52,9 @@ const char *fltBound[] = {"240MHz", "280MHz"};
 const uint16_t BAT_CAL_MIN = 1900;
 const uint16_t BAT_CAL_MAX = 2155;
 
-static const MenuItem menu[] = {
+static MenuItem menu[] = {
     {"Upconverter", M_UPCONVERTER, ARRAY_SIZE(upConverterFreqNames)},
-    {"Main app", M_MAIN_APP, ARRAY_SIZE(appsAvailableToRun)},
+    {"Main app", M_MAIN_APP, 0}, // will be ok at render
     {"SQL open time", M_SQL_OPEN_T, 7},
     {"SQL close time", M_SQL_CLOSE_T, 3},
     {"SCAN single freq time", M_SCAN_DELAY, 255},
@@ -380,7 +380,15 @@ static void setInitialSubmenuIndex(void) {
   }
 }
 
-void SETTINGS_init(void) { gRedrawScreen = true; }
+void SETTINGS_init(void) {
+  for (uint8_t i = 0; i < MENU_SIZE; ++i) {
+    if (menu[i].type == M_MAIN_APP) {
+      menu[i].size = appsToRunCount;
+      break;
+    }
+  }
+  gRedrawScreen = true;
+}
 
 void SETTINGS_update(void) {}
 
@@ -453,8 +461,6 @@ void SETTINGS_render(void) {
   UI_ClearScreen();
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
-  } else {
-    STATUSLINE_SetText(apps[APP_SETTINGS]->name);
   }
   const MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {

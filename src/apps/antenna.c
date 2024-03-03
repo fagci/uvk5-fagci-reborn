@@ -91,6 +91,7 @@ static VFO vfo;
 static App meta = {
     .id = APP_ANT,
     .name = "ANTENNA",
+    .runnable = true,
     .init = ANTENNA_init,
     .update = ANTENNA_update,
     .render = ANTENNA_render,

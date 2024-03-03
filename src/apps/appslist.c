@@ -9,8 +9,6 @@
 #include "apps.h"
 #include <string.h>
 
-static const uint8_t MENU_SIZE = ARRAY_SIZE(appsAvailableToRun);
-
 static uint8_t menuIndex = 0;
 
 static void getMenuItemText(uint16_t index, char *name) {
@@ -22,11 +20,9 @@ void APPSLIST_render(void) {
 
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
-  } else {
-    STATUSLINE_SetText(apps[APP_APPSLIST]->name);
   }
 
-  UI_ShowMenu(getMenuItemText, MENU_SIZE, menuIndex);
+  UI_ShowMenu(getMenuItemText, appsToRunCount, menuIndex);
 }
 
 static void setMenuIndexAndRun(uint16_t v) {
@@ -40,7 +36,7 @@ void APPSLIST_update(void) {}
 bool APPSLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld) {
     if (!gIsNumNavInput && key <= KEY_9) {
-      NUMNAV_Init(menuIndex + 1, 1, MENU_SIZE);
+      NUMNAV_Init(menuIndex + 1, 1, appsToRunCount);
       gNumNavCallback = setMenuIndexAndRun;
     }
     if (gIsNumNavInput) {
@@ -52,10 +48,10 @@ bool APPSLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   App *app = appsAvailableToRun[menuIndex];
   switch (key) {
   case KEY_UP:
-    IncDec8(&menuIndex, 0, MENU_SIZE, -1);
+    IncDec8(&menuIndex, 0, appsToRunCount, -1);
     return true;
   case KEY_DOWN:
-    IncDec8(&menuIndex, 0, MENU_SIZE, 1);
+    IncDec8(&menuIndex, 0, appsToRunCount, 1);
     return true;
   case KEY_MENU:
     APPS_exit();

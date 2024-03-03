@@ -58,6 +58,7 @@ static VFO vfo;
 static App meta = {
     .id = APP_TEST,
     .name = "TEST",
+    .runnable = true,
     .update = TEST_Update,
     .render = TEST_Render,
     .key = TEST_key,

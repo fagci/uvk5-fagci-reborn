@@ -24,6 +24,8 @@
 #include "../apps/vfo2.h"
 #include "../apps/vfocfg.h"
 
+#include "../driver/uart.h"
+
 uint8_t appsCount = 0;
 uint8_t appsToRunCount = 0;
 
@@ -31,6 +33,7 @@ App *apps[256];
 App *appsAvailableToRun[256];
 
 void APPS_Register(App *app) {
+  Log("[+] APPSREGISTRY %s run=%u", app->name, app->runnable);
   apps[appsCount++] = app;
   if (app->runnable) {
     appsAvailableToRun[appsToRunCount++] = app;

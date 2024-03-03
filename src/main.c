@@ -23,13 +23,6 @@
 
 void _putchar(char c) {}
 
-uint8_t testval = 5;
-
-__attribute__((constructor)) void YADRENBATON(void) {
-  appsCount = 42;
-  testval = 54;
-}
-
 static void selfTest(void) {
 
   uint8_t buf[8];
@@ -82,13 +75,16 @@ static void reset(void) {
 // }
 
 static void AddTasks(void) {
+  Log("Running base services...");
+
   SVC_Toggle(SVC_KEYBOARD, true, 10);
   SVC_Toggle(SVC_LISTEN, true, 10);
   SVC_Toggle(SVC_APPS, true, 1);
   SVC_Toggle(SVC_SYS, true, 1000);
 
-  // APPS_run(gSettings.mainApp);
-  APPS_run(APP_VFO2);
+  Log("Base services alive, running main app...");
+
+  APPS_run(gSettings.mainApp);
 }
 
 static uint8_t introIndex = 0;
@@ -99,11 +95,10 @@ static void Intro(void) {
   PrintMedium(16, 2 * 8 + 12, "reb0rn");
   PrintMedium(72, 2 * 8 + 12, "%c", pb[introIndex & 3]);
   PrintSmall(96, 46, "by fagci");
-  PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 3, POS_C, C_FILL, "APPS: %u | %u",
-                appsCount, testval);
   ST7565_Blit();
 
-  if (PRESETS_Load()) {
+  if (true || PRESETS_Load()) {
+    Log("Presets loaded");
     if (gSettings.beep)
       AUDIO_PlayTone(1400, 50);
 
@@ -128,6 +123,8 @@ void Main(void) {
   BOARD_Init();
   BACKLIGHT_Toggle(true);
 
+  UART_Init();
+
   SVC_Toggle(SVC_RENDER, true, 25);
 
   APPS_RegisterAll();
@@ -146,7 +143,7 @@ void Main(void) {
   }
 
   SETTINGS_Load();
-  gSettings.eepromType = EEPROM_M24M02;
+  Log("Settings loaded.");
 
   /* if (gSettings.checkbyte != EEPROM_CHECKBYTE) {
     gSettings.eepromType = EEPROM_BL24C64;
@@ -156,14 +153,14 @@ void Main(void) {
     reset();
   } */
 
-  UART_Init();
-
   BATTERY_UpdateBatteryInfo();
   RADIO_SetupRegisters();
 
   BACKLIGHT_SetDuration(BL_TIME_VALUES[gSettings.backlight]);
   BACKLIGHT_SetBrightness(gSettings.brightness);
   BACKLIGHT_On();
+
+  Log("Checking initial keys...");
 
   if (KEYBOARD_Poll() == KEY_STAR) {
     PrintMediumEx(0, 7, POS_L, C_FILL, "SET: %u %u", SETTINGS_OFFSET,
@@ -193,6 +190,7 @@ void Main(void) {
 
     APPS_run(APP_TEST);
   } else {
+    Log("No keys pressed, running intro...");
     TaskAdd("Intro", Intro, 2, true, 5);
   }
 

@@ -97,8 +97,6 @@ void SAVECH_render(void) {
   UI_ClearScreen();
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
-  } else {
-    STATUSLINE_SetText(apps[APP_SAVECH]->name);
   }
   UI_ShowMenu(getChannelName, chCount, currentChannelIndex);
 }

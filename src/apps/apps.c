@@ -1,5 +1,6 @@
 #include "apps.h"
 #include "../driver/st7565.h"
+#include "../driver/uart.h"
 #include "../ui/statusline.h"
 #include <stddef.h>
 
@@ -78,6 +79,7 @@ void APPS_RunPure(App *app) {
 }
 
 void APPS_run(AppType_t id) {
+  Log("APPS_run %u...", id);
   for (uint8_t i = 0; i < appsCount; i++) {
     if (apps[i]->id == id) {
       APPS_RunPure(apps[i]);

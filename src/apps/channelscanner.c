@@ -128,6 +128,7 @@ static VFO vfo;
 static App meta = {
     .id = APP_CH_SCANNER,
     .name = "CHSCANNER",
+    .runnable = true,
     .init = CHSCANNER_init,
     .update = CHSCANNER_update,
     .render = CHSCANNER_render,

@@ -2,6 +2,7 @@
 #include "../driver/i2c.h"
 #include "../driver/system.h"
 #include "../settings.h"
+#include "ARMCM0.h"
 #include <stddef.h>
 #include <string.h>
 
@@ -18,6 +19,7 @@ void EEPROM_ReadBuffer(uint32_t address, void *pBuffer, uint8_t size) {
     }
   }
 
+  __disable_irq();
   I2C_Start();
 
   I2C_Write(IIC_ADD);
@@ -31,6 +33,7 @@ void EEPROM_ReadBuffer(uint32_t address, void *pBuffer, uint8_t size) {
   I2C_ReadBuffer(pBuffer, size);
 
   I2C_Stop();
+  __enable_irq();
 
   gEepromRead = true;
 }
@@ -59,6 +62,7 @@ void EEPROM_WriteBuffer(uint32_t address, void *pBuffer, uint8_t size) {
       }
     }
 
+    __disable_irq();
     I2C_Start();
     I2C_Write(IIC_ADD);
     I2C_Write((address >> 8) & 0xFF);
@@ -67,6 +71,7 @@ void EEPROM_WriteBuffer(uint32_t address, void *pBuffer, uint8_t size) {
     I2C_WriteBuffer(pBuffer, n);
 
     I2C_Stop();
+    __enable_irq();
     SYSTEM_DelayMs(8);
 
     pBuffer += n;

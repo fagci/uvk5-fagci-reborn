@@ -70,6 +70,7 @@ void MESSENGER_deinit(void) {}
 static App meta = {
     .id = APP_MESSENGER,
     .name = "Messenger",
+    .runnable = true,
     .init = MESSENGER_init,
     .key = MESSENGER_key,
     .render = MESSENGER_render,

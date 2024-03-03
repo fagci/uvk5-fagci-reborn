@@ -64,6 +64,7 @@ static VFO vfo;
 static App meta = {
     .id = APP_VFO1,
     .name = "VFO 1",
+    .runnable = true,
     .init = VFO1_init,
     .update = VFO1_update,
     .render = VFO1_render,

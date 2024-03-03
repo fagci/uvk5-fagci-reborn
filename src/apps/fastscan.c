@@ -82,6 +82,7 @@ static VFO vfo;
 static App meta = {
     .id = APP_FASTSCAN,
     .name = "FASTSCAN",
+    .runnable = true,
     .init = FASTSCAN_init,
     .update = FASTSCAN_update,
     .render = FASTSCAN_render,

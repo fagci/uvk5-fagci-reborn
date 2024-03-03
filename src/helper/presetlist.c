@@ -1,5 +1,6 @@
 #include "presetlist.h"
 #include "../driver/eeprom.h"
+#include "../driver/uart.h"
 #include "../helper/measurements.h"
 #include "../settings.h"
 
@@ -103,6 +104,7 @@ Preset *PRESET_ByFrequency(uint32_t f) {
 }
 
 bool PRESETS_Load(void) {
+  Log("[i] PRESETS_Load %u/%u", loadedCount, PRESETS_Size());
   if (loadedCount < PRESETS_Size()) {
     PRESETS_LoadPreset(loadedCount, &presets[loadedCount]);
     loadedCount++;

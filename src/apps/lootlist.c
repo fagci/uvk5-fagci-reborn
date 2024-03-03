@@ -262,6 +262,7 @@ static VFO vfo;
 static App meta = {
     .id = APP_LOOT_LIST,
     .name = "LOOTLIST",
+    .runnable = true,
     .init = LOOTLIST_init,
     .update = LOOTLIST_update,
     .render = LOOTLIST_render,

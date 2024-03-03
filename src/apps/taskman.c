@@ -34,6 +34,7 @@ static VFO vfo;
 static App meta = {
     .id = APP_TASKMAN,
     .name = "TASKMAN",
+    .runnable = true,
     .init = TASKMAN_Init,
     .render = TASKMAN_Render,
     .key = TASKMAN_Key,

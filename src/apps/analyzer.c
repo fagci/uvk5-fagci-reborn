@@ -252,6 +252,7 @@ static VFO vfo;
 static App meta = {
     .id = APP_ANALYZER,
     .name = "SPECTRUM Analyzer",
+    .runnable = true,
     .init = ANALYZER_init,
     .update = ANALYZER_update,
     .render = ANALYZER_render,

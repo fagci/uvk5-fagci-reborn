@@ -227,6 +227,7 @@ void SPECTRUM_render(void) {
 static App meta = {
     .id = APP_SPECTRUM,
     .name = "Spectrum band",
+    .runnable = true,
     .init = SPECTRUM_init,
     .update = SPECTRUM_update,
     .render = SPECTRUM_render,

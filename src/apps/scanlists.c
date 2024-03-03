@@ -147,6 +147,7 @@ static VFO vfo;
 static App meta = {
     .id = APP_SCANLISTS,
     .name = "SCANLISTS",
+    .runnable = true,
     .init = SCANLISTS_init,
     .update = SCANLISTS_update,
     .render = SCANLISTS_render,

@@ -6,13 +6,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define CONCAT_IMPL(x, y) x##y
-#define MACRO_CONCAT(x, y) CONCAT_IMPL(x, y)
-#define REGISTER_APP(...)                                                      \
-  __attribute__((constructor)) static void registerApp(void) {                 \
-    APPS_Register(&(App)__VA_ARGS__);                                          \
-  }
-
 typedef enum {
   APP_TAG_SPECTRUM = 1,
   APP_TAG_VFO = 2,
