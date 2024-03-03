@@ -156,7 +156,7 @@ static void accept(void) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_UPCONVERTER: {
-    uint32_t f = GetScreenF(radio->rx.f);
+    uint32_t f = GetScreenF(radio->f);
     gSettings.upconverter = subMenuIndex;
     RADIO_TuneToSave(GetTuneF(f));
     SETTINGS_Save();
@@ -171,12 +171,12 @@ static void accept(void) {
     break;
   case M_SQL_OPEN_T:
     radio->sq.openTime = subMenuIndex;
-    RADIO_SetupByCurrentVFO();
+    RADIO_SetupByCurrentCH();
     SETTINGS_Save();
     break;
   case M_SQL_CLOSE_T:
     radio->sq.closeTime = subMenuIndex;
-    RADIO_SetupByCurrentVFO();
+    RADIO_SetupByCurrentCH();
     SETTINGS_Save();
     break;
   case M_SQL_TO_OPEN:
@@ -473,7 +473,7 @@ void SETTINGS_render(void) {
   }
 }
 
-static VFO vfo;
+static CH vfo;
 
 static App meta = {
     .id = APP_SETTINGS,

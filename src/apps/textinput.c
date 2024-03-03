@@ -261,7 +261,7 @@ void TEXTINPUT_render(void) {
   FillRect(0 + 86, LCD_HEIGHT - 9, 7, 9, C_INVERT);
 }
 
-static VFO vfo;
+static CH vfo;
 
 static App meta = {
     .id = APP_TEXTINPUT,

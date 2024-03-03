@@ -38,34 +38,34 @@ App *APPS_Peek(void) {
 }
 
 bool APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
-  if (gCurrentApp->key) {
-    return gCurrentApp->key(Key, bKeyPressed, bKeyHeld);
+  if (gCurrentAppkey) {
+    return gCurrentAppkey(Key, bKeyPressed, bKeyHeld);
   }
   return false;
 }
 void APPS_init(App *app) {
   gCurrentApp = app;
 
-  STATUSLINE_SetText("%s", gCurrentApp->name);
+  STATUSLINE_SetText("%s", gCurrentAppname);
   gRedrawScreen = true;
 
-  if (gCurrentApp->init) {
-    gCurrentApp->init();
+  if (gCurrentAppinit) {
+    gCurrentAppinit();
   }
 }
 void APPS_update(void) {
-  if (gCurrentApp->update) {
-    gCurrentApp->update();
+  if (gCurrentAppupdate) {
+    gCurrentAppupdate();
   }
 }
 void APPS_render(void) {
-  if (gCurrentApp->render) {
-    gCurrentApp->render();
+  if (gCurrentApprender) {
+    gCurrentApprender();
   }
 }
 void APPS_deinit(void) {
-  if (gCurrentApp->deinit) {
-    gCurrentApp->deinit();
+  if (gCurrentAppdeinit) {
+    gCurrentAppdeinit();
   }
 }
 

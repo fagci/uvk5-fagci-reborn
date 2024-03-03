@@ -55,8 +55,8 @@ bool APPSLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_MENU:
     APPS_exit();
-    if (app->id == APP_PRESETS_LIST || app->id == APP_LOOT_LIST ||
-        app->id == APP_SCANLISTS) {
+    if (appid == APP_BANDS_LIST || appid == APP_LOOT_LIST ||
+        appid == APP_SCANLISTS) {
       APPS_RunPure(app);
     } else {
       APPS_runManual(app);
@@ -71,7 +71,7 @@ bool APPSLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-static VFO vfo;
+static CH vfo;
 
 static App meta = {
     .id = APP_APPSLIST,

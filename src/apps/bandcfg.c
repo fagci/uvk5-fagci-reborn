@@ -1,7 +1,7 @@
-#include "presetcfg.h"
+#include "bandcfg.h"
 #include "../apps/apps.h"
 #include "../helper/measurements.h"
-#include "../helper/presetlist.h"
+#include "../helper/bandlist.h"
 #include "../misc.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
@@ -30,25 +30,25 @@ static void setInitialSubmenuIndex(void) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_BW:
-    subMenuIndex = gCurrentPreset->band.bw;
+    subMenuIndex = radio->bw;
     break;
   case M_MODULATION:
-    subMenuIndex = gCurrentPreset->band.modulation;
+    subMenuIndex = radio->modulation;
     break;
   case M_STEP:
-    subMenuIndex = gCurrentPreset->band.step;
+    subMenuIndex = radio->step;
     break;
   case M_SQ_TYPE:
-    subMenuIndex = gCurrentPreset->band.squelchType;
+    subMenuIndex = radio->sq.levelType;
     break;
   case M_SQ:
-    subMenuIndex = gCurrentPreset->band.squelch;
+    subMenuIndex = radio->sq.level;
     break;
   case M_GAIN:
-    subMenuIndex = gCurrentPreset->band.gainIndex;
+    subMenuIndex = gCurrentBand->band.gainIndex;
     break;
   case M_TX:
-    subMenuIndex = gCurrentPreset->allowTx;
+    subMenuIndex = gCurrentBand->allowTx;
     break;
   default:
     subMenuIndex = 0;
@@ -92,26 +92,26 @@ static void getSubmenuItemText(uint16_t index, char *name) {
 }
 
 static void setUpperBound(uint32_t f) {
-  gCurrentPreset->band.bounds.end = f;
-  if (gCurrentPreset->lastUsedFreq > f) {
-    gCurrentPreset->lastUsedFreq = f;
+  gCurrentBand->band.bounds.end = f;
+  if (gCurrentBand->lastUsedFreq > f) {
+    gCurrentBand->lastUsedFreq = f;
     RADIO_TuneToSave(f);
   }
-  PRESETS_SaveCurrent();
+  BANDS_SaveCurrent();
 }
 
 static void setLowerBound(uint32_t f) {
-  gCurrentPreset->band.bounds.start = f;
-  if (gCurrentPreset->lastUsedFreq < f) {
-    gCurrentPreset->lastUsedFreq = f;
+  gCurrentBand->band.bounds.start = f;
+  if (gCurrentBand->lastUsedFreq < f) {
+    gCurrentBand->lastUsedFreq = f;
     RADIO_TuneToSave(f);
   }
-  PRESETS_SaveCurrent();
+  BANDS_SaveCurrent();
 }
 
-void PRESETCFG_init(void) { gRedrawScreen = true; }
-void PRESETCFG_update(void) {}
-bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+void BANDCFG_init(void) { gRedrawScreen = true; }
+void BANDCFG_update(void) {}
+bool BANDCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   const MenuItem *item = &menu[menuIndex];
   const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
   const uint8_t SUBMENU_SIZE = item->size;
@@ -135,18 +135,18 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     switch (item->type) {
     case M_NAME:
       gTextInputSize = 9;
-      gTextinputText = gCurrentPreset->band.name;
-      gTextInputCallback = PRESETS_SaveCurrent;
+      gTextinputText = gCurrentBand->band.name;
+      gTextInputCallback = BANDS_SaveCurrent;
       APPS_run(APP_TEXTINPUT);
       return true;
     case M_START:
       gFInputCallback = setLowerBound;
-      gFInputTempFreq = gCurrentPreset->band.bounds.start;
+      gFInputTempFreq = gCurrentBand->band.bounds.start;
       APPS_run(APP_FINPUT);
       return true;
     case M_END:
       gFInputCallback = setUpperBound;
-      gFInputTempFreq = gCurrentPreset->band.bounds.end;
+      gFInputTempFreq = gCurrentBand->band.bounds.end;
       APPS_run(APP_FINPUT);
       return true;
     /* case M_SAVE:
@@ -176,7 +176,7 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void PRESETCFG_render(void) {
+void BANDCFG_render(void) {
   UI_ClearScreen();
   const MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {
@@ -190,15 +190,15 @@ void PRESETCFG_render(void) {
   }
 }
 
-static VFO vfo;
+static CH vfo;
 
 static App meta = {
-    .id = APP_PRESET_CFG,
-    .name = "Preset cfg",
-    .init = PRESETCFG_init,
-    .update = PRESETCFG_update,
-    .render = PRESETCFG_render,
-    .key = PRESETCFG_key,
+    .id = APP_BAND_CFG,
+    .name = "Band cfg",
+    .init = BANDCFG_init,
+    .update = BANDCFG_update,
+    .render = BANDCFG_render,
+    .key = BANDCFG_key,
     .vfo = &vfo,
 };
-App *PRESETCFG_Meta(void) { return &meta; }
+App *BANDCFG_Meta(void) { return &meta; }

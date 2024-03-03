@@ -77,7 +77,7 @@ void FASTSCAN_deinit(void) {
   BK4819_EnableRX();
 }
 
-static VFO vfo;
+static CH vfo;
 
 static App meta = {
     .id = APP_FASTSCAN,

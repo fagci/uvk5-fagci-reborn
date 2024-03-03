@@ -75,10 +75,10 @@ void UI_ShowMenuEx(void (*showItem)(uint16_t i, uint16_t index, bool isCurrent),
   UI_DrawScrollBar(size, currentIndex, linesMax);
 }
 
-#include "../helper/presetlist.h"
+#include "../helper/bandlist.h"
 
-void GetMenuItemValue(PresetCfgMenu type, char *Output) {
-  Band *band = &gCurrentPreset->band;
+void GetMenuItemValue(BandCfgMenu type, char *Output) {
+  Band *band = &gCurrentBand->band;
   uint32_t fs = band->bounds.start;
   uint32_t fe = band->bounds.end;
   switch (type) {
@@ -111,23 +111,23 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
             StepFrequencyTable[band->step] % 100);
     break;
   case M_TX:
-    strncpy(Output, yesNo[gCurrentPreset->allowTx], 31);
+    strncpy(Output, yesNo[gCurrentBand->allowTx], 31);
     break;
   case M_F_RX:
-    sprintf(Output, "%u.%05u", radio->rx.f / 100000, radio->rx.f % 100000);
+    sprintf(Output, "%u.%05u", radio->f / 100000, radio->f % 100000);
     break;
   case M_F_TX:
     sprintf(Output, "%u.%05u", radio->tx.f / 100000, radio->tx.f % 100000);
     break;
   case M_TX_OFFSET:
-    sprintf(Output, "%u.%05u", gCurrentPreset->offset / 100000,
-            gCurrentPreset->offset % 100000);
+    sprintf(Output, "%u.%05u", gCurrentBand->offset / 100000,
+            gCurrentBand->offset % 100000);
     break;
   case M_TX_OFFSET_DIR:
-    snprintf(Output, 15, TX_OFFSET_NAMES[gCurrentPreset->offsetDir]);
+    snprintf(Output, 15, TX_OFFSET_NAMES[gCurrentBand->offsetDir]);
     break;
   case M_F_TXP:
-    snprintf(Output, 15, TX_POWER_NAMES[gCurrentPreset->power]);
+    snprintf(Output, 15, TX_POWER_NAMES[gCurrentBand->power]);
     break;
   default:
     break;
@@ -137,47 +137,47 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
 void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
   switch (item->type) {
   case M_BW:
-    gCurrentPreset->band.bw = subMenuIndex;
+    radio->bw = subMenuIndex;
     BK4819_SetFilterBandwidth(subMenuIndex);
-    PRESETS_SaveCurrent();
+    BANDS_SaveCurrent();
     break;
   case M_F_TXP:
-    gCurrentPreset->power = subMenuIndex;
-    PRESETS_SaveCurrent();
+    gCurrentBand->power = subMenuIndex;
+    BANDS_SaveCurrent();
     break;
   case M_TX_OFFSET_DIR:
-    gCurrentPreset->offsetDir = subMenuIndex;
-    PRESETS_SaveCurrent();
+    gCurrentBand->offsetDir = subMenuIndex;
+    BANDS_SaveCurrent();
     break;
   case M_MODULATION:
-    gCurrentPreset->band.modulation = subMenuIndex;
+    radio->modulation = subMenuIndex;
     BK4819_SetModulation(subMenuIndex);
-    PRESETS_SaveCurrent();
+    BANDS_SaveCurrent();
     break;
   case M_STEP:
-    gCurrentPreset->band.step = subMenuIndex;
-    PRESETS_SaveCurrent();
+    radio->step = subMenuIndex;
+    BANDS_SaveCurrent();
     break;
   case M_SQ_TYPE:
-    gCurrentPreset->band.squelchType = subMenuIndex;
+    radio->sq.levelType = subMenuIndex;
     BK4819_SquelchType(subMenuIndex);
-    PRESETS_SaveCurrent();
+    BANDS_SaveCurrent();
     break;
   case M_SQ:
-    gCurrentPreset->band.squelch = subMenuIndex;
-    BK4819_Squelch(subMenuIndex, radio->rx.f, radio->sq.openTime,
+    radio->sq.level = subMenuIndex;
+    BK4819_Squelch(subMenuIndex, radio->f, radio->sq.openTime,
                    radio->sq.closeTime);
-    PRESETS_SaveCurrent();
+    BANDS_SaveCurrent();
     break;
 
   case M_GAIN:
-    gCurrentPreset->band.gainIndex = subMenuIndex;
+    gCurrentBand->band.gainIndex = subMenuIndex;
     BK4819_SetGain(subMenuIndex);
-    PRESETS_SaveCurrent();
+    BANDS_SaveCurrent();
     break;
   case M_TX:
-    gCurrentPreset->allowTx = subMenuIndex;
-    PRESETS_SaveCurrent();
+    gCurrentBand->allowTx = subMenuIndex;
+    BANDS_SaveCurrent();
     break;
 
   default:

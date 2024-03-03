@@ -87,7 +87,50 @@ typedef enum {
   EEPROM_M24M02,    // 111
 } EEPROMType;
 
+typedef enum {
+  CH_CHANNEL,
+  CH_VFO,
+  CH_PRESET,
+} ChannelType;
+
+typedef enum {
+  TX_DISALLOW,
+  TX_ALLOW_LPD_PMR,
+  TX_ALLOW_LPD_PMR_SATCOM,
+  TX_ALLOW_HAM,
+  TX_ALLOW_ALL,
+} AllowTX;
+
 extern const char *EEPROM_TYPE_NAMES[8];
+
+typedef struct {
+  uint8_t timeout : 8;
+  ScanTimeout openedTimeout : 4;
+  ScanTimeout closedTimeout : 4;
+} __attribute__((packed)) ScanSettings;
+
+typedef struct {
+  uint8_t level : 6;
+  uint8_t openTime : 2;
+  SquelchType type;
+  uint8_t closeTime : 3;
+} __attribute__((packed)) SquelchSettings;
+// getsize(SquelchSettings)
+
+typedef struct {
+  uint32_t start : 27;
+  uint32_t end : 27;
+} __attribute__((packed)) FRange;
+
+typedef struct {
+  uint8_t s : 8;
+  uint8_t m : 8;
+  uint8_t e : 8;
+} __attribute__((packed)) PowerCalibration;
+
+typedef struct {
+  int16_t channel;
+} VFO_Params;
 
 typedef struct {
   EEPROMType eepromType : 3;
@@ -114,8 +157,8 @@ typedef struct {
   uint8_t brightness : 4; // 7
   uint8_t mainApp : 8;    // 8
 
-  int8_t presetsCount : 8; // 9
-  int8_t activePreset : 8; // 10
+  int8_t bandsCount : 8; // 9
+  int8_t activeBand : 8; // 10
   uint16_t batteryCalibration : 12;
   uint8_t contrast : 4; // 12
   BatteryType batteryType : 2;
@@ -125,103 +168,56 @@ typedef struct {
   BacklightOnSquelchMode backlightOnSquelch : 2; // 13
   uint8_t reserved2 : 5;
   bool skipGarbageFrequencies : 1;
-  uint8_t activeVFO : 2;
+  uint8_t activeCH : 2;
   char nickName[10];
+  PowerCalibration powCalib[12];
+  AllowTX allowTX;
 } __attribute__((packed)) Settings;
 // getsize(Settings)
 
 typedef struct {
-  uint8_t timeout : 8;
-  ScanTimeout openedTimeout : 4;
-  ScanTimeout closedTimeout : 4;
-} __attribute__((packed)) ScanSettings;
-
-typedef struct {
-  uint8_t level : 6;
-  uint8_t openTime : 2;
-  uint8_t closeTime : 3;
-} __attribute__((packed)) SquelchSettings;
-// getsize(SquelchSettings)
-
-typedef struct {
+  union {
+    char name[10];
+    VFO_Params vfo;
+    uint32_t lastUsedFreq : 27;
+  };
   uint32_t f : 27;
-  uint8_t codeType : 4;
-  uint8_t code;
-} __attribute__((packed)) F; // 5 B
-// getsize(F)
-
-typedef struct {
-  F rx;
-  F tx;
-  char name[10];
-  uint8_t memoryBanks : 8;
+  uint32_t offset : 27;
+  OffsetDirection offsetDir;
   ModulationType modulation : 4;
   BK4819_FilterBandwidth_t bw : 2;
   TXOutputPower power : 2;
-} __attribute__((packed)) CH; // 22 B
-// getsize(CH)
-
-typedef struct {
-  F rx;
-  F tx;
-  int16_t channel;
-  TXOutputPower power : 2;
-  ScanSettings scan;
+  uint8_t codeRX;
+  uint8_t codeTX;
+  uint8_t codeTypeRX : 4;
+  uint8_t codeTypeTX : 4;
+  uint8_t scanlists;
   SquelchSettings sq;
-} __attribute__((packed)) VFO;
-// getsize(VFO)
-
-typedef struct {
-  uint32_t start : 27;
-  uint32_t end : 27;
-} __attribute__((packed)) FRange;
-
-typedef struct {
-  FRange bounds;
-  char name[10];
-  Step step : 4;
-  ModulationType modulation : 4;
-  BK4819_FilterBandwidth_t bw : 2;
-  SquelchType squelchType : 2;
-  uint8_t squelch : 4;
+  ChannelType type;
   uint8_t gainIndex : 5;
-  uint8_t reserved1 : 3;
-} __attribute__((packed)) Band;
+  Step step : 4;
+} __attribute__((packed)) CH; // 33 B
+
+// getsize(CH);
 
 typedef struct {
-  uint8_t s : 8;
-  uint8_t m : 8;
-  uint8_t e : 8;
-} __attribute__((packed)) PowerCalibration;
+  char name[10];
+  uint8_t activeCH;
+  ScanSettings scan;
+} __attribute__((packed)) Scanlist;
 
-typedef struct {
-  PowerCalibration powCalib;
-  uint32_t lastUsedFreq : 27;
-  TXOutputPower power : 2;
-  OffsetDirection offsetDir : 2;
-  bool allowTx : 1;
-  uint8_t memoryBanks : 8;
-  uint32_t offset : 26;
-  Band band;
-} __attribute__((packed)) Preset;
-// getsize(Preset)
-
-// char (*__chCount)(void)[(8196 - sizeof(Settings) - sizeof(Preset) * 29 -
-// sizeof(VFO) * 2)/sizeof(CH)] = 1;
+#define SETTINGS_SIZE sizeof(Settings)
+#define BAND_SIZE sizeof(Band)
+#define SCANLIST_SIZE sizeof(Scanlist)
+#define CH_SIZE sizeof(CH)
 
 #define SETTINGS_OFFSET (0)
-#define SETTINGS_SIZE sizeof(Settings)
-
-#define PRESET_SIZE sizeof(Preset)
-#define CH_SIZE sizeof(CH)
-#define VFO_SIZE sizeof(VFO)
-
-#define VFOS_OFFSET (SETTINGS_OFFSET + SETTINGS_SIZE)
-#define PRESETS_OFFSET (VFOS_OFFSET + VFO_SIZE * 2)
+#define SCANLISTS_OFFSET (SETTINGS_OFFSET + SETTINGS_SIZE)
+#define BANDS_OFFSET (SCANLISTS_OFFSET + SCANLIST_SIZE * 8)
 
 // settings
-// VFOs
-// presets
+// CHs
+// bands
 // ...
 // channel 2
 // channel 1
@@ -232,6 +228,9 @@ extern const char *BL_TIME_NAMES[7];
 extern const char *BL_SQL_MODE_NAMES[3];
 extern const char *TX_POWER_NAMES[3];
 extern const char *TX_OFFSET_NAMES[3];
+extern const char *TX_ALLOW_NAMES[5];
+
+extern const FRange STOCK_BANDS[12];
 
 void SETTINGS_Save();
 void SETTINGS_Load();

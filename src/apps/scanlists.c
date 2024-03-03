@@ -28,7 +28,7 @@ static void getItem(uint16_t i, uint16_t index, bool isCurrent, bool scanlist) {
   }
   char scanlistsStr[9] = "";
   for (uint8_t n = 0; n < 8; ++n) {
-    scanlistsStr[n] = ch.memoryBanks & (1 << n) ? '1' + n : '-';
+    scanlistsStr[n] = ch.scanlists & (1 << n) ? '1' + n : '-';
   }
   PrintSmallEx(LCD_WIDTH - 1 - 3, y + 8, POS_R, C_INVERT, "%s", scanlistsStr);
 }
@@ -43,7 +43,7 @@ static void getScanlistItem(uint16_t i, uint16_t index, bool isCurrent) {
 
 static void toggleScanlist(uint8_t n) {
   CHANNELS_Load(gScanlist[currentIndex], &ch);
-  ch.memoryBanks ^= 1 << n;
+  ch.scanlists ^= 1 << n;
   CHANNELS_Save(gScanlist[currentIndex], &ch);
 }
 
@@ -142,7 +142,7 @@ void SCANLISTS_render(void) {
   }
 }
 
-static VFO vfo;
+static CH vfo;
 
 static App meta = {
     .id = APP_SCANLISTS,

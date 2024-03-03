@@ -8,7 +8,7 @@
 
 typedef enum {
   APP_TAG_SPECTRUM = 1,
-  APP_TAG_VFO = 2,
+  APP_TAG_CH = 2,
 } AppCategory;
 
 typedef enum {
@@ -22,16 +22,15 @@ typedef enum {
   APP_FINPUT,
   APP_APPSLIST,
   APP_LOOT_LIST,
-  APP_PRESETS_LIST,
+  APP_BANDS_LIST,
   APP_RESET,
   APP_TEXTINPUT,
-  APP_VFO_CFG,
-  APP_PRESET_CFG,
+  APP_CH_CFG,
+  APP_BAND_CFG,
   APP_SCANLISTS,
   APP_SAVECH,
   APP_SETTINGS,
-  APP_VFO1,
-  APP_VFO2,
+  APP_MULTIVFO,
   APP_ABOUT,
   APP_ANT,
   APP_TASKMAN,
@@ -45,7 +44,7 @@ typedef struct {
   void (*render)(void);
   bool (*key)(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
   void (*deinit)(void);
-  VFO *vfo;
+  CH *vfo;
   void *cfg;
   bool runnable;
   AppCategory tags;

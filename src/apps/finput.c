@@ -190,7 +190,7 @@ void FINPUT_render(void) {
   }
 }
 
-static VFO vfo;
+static CH vfo;
 
 static App meta = {
     .id = APP_FINPUT,

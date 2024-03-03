@@ -1,16 +1,17 @@
 #include "channels.h"
 #include "../driver/eeprom.h"
 #include "../helper/measurements.h"
+#include <stddef.h>
 
 int32_t gScanlistSize = 0;
 int32_t gScanlist[350] = {0};
 
-static uint16_t presetsSizeBytes(void) {
-  return gSettings.presetsCount * PRESET_SIZE;
+static uint16_t bandsSizeBytes(void) {
+  return gSettings.bandsCount * BAND_SIZE;
 }
 
 int32_t CHANNELS_GetCountMax(void) {
-  return (SETTINGS_GetEEPROMSize() - PRESETS_OFFSET - presetsSizeBytes()) /
+  return (SETTINGS_GetEEPROMSize() - BANDS_OFFSET - bandsSizeBytes()) /
          CH_SIZE;
 }
 
@@ -30,16 +31,16 @@ void CHANNELS_Save(int32_t num, CH *p) {
 
 bool CHANNELS_Existing(int32_t i) {
   char name[2] = {0};
-  // TODO: offsetof
-  uint32_t addr = SETTINGS_GetEEPROMSize() - ((i + 1) * CH_SIZE) + 4 + 4;
+  uint32_t addr =
+      SETTINGS_GetEEPROMSize() - ((i + 1) * CH_SIZE) + offsetof(CH, name);
   EEPROM_ReadBuffer(addr, name, 1);
   return IsReadable(name);
 }
 
 uint8_t CHANNELS_Scanlists(int32_t i) {
   uint8_t scanlists;
-  // TODO: offsetof
-  uint32_t addr = SETTINGS_GetEEPROMSize() - ((i + 1) * CH_SIZE) + 4 + 4 + 10;
+  uint32_t addr = SETTINGS_GetEEPROMSize() - ((i + 1) * CH_SIZE) +
+                  offsetof(CH, scanlists);
   EEPROM_ReadBuffer(addr, &scanlists, 1);
   return scanlists;
 }

@@ -25,10 +25,10 @@ static void TEST_Render(void) {
     PrintSmall(16 + (i % 8) * 9, (i / 8) * 6 + 8 + 5, "%02x", buf[i]);
     PrintSmall(88 + (i % 8) * 5, (i / 8) * 6 + 8 + 5, "%c",
                buf[i] >= 32 && buf[i] < 128 ? buf[i] : '.');
-    if (offset == SETTINGS_OFFSET || offset == VFOS_OFFSET ||
-        offset == PRESETS_OFFSET ||
-        (offset >= PRESETS_OFFSET &&
-         (offset - PRESETS_OFFSET) % PRESET_SIZE == 0)) {
+    if (offset == SETTINGS_OFFSET || offset == SCANLISTS_OFFSET ||
+        offset == BANDS_OFFSET ||
+        (offset >= BANDS_OFFSET &&
+         (offset - BANDS_OFFSET) % BAND_SIZE == 0)) {
       FillRect(16 + (i % 8) * 9 - 1, (i / 8) * 6 + 8, 9, 7, C_INVERT);
     }
   }
@@ -53,7 +53,7 @@ static bool TEST_key(KEY_Code_t k, bool p, bool h) {
   return true;
 }
 
-static VFO vfo;
+static CH vfo;
 
 static App meta = {
     .id = APP_TEST,

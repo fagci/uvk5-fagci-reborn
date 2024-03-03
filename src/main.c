@@ -11,7 +11,7 @@
 #include "driver/uart.h"
 #include "helper/appsregistry.h"
 #include "helper/battery.h"
-#include "helper/presetlist.h"
+#include "helper/bandlist.h"
 #include "radio.h"
 #include "scheduler.h"
 #include "settings.h"
@@ -97,8 +97,8 @@ static void Intro(void) {
   PrintSmall(96, 46, "by fagci");
   ST7565_Blit();
 
-  if (true || PRESETS_Load()) {
-    Log("Presets loaded");
+  if (true || BANDS_Load()) {
+    Log("Bands loaded");
     if (gSettings.beep)
       AUDIO_PlayTone(1400, 50);
 
@@ -107,12 +107,12 @@ static void Intro(void) {
       AUDIO_PlayTone(1400, 50);
     AddTasks();
     Log("SETTINGS %02u sz %02u", SETTINGS_OFFSET, SETTINGS_SIZE);
-    Log("VFO1 %02u sz %02u", VFOS_OFFSET, VFO_SIZE);
-    Log("VFO2 %02u sz %02u", VFOS_OFFSET + VFO_SIZE, VFO_SIZE);
-    Log("PRESET %02u sz %02u", PRESETS_OFFSET, PRESET_SIZE);
-    Log("P22 BW: %u", PRESETS_Item(22)->band.bw);
+    Log("CH1 %02u sz %02u", SCANLISTS_OFFSET, SCANLIST_SIZE);
+    Log("CH2 %02u sz %02u", SCANLISTS_OFFSET + SCANLIST_SIZE, SCANLIST_SIZE);
+    Log("BAND %02u sz %02u", BANDS_OFFSET, BAND_SIZE);
+    Log("P22 BW: %u", BANDS_Item(22)->band.bw);
 
-    RADIO_LoadCurrentVFO();
+    RADIO_LoadCurrentCH();
   }
 }
 
@@ -165,19 +165,19 @@ void Main(void) {
   if (KEYBOARD_Poll() == KEY_STAR) {
     PrintMediumEx(0, 7, POS_L, C_FILL, "SET: %u %u", SETTINGS_OFFSET,
                   SETTINGS_SIZE);
-    PrintMediumEx(0, 7 + 8, POS_L, C_FILL, "VFO: %u %u", VFOS_OFFSET, VFO_SIZE);
+    PrintMediumEx(0, 7 + 8, POS_L, C_FILL, "CH: %u %u", SCANLISTS_OFFSET, SCANLIST_SIZE);
     PrintMediumEx(0, 7 + 16, POS_L, C_FILL, "PRES CNT: %u",
-                  gSettings.presetsCount);
+                  gSettings.bandsCount);
     ST7565_Blit();
   } else if (KEYBOARD_Poll() == KEY_F) {
     UART_IsLogEnabled = 5;
     TaskAdd("Intro", Intro, 2, true, 5);
   } else if (KEYBOARD_Poll() == KEY_MENU) {
     selfTest();
-    /* PrintMediumEx(LCD_WIDTH - 1, 7, POS_R, C_FILL, "%u", PRESETS_Size());
-    for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
-      Preset p;
-      PRESETS_LoadPreset(i, &p);
+    /* PrintMediumEx(LCD_WIDTH - 1, 7, POS_R, C_FILL, "%u", BANDS_Size());
+    for (uint8_t i = 0; i < BANDS_Size(); ++i) {
+      Band p;
+      BANDS_LoadBand(i, &p);
       PrintSmall(i / 10 * 40, 6 * (i % 10) + 6, "%u - %u",
                  p.band.bounds.start / 100000, p.band.bounds.end / 100000);
     }

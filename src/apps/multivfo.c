@@ -1,10 +1,10 @@
-#include "vfo2.h"
+#include "multivfo.h"
 #include "../dcs.h"
+#include "../helper/bandlist.h"
 #include "../helper/channels.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"
-#include "../helper/presetlist.h"
 #include "../scheduler.h"
 #include "../settings.h"
 #include "../svc.h"
@@ -19,15 +19,15 @@ static uint32_t lastRender = 0;
 
 static void tuneTo(uint32_t f) { RADIO_TuneToSave(GetTuneF(f)); }
 
-void VFO2_init(void) {
-  RADIO_LoadCurrentVFO();
+void MULTIVFO_init(void) {
+  RADIO_LoadCurrentCH();
 
   gRedrawScreen = true;
 }
 
-void VFO2_deinit(void) {}
+void MULTIVFO_deinit(void) {}
 
-void VFO2_update(void) {
+void MULTIVFO_update(void) {
   if (elapsedMilliseconds - lastRender >= 500) {
     gRedrawScreen = true;
     lastRender = elapsedMilliseconds;
@@ -36,7 +36,7 @@ void VFO2_update(void) {
 
 static void setChannel(uint16_t v) { RADIO_TuneToCH(v - 1); }
 
-bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+bool MULTIVFO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld && radio->channel >= 0) {
     if (!gIsNumNavInput && key <= KEY_9) {
       NUMNAV_Init(radio->channel + 1, 1, CHANNELS_GetCountMax());
@@ -74,12 +74,12 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
   // long held
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
-    OffsetDirection offsetDirection = gCurrentPreset->offsetDir;
+    OffsetDirection offsetDirection = radio->offsetDir;
     switch (key) {
     case KEY_EXIT:
       return true;
     case KEY_1:
-      APPS_run(APP_PRESETS_LIST);
+      APPS_run(APP_BANDS_LIST);
       return true;
     case KEY_2:
       LOOT_Standby();
@@ -100,7 +100,7 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_8:
       IncDec8(&offsetDirection, 0, OFFSET_MINUS, 1);
-      gCurrentPreset->offsetDir = offsetDirection;
+      radio->offsetDir = offsetDirection;
       return true;
     case KEY_9: // call
       return true;
@@ -133,7 +133,7 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       APPS_key(key, bKeyPressed, bKeyHeld);
       return true;
     case KEY_F:
-      APPS_run(APP_VFO_CFG);
+      APPS_run(APP_CH_CFG);
       return true;
     case KEY_STAR:
       APPS_run(APP_LOOT_LIST);
@@ -168,22 +168,22 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-static void render2VFOPart(uint8_t i) {
+static void render2CHPart(uint8_t i) {
   const uint8_t BASE = 22;
   const uint8_t bl = BASE + 34 * i;
 
-  Preset *p = gVFOPresets[i];
-  VFO *vfo = &gVFO[i];
-  const bool isActive = gSettings.activeVFO == i;
+  Band *p = gCHBands[i];
+  CH *vfo = &gCH[i];
+  const bool isActive = gSettings.activeCH == i;
   const Loot *loot = &gLoot[i];
 
   uint32_t f =
-      gTxState == TX_ON && isActive ? RADIO_GetTXF() : GetScreenF(vfo->rx.f);
+      gTxState == TX_ON && isActive ? RADIO_GetTXF() : GetScreenF(vfo->f);
 
   const uint16_t fp1 = f / 100000;
   const uint16_t fp2 = f / 100 % 1000;
   const uint8_t fp3 = f % 100;
-  const char *mod = modulationTypeOptions[p->band.modulation];
+  const char *mod = modulationTypeOptions[pmodulation];
 
   if (isActive && gTxState <= TX_ON) {
     FillRect(0, bl - 14, 28, 7, C_FILL);
@@ -193,7 +193,7 @@ static void render2VFOPart(uint8_t i) {
     if (gIsListening) {
       PrintMediumEx(0, bl, POS_L, C_INVERT, "RX");
       if (!isBK1080) {
-        UI_RSSIBar(gLoot[i].rssi, vfo->rx.f, 31);
+        UI_RSSIBar(gLoot[i].rssi, vfo->f, 31);
       }
     }
   }
@@ -204,13 +204,13 @@ static void render2VFOPart(uint8_t i) {
     PrintSmallEx(LCD_XCENTER, bl - 8 + 6, POS_C, C_FILL, "%u", RADIO_GetTXF());
   } else {
     if (vfo->channel >= 0) {
-      PrintMediumBoldEx(LCD_XCENTER, bl - 8, POS_C, C_FILL, gVFONames[i]);
+      PrintMediumBoldEx(LCD_XCENTER, bl - 8, POS_C, C_FILL, gCHNames[i]);
       PrintMediumEx(LCD_XCENTER, bl, POS_C, C_FILL, "%4u.%03u", fp1, fp2);
       PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "MR %03u", vfo->channel + 1);
     } else {
       PrintBigDigitsEx(LCD_WIDTH - 19, bl, POS_R, C_FILL, "%4u.%03u", fp1, fp2);
       PrintMediumBoldEx(LCD_WIDTH, bl, POS_R, C_FILL, "%02u", fp3);
-      PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "VFO");
+      PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "CH");
     }
     PrintSmallEx(LCD_WIDTH, bl - 9, POS_R, C_FILL, mod);
   }
@@ -226,10 +226,10 @@ static void render2VFOPart(uint8_t i) {
                  DCS_Options[loot->cd]);
   }
   PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %c SQ%u %c",
-               p->allowTx ? TX_POWER_NAMES[p->power][0] : ' ',
-               "WNn"[p->band.bw], p -> band.squelch,
-               RADIO_GetTXFEx(vfo, p) != vfo->rx.f
-                   ? (p->offsetDir ? TX_OFFSET_NAMES[p->offsetDir][0] : '*')
+               pallowTx ? TX_POWER_NAMES[ppower][0] : ' ', "WNn"[pbw],
+               p -> band.squelch,
+               RADIO_GetTXFEx(vfo, p) != vfo->f
+                   ? (poffsetDir ? TX_OFFSET_NAMES[poffsetDir][0] : '*')
                    : ' ');
 
   if (loot->lastTimeOpen) {
@@ -237,37 +237,65 @@ static void render2VFOPart(uint8_t i) {
                  est % 60, loot->duration / 1000);
   } else {
     PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%d.%02dk",
-                 StepFrequencyTable[p->band.step] / 100,
-                 StepFrequencyTable[p->band.step] % 100);
+                 StepFrequencyTable[p->step] / 100,
+                 StepFrequencyTable[p->step] % 100);
   }
 }
 
-void VFO2_render(void) {
+void CH1_render(void) {
+  UI_ClearScreen();
+  const uint8_t BASE = 38;
+
+  CH *vfo = &gCH[gSettings.activeCH];
+  uint32_t f = gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(vfo->f);
+
+  uint16_t fp1 = f / 100000;
+  uint16_t fp2 = f / 100 % 1000;
+  uint8_t fp3 = f % 100;
+  const char *mod = modulationTypeOptions[vfo->modulation];
+  if (gIsListening) {
+    if (!isBK1080) {
+      UI_RSSIBar(gLoot[gSettings.activeCH].rssi, vfo->f, BASE + 2);
+    }
+  }
+
+  if (gTxState && gTxState != TX_ON) {
+    PrintMediumBoldEx(LCD_XCENTER, BASE, POS_C, C_FILL, "%s",
+                      TX_STATE_NAMES[gTxState]);
+  } else {
+    PrintBiggestDigitsEx(LCD_WIDTH - 22, BASE, POS_R, C_FILL, "%4u.%03u", fp1,
+                         fp2);
+    PrintBigDigitsEx(LCD_WIDTH - 1, BASE, POS_R, C_FILL, "%02u", fp3);
+    PrintMediumEx(LCD_WIDTH - 1, BASE - 12, POS_R, C_FILL, mod);
+  }
+}
+
+void MULTIVFO_render(void) {
   UI_ClearScreen();
 
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
   } else {
-    STATUSLINE_SetText("%s:%u", gCurrentPreset->band.name,
-                       PRESETS_GetChannel(gCurrentPreset, radio->rx.f) + 1);
+    STATUSLINE_SetText("%s:%u", gCurrentBand->name,
+                       BANDS_GetChannel(gCurrentBand, radio->f) + 1);
   }
 
-  render2VFOPart(0);
-  render2VFOPart(1);
+  render2CHPart(0);
+  render2CHPart(1);
 }
 
-static VFO vfo;
+static CH vfo;
 
 static App meta = {
-    .id = APP_VFO2,
-    .name = "VFO2",
+    .id = APP_MULTIVFO,
+    .name = "MULTIVFO",
     .runnable = true,
-    .init = VFO2_init,
-    .update = VFO2_update,
-    .render = VFO2_render,
-    .key = VFO2_key,
-    .deinit = VFO2_deinit,
+    .init = MULTIVFO_init,
+    .update = MULTIVFO_update,
+    .render = MULTIVFO_render,
+    .key = MULTIVFO_key,
+    .deinit = MULTIVFO_deinit,
     .vfo = &vfo,
 };
 
-App *VFO2_Meta(void) { return &meta; }
+App *MULTIVFO_Meta(void) { return &meta; }

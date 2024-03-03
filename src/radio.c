@@ -9,35 +9,24 @@
 #include "driver/system.h"
 #include "driver/uart.h"
 #include "helper/adapter.h"
+#include "helper/bandlist.h"
 #include "helper/battery.h"
 #include "helper/channels.h"
 #include "helper/lootlist.h"
 #include "helper/measurements.h"
 #include "helper/msghelper.h"
-#include "helper/presetlist.h"
 #include "helper/vfos.h"
 #include "inc/dp32g030/gpio.h"
+#include "misc.h"
 #include "scheduler.h"
 #include "settings.h"
 #include <string.h>
 
-VFO *radio;
-VFO gVFO[2] = {0};
-Preset *gVFOPresets[2] = {0};
-
+CH *radio;
 Loot *gCurrentLoot;
-Loot gLoot[2] = {0};
+FRange *gCurrentBounds;
 
-typedef struct {
-  uint16_t ro;
-  uint16_t rc;
-  uint8_t no;
-  uint8_t nc;
-  uint8_t go;
-  uint8_t gc;
-} SQLParams;
-
-char gVFONames[2][10] = {0};
+char gCHNames[2][10] = {0};
 
 bool gIsListening = false;
 bool gMonitorMode = false;
@@ -68,6 +57,16 @@ const SquelchType sqTypeValues[4] = {
 };
 const char *sqTypeNames[4] = {"RNG", "RG", "RN", "R"};
 const char *deviationNames[] = {"", "+", "-"};
+
+static uint8_t getBandIndex(uint32_t f) {
+  for (uint8_t i = 0; i < ARRAY_SIZE(STOCK_BANDS); ++i) {
+    const FRange *b = &STOCK_BANDS[i];
+    if (f >= b->start && f <= b->end) {
+      return i;
+    }
+  }
+  return 6;
+}
 
 void RADIO_SetupRegisters(void) {
   uint32_t Frequency = 0;
@@ -119,13 +118,8 @@ uint32_t GetTuneF(uint32_t f) {
 }
 
 static void onVfoUpdate(void) {
-  TaskRemove(RADIO_SaveCurrentVFO);
-  TaskAdd("VFO save", RADIO_SaveCurrentVFO, 2000, false, 0);
-}
-
-static void onPresetUpdate(void) {
-  TaskRemove(PRESETS_SaveCurrent);
-  TaskAdd("Preset save", PRESETS_SaveCurrent, 2000, false, 0);
+  TaskRemove(RADIO_SaveCurrentCH);
+  TaskAdd("CH save", RADIO_SaveCurrentCH, 2000, false, 0);
 }
 
 bool RADIO_IsBK1080Range(uint32_t f) { return f >= 6400000 && f <= 10800000; }
@@ -146,7 +140,7 @@ void toggleBK4819(bool on) {
 
 void toggleBK1080(bool on) {
   if (on) {
-    BK1080_Init(radio->rx.f, true);
+    BK1080_Init(radio->f, true);
     BK1080_Mute(false);
     SYSTEM_DelayMs(10);
     AUDIO_ToggleSpeaker(true);
@@ -186,7 +180,7 @@ void RADIO_ToggleRX(bool on) {
 }
 
 void RADIO_EnableCxCSS(void) {
-  switch (radio->tx.codeType) {
+  switch (radio->codeTypeTX) {
   /* case CODE_TYPE_DIGITAL:
   case CODE_TYPE_REVERSE_DIGITAL:
           BK4819_EnableCDCSS();
@@ -199,12 +193,15 @@ void RADIO_EnableCxCSS(void) {
   SYSTEM_DelayMs(200);
 }
 
-static uint8_t calculateOutputPower(Preset *p, uint32_t Frequency) {
-  uint8_t TxpLow = p->powCalib.s;
-  uint8_t TxpMid = p->powCalib.m;
-  uint8_t TxpHigh = p->powCalib.e;
-  uint32_t LowerLimit = p->band.bounds.start;
-  uint32_t UpperLimit = p->band.bounds.start;
+static uint8_t calculateOutputPower(uint32_t Frequency) {
+  const uint8_t bi = getBandIndex(Frequency);
+  const FRange *p = &STOCK_BANDS[bi];
+  PowerCalibration *pc = &gSettings.powCalib[bi];
+  uint8_t TxpLow = pc->s;
+  uint8_t TxpMid = pc->m;
+  uint8_t TxpHigh = pc->e;
+  uint32_t LowerLimit = p->start;
+  uint32_t UpperLimit = p->end;
   uint32_t Middle = LowerLimit + (UpperLimit - LowerLimit) / 2;
 
   if (Frequency <= LowerLimit) {
@@ -225,19 +222,27 @@ static uint8_t calculateOutputPower(Preset *p, uint32_t Frequency) {
   return TxpMid;
 }
 
-uint32_t RADIO_GetTXFEx(VFO *vfo, Preset *p) {
-  uint32_t txF = vfo->rx.f;
+uint32_t RADIO_GetTXFEx(CH *vfo) {
+  uint32_t txF = vfo->f;
 
-  if (vfo->tx.f) {
-    txF = vfo->tx.f;
-  } else if (p->offset && p->offsetDir != OFFSET_NONE) {
-    txF = vfo->rx.f + (p->offsetDir == OFFSET_PLUS ? p->offset : -p->offset);
+  if (vfo->offset && vfo->offsetDir != OFFSET_NONE) {
+    txF = vfo->f + (vfo->offsetDir == OFFSET_PLUS ? vfo->offset : -vfo->offset);
   }
 
   return txF;
 }
 
-uint32_t RADIO_GetTXF(void) { return RADIO_GetTXFEx(radio, gCurrentPreset); }
+uint32_t RADIO_GetTXF(void) { return RADIO_GetTXFEx(radio); }
+
+static FRange LPD = {43307500, 43477500};
+static FRange PMR = {44600625, 44609375};
+static FRange HAM2M = {14400000, 14599999};
+static FRange HAM70CM = {43000000, 44000000};
+static FRange SATCOM = {23000000, 32000000};
+
+static bool FreqInRange(uint32_t f, FRange *r) {
+  return f >= r->start && f <= r->end;
+}
 
 TXState gTxState = TX_UNKNOWN;
 
@@ -247,7 +252,7 @@ void RADIO_ToggleTX(bool on) {
   }
 
   uint8_t power = 0;
-  uint32_t txF = RADIO_GetTXF();
+  uint32_t txF = RADIO_GetTXFEx(radio);
 
   if (on) {
     if (gSettings.upconverter) {
@@ -255,9 +260,26 @@ void RADIO_ToggleTX(bool on) {
       return;
     }
 
-    Preset *txPreset = PRESET_ByFrequency(txF);
+    if (gSettings.allowTX == TX_DISALLOW) {
+      gTxState = TX_DISABLED;
+      return;
+    }
 
-    if (!txPreset->allowTx) {
+    if (gSettings.allowTX == TX_ALLOW_LPD_PMR && !FreqInRange(txF, &LPD) &&
+        !FreqInRange(txF, &PMR)) {
+      gTxState = TX_DISABLED;
+      return;
+    }
+
+    if (gSettings.allowTX == TX_ALLOW_LPD_PMR_SATCOM &&
+        !FreqInRange(txF, &LPD) && !FreqInRange(txF, &PMR) &&
+        !FreqInRange(txF, &SATCOM)) {
+      gTxState = TX_DISABLED;
+      return;
+    }
+
+    if (gSettings.allowTX == TX_ALLOW_HAM && !FreqInRange(txF, &HAM2M) &&
+        !FreqInRange(txF, &HAM70CM)) {
       gTxState = TX_DISABLED;
       return;
     }
@@ -270,22 +292,22 @@ void RADIO_ToggleTX(bool on) {
       gTxState = TX_VOL_HIGH;
       return;
     }
-    power = calculateOutputPower(gCurrentPreset, radio->tx.f);
+    power = calculateOutputPower(txF);
     if (power > 0x91) {
       power = 0;
       gTxState = TX_POW_OVERDRIVE;
       return;
     }
-    power >>= 2 - gCurrentPreset->power;
+    power >>= 2 - radio->power;
   }
 
   if (on) {
     RADIO_ToggleRX(false);
 
     BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, false);
-    RADIO_SetupBandParams(&gCurrentPreset->band);
+    RADIO_SetupParams();
 
-    BK4819_SetFrequency(txF);
+    BK4819_SetFrequency(txF); // TODO: single call?
     BK4819_SelectFilter(txF);
 
     BK4819_PrepareTransmit();
@@ -293,7 +315,7 @@ void RADIO_ToggleTX(bool on) {
     SYSTEM_DelayMs(10);
     BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, true);
     SYSTEM_DelayMs(5);
-    BK4819_SetupPowerAmplifier(power, radio->tx.f);
+    BK4819_SetupPowerAmplifier(power, txF);
     SYSTEM_DelayMs(10);
     BK4819_ExitSubAu();
   } else if (gTxState == TX_ON) {
@@ -304,8 +326,8 @@ void RADIO_ToggleTX(bool on) {
     BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, false);
     BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, true);
 
-    BK4819_SetFrequency(radio->rx.f);
-    BK4819_SelectFilter(radio->rx.f);
+    BK4819_SetFrequency(radio->f); // TODO: single call?
+    BK4819_SelectFilter(radio->f);
     BK4819_RX_TurnOn();
   }
 
@@ -329,64 +351,60 @@ void RADIO_ToggleBK1080(bool on) {
   }
 }
 
-void RADIO_SetModulationByPreset(void) {
-  ModulationType mod = gCurrentPreset->band.modulation;
+void RADIO_SetModulationByBand(void) {
+  ModulationType mod = radio->modulation;
   if (mod == MOD_WFM) {
-    if (RADIO_IsBK1080Range(radio->rx.f)) {
+    if (RADIO_IsBK1080Range(radio->f)) {
       RADIO_ToggleBK1080(true);
       return;
     }
-    gCurrentPreset->band.modulation = MOD_FM;
+    radio->modulation = MOD_FM;
   }
   RADIO_ToggleBK1080(false);
-  BK4819_SetModulation(gCurrentPreset->band.modulation);
-  onPresetUpdate();
+  BK4819_SetModulation(radio->modulation);
+  onBandUpdate();
 }
 
 void RADIO_ToggleModulation(void) {
-  if (gCurrentPreset->band.modulation == MOD_WFM) {
-    gCurrentPreset->band.modulation = MOD_FM;
+  if (radio->modulation == MOD_WFM) {
+    radio->modulation = MOD_FM;
   } else {
-    ++gCurrentPreset->band.modulation;
+    ++radio->modulation;
   }
-  RADIO_SetModulationByPreset();
+  RADIO_SetModulationByBand();
 }
 
 void RADIO_UpdateStep(bool inc) {
-  uint8_t step = gCurrentPreset->band.step;
+  uint8_t step = radio->step;
   IncDec8(&step, 0, STEP_200_0kHz, inc ? 1 : -1);
-  gCurrentPreset->band.step = step;
-  onPresetUpdate();
+  radio->step = step;
+  onBandUpdate();
 }
 
 void RADIO_ToggleListeningBW(void) {
-  if (gCurrentPreset->band.bw == BK4819_FILTER_BW_NARROWER) {
-    gCurrentPreset->band.bw = BK4819_FILTER_BW_WIDE;
+  if (radio->bw == BK4819_FILTER_BW_NARROWER) {
+    radio->bw = BK4819_FILTER_BW_WIDE;
   } else {
-    ++gCurrentPreset->band.bw;
+    ++radio->bw;
   }
 
-  BK4819_SetFilterBandwidth(gCurrentPreset->band.bw);
-  onPresetUpdate();
+  BK4819_SetFilterBandwidth(radio->bw);
+  onBandUpdate();
 }
 
 void RADIO_ToggleTxPower(void) {
-  if (gCurrentPreset->power == TX_POW_HIGH) {
-    gCurrentPreset->power = TX_POW_LOW;
+  if (radio->power == TX_POW_HIGH) {
+    radio->power = TX_POW_LOW;
   } else {
-    ++gCurrentPreset->power;
+    ++radio->power;
   }
 
-  BK4819_SetFilterBandwidth(gCurrentPreset->band.bw);
-  onPresetUpdate();
-}
-
-void RADIO_SetSquelchPure(uint32_t f, uint8_t sql) {
-  BK4819_Squelch(sql, f, radio->sq.openTime, radio->sq.closeTime);
+  BK4819_SetFilterBandwidth(radio->bw);
+  onBandUpdate();
 }
 
 void RADIO_TuneToPure(uint32_t f, bool precise) {
-  LOOT_Replace(&gLoot[gSettings.activeVFO], f);
+  LOOT_Replace(&gLoot[gSettings.activeCH], f);
   if (isBK1080) {
     BK1080_SetFrequency(f);
   } else {
@@ -394,111 +412,95 @@ void RADIO_TuneToPure(uint32_t f, bool precise) {
   }
 }
 
-void RADIO_SetupByCurrentVFO(void) {
-  uint32_t f = radio->rx.f;
-
-  Preset *p = PRESET_ByFrequency(f);
-
-  if (p != gCurrentPreset) {
-    gVFOPresets[gSettings.activeVFO] = gCurrentPreset = p;
-    gSettings.activePreset = PRESET_GetCurrentIndex();
-
-    RADIO_SetupBandParams(&gCurrentPreset->band);
-    // NOTE: commented coz we think, that band not contains boundary
-    // BK4819_Squelch(gCurrentPreset->band.squelch, f);
-
-    RADIO_ToggleBK1080(gCurrentPreset->band.modulation == MOD_WFM &&
-                       RADIO_IsBK1080Range(f));
-  }
-
-  RADIO_TuneToPure(f, true);
+void RADIO_SetupByCurrentCH(void) {
+  RADIO_SetupParams();
+  RADIO_ToggleBK1080(radio->modulation == MOD_WFM &&
+                     RADIO_IsBK1080Range(radio->f));
+  RADIO_TuneToPure(radio->f, true);
 }
 
 // USE CASE: set vfo temporary for current app
 void RADIO_TuneTo(uint32_t f) {
-  radio->channel = -1;
-  radio->tx.f = 0;
-  radio->rx.f = f;
-  RADIO_SetupByCurrentVFO();
+  radio->f = f;
+  radio->vfo.channel = -1;
+  RADIO_SetupByCurrentCH();
 }
 
 // USE CASE: set vfo and use in another app
 void RADIO_TuneToSave(uint32_t f) {
   RADIO_TuneTo(f);
-  RADIO_SaveCurrentVFO();
-  gCurrentPreset->lastUsedFreq = f;
-  PRESETS_SaveCurrent();
+  RADIO_SaveCurrentCH();
+  gCurrentBand->lastUsedFreq = f;
+  BANDS_SaveCurrent();
 }
 
-void RADIO_SaveCurrentVFO(void) { VFOS_Save(gSettings.activeVFO, radio); }
+void RADIO_SaveCurrentCH(void) { CHS_Save(gSettings.activeCH, radio); }
 
 void RADIO_VfoLoadCH(uint8_t i) {
   CH ch;
-  CHANNELS_Load(gVFO[i].channel, &ch);
-  CH2VFO(&ch, &gVFO[i]);
-  strncpy(gVFONames[i], ch.name, 9);
+  CHANNELS_Load(gCH[i].vfo.channel, &gCH[i]);
+  strncpy(gCHNames[i], ch.name, 9);
 }
 
-void RADIO_SelectPreset(int8_t num) {
-  PRESET_Select(num);
-  RADIO_TuneTo(gCurrentPreset->lastUsedFreq);
+void RADIO_SelectBand(int8_t num) {
+  BAND_Select(num);
+  RADIO_TuneTo(gCurrentBand->lastUsedFreq);
 }
 
-void RADIO_SelectPresetSave(int8_t num) {
-  PRESET_Select(num);
-  PRESETS_SaveCurrent();
-  RADIO_TuneToSave(gCurrentPreset->lastUsedFreq);
+void RADIO_SelectBandSave(int8_t num) {
+  BAND_Select(num);
+  BANDS_SaveCurrent();
+  RADIO_TuneToSave(gCurrentBand->lastUsedFreq);
 }
 
-void RADIO_LoadCurrentVFO(void) {
+void RADIO_LoadCurrentCH(void) {
   for (uint8_t i = 0; i < 2; ++i) {
-    VFOS_Load(i, &gVFO[i]);
-    if (gVFO[i].channel >= 0) {
+    CHS_Load(i, &gCH[i]);
+    if (gCH[i].vfo.channel >= 0) {
       RADIO_VfoLoadCH(i);
     }
-    gVFOPresets[i] = PRESET_ByFrequency(gVFO[i].rx.f);
+    gCHBands[i] = BAND_ByFrequency(gCH[i].f);
 
-    LOOT_Replace(&gLoot[i], gVFO[i].rx.f);
+    LOOT_Replace(&gLoot[i], gCH[i].f);
   }
 
-  radio = &gVFO[gSettings.activeVFO];
-  gCurrentLoot = &gLoot[gSettings.activeVFO];
-  RADIO_SetupByCurrentVFO();
+  radio = &gCH[gSettings.activeCH];
+  gCurrentLoot = &gLoot[gSettings.activeCH];
+  RADIO_SetupByCurrentCH();
 }
 
 void RADIO_SetSquelch(uint8_t sq) {
-  gCurrentPreset->band.squelch = sq;
-  RADIO_SetSquelchPure(gCurrentPreset->band.bounds.start, sq);
-  onPresetUpdate();
+  radio->sq.level = sq;
+  BK4819_Squelch(sq, radio->f, radio->sq.openTime, radio->sq.closeTime);
+  onBandUpdate();
 }
 
 void RADIO_SetSquelchType(SquelchType t) {
-  gCurrentPreset->band.squelchType = t;
-  onPresetUpdate();
+  radio->sq.levelType = t;
+  onBandUpdate();
 }
 
 void RADIO_SetGain(uint8_t gainIndex) {
-  BK4819_SetGain(gCurrentPreset->band.gainIndex = gainIndex);
-  onPresetUpdate();
+  BK4819_SetGain(gCurrentBand->band.gainIndex = gainIndex);
+  onBandUpdate();
 }
 
-void RADIO_SetupBandParams(Band *b) {
-  uint32_t fMid = b->bounds.start + (b->bounds.end - b->bounds.start) / 2;
-  BK4819_SelectFilter(fMid);
-  BK4819_SquelchType(b->squelchType);
-  BK4819_Squelch(b->squelch, fMid, radio->sq.openTime,
+void RADIO_SetupParams() {
+  BK4819_SelectFilter(radio->f);
+  BK4819_SquelchType(radio->sq.type);
+  BK4819_Squelch(radio->sq.level, fMid, radio->sq.openTime,
                  radio->sq.closeTime);
-  BK4819_SetFilterBandwidth(b->bw);
-  BK4819_SetModulation(b->modulation);
-  BK4819_SetGain(b->gainIndex);
+  BK4819_SetFilterBandwidth(radio->bw);
+  BK4819_SetModulation(radio->modulation);
+  BK4819_SetGain(radio->gainIndex);
   // BK4819_RX_TurnOn(); // TODO: needeed?
 }
 
 uint16_t RADIO_GetRSSI(void) { return isBK1080 ? 128 : BK4819_GetRSSI(); }
 
 static bool isSqOpenSimple(uint16_t r) {
-  uint8_t band = radio->rx.f > SETTINGS_GetFilterBound() ? 1 : 0;
-  uint8_t sq = gCurrentPreset->band.squelch;
+  uint8_t band = radio->f > SETTINGS_GetFilterBound() ? 1 : 0;
+  uint8_t sq = radio->sq.level;
   uint16_t ro = SQ[band][0][sq];
   uint16_t rc = SQ[band][1][sq];
   uint8_t no = SQ[band][2][sq];
@@ -510,7 +512,7 @@ static bool isSqOpenSimple(uint16_t r) {
 
   bool open;
 
-  switch (gCurrentPreset->band.squelchType) {
+  switch (radio->sq.levelType) {
   case SQUELCH_RSSI_NOISE_GLITCH:
     n = BK4819_GetNoise();
     g = BK4819_GetGlitch();
@@ -546,7 +548,7 @@ static bool isSqOpenSimple(uint16_t r) {
 
 static uint32_t lastTailTone = 0;
 Loot *RADIO_UpdateMeasurements(void) {
-  Loot *msm = &gLoot[gSettings.activeVFO];
+  Loot *msm = &gLoot[gSettings.activeCH];
   msm->rssi = RADIO_GetRSSI();
   msm->open = isBK1080 ? true
                        : (radio->sq.openTime || radio->sq.closeTime
@@ -571,7 +573,7 @@ Loot *RADIO_UpdateMeasurements(void) {
     msm->open = false;
   }
 
-  if (!gMonitorMode && gCurrentPreset->band.squelch != 0) {
+  if (!gMonitorMode && radio->sq.level != 0) {
     LOOT_Update(msm);
   }
 
@@ -579,11 +581,10 @@ Loot *RADIO_UpdateMeasurements(void) {
   if (gTxState != TX_ON) {
     if (gMonitorMode) {
       rx = true;
-    } else if (gSettings.noListen &&
-               (gCurrentApp->id == APP_SPECTRUM || gCurrentApp->id == APP_ANALYZER)) {
+    } else if (gSettings.noListen && (gCurrentAppid == APP_SPECTRUM ||
+                                      gCurrentAppid == APP_ANALYZER)) {
       rx = false;
-    } else if (gSettings.skipGarbageFrequencies &&
-               (radio->rx.f % 1300000 == 0)) {
+    } else if (gSettings.skipGarbageFrequencies && (radio->f % 1300000 == 0)) {
       rx = false;
     }
     RADIO_ToggleRX(rx);
@@ -592,7 +593,7 @@ Loot *RADIO_UpdateMeasurements(void) {
 }
 
 bool RADIO_UpdateMeasurementsEx(Loot *dest) {
-  Loot *msm = &gLoot[gSettings.activeVFO];
+  Loot *msm = &gLoot[gSettings.activeCH];
   RADIO_UpdateMeasurements();
   LOOT_UpdateEx(dest, msm);
   return msm->open;
@@ -610,11 +611,11 @@ bool RADIO_TuneToCH(int32_t num) {
   if (CHANNELS_Existing(num)) {
     CH ch;
     CHANNELS_Load(num, &ch);
-    CH2VFO(&ch, radio);
-    strncpy(gVFONames[gSettings.activeVFO], ch.name, 9);
+    CH2CH(&ch, radio);
+    strncpy(gCHNames[gSettings.activeCH], ch.name, 9);
     radio->channel = num;
     onVfoUpdate();
-    RADIO_SetupByCurrentVFO();
+    RADIO_SetupByCurrentCH();
     return true;
   }
   return false;
@@ -626,10 +627,10 @@ void RADIO_NextCH(bool next) {
     i = CHANNELS_Next(radio->channel, next);
     if (i > -1) {
       radio->channel = i;
-      RADIO_VfoLoadCH(gSettings.activeVFO);
+      RADIO_VfoLoadCH(gSettings.activeCH);
     }
     onVfoUpdate();
-    RADIO_SetupByCurrentVFO();
+    RADIO_SetupByCurrentCH();
     return;
   }
 
@@ -646,10 +647,10 @@ void RADIO_NextCH(bool next) {
 }
 
 void RADIO_NextVFO(void) {
-  gSettings.activeVFO = !gSettings.activeVFO;
-  radio = &gVFO[gSettings.activeVFO];
-  gCurrentLoot = &gLoot[gSettings.activeVFO];
-  RADIO_SetupByCurrentVFO();
+  gSettings.activeCH = !gSettings.activeCH;
+  radio = &gCH[gSettings.activeCH];
+  gCurrentLoot = &gLoot[gSettings.activeCH];
+  RADIO_SetupByCurrentCH();
   RADIO_ToggleRX(false);
   SETTINGS_Save();
 }
@@ -660,11 +661,11 @@ void RADIO_ToggleVfoMR(void) {
   } else {
     RADIO_NextCH(true);
   }
-  RADIO_SaveCurrentVFO();
+  RADIO_SaveCurrentCH();
 }
 
 void RADIO_UpdateSquelchLevel(bool next) {
-  uint8_t sq = gCurrentPreset->band.squelch;
+  uint8_t sq = radio->sq.level;
   if (!next && sq > 0) {
     sq--;
   }
@@ -683,33 +684,33 @@ void RADIO_NextFreq(bool next) {
     return;
   }
 
-  Preset *nextPreset = PRESET_ByFrequency(radio->rx.f + dir);
-  if (nextPreset != gCurrentPreset && nextPreset != &defaultPreset) {
+  Band *nextBand = BAND_ByFrequency(radio->f + dir);
+  if (nextBand != gCurrentBand && nextBand != &defaultBand) {
     if (next) {
-      RADIO_TuneTo(nextPreset->band.bounds.start);
+      RADIO_TuneTo(nextBand->band.bounds.start);
     } else {
-      RADIO_TuneTo(nextPreset->band.bounds.end -
-                   nextPreset->band.bounds.end %
-                       StepFrequencyTable[nextPreset->band.step]);
+      RADIO_TuneTo(nextBand->band.bounds.end -
+                   nextBand->band.bounds.end %
+                       StepFrequencyTable[nextBand->band.step]);
     }
   } else {
-    RADIO_TuneTo(radio->rx.f + StepFrequencyTable[nextPreset->band.step] * dir);
+    RADIO_TuneTo(radio->f + StepFrequencyTable[nextBand->band.step] * dir);
   }
   onVfoUpdate();
 }
 
-void RADIO_NextPresetFreq(bool next) {
-  uint32_t steps = PRESETS_GetSteps(gCurrentPreset);
-  uint32_t step = PRESETS_GetChannel(gCurrentPreset, radio->rx.f);
+void RADIO_NextBandFreq(bool next) {
+  uint32_t steps = BANDS_GetSteps(gCurrentBand);
+  uint32_t step = BANDS_GetChannel(gCurrentBand, radio->f);
   IncDec32(&step, 0, steps, next ? 1 : -1);
-  radio->rx.f = PRESETS_GetF(gCurrentPreset, step);
-  RADIO_TuneToPure(radio->rx.f, true);
+  radio->f = BANDS_GetF(gCurrentBand, step);
+  RADIO_TuneToPure(radio->f, true);
 }
 
-void RADIO_NextPresetFreqEx(bool next, bool precise) {
-  uint32_t steps = PRESETS_GetSteps(gCurrentPreset);
-  uint32_t step = PRESETS_GetChannel(gCurrentPreset, radio->rx.f);
+void RADIO_NextBandFreqEx(bool next, bool precise) {
+  uint32_t steps = BANDS_GetSteps(gCurrentBand);
+  uint32_t step = BANDS_GetChannel(gCurrentBand, radio->f);
   IncDec32(&step, 0, steps, next ? 1 : -1);
-  radio->rx.f = PRESETS_GetF(gCurrentPreset, step);
-  RADIO_TuneToPure(radio->rx.f, precise);
+  radio->f = BANDS_GetF(gCurrentBand, step);
+  RADIO_TuneToPure(radio->f, precise);
 }

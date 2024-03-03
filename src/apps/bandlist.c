@@ -1,16 +1,16 @@
-#include "presetlist.h"
+#include "bandlist.h"
 #include "../driver/st7565.h"
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"
-#include "../helper/presetlist.h"
+#include "../helper/bandlist.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
 #include "apps.h"
 
 static uint8_t menuIndex = 0;
 
-static void getPresetText(int32_t i, char *name) {
-  Preset *item = PRESETS_Item(i);
+static void getBandText(int32_t i, char *name) {
+  Band *item = BANDS_Item(i);
   uint32_t fs = item->band.bounds.start;
   uint32_t fe = item->band.bounds.end;
   if (item->band.name[0] > 32) {
@@ -21,26 +21,26 @@ static void getPresetText(int32_t i, char *name) {
   }
 }
 
-void PRESETLIST_render(void) {
+void BANDLIST_render(void) {
   UI_ClearScreen();
-  UI_ShowMenu(getPresetText, PRESETS_Size(), menuIndex);
+  UI_ShowMenu(getBandText, BANDS_Size(), menuIndex);
 }
 
-void PRESETLIST_init(void) {
+void BANDLIST_init(void) {
   gRedrawScreen = true;
-  menuIndex = gSettings.activePreset;
+  menuIndex = gSettings.activeBand;
 }
 
-void PRESETLIST_update(void) {}
+void BANDLIST_update(void) {}
 
 static void setMenuIndexAndRun(uint16_t v) {
   menuIndex = v - 1;
-  RADIO_SelectPresetSave(menuIndex);
+  RADIO_SelectBandSave(menuIndex);
   APPS_exit();
 }
 
-bool PRESETLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  const uint8_t MENU_SIZE = PRESETS_Size();
+bool BANDLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  const uint8_t MENU_SIZE = BANDS_Size();
   if (!bKeyPressed && !bKeyHeld) {
     if (!gIsNumNavInput && key <= KEY_9) {
       NUMNAV_Init(menuIndex + 1, 1, MENU_SIZE);
@@ -62,12 +62,12 @@ bool PRESETLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     APPS_exit();
     return true;
   case KEY_MENU:
-    RADIO_SelectPresetSave(menuIndex);
+    RADIO_SelectBandSave(menuIndex);
     APPS_exit();
     return true;
   case KEY_F:
-    PRESET_Select(menuIndex);
-    APPS_run(APP_PRESET_CFG);
+    BAND_Select(menuIndex);
+    APPS_run(APP_BAND_CFG);
     return true;
   default:
     break;
@@ -75,17 +75,17 @@ bool PRESETLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-static VFO vfo;
+static CH vfo;
 
 static App meta = {
-    .id = APP_PRESETS_LIST,
-    .name = "Presets",
+    .id = APP_BANDS_LIST,
+    .name = "Bands",
     .runnable = true,
-    .init = PRESETLIST_init,
-    .update = PRESETLIST_update,
-    .render = PRESETLIST_render,
-    .key = PRESETLIST_key,
+    .init = BANDLIST_init,
+    .update = BANDLIST_update,
+    .render = BANDLIST_render,
+    .key = BANDLIST_key,
     .vfo = &vfo,
 };
 
-App *PRESETLIST_Meta(void) { return &meta; }
+App *BANDLIST_Meta(void) { return &meta; }

@@ -2,7 +2,7 @@
 #include "../driver/st7565.h"
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"
-#include "../helper/presetlist.h"
+#include "../helper/bandlist.h"
 #include "../misc.h"
 #include "../radio.h"
 #include "../ui/graphics.h"
@@ -34,25 +34,25 @@ static void setInitialSubmenuIndex(void) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_BW:
-    subMenuIndex = gCurrentPreset->band.bw;
+    subMenuIndex = radio->bw;
     break;
   case M_F_TXP:
-    subMenuIndex = gCurrentPreset->power;
+    subMenuIndex = gCurrentBand->power;
     break;
   case M_TX_OFFSET_DIR:
-    subMenuIndex = gCurrentPreset->offsetDir;
+    subMenuIndex = gCurrentBand->offsetDir;
     break;
   case M_MODULATION:
-    subMenuIndex = gCurrentPreset->band.modulation;
+    subMenuIndex = radio->modulation;
     break;
   case M_STEP:
-    subMenuIndex = gCurrentPreset->band.step;
+    subMenuIndex = radio->step;
     break;
   case M_SQ_TYPE:
-    subMenuIndex = gCurrentPreset->band.squelchType;
+    subMenuIndex = radio->sq.levelType;
     break;
   case M_SQ:
-    subMenuIndex = gCurrentPreset->band.squelch;
+    subMenuIndex = radio->sq.level;
     break;
   default:
     subMenuIndex = 0;
@@ -96,19 +96,19 @@ static void getSubmenuItemText(uint16_t index, char *name) {
 
 static void setTXF(uint32_t f) {
   radio->tx.f = f;
-  RADIO_SaveCurrentVFO();
+  RADIO_SaveCurrentCH();
 }
 
 static void setTXOffset(uint32_t f) {
-  gCurrentPreset->offset = f;
-  PRESETS_SaveCurrent();
+  gCurrentBand->offset = f;
+  BANDS_SaveCurrent();
 }
 
-void VFOCFG_init(void) {
+void CHCFG_init(void) {
   gRedrawScreen = true;
   for (uint8_t i = 0; i < MENU_SIZE; ++i) {
     if (menu[i].type == M_MODULATION) {
-      menu[i].size = RADIO_IsBK1080Range(radio->rx.f)
+      menu[i].size = RADIO_IsBK1080Range(radio->f)
                          ? ARRAY_SIZE(modulationTypeOptions)
                          : ARRAY_SIZE(modulationTypeOptions) - 1;
       break;
@@ -116,7 +116,7 @@ void VFOCFG_init(void) {
   }
 }
 
-void VFOCFG_update(void) {}
+void CHCFG_update(void) {}
 
 static bool accept(void) {
   MenuItem *item = &menu[menuIndex];
@@ -124,7 +124,7 @@ static bool accept(void) {
   switch (item->type) {
   case M_F_RX:
     gFInputCallback = RADIO_TuneTo;
-    gFInputTempFreq = radio->rx.f;
+    gFInputTempFreq = radio->f;
     APPS_run(APP_FINPUT);
     return true;
   case M_F_TX:
@@ -134,7 +134,7 @@ static bool accept(void) {
     return true;
   case M_TX_OFFSET:
     gFInputCallback = setTXOffset;
-    gFInputTempFreq = gCurrentPreset->offset;
+    gFInputTempFreq = gCurrentBand->offset;
     APPS_run(APP_FINPUT);
     return true;
   case M_SAVE:
@@ -162,7 +162,7 @@ static void setMenuIndexAndRun(uint16_t v) {
   accept();
 }
 
-bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+bool CHCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld) {
     if (!gIsNumNavInput && key <= KEY_9) {
       NUMNAV_Init(menuIndex + 1, 1, MENU_SIZE);
@@ -210,7 +210,7 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void VFOCFG_render(void) {
+void CHCFG_render(void) {
   UI_ClearScreen();
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
@@ -227,16 +227,16 @@ void VFOCFG_render(void) {
   }
 }
 
-static VFO vfo;
+static CH vfo;
 
 static App meta = {
-    .id = APP_VFO_CFG,
-    .name = "VFO cfg",
-    .init = VFOCFG_init,
-    .update = VFOCFG_update,
-    .render = VFOCFG_render,
-    .key = VFOCFG_key,
+    .id = APP_CH_CFG,
+    .name = "CH cfg",
+    .init = CHCFG_init,
+    .update = CHCFG_update,
+    .render = CHCFG_render,
+    .key = CHCFG_key,
     .vfo = &vfo,
 };
 
-App *VFOCFG_Meta(void) { return &meta; }
+App *CHCFG_Meta(void) { return &meta; }

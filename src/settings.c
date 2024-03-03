@@ -10,6 +10,8 @@ const char *BL_TIME_NAMES[7] = {"Off",  "5s",   "10s", "20s",
 
 const char *BL_SQL_MODE_NAMES[3] = {"Off", "On", "Open"};
 const char *TX_POWER_NAMES[3] = {"Low", "Mid", "High"};
+const char *TX_ALLOW_NAMES[5] = {"Disallow", "LPD+PMR", "LPD+PMR+SAT", "HAM",
+                                 "Allow"};
 const char *TX_OFFSET_NAMES[3] = {"Unset", "+", "-"};
 const char *EEPROM_TYPE_NAMES[8] = {
     "Undefined 1",       // 000
@@ -20,6 +22,13 @@ const char *EEPROM_TYPE_NAMES[8] = {
     "BL24C512",          // 101
     "BL24C1024",         // 110
     "M24M02 (x1)",       // 111
+};
+
+const FRange STOCK_BANDS[12] = {
+    {1500000, 3000000},   {3000000, 5000000},    {5000000, 7600000},
+    {10800000, 13500000}, {13600000, 17300000},  {17400000, 34900000},
+    {35000000, 39900000}, {40000000, 46900000},  {47000000, 59900000},
+    {60000000, 90000000}, {90000000, 120000000}, {120000000, 134000000},
 };
 
 const uint32_t EEPROM_SIZES[8] = {

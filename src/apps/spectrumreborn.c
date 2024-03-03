@@ -3,7 +3,7 @@
 #include "../driver/st7565.h"
 #include "../driver/uart.h"
 #include "../helper/lootlist.h"
-#include "../helper/presetlist.h"
+#include "../helper/bandlist.h"
 #include "../scheduler.h"
 #include "../settings.h"
 #include "../svc.h"
@@ -28,7 +28,7 @@ static uint32_t lastReady = 0;
 static uint32_t chPerSec = 0;
 static uint32_t scanTime = 0;
 
-static VFO vfo;
+static CH vfo;
 
 static void scanFn(bool forward);
 
@@ -37,8 +37,8 @@ static void startNewScan(bool reset) {
     SVC_Toggle(SVC_SCAN, false, 0);
     SVC_Toggle(SVC_LISTEN, false, 10);
     LOOT_Standby();
-    RADIO_TuneTo(gCurrentPreset->band.bounds.start);
-    stepsCount = PRESETS_GetSteps(gCurrentPreset);
+    RADIO_TuneTo(gCurrentBand->band.bounds.start);
+    stepsCount = BANDS_GetSteps(gCurrentBand);
     SP_Init(stepsCount, spectrumWidth);
     bandFilled = false;
 
@@ -63,16 +63,16 @@ static void scanFn(bool forward) {
     startNewScan(false);
   }
 
-  RADIO_NextPresetFreqEx(forward, vfo.scan.timeout >= 10);
+  RADIO_NextBandFreqEx(forward, vfo.scan.timeout >= 10);
 
-  if (PRESETS_GetChannel(gCurrentPreset, radio->rx.f) == stepsCount - 1) {
+  if (BANDS_GetChannel(gCurrentBand, radio->f) == stepsCount - 1) {
     scanTime = elapsedMilliseconds - lastReady;
     chPerSec = stepsCount * 1000 / scanTime;
     lastReady = elapsedMilliseconds;
     gRedrawScreen = true;
   }
 
-  if (radio->rx.f == gCurrentPreset->band.bounds.start) {
+  if (radio->f == gCurrentBand->band.bounds.start) {
     startNewScan(false);
     return;
   }
@@ -80,7 +80,7 @@ static void scanFn(bool forward) {
 }
 
 void SPECTRUM_init(void) {
-  RADIO_LoadCurrentVFO();
+  RADIO_LoadCurrentCH();
   startNewScan(true);
   gRedrawScreen = true;
   gMonitorMode = false;
@@ -90,7 +90,7 @@ void SPECTRUM_init(void) {
 
 void SPECTRUM_update(void) {
   if (gIsListening) {
-    SP_AddPoint(&gLoot[gSettings.activeVFO]);
+    SP_AddPoint(&gLoot[gSettings.activeCH]);
   }
 }
 
@@ -120,13 +120,13 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       APPS_exit();
       return true;
     case KEY_UP:
-      PRESETS_SelectPresetRelative(true);
-      RADIO_SelectPresetSave(gSettings.activePreset);
+      BANDS_SelectBandRelative(true);
+      RADIO_SelectBandSave(gSettings.activeBand);
       startNewScan(true);
       return true;
     case KEY_DOWN:
-      PRESETS_SelectPresetRelative(false);
-      RADIO_SelectPresetSave(gSettings.activePreset);
+      BANDS_SelectBandRelative(false);
+      RADIO_SelectBandSave(gSettings.activeBand);
       startNewScan(true);
       return true;
     case KEY_SIDE1:
@@ -136,19 +136,19 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       LOOT_GoodKnownLast();
       return true;
     case KEY_F:
-      APPS_run(APP_PRESET_CFG);
+      APPS_run(APP_BAND_CFG);
       return true;
     case KEY_0:
-      APPS_run(APP_PRESETS_LIST);
+      APPS_run(APP_BANDS_LIST);
       return true;
     case KEY_STAR:
       APPS_run(APP_LOOT_LIST);
       return true;
     case KEY_5:
-      if (gCurrentPreset->band.squelchType == SQUELCH_RSSI) {
-        gCurrentPreset->band.squelchType = SQUELCH_RSSI_NOISE_GLITCH;
+      if (radio->sq.levelType == SQUELCH_RSSI) {
+        radio->sq.levelType = SQUELCH_RSSI_NOISE_GLITCH;
       } else {
-        gCurrentPreset->band.squelchType++;
+        radio->sq.levelType++;
       }
       startNewScan(true);
       return true;
@@ -167,7 +167,7 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       startNewScan(true);
       return true;
     case KEY_9:
-      if (gCurrentPreset->band.squelch > 1) {
+      if (radio->sq.level > 1) {
         RADIO_UpdateSquelchLevel(false);
       }
       startNewScan(true);
@@ -184,12 +184,12 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void SPECTRUM_render(void) {
-  Band *band = &gCurrentPreset->band;
+  Band *band = &gCurrentBand->band;
 
   UI_ClearScreen();
   STATUSLINE_SetText(band->name);
 
-  SP_Render(gCurrentPreset, 0, SPECTRUM_Y, SPECTRUM_HEIGHT);
+  SP_Render(gCurrentBand, 0, SPECTRUM_Y, SPECTRUM_HEIGHT);
 
   PrintSmallEx(spectrumWidth - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "SQ%u %s",
                band->squelch, sqTypeNames[band->squelchType]);

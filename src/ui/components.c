@@ -1,7 +1,7 @@
 #include "components.h"
 #include "../driver/st7565.h"
 #include "../helper/measurements.h"
-#include "../helper/presetlist.h"
+#include "../helper/bandlist.h"
 #include "graphics.h"
 
 void UI_Battery(uint8_t Level) {
@@ -43,18 +43,18 @@ void UI_RSSIBar(uint16_t rssi, uint32_t f, uint8_t y) {
 
 void UI_FSmall(uint32_t f) {
   PrintSmallEx(LCD_WIDTH - 1, 15, 2, true,
-               modulationTypeOptions[gCurrentPreset->band.modulation]);
-  PrintSmallEx(LCD_WIDTH - 1, 21, 2, true, bwNames[gCurrentPreset->band.bw]);
+               modulationTypeOptions[radio->modulation]);
+  PrintSmallEx(LCD_WIDTH - 1, 21, 2, true, bwNames[radio->bw]);
 
-  uint16_t step = StepFrequencyTable[gCurrentPreset->band.step];
+  uint16_t step = StepFrequencyTable[radio->step];
 
   PrintSmall(0, 21, "%u.%02uk", step / 100, step % 100);
 
   if (gSettings.upconverter) {
-    UI_FSmallest(radio->rx.f, 32, 21);
+    UI_FSmallest(radio->f, 32, 21);
   }
 
-  PrintSmall(74, 21, "SQ:%u", gCurrentPreset->band.squelch);
+  PrintSmall(74, 21, "SQ:%u", radio->sq.level);
 
   PrintMediumEx(64, 15, 1, true, "%u.%05u", f / 100000, f % 100000);
 }

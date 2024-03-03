@@ -2,7 +2,7 @@
 #include "../driver/st7565.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
-#include "../helper/presetlist.h"
+#include "../helper/bandlist.h"
 #include "../radio.h"
 #include "../scheduler.h"
 #include "../settings.h"
@@ -21,7 +21,7 @@ static uint32_t centerF = 0;
 static uint8_t initialScanInterval = 0;
 static uint8_t scanInterval = 2;
 
-static Preset opt = {
+static Band opt = {
     .band =
         {
             .name = "Analyzer",
@@ -39,7 +39,7 @@ static void startNewScan(bool reset) {
   if (reset) {
     LOOT_Standby();
     RADIO_TuneToPure(msm.f = opt.band.bounds.start, true);
-    SP_Init(PRESETS_GetSteps(&opt), spectrumWidth);
+    SP_Init(BANDS_GetSteps(&opt), spectrumWidth);
     bandFilled = false;
   } else {
     SP_Begin();
@@ -91,14 +91,14 @@ static void setup(void) {
 void ANALYZER_init(void) {
   SVC_Toggle(SVC_LISTEN, false, 0);
   RADIO_ToggleRX(false);
-  RADIO_LoadCurrentVFO();
+  RADIO_LoadCurrentCH();
   RADIO_ToggleBK1080(false);
 
   gMonitorMode = false;
 
-  centerF = radio->rx.f;
+  centerF = radio->f;
   initialScanInterval = radio->scan.timeout;
-  opt.band.step = gCurrentPreset->band.step;
+  opt.band.step = radio->step;
   opt.band.squelch = 0;
 
   setup();
@@ -185,10 +185,10 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       setup();
       return true;
     case KEY_F:
-      APPS_run(APP_PRESET_CFG);
+      APPS_run(APP_BAND_CFG);
       return true;
     case KEY_0:
-      APPS_run(APP_PRESETS_LIST);
+      APPS_run(APP_BANDS_LIST);
       return true;
     case KEY_STAR:
       APPS_run(APP_LOOT_LIST);
@@ -247,7 +247,7 @@ void ANALYZER_render(void) {
   lastRender = elapsedMilliseconds;
 }
 
-static VFO vfo;
+static CH vfo;
 
 static App meta = {
     .id = APP_ANALYZER,

@@ -29,7 +29,7 @@ bool TASKMAN_Key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-static VFO vfo;
+static CH vfo;
 
 static App meta = {
     .id = APP_TASKMAN,

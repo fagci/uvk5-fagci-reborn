@@ -5,7 +5,7 @@
 #include "../helper/channels.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
-#include "../helper/presetlist.h"
+#include "../helper/bandlist.h"
 #include "../misc.h"
 #include "../radio.h"
 #include "../scheduler.h"
@@ -154,8 +154,8 @@ static void saveAllToFreeChannels(void) {
         }
       }
       CH ch;
-      ch.rx.f = loot->f;
-      snprintf(ch.name, 9, "%lu.%05lu", ch.rx.f / 100000, ch.rx.f % 100000);
+      ch.f = loot->f;
+      snprintf(ch.name, 9, "%lu.%05lu", ch.f / 100000, ch.f % 100000);
 
       CHANNELS_Save(chnum, &ch);
       loot->blacklist = true;
@@ -238,8 +238,8 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       exportLootList();
       return true;
     case KEY_5:
-      radio->rx.f = item->f;
-      radio->tx.code = item->cd != 0xFF ? item->cd : item->ct;
+      radio->f = item->f;
+      radio->codeTX = item->cd != 0xFF ? item->cd : item->ct;
       APPS_run(APP_SAVECH);
       return true;
     case KEY_0:
@@ -257,7 +257,7 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-static VFO vfo;
+static CH vfo;
 
 static App meta = {
     .id = APP_LOOT_LIST,

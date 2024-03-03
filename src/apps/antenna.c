@@ -14,8 +14,8 @@ static void setF(uint32_t nf) {
 }
 
 void ANTENNA_init(void) {
-  RADIO_LoadCurrentVFO();
-  f = GetScreenF(radio->rx.f);
+  RADIO_LoadCurrentCH();
+  f = GetScreenF(radio->f);
 }
 
 void ANTENNA_update(void) {}
@@ -86,7 +86,7 @@ void ANTENNA_render(void) {
 
 void ANTENNA_deinit(void) {}
 
-static VFO vfo;
+static CH vfo;
 
 static App meta = {
     .id = APP_ANT,

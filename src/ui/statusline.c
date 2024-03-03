@@ -104,7 +104,7 @@ void STATUSLINE_render(void) {
     icons[idx++] = SYM_CONVERTER;
   }
 
-  if (gSettings.noListen && (gCurrentApp->tags & APP_TAG_SPECTRUM)) {
+  if (gSettings.noListen && (gCurrentApptags & APP_TAG_SPECTRUM)) {
     icons[idx++] = SYM_NO_LISTEN;
   }
 

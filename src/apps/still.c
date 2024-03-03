@@ -4,7 +4,7 @@
 #include "../driver/st7565.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
-#include "../helper/presetlist.h"
+#include "../helper/bandlist.h"
 #include "../misc.h"
 #include "../radio.h"
 #include "../scheduler.h"
@@ -46,7 +46,7 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   uint16_t v, maxValue;
 
   if (s.num == BK4819_REG_13) {
-    v = gCurrentPreset->band.gainIndex;
+    v = gCurrentBand->band.gainIndex;
     maxValue = ARRAY_SIZE(gainTable) - 1;
   } else {
     v = BK4819_GetRegValue(s);
@@ -67,7 +67,7 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
 }
 
 void STILL_init(void) {
-  RADIO_LoadCurrentVFO();
+  RADIO_LoadCurrentCH();
   gRedrawScreen = true;
 }
 
@@ -134,7 +134,7 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       gMonitorMode = !gMonitorMode;
       return true;
     case KEY_F:
-      APPS_run(APP_VFO_CFG);
+      APPS_run(APP_CH_CFG);
       return true;
     case KEY_5:
       gFInputCallback = RADIO_TuneTo;
@@ -205,7 +205,7 @@ static void DrawRegs(void) {
     }
 
     if (rs.num == BK4819_REG_13) {
-      sprintf(String, "%ddB", gainTable[gCurrentPreset->band.gainIndex].gainDb);
+      sprintf(String, "%ddB", gainTable[gCurrentBand->band.gainIndex].gainDb);
     } else {
       sprintf(String, "%u", BK4819_GetRegValue(rs));
     }
@@ -217,16 +217,16 @@ static void DrawRegs(void) {
 
 void STILL_render(void) {
   UI_ClearScreen();
-  STATUSLINE_SetText(gCurrentPreset->band.name);
-  UI_FSmall(gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(radio->rx.f));
-  UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, radio->rx.f, 23);
+  STATUSLINE_SetText(gCurrentBand->band.name);
+  UI_FSmall(gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(radio->f));
+  UI_RSSIBar(gLoot[gSettings.activeCH].rssi, radio->f, 23);
 
   if (!isBK1080) {
     DrawRegs();
   }
 }
 
-static VFO vfo;
+static CH vfo;
 
 static App meta = {
     .id = APP_STILL,

@@ -27,7 +27,7 @@ typedef enum {
   M_TX_OFFSET_DIR,
   M_F_TXP,
   M_SAVE,
-} PresetCfgMenu;
+} BandCfgMenu;
 
 typedef struct MenuItem {
   const char *name;
@@ -50,7 +50,7 @@ void UI_ShowMenu(void (*getItemText)(uint16_t index, char *name), uint16_t size,
 void UI_ShowMenuEx(void (*showItem)(uint16_t i, uint16_t index, bool isCurrent),
                    uint16_t size, uint16_t currentIndex, uint16_t linesMax);
 
-void GetMenuItemValue(PresetCfgMenu type, char *Output);
+void GetMenuItemValue(BandCfgMenu type, char *Output);
 void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex);
 
 #endif /* end of include guard: MENU_H */

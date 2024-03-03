@@ -47,7 +47,7 @@ void CHSCANNER_init(void) {
     CH ch;
     int32_t num = gScanlist[i];
     CHANNELS_Load(num, &ch);
-    Loot *loot = LOOT_AddEx(ch.rx.f, false);
+    Loot *loot = LOOT_AddEx(ch.f, false);
     loot->open = false;
     loot->lastTimeOpen = 0;
   }
@@ -83,12 +83,12 @@ bool CHSCANNER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_PTT:
       RADIO_TuneToCH(gScanlist[currentIndex]);
-      RADIO_SaveCurrentVFO();
+      RADIO_SaveCurrentCH();
       APPS_run(APP_STILL);
       return true;
     case KEY_5:
       RADIO_TuneToCH(gScanlist[currentIndex]);
-      RADIO_SaveCurrentVFO();
+      RADIO_SaveCurrentCH();
       APPS_run(APP_ANALYZER);
       return true;
 
@@ -112,7 +112,7 @@ void CHSCANNER_render(void) {
 
   if (gIsListening) {
     currentIndex = scanIndex; // HACK
-    if (LOOT_Item(scanIndex)->f != currentChannel.rx.f) {
+    if (LOOT_Item(scanIndex)->f != currentChannel.f) {
       CHANNELS_Load(gScanlist[scanIndex], &currentChannel);
     }
     PrintMediumBoldEx(LCD_XCENTER, MENU_Y + 7, POS_C, C_FILL, "%s",
@@ -123,7 +123,7 @@ void CHSCANNER_render(void) {
   UI_ShowMenuEx(showItem, gScanlistSize, currentIndex, 4);
 }
 
-static VFO vfo;
+static CH vfo;
 
 static App meta = {
     .id = APP_CH_SCANNER,

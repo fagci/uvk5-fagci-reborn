@@ -3,7 +3,7 @@
 #include "../helper/channels.h"
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"
-#include "../helper/presetlist.h"
+#include "../helper/bandlist.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
 #include "../ui/statusline.h"
@@ -26,11 +26,11 @@ static void getChannelName(uint16_t i, char *name) {
 
 static void saveNamed(void) {
   CH ch;
-  VFO2CH(radio, gCurrentPreset, &ch);
+  CH2CH(radio, gCurrentBand, &ch);
   strncpy(ch.name, tempName, 9);
   CHANNELS_Save(currentChannelIndex, &ch);
   for (uint8_t i = 0; i < 2; ++i) {
-    if (gVFO[i].channel >= 0 && gVFO[i].channel == currentChannelIndex) {
+    if (gCH[i].channel >= 0 && gCH[i].channel == currentChannelIndex) {
       RADIO_VfoLoadCH(i);
       break;
     }
@@ -42,8 +42,8 @@ void SAVECH_update(void) {}
 
 static void save(void) {
   gTextinputText = tempName;
-  snprintf(gTextinputText, 9, "%lu.%05lu", radio->rx.f / 100000,
-           radio->rx.f % 100000);
+  snprintf(gTextinputText, 9, "%lu.%05lu", radio->f / 100000,
+           radio->f % 100000);
   gTextInputSize = 9;
   gTextInputCallback = saveNamed;
 }
@@ -84,7 +84,7 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_PTT:
     CHANNELS_Load(currentChannelIndex, &ch);
-    RADIO_TuneToSave(ch.rx.f);
+    RADIO_TuneToSave(ch.f);
     APPS_run(APP_STILL);
     return true;
   default:
@@ -101,7 +101,7 @@ void SAVECH_render(void) {
   UI_ShowMenu(getChannelName, chCount, currentChannelIndex);
 }
 
-static VFO vfo;
+static CH vfo;
 
 static App meta = {
     .id = APP_SAVECH,

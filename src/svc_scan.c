@@ -37,7 +37,7 @@ void (*gScanFn)(bool) = NULL;
 static void next(void) {
   lastListenState = false;
   gScanFn(gScanForward);
-  lastSettedF = radio->rx.f;
+  lastSettedF = radio->f;
   SetTimeout(&timeout, radio->scan.timeout);
   if (gScanRedraw) {
     gRedrawScreen = true;
@@ -52,7 +52,7 @@ void SVC_SCAN_Init(void) {
     if (radio->channel >= 0) {
       gScanFn = RADIO_NextCH;
     } else {
-      gScanFn = RADIO_NextPresetFreq;
+      gScanFn = RADIO_NextBandFreq;
     }
   }
   next();
@@ -71,7 +71,7 @@ void SVC_SCAN_Update(void) {
     return;
   }
 
-  if (lastSettedF != radio->rx.f) {
+  if (lastSettedF != radio->f) {
     SetTimeout(&timeout, 0);
   }
 }

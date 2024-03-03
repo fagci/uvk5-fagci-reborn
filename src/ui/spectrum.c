@@ -71,7 +71,7 @@ void SP_ResetPoint(void) {
   }
 }
 
-void SP_Render(Preset *p, uint8_t sx, uint8_t sy, uint8_t sh) {
+void SP_Render(Band *p, uint8_t sx, uint8_t sy, uint8_t sh) {
   const uint8_t S_BOTTOM = sy + sh;
   const uint16_t rssiMin = Min(rssiHistory, filledPoints);
   const uint16_t rssiMax = Max(rssiHistory, filledPoints);
@@ -79,7 +79,7 @@ void SP_Render(Preset *p, uint8_t sx, uint8_t sy, uint8_t sh) {
   const uint16_t vMax = rssiMax + 20 + (rssiMax - rssiMin) / 2;
 
   if (p) {
-    UI_DrawTicks(sx, sx + historySize - 1, S_BOTTOM, &p->band);
+    UI_DrawTicks(sx, sx + historySize - 1, S_BOTTOM, &pband);
   }
 
   DrawHLine(sx, S_BOTTOM, historySize, C_FILL);
