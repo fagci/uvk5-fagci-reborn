@@ -351,9 +351,15 @@ void RADIO_ToggleBK1080(bool on) {
   }
 }
 
-void RADIO_SetModulationByBand(void) {
-  ModulationType mod = radio->modulation;
-  if (mod == MOD_WFM) {
+void RADIO_SetModulationByBand(void) {}
+
+void RADIO_ToggleModulation(void) {
+  if (radio->modulation == MOD_WFM) {
+    radio->modulation = MOD_FM;
+  } else {
+    ++radio->modulation;
+  }
+  if (radio->modulation == MOD_WFM) {
     if (RADIO_IsBK1080Range(radio->f)) {
       RADIO_ToggleBK1080(true);
       return;
@@ -362,23 +368,14 @@ void RADIO_SetModulationByBand(void) {
   }
   RADIO_ToggleBK1080(false);
   BK4819_SetModulation(radio->modulation);
-  onBandUpdate();
-}
-
-void RADIO_ToggleModulation(void) {
-  if (radio->modulation == MOD_WFM) {
-    radio->modulation = MOD_FM;
-  } else {
-    ++radio->modulation;
-  }
-  RADIO_SetModulationByBand();
+  onVfoUpdate();
 }
 
 void RADIO_UpdateStep(bool inc) {
   uint8_t step = radio->step;
   IncDec8(&step, 0, STEP_200_0kHz, inc ? 1 : -1);
   radio->step = step;
-  onBandUpdate();
+  onVfoUpdate();
 }
 
 void RADIO_ToggleListeningBW(void) {
@@ -389,7 +386,7 @@ void RADIO_ToggleListeningBW(void) {
   }
 
   BK4819_SetFilterBandwidth(radio->bw);
-  onBandUpdate();
+  onVfoUpdate();
 }
 
 void RADIO_ToggleTxPower(void) {
@@ -399,12 +396,12 @@ void RADIO_ToggleTxPower(void) {
     ++radio->power;
   }
 
-  BK4819_SetFilterBandwidth(radio->bw);
-  onBandUpdate();
+  BK4819_SetFilterBandwidth(radio->bw); // TODO: ???
+  onVfoUpdate();
 }
 
 void RADIO_TuneToPure(uint32_t f, bool precise) {
-  LOOT_Replace(&gLoot[gSettings.activeCH], f);
+  LOOT_Add(f);
   if (isBK1080) {
     BK1080_SetFrequency(f);
   } else {
@@ -430,7 +427,7 @@ void RADIO_TuneTo(uint32_t f) {
 void RADIO_TuneToSave(uint32_t f) {
   RADIO_TuneTo(f);
   RADIO_SaveCurrentCH();
-  gCurrentBand->lastUsedFreq = f;
+  radio->vfo.lastUsedFreq = f;
   BANDS_SaveCurrent();
 }
 
@@ -472,23 +469,23 @@ void RADIO_LoadCurrentCH(void) {
 void RADIO_SetSquelch(uint8_t sq) {
   radio->sq.level = sq;
   BK4819_Squelch(sq, radio->f, radio->sq.openTime, radio->sq.closeTime);
-  onBandUpdate();
+  onVfoUpdate();
 }
 
 void RADIO_SetSquelchType(SquelchType t) {
-  radio->sq.levelType = t;
-  onBandUpdate();
+  radio->sq.type = t;
+  onVfoUpdate();
 }
 
 void RADIO_SetGain(uint8_t gainIndex) {
-  BK4819_SetGain(gCurrentBand->band.gainIndex = gainIndex);
-  onBandUpdate();
+  BK4819_SetGain(radio->gainIndex = gainIndex);
+  onVfoUpdate();
 }
 
-void RADIO_SetupParams() {
+void RADIO_SetupParams(void) {
   BK4819_SelectFilter(radio->f);
   BK4819_SquelchType(radio->sq.type);
-  BK4819_Squelch(radio->sq.level, fMid, radio->sq.openTime,
+  BK4819_Squelch(radio->sq.level, radio->f, radio->sq.openTime,
                  radio->sq.closeTime);
   BK4819_SetFilterBandwidth(radio->bw);
   BK4819_SetModulation(radio->modulation);
@@ -512,7 +509,7 @@ static bool isSqOpenSimple(uint16_t r) {
 
   bool open;
 
-  switch (radio->sq.levelType) {
+  switch (radio->sq.type) {
   case SQUELCH_RSSI_NOISE_GLITCH:
     n = BK4819_GetNoise();
     g = BK4819_GetGlitch();
@@ -581,8 +578,8 @@ Loot *RADIO_UpdateMeasurements(void) {
   if (gTxState != TX_ON) {
     if (gMonitorMode) {
       rx = true;
-    } else if (gSettings.noListen && (gCurrentAppid == APP_SPECTRUM ||
-                                      gCurrentAppid == APP_ANALYZER)) {
+    } else if (gSettings.noListen && (gCurrentApp->id == APP_SPECTRUM ||
+                                      gCurrentApp->id == APP_ANALYZER)) {
       rx = false;
     } else if (gSettings.skipGarbageFrequencies && (radio->f % 1300000 == 0)) {
       rx = false;

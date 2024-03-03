@@ -129,6 +129,7 @@ typedef struct {
 } __attribute__((packed)) PowerCalibration;
 
 typedef struct {
+  uint32_t lastUsedFreq : 27;
   int16_t channel;
 } VFO_Params;
 
@@ -179,7 +180,6 @@ typedef struct {
   union {
     char name[10];
     VFO_Params vfo;
-    uint32_t lastUsedFreq : 27;
   };
   uint32_t f : 27;
   uint32_t offset : 27;
