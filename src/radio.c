@@ -428,7 +428,8 @@ void RADIO_TuneToSave(uint32_t f) {
   RADIO_TuneTo(f);
   RADIO_SaveCurrentCH();
   radio->vfo.lastUsedFreq = f;
-  BANDS_SaveCurrent();
+
+  RADIO_SaveCurrentCH();
 }
 
 void RADIO_SaveCurrentCH(void) { CHS_Save(gSettings.activeCH, radio); }
@@ -545,7 +546,7 @@ static bool isSqOpenSimple(uint16_t r) {
 
 static uint32_t lastTailTone = 0;
 Loot *RADIO_UpdateMeasurements(void) {
-  Loot *msm = &gLoot[gSettings.activeCH];
+  Loot *msm = LOOT_Get(radio->f);
   msm->rssi = RADIO_GetRSSI();
   msm->open = isBK1080 ? true
                        : (radio->sq.openTime || radio->sq.closeTime
@@ -590,7 +591,7 @@ Loot *RADIO_UpdateMeasurements(void) {
 }
 
 bool RADIO_UpdateMeasurementsEx(Loot *dest) {
-  Loot *msm = &gLoot[gSettings.activeCH];
+  Loot *msm = LOOT_Get(radio->f);
   RADIO_UpdateMeasurements();
   LOOT_UpdateEx(dest, msm);
   return msm->open;
@@ -604,13 +605,10 @@ void RADIO_EnableToneDetection(void) {
                                           BK4819_REG_3F_SQUELCH_FOUND */);
 }
 
-bool RADIO_TuneToCH(int32_t num) {
+bool RADIO_TuneToCH(int16_t num) {
   if (CHANNELS_Existing(num)) {
-    CH ch;
-    CHANNELS_Load(num, &ch);
-    CH2CH(&ch, radio);
-    strncpy(gCHNames[gSettings.activeCH], ch.name, 9);
-    radio->channel = num;
+    CHANNELS_Load(num, radio);
+    radio->vfo.channel = num;
     onVfoUpdate();
     RADIO_SetupByCurrentCH();
     return true;
@@ -619,11 +617,11 @@ bool RADIO_TuneToCH(int32_t num) {
 }
 
 void RADIO_NextCH(bool next) {
-  int32_t i;
-  if (radio->channel >= 0) {
-    i = CHANNELS_Next(radio->channel, next);
+  int16_t i;
+  if (radio->vfo.channel >= 0) {
+    i = CHANNELS_Next(radio->vfo.channel, next);
     if (i > -1) {
-      radio->channel = i;
+      radio->vfo.channel = i;
       RADIO_VfoLoadCH(gSettings.activeCH);
     }
     onVfoUpdate();
@@ -631,10 +629,10 @@ void RADIO_NextCH(bool next) {
     return;
   }
 
-  i = radio->channel;
+  i = radio->vfo.channel;
 
-  if (!CHANNELS_Existing(radio->channel)) {
-    i = CHANNELS_Next(radio->channel, true);
+  if (!CHANNELS_Existing(radio->vfo.channel)) {
+    i = CHANNELS_Next(radio->vfo.channel, true);
     if (i == -1) {
       return;
     }

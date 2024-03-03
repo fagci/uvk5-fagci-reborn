@@ -47,7 +47,7 @@ void RADIO_ToggleRX(bool on);
 void RADIO_ToggleTX(bool on);
 
 void RADIO_TuneTo(uint32_t f);
-bool RADIO_TuneToCH(int32_t num);
+bool RADIO_TuneToCH(int16_t num);
 void RADIO_TuneToPure(uint32_t f, bool precise);
 void RADIO_TuneToSave(uint32_t f);
 void RADIO_SelectBand(int8_t num);
