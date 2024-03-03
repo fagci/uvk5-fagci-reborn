@@ -144,7 +144,7 @@ void SCANLISTS_render(void) {
 
 static VFO vfo;
 
-App meta = {
+static App meta = {
     .id = APP_SCANLISTS,
     .name = "SCANLISTS",
     .init = SCANLISTS_init,

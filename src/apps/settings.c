@@ -469,7 +469,7 @@ void SETTINGS_render(void) {
 
 static VFO vfo;
 
-App meta = {
+static App meta = {
     .id = APP_SETTINGS,
     .name = "Settings",
     .init = SETTINGS_init,

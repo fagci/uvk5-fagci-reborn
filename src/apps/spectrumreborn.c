@@ -224,7 +224,7 @@ void SPECTRUM_render(void) {
   lastRender = elapsedMilliseconds;
 }
 
-App meta = {
+static App meta = {
     .id = APP_SPECTRUM,
     .name = "Spectrum band",
     .init = SPECTRUM_init,

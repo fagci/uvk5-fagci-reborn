@@ -90,6 +90,7 @@ bool ABOUT_key(KEY_Code_t k, bool p, bool h) {
 }
 
 static App meta = {
+    .id = APP_ABOUT,
     .name = "ABOUT",
     .init = ABOUT_Init,
     .update = ABOUT_Update,

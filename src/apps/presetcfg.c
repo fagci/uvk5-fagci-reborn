@@ -192,7 +192,7 @@ void PRESETCFG_render(void) {
 
 static VFO vfo;
 
-App meta = {
+static App meta = {
     .id = APP_PRESET_CFG,
     .name = "Preset cfg",
     .init = PRESETCFG_init,

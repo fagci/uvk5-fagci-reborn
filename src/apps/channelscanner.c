@@ -125,7 +125,7 @@ void CHSCANNER_render(void) {
 
 static VFO vfo;
 
-App meta = {
+static App meta = {
     .id = APP_CH_SCANNER,
     .name = "CHSCANNER",
     .init = CHSCANNER_init,

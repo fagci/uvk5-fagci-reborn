@@ -88,7 +88,7 @@ void ANTENNA_deinit(void) {}
 
 static VFO vfo;
 
-App meta = {
+static App meta = {
     .id = APP_ANT,
     .name = "ANTENNA",
     .init = ANTENNA_init,

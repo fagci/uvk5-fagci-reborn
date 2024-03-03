@@ -42,6 +42,7 @@ typedef enum {
   APP_ABOUT,
   APP_ANT,
   APP_TASKMAN,
+  APP_MESSENGER,
 } AppType_t;
 
 typedef struct {
@@ -59,6 +60,7 @@ typedef struct {
 } App;
 
 void APPS_Register(App *app);
+void APPS_RegisterAll(void);
 
 extern App *apps[256];
 extern App *appsAvailableToRun[256];

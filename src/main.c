@@ -9,6 +9,7 @@
 #include "driver/system.h"
 #include "driver/systick.h"
 #include "driver/uart.h"
+#include "helper/appsregistry.h"
 #include "helper/battery.h"
 #include "helper/presetlist.h"
 #include "radio.h"
@@ -126,7 +127,11 @@ void Main(void) {
 
   BOARD_Init();
   BACKLIGHT_Toggle(true);
+
   SVC_Toggle(SVC_RENDER, true, 25);
+
+  APPS_RegisterAll();
+
   KEY_Code_t pressedKey = KEYBOARD_Poll();
   if (pressedKey == KEY_EXIT) {
     BACKLIGHT_SetDuration(120);

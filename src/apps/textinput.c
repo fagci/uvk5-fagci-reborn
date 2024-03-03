@@ -263,7 +263,7 @@ void TEXTINPUT_render(void) {
 
 static VFO vfo;
 
-App meta = {
+static App meta = {
     .id = APP_TEXTINPUT,
     .name = "TEXTINPUT",
     .init = TEXTINPUT_init,

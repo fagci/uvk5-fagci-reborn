@@ -589,7 +589,7 @@ bool RESET_key(KEY_Code_t k, bool p, bool h) { return true; }
 
 static VFO vfo;
 
-App meta = {
+static App meta = {
     .id = APP_RESET,
     .name = "RESET",
     .init = RESET_Init,

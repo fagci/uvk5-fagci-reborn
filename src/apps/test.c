@@ -9,8 +9,6 @@
 static uint32_t page = 0;
 const uint8_t PAGE_SZ = 64;
 
-static void TEST_Init(void) {}
-
 static void TEST_Update(void) { gRedrawScreen = true; }
 
 static void TEST_Render(void) {
@@ -57,7 +55,7 @@ static bool TEST_key(KEY_Code_t k, bool p, bool h) {
 
 static VFO vfo;
 
-App meta = {
+static App meta = {
     .id = APP_TEST,
     .name = "TEST",
     .update = TEST_Update,

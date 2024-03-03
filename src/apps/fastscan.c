@@ -79,7 +79,7 @@ void FASTSCAN_deinit(void) {
 
 static VFO vfo;
 
-App meta = {
+static App meta = {
     .id = APP_FASTSCAN,
     .name = "FASTSCAN",
     .init = FASTSCAN_init,

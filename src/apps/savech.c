@@ -105,7 +105,7 @@ void SAVECH_render(void) {
 
 static VFO vfo;
 
-App meta = {
+static App meta = {
     .id = APP_SAVECH,
     .name = "SAVECH",
     .init = SAVECH_init,

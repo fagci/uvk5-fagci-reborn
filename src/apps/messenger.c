@@ -67,7 +67,8 @@ void MESSENGER_render(void) {
 
 void MESSENGER_deinit(void) {}
 
-App meta = {
+static App meta = {
+    .id = APP_MESSENGER,
     .name = "Messenger",
     .init = MESSENGER_init,
     .key = MESSENGER_key,

@@ -231,7 +231,7 @@ void VFOCFG_render(void) {
 
 static VFO vfo;
 
-App meta = {
+static App meta = {
     .id = APP_VFO_CFG,
     .name = "VFO cfg",
     .init = VFOCFG_init,

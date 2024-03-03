@@ -258,7 +258,7 @@ void VFO2_render(void) {
 
 static VFO vfo;
 
-App meta = {
+static App meta = {
     .id = APP_VFO2,
     .name = "VFO2",
     .init = VFO2_init,

@@ -228,7 +228,7 @@ void STILL_render(void) {
 
 static VFO vfo;
 
-App meta = {
+static App meta = {
     .id = APP_STILL,
     .name = "STILL",
     .init = STILL_init,

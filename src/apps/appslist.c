@@ -77,7 +77,7 @@ bool APPSLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
 static VFO vfo;
 
-App meta = {
+static App meta = {
     .id = APP_APPSLIST,
     .name = "Apps",
     .init = APPSLIST_init,

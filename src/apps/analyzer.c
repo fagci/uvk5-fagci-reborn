@@ -249,7 +249,7 @@ void ANALYZER_render(void) {
 
 static VFO vfo;
 
-App meta = {
+static App meta = {
     .id = APP_ANALYZER,
     .name = "SPECTRUM Analyzer",
     .init = ANALYZER_init,
