@@ -24,11 +24,11 @@ static const GFXfont *fontMediumBold = &muHeavy8ptBold;
 static const GFXfont *fontBig = &dig_11;
 static const GFXfont *fontBiggest = &dig_14;
 
-void UI_ClearStatus(void) {
+void UI_ClearStatus() {
   memset(gFrameBuffer[0], 0, sizeof(gFrameBuffer[0]));
 }
 
-void UI_ClearScreen(void) {
+void UI_ClearScreen() {
   for (uint8_t i = 1; i < 8; ++i) {
     memset(gFrameBuffer[i], 0, sizeof(gFrameBuffer[i]));
   }

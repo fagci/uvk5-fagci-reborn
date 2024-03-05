@@ -35,25 +35,25 @@ const uint8_t PAGE_SIZES[8] = {
     128, // 111
 };
 
-void SETTINGS_Save(void) {
+void SETTINGS_Save() {
   EEPROM_WriteBuffer(SETTINGS_OFFSET, &gSettings, SETTINGS_SIZE);
 }
 
-void SETTINGS_Load(void) {
+void SETTINGS_Load() {
   EEPROM_ReadBuffer(SETTINGS_OFFSET, &gSettings, SETTINGS_SIZE);
 }
 
-void SETTINGS_DelayedSave(void) {
+void SETTINGS_DelayedSave() {
   TaskRemove(SETTINGS_Save);
   TaskAdd("Settings save", SETTINGS_Save, 5000, false, 0);
 }
 
-uint32_t SETTINGS_GetFilterBound(void) {
+uint32_t SETTINGS_GetFilterBound() {
   return gSettings.bound_240_280 ? VHF_UHF_BOUND2 : VHF_UHF_BOUND1;
 }
 
-uint32_t SETTINGS_GetEEPROMSize(void) {
+uint32_t SETTINGS_GetEEPROMSize() {
   return EEPROM_SIZES[gSettings.eepromType];
 }
 
-uint8_t SETTINGS_GetPageSize(void) { return PAGE_SIZES[gSettings.eepromType]; }
+uint8_t SETTINGS_GetPageSize() { return PAGE_SIZES[gSettings.eepromType]; }

@@ -79,7 +79,7 @@ static void scanFn(bool forward) {
   SP_Next();
 }
 
-void SPECTRUM_init(void) {
+void SPECTRUM_init() {
   RADIO_LoadCurrentCH();
   startNewScan(true);
   gRedrawScreen = true;
@@ -88,13 +88,13 @@ void SPECTRUM_init(void) {
   SVC_Toggle(SVC_SCAN, true, 1);
 }
 
-void SPECTRUM_update(void) {
+void SPECTRUM_update() {
   if (gIsListening) {
     SP_AddPoint(&gLoot[gSettings.activeCH]);
   }
 }
 
-void SPECTRUM_deinit(void) {
+void SPECTRUM_deinit() {
   SVC_Toggle(SVC_SCAN, false, 0);
   SVC_Toggle(SVC_LISTEN, false, 0);
   SVC_Toggle(SVC_LISTEN, true, 10);
@@ -183,7 +183,7 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void SPECTRUM_render(void) {
+void SPECTRUM_render() {
   Band *band = &gCurrentBand->band;
 
   UI_ClearScreen();
@@ -236,4 +236,4 @@ static App meta = {
     .vfo = &vfo,
 };
 
-App *SPECTRUM_Meta(void) { return &meta; }
+App *SPECTRUM_Meta() { return &meta; }

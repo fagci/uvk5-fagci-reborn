@@ -61,7 +61,7 @@ static uint8_t getBandIndex(uint32_t f) {
   return 6;
 }
 
-static void onVfoUpdate(void) {
+static void onVfoUpdate() {
   TaskRemove(RADIO_SaveCurrentCH);
   TaskAdd("CH save", RADIO_SaveCurrentCH, 2000, false, 0);
 }
@@ -165,7 +165,7 @@ static bool isSqOpenSimple(uint16_t r) {
   return open;
 }
 
-void RADIO_SetupRegisters(void) {
+void RADIO_SetupRegisters() {
   uint32_t Frequency = 0;
 
   GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
@@ -240,7 +240,7 @@ void RADIO_ToggleRX(bool on) {
   }
 }
 
-void RADIO_EnableCxCSS(void) {
+void RADIO_EnableCxCSS() {
   switch (radio->codeTypeTX) {
   /* case CODE_TYPE_DIGITAL:
   case CODE_TYPE_REVERSE_DIGITAL:
@@ -367,9 +367,9 @@ void RADIO_ToggleBK1080(bool on) {
   }
 }
 
-void RADIO_SetModulationByBand(void) {}
+void RADIO_SetModulationByBand() {}
 
-void RADIO_ToggleModulation(void) {
+void RADIO_ToggleModulation() {
   if (radio->modulation == MOD_WFM) {
     radio->modulation = MOD_FM;
   } else {
@@ -394,7 +394,7 @@ void RADIO_UpdateStep(bool inc) {
   onVfoUpdate();
 }
 
-void RADIO_ToggleListeningBW(void) {
+void RADIO_ToggleListeningBW() {
   if (radio->bw == BK4819_FILTER_BW_NARROWER) {
     radio->bw = BK4819_FILTER_BW_WIDE;
   } else {
@@ -405,7 +405,7 @@ void RADIO_ToggleListeningBW(void) {
   onVfoUpdate();
 }
 
-void RADIO_ToggleTxPower(void) {
+void RADIO_ToggleTxPower() {
   if (radio->power == TX_POW_HIGH) {
     radio->power = TX_POW_LOW;
   } else {
@@ -424,7 +424,7 @@ void RADIO_TuneToPure(uint32_t f, bool precise) {
   }
 }
 
-void RADIO_SetupByCurrentCH(void) {
+void RADIO_SetupByCurrentCH() {
   RADIO_SetupParams();
   RADIO_ToggleBK1080(radio->modulation == MOD_WFM &&
                      RADIO_IsBK1080Range(radio->f));
@@ -444,7 +444,7 @@ void RADIO_TuneToSave(uint32_t f) {
   RADIO_SaveCurrentCH();
 }
 
-void RADIO_SaveCurrentCH(void) { CHS_Save(gSettings.activeCH, radio); }
+void RADIO_SaveCurrentCH() { CHS_Save(gSettings.activeCH, radio); }
 
 void RADIO_VfoLoadCH(uint8_t i) {
   CH ch;
@@ -452,7 +452,7 @@ void RADIO_VfoLoadCH(uint8_t i) {
   strncpy(gCHNames[i], ch.name, 9);
 }
 
-void RADIO_LoadCurrentCH(void) {
+void RADIO_LoadCurrentCH() {
   for (uint8_t i = 0; i < 2; ++i) {
     CHS_Load(i, &gCH[i]);
     if (gCH[i].vfo.channel >= 0) {
@@ -484,7 +484,7 @@ void RADIO_SetGain(uint8_t gainIndex) {
   onVfoUpdate();
 }
 
-void RADIO_SetupParams(void) {
+void RADIO_SetupParams() {
   RADIO_TuneToPure(radio->f, true);
   BK4819_SquelchType(radio->sq.type);
   BK4819_Squelch(radio->sq.level, radio->f, radio->sq.openTime,
@@ -494,10 +494,10 @@ void RADIO_SetupParams(void) {
   BK4819_SetGain(radio->gainIndex);
 }
 
-uint16_t RADIO_GetRSSI(void) { return gIsBK1080 ? 128 : BK4819_GetRSSI(); }
+uint16_t RADIO_GetRSSI() { return gIsBK1080 ? 128 : BK4819_GetRSSI(); }
 
 static uint32_t lastTailTone = 0;
-Loot *RADIO_UpdateMeasurements(void) {
+Loot *RADIO_UpdateMeasurements() {
   Loot *msm = LOOT_Get(radio->f);
   msm->rssi = RADIO_GetRSSI();
   msm->open = gIsBK1080 ? true
@@ -549,7 +549,7 @@ bool RADIO_UpdateMeasurementsEx(Loot *dest) {
   return msm->open;
 }
 
-void RADIO_EnableToneDetection(void) {
+void RADIO_EnableToneDetection() {
   BK4819_SetCTCSSFrequency(670);
   BK4819_SetTailDetection(550);
   BK4819_WriteRegister(BK4819_REG_3F, BK4819_REG_3F_CxCSS_TAIL/*  |
@@ -593,9 +593,9 @@ void RADIO_NextCH(bool next) {
   RADIO_TuneToCH(i);
 }
 
-uint8_t RADIO_GetActiveVFOGroup(void) { return radio->scanlists; }
+uint8_t RADIO_GetActiveVFOGroup() { return radio->scanlists; }
 
-void RADIO_NextVFO(void) {
+void RADIO_NextVFO() {
   gSettings.activeCH = !gSettings.activeCH;
   radio = &gCH[gSettings.activeCH];
   gCurrentLoot = &gLoot[gSettings.activeCH];
@@ -604,7 +604,7 @@ void RADIO_NextVFO(void) {
   SETTINGS_Save();
 }
 
-void RADIO_ToggleVfoMR(void) {
+void RADIO_ToggleVfoMR() {
   if (radio->vfo.channel >= 0) {
     radio->vfo.channel = -1;
   } else {

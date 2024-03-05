@@ -31,7 +31,7 @@ uint8_t gFrameBuffer[8][LCD_WIDTH];
 
 bool gRedrawScreen = true;
 
-static void ST7565_Configure_GPIO_B11(void) {
+static void ST7565_Configure_GPIO_B11() {
   GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_ST7565_RES);
   SYSTEM_DelayMs(1);
   GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_ST7565_RES);
@@ -71,7 +71,7 @@ static void ST7565_FillScreen(uint8_t Value) {
   SPI_ToggleMasterMode(&SPI0->CR, true);
 }
 
-static void fix(void) {
+static void fix() {
   SPI_ToggleMasterMode(&SPI0->CR, false);
 
   ST7565_WriteByte(0xA2); // bias 9
@@ -97,7 +97,7 @@ static void fix(void) {
   SPI_ToggleMasterMode(&SPI0->CR, true);
 }
 
-void ST7565_Blit(void) {
+void ST7565_Blit() {
   uint8_t Line;
   uint8_t Column;
 
@@ -119,7 +119,7 @@ void ST7565_Blit(void) {
   SPI_ToggleMasterMode(&SPI0->CR, true);
 }
 
-void ST7565_Init(void) {
+void ST7565_Init() {
   SPI0_Init();
   ST7565_Configure_GPIO_B11();
   SPI_ToggleMasterMode(&SPI0->CR, false);
@@ -157,7 +157,7 @@ void ST7565_WriteByte(uint8_t Value) {
   SPI0->WDR = Value;
 }
 
-void ST7565_Render(void) {
+void ST7565_Render() {
   if (gRedrawScreen) {
     ST7565_Blit();
     gRedrawScreen = false;

@@ -3,12 +3,11 @@
 
 #include "../driver/keyboard.h"
 #include "../helper/appsregistry.h"
-#include <stdbool.h>
 #include <stdint.h>
 
-void TASKMAN_Init(void);
-void TASKMAN_Render(void);
+void TASKMAN_Init();
+void TASKMAN_Render();
 bool TASKMAN_Key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
-App *TASKMAN_Meta(void);
+App *TASKMAN_Meta();
 
 #endif /* end of include guard: TASKMAN_H */

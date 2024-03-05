@@ -18,7 +18,6 @@
 #define DRIVER_BK4819_h
 
 #include "../driver/bk4819-regs.h"
-#include <stdbool.h>
 #include <stdint.h>
 
 #define VHF_UHF_BOUND1 24000000
@@ -97,7 +96,7 @@ extern const Gain gainTable[19];
 extern bool gRxIdleMode;
 extern const uint8_t SQ[2][6][11];
 
-void BK4819_Init(void);
+void BK4819_Init();
 uint16_t BK4819_ReadRegister(BK4819_REGISTER_t Register);
 void BK4819_WriteRegister(BK4819_REGISTER_t Register, uint16_t Data);
 void BK4819_WriteU8(uint8_t Data);
@@ -114,7 +113,7 @@ void BK4819_EnableVox(uint16_t Vox1Threshold, uint16_t Vox0Threshold);
 void BK4819_SetFilterBandwidth(BK4819_FilterBandwidth_t Bandwidth);
 void BK4819_SetupPowerAmplifier(uint16_t Bias, uint32_t Frequency);
 void BK4819_SetFrequency(uint32_t Frequency);
-uint32_t BK4819_GetFrequency(void);
+uint32_t BK4819_GetFrequency();
 void BK4819_SetupSquelch(uint8_t SquelchOpenRSSIThresh,
                          uint8_t SquelchCloseRSSIThresh,
                          uint8_t SquelchOpenNoiseThresh,
@@ -127,35 +126,35 @@ void BK4819_Squelch(uint8_t sql, uint32_t f, uint8_t OpenDelay,
 void BK4819_SquelchType(SquelchType t);
 
 void BK4819_SetAF(BK4819_AF_Type_t AF);
-void BK4819_RX_TurnOn(void);
+void BK4819_RX_TurnOn();
 void BK4819_DisableFilter();
 void BK4819_SelectFilter(uint32_t Frequency);
-void BK4819_DisableScramble(void);
+void BK4819_DisableScramble();
 void BK4819_EnableScramble(uint8_t Type);
-void BK4819_DisableVox(void);
-void BK4819_DisableDTMF(void);
-void BK4819_EnableDTMF(void);
+void BK4819_DisableVox();
+void BK4819_DisableDTMF();
+void BK4819_EnableDTMF();
 void BK4819_PlayTone(uint16_t Frequency, bool bTuningGainSwitch);
-void BK4819_EnterTxMute(void);
-void BK4819_ExitTxMute(void);
-void BK4819_Sleep(void);
-void BK4819_TurnsOffTones_TurnsOnRX(void);
-void BK4819_SetupAircopy(void);
-void BK4819_ResetFSK(void);
-void BK4819_FskClearFifo(void);
-void BK4819_FskEnableRx(void);
-void BK4819_FskEnableTx(void);
-void BK4819_Idle(void);
-void BK4819_ExitBypass(void);
-void BK4819_PrepareTransmit(void);
-void BK4819_TxOn_Beep(void);
-void BK4819_ExitSubAu(void);
+void BK4819_EnterTxMute();
+void BK4819_ExitTxMute();
+void BK4819_Sleep();
+void BK4819_TurnsOffTones_TurnsOnRX();
+void BK4819_SetupAircopy();
+void BK4819_ResetFSK();
+void BK4819_FskClearFifo();
+void BK4819_FskEnableRx();
+void BK4819_FskEnableTx();
+void BK4819_Idle();
+void BK4819_ExitBypass();
+void BK4819_PrepareTransmit();
+void BK4819_TxOn_Beep();
+void BK4819_ExitSubAu();
 
-void BK4819_EnableRX(void);
+void BK4819_EnableRX();
 
 void BK4819_EnterDTMF_TX(bool bLocalLoopback);
 void BK4819_ExitDTMF_TX(bool bKeep);
-void BK4819_EnableTXLink(void);
+void BK4819_EnableTXLink();
 
 void BK4819_PlayDTMF(char Code);
 void BK4819_PlayDTMFString(const char *pString, bool bDelayFirst,
@@ -166,36 +165,36 @@ void BK4819_PlayDTMFString(const char *pString, bool bDelayFirst,
 void BK4819_TransmitTone(bool bLocalLoopback, uint32_t Frequency);
 
 void BK4819_GenTail(uint8_t Tail);
-void BK4819_EnableCDCSS(void);
-void BK4819_EnableCTCSS(void);
+void BK4819_EnableCDCSS();
+void BK4819_EnableCTCSS();
 
-uint16_t BK4819_GetRSSI(void);
-uint8_t BK4819_GetNoise(void);
-uint8_t BK4819_GetGlitch(void);
-uint8_t BK4819_GetSNR(void);
+uint16_t BK4819_GetRSSI();
+uint8_t BK4819_GetNoise();
+uint8_t BK4819_GetGlitch();
+uint8_t BK4819_GetSNR();
 
 bool BK4819_GetFrequencyScanResult(uint32_t *pFrequency);
 BK4819_CssScanResult_t BK4819_GetCxCSSScanResult(uint32_t *pCdcssFreq,
                                                  uint16_t *pCtcssFreq);
-void BK4819_DisableFrequencyScan(void);
-void BK4819_EnableFrequencyScan(void);
+void BK4819_DisableFrequencyScan();
+void BK4819_EnableFrequencyScan();
 void BK4819_EnableFrequencyScanEx(FreqScanTime t);
 void BK4819_SetScanFrequency(uint32_t Frequency);
 
-void BK4819_StopScan(void);
+void BK4819_StopScan();
 
-uint8_t BK4819_GetDTMF_5TONE_Code(void);
+uint8_t BK4819_GetDTMF_5TONE_Code();
 
-uint8_t BK4819_GetCDCSSCodeType(void);
-uint8_t BK4819_GetCTCType(void);
+uint8_t BK4819_GetCDCSSCodeType();
+uint8_t BK4819_GetCTCType();
 
 void BK4819_SendFSKData(uint16_t *pData);
-void BK4819_PrepareFSKReceive(void);
+void BK4819_PrepareFSKReceive();
 
-void BK4819_PlayRoger(void);
-void BK4819_PlayRogerMDC(void);
+void BK4819_PlayRoger();
+void BK4819_PlayRogerMDC();
 
-void BK4819_Enable_AfDac_DiscMode_TxDsp(void);
+void BK4819_Enable_AfDac_DiscMode_TxDsp();
 
 void BK4819_GetVoxAmp(uint16_t *pResult);
 void BK4819_PlayDTMFEx(bool bLocalLoopback, char Code);

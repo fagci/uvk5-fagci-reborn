@@ -1,7 +1,6 @@
 #ifndef MENU_H
 #define MENU_H
 
-#include <stdbool.h>
 #include <stdint.h>
 
 static const uint8_t MENU_Y = 8;

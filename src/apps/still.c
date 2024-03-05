@@ -66,14 +66,14 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   }
 }
 
-void STILL_init(void) {
+void STILL_init() {
   RADIO_LoadCurrentCH();
   gRedrawScreen = true;
 }
 
-void STILL_deinit(void) { RADIO_ToggleRX(false); }
+void STILL_deinit() { RADIO_ToggleRX(false); }
 
-void STILL_update(void) {
+void STILL_update() {
   RADIO_UpdateMeasurementsEx(gCurrentLoot);
 
   if (elapsedMilliseconds - lastUpdate >= 500) {
@@ -180,7 +180,7 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-static void DrawRegs(void) {
+static void DrawRegs() {
   const uint8_t PAD_LEFT = 1;
   const uint8_t PAD_TOP = 31;
   const uint8_t CELL_WIDTH = 31;
@@ -215,7 +215,7 @@ static void DrawRegs(void) {
   }
 }
 
-void STILL_render(void) {
+void STILL_render() {
   UI_ClearScreen();
   STATUSLINE_SetText(gCurrentBand->band.name);
   UI_FSmall(gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(radio->f));
@@ -240,4 +240,4 @@ static App meta = {
     .vfo = &vfo,
 };
 
-App *STILL_Meta(void) { return &meta; }
+App *STILL_Meta() { return &meta; }

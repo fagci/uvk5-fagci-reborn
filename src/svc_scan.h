@@ -1,12 +1,11 @@
 #ifndef SVC_SCAN_H
 #define SVC_SCAN_H
 
-#include <stdbool.h>
 #include <stdint.h>
 
-void SVC_SCAN_Init(void);
-void SVC_SCAN_Update(void);
-void SVC_SCAN_Deinit(void);
+void SVC_SCAN_Init();
+void SVC_SCAN_Update();
+void SVC_SCAN_Deinit();
 
 extern bool gScanForward;
 extern bool gScanRedraw;

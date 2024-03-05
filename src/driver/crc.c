@@ -17,7 +17,7 @@
 #include "../inc/dp32g030/crc.h"
 #include "../driver/crc.h"
 
-void CRC_Init(void)
+void CRC_Init()
 {
 	CRC_CR = 0
 		| CRC_CR_CRC_EN_BITS_DISABLE

@@ -13,12 +13,12 @@ static void setF(uint32_t nf) {
   gRedrawScreen = true;
 }
 
-void ANTENNA_init(void) {
+void ANTENNA_init() {
   RADIO_LoadCurrentCH();
   f = GetScreenF(radio->f);
 }
 
-void ANTENNA_update(void) {}
+void ANTENNA_update() {}
 
 bool ANTENNA_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld) {
@@ -57,7 +57,7 @@ uint8_t calcLen(uint16_t *ant, uint8_t n, uint16_t lenMm) {
   return 255;
 }
 
-void ANTENNA_render(void) {
+void ANTENNA_render() {
   uint32_t lambda = 29979246 / (f / 100);
   uint16_t quarterCm = lambda / 4;
   uint16_t segmentsCount =
@@ -84,7 +84,7 @@ void ANTENNA_render(void) {
   }
 }
 
-void ANTENNA_deinit(void) {}
+void ANTENNA_deinit() {}
 
 static CH vfo;
 
@@ -100,4 +100,4 @@ static App meta = {
     .vfo = &vfo,
 };
 
-App *ANTENNA_Meta(void) { return &meta; }
+App *ANTENNA_Meta() { return &meta; }

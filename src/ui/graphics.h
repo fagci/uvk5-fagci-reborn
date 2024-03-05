@@ -5,7 +5,6 @@
 #include "../driver/st7565.h"
 #include "../external/printf/printf.h"
 #include "gfxfont.h"
-#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 

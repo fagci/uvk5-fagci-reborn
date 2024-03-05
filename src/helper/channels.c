@@ -6,11 +6,11 @@
 int32_t gScanlistSize = 0;
 int32_t gScanlist[350] = {0};
 
-static uint16_t bandsSizeBytes(void) {
+static uint16_t bandsSizeBytes() {
   return gSettings.bandsCount * BAND_SIZE;
 }
 
-int32_t CHANNELS_GetCountMax(void) {
+int32_t CHANNELS_GetCountMax() {
   return (SETTINGS_GetEEPROMSize() - BANDS_OFFSET - bandsSizeBytes()) /
          CH_SIZE;
 }

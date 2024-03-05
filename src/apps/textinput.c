@@ -7,7 +7,7 @@
 
 char *gTextinputText = "";
 uint8_t gTextInputSize = 15;
-void (*gTextInputCallback)(void);
+void (*gTextInputCallback)();
 
 static const char *letters[9] = {
     "",
@@ -52,7 +52,7 @@ static char inputField[16] = {0};
 static uint8_t inputIndex = 0;
 static bool coursorBlink = true;
 
-static void blink(void) {
+static void blink() {
   coursorBlink = !coursorBlink;
   gRedrawScreen = true;
 }
@@ -65,7 +65,7 @@ static void insert(char c) {
   inputField[inputIndex++] = c;
 }
 
-static void backspace(void) {
+static void backspace() {
   if (inputField[inputIndex] != '\0') {
     inputIndex--;
     memmove(inputField + inputIndex, inputField + inputIndex + 1,
@@ -76,15 +76,15 @@ static void backspace(void) {
   }
 }
 
-void TEXTINPUT_init(void) {
+void TEXTINPUT_init() {
   strncpy(inputField, gTextinputText, 15);
   inputIndex = strlen(inputField);
   TaskAdd("Coursor blink", blink, 250, true, 100);
 }
 
-void TEXTINPUT_deinit(void) { TaskRemove(blink); }
+void TEXTINPUT_deinit() { TaskRemove(blink); }
 
-void TEXTINPUT_update(void) {}
+void TEXTINPUT_update() {}
 
 bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
@@ -199,7 +199,7 @@ bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void TEXTINPUT_render(void) {
+void TEXTINPUT_render() {
   char String[8];
   const uint8_t INPUT_Y = 8 + 14;
   const uint8_t CHAR_W = 5;
@@ -274,4 +274,4 @@ static App meta = {
     .vfo = &vfo,
 };
 
-App *TEXTINPUT_Meta(void) { return &meta; }
+App *TEXTINPUT_Meta() { return &meta; }

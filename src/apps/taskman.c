@@ -4,9 +4,9 @@
 #include "../ui/graphics.h"
 #include "apps.h"
 
-void TASKMAN_Init(void) { gRedrawScreen = true; }
+void TASKMAN_Init() { gRedrawScreen = true; }
 
-void TASKMAN_Render(void) {
+void TASKMAN_Render() {
   UI_ClearScreen();
   for (uint8_t i = 0; i < ARRAY_SIZE(tasks); ++i) {
     Task *t = &tasks[i];
@@ -41,4 +41,4 @@ static App meta = {
     .vfo = &vfo,
 };
 
-App *TASKMAN_Meta(void) { return &meta; }
+App *TASKMAN_Meta() { return &meta; }

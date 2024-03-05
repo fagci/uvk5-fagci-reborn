@@ -38,7 +38,7 @@ void APPS_Register(App *app) {
   }
 }
 
-void APPS_RegisterAll(void) {
+void APPS_RegisterAll() {
   APPS_Register(FINPUT_Meta());
   APPS_Register(TEXTINPUT_Meta());
 

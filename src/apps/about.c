@@ -26,9 +26,9 @@ const char *qr[] = {
     "111111101101010001110101000011100",
 };
 
-void ABOUT_Init(void) { STATUSLINE_SetText("t.me/uvk5_spectrum_talk"); }
+void ABOUT_Init() { STATUSLINE_SetText("t.me/uvk5_spectrum_talk"); }
 
-void ABOUT_Deinit(void) {
+void ABOUT_Deinit() {
   BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN, false);
   BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
 }
@@ -36,7 +36,7 @@ void ABOUT_Deinit(void) {
 static uint32_t lastUpdate = 0;
 static bool red = false;
 
-void ABOUT_Update(void) {
+void ABOUT_Update() {
   if (elapsedMilliseconds - lastUpdate >= 500) {
     red = (elapsedMilliseconds / 500) % 3;
     BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN,
@@ -47,7 +47,7 @@ void ABOUT_Update(void) {
   }
 }
 
-void ABOUT_Render(void) {
+void ABOUT_Render() {
   UI_ClearScreen();
   for (uint8_t y = 0; y < ARRAY_SIZE(qr); y++) {
     for (uint8_t x = 0; x < strlen(qr[0]); x++) {
@@ -100,4 +100,4 @@ static App meta = {
     .deinit = ABOUT_Deinit,
 };
 
-App *ABOUT_Meta(void) { return &meta; }
+App *ABOUT_Meta() { return &meta; }

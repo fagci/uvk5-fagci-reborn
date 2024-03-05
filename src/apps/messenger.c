@@ -6,11 +6,11 @@
 
 static char message[16] = {'\0'};
 
-static void send(void) { MSG_Send(message); }
+static void send() { MSG_Send(message); }
 
-void MESSENGER_init(void) {}
+void MESSENGER_init() {}
 
-void MESSENGER_update(void) {}
+void MESSENGER_update() {}
 
 bool MESSENGER_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   // up-down keys
@@ -48,7 +48,7 @@ bool MESSENGER_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void MESSENGER_render(void) {
+void MESSENGER_render() {
   UI_ClearScreen();
 
   uint8_t ii = 0;
@@ -65,7 +65,7 @@ void MESSENGER_render(void) {
   }
 }
 
-void MESSENGER_deinit(void) {}
+void MESSENGER_deinit() {}
 
 static App meta = {
     .id = APP_MESSENGER,
@@ -78,4 +78,4 @@ static App meta = {
     .update = MESSENGER_update,
 };
 
-App *MESSENGER_Meta(void) { return &meta; }
+App *MESSENGER_Meta() { return &meta; }

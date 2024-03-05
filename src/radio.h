@@ -4,7 +4,6 @@
 #include "driver/bk4819.h"
 #include "helper/lootlist.h"
 #include "settings.h"
-#include <stdbool.h>
 #include <stdint.h>
 
 typedef enum {
@@ -46,7 +45,7 @@ void RADIO_EnableToneDetection();
 void RADIO_VfoLoadCH(uint8_t i);
 void RADIO_SetupByCurrentCH();
 void RADIO_NextCH(bool next);
-void RADIO_NextVFO(void);
+void RADIO_NextVFO();
 void RADIO_NextFreq(bool next);
 void RADIO_NextBandFreq(bool next);
 void RADIO_NextBandFreqEx(bool next, bool precise);
@@ -56,13 +55,13 @@ void RADIO_SetSquelch(uint8_t sq);
 void RADIO_SetGain(uint8_t gainIndex);
 void RADIO_ToggleModulation();
 void RADIO_ToggleListeningBW();
-void RADIO_ToggleTxPower(void);
+void RADIO_ToggleTxPower();
 void RADIO_UpdateStep(bool inc);
 void RADIO_UpdateSquelchLevel(bool next);
 
 uint32_t GetScreenF(uint32_t f);
 uint32_t GetTuneF(uint32_t f);
-uint16_t RADIO_GetRSSI(void);
+uint16_t RADIO_GetRSSI();
 uint32_t RADIO_GetTXFEx(CH *vfo);
 void RADIO_ToggleBK1080(bool on);
 

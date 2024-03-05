@@ -34,7 +34,7 @@ static bool lastListenState = false;
 
 void (*gScanFn)(bool) = NULL;
 
-static void next(void) {
+static void next() {
   lastListenState = false;
   gScanFn(gScanForward);
   lastSettedF = radio->f;
@@ -45,7 +45,7 @@ static void next(void) {
 }
 
 #include "driver/uart.h"
-void SVC_SCAN_Init(void) {
+void SVC_SCAN_Init() {
   gScanForward = true;
   Log("SCAN init, SF:%u", !!gScanFn);
   if (!gScanFn) {
@@ -58,7 +58,7 @@ void SVC_SCAN_Init(void) {
   next();
 }
 
-void SVC_SCAN_Update(void) {
+void SVC_SCAN_Update() {
   if (lastListenState != gIsListening) {
     lastListenState = gIsListening;
     SetTimeout(&timeout, gIsListening
@@ -76,7 +76,7 @@ void SVC_SCAN_Update(void) {
   }
 }
 
-void SVC_SCAN_Deinit(void) {
+void SVC_SCAN_Deinit() {
   gScanFn = NULL;
   gScanRedraw = true;
 }

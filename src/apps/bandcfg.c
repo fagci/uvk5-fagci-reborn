@@ -26,7 +26,7 @@ static MenuItem menu[] = {
     {"Enable TX", M_TX, 2},
 };
 
-static void setInitialSubmenuIndex(void) {
+static void setInitialSubmenuIndex() {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_BW:
@@ -109,8 +109,8 @@ static void setLowerBound(uint32_t f) {
   BANDS_SaveCurrent();
 }
 
-void BANDCFG_init(void) { gRedrawScreen = true; }
-void BANDCFG_update(void) {}
+void BANDCFG_init() { gRedrawScreen = true; }
+void BANDCFG_update() {}
 bool BANDCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   const MenuItem *item = &menu[menuIndex];
   const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
@@ -176,7 +176,7 @@ bool BANDCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void BANDCFG_render(void) {
+void BANDCFG_render() {
   UI_ClearScreen();
   const MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {
@@ -201,4 +201,4 @@ static App meta = {
     .key = BANDCFG_key,
     .vfo = &vfo,
 };
-App *BANDCFG_Meta(void) { return &meta; }
+App *BANDCFG_Meta() { return &meta; }

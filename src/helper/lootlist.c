@@ -10,14 +10,14 @@ static int16_t lootIndex = -1;
 Loot *gLastActiveLoot = NULL;
 int16_t gLastActiveLootIndex = -1;
 
-void LOOT_BlacklistLast(void) {
+void LOOT_BlacklistLast() {
   if (gLastActiveLoot) {
     gLastActiveLoot->goodKnown = false;
     gLastActiveLoot->blacklist = true;
   }
 }
 
-void LOOT_GoodKnownLast(void) {
+void LOOT_GoodKnownLast() {
   if (gLastActiveLoot) {
     gLastActiveLoot->blacklist = false;
     gLastActiveLoot->goodKnown = true;
@@ -78,11 +78,11 @@ void LOOT_Remove(uint8_t i) {
   }
 }
 
-void LOOT_Clear(void) { lootIndex = -1; }
+void LOOT_Clear() { lootIndex = -1; }
 
-uint8_t LOOT_Size(void) { return lootIndex + 1; }
+uint8_t LOOT_Size() { return lootIndex + 1; }
 
-void LOOT_Standby(void) {
+void LOOT_Standby() {
   for (uint8_t i = 0; i < LOOT_Size(); ++i) {
     Loot *p = &loot[i];
     p->open = false;
@@ -204,7 +204,7 @@ void LOOT_Update(Loot *msm) {
 
   LOOT_UpdateEx(item, msm);
 }
-void LOOT_RemoveBlacklisted(void) {
+void LOOT_RemoveBlacklisted() {
   LOOT_Sort(LOOT_SortByBlacklist, true);
   for (uint8_t i = 0; i < LOOT_Size(); ++i) {
     if (loot[i].blacklist) {

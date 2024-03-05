@@ -21,7 +21,7 @@
 
 void SYSTEM_DelayMs(uint32_t Delay) { SYSTICK_DelayUs(Delay * 1000); }
 
-void SYSTEM_ConfigureClocks(void) {
+void SYSTEM_ConfigureClocks() {
   // Set source clock from external crystal
   PMU_SRC_CFG =
       (PMU_SRC_CFG & ~(PMU_SRC_CFG_RCHF_SEL_MASK | PMU_SRC_CFG_RCHF_EN_MASK)) |

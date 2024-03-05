@@ -24,7 +24,7 @@ static void getChannelName(uint16_t i, char *name) {
   }
 }
 
-static void saveNamed(void) {
+static void saveNamed() {
   CH ch;
   CH2CH(radio, gCurrentBand, &ch);
   strncpy(ch.name, tempName, 9);
@@ -37,10 +37,10 @@ static void saveNamed(void) {
   }
 }
 
-void SAVECH_init(void) { chCount = CHANNELS_GetCountMax(); }
-void SAVECH_update(void) {}
+void SAVECH_init() { chCount = CHANNELS_GetCountMax(); }
+void SAVECH_update() {}
 
-static void save(void) {
+static void save() {
   gTextinputText = tempName;
   snprintf(gTextinputText, 9, "%lu.%05lu", radio->f / 100000,
            radio->f % 100000);
@@ -93,7 +93,7 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void SAVECH_render(void) {
+void SAVECH_render() {
   UI_ClearScreen();
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
@@ -113,4 +113,4 @@ static App meta = {
     .vfo = &vfo,
 };
 
-App *SAVECH_Meta(void) { return &meta; }
+App *SAVECH_Meta() { return &meta; }

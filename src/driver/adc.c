@@ -42,17 +42,17 @@ uint8_t ADC_GetChannelNumber(ADC_CH_MASK Mask)
 	return 0U;
 }
 
-void ADC_Disable(void)
+void ADC_Disable()
 {
 	SARADC_CFG = (SARADC_CFG & ~SARADC_CFG_ADC_EN_MASK) | SARADC_CFG_ADC_EN_BITS_DISABLE;
 }
 
-void ADC_Enable(void)
+void ADC_Enable()
 {
 	SARADC_CFG = (SARADC_CFG & ~SARADC_CFG_ADC_EN_MASK) | SARADC_CFG_ADC_EN_BITS_ENABLE;
 }
 
-void ADC_SoftReset(void)
+void ADC_SoftReset()
 {
 	SARADC_START = (SARADC_START & ~SARADC_START_SOFT_RESET_MASK) | SARADC_START_SOFT_RESET_BITS_ASSERT;
 	SARADC_START = (SARADC_START & ~SARADC_START_SOFT_RESET_MASK) | SARADC_START_SOFT_RESET_BITS_DEASSERT;
@@ -62,7 +62,7 @@ void ADC_SoftReset(void)
 #define FW_R_SARADC_SMPL_SHIFT 7
 #define FW_R_SARADC_SMPL_MASK (3U << FW_R_SARADC_SMPL_SHIFT)
 
-uint32_t ADC_GetClockConfig(void)
+uint32_t ADC_GetClockConfig()
 {
 	uint32_t Value;
 
@@ -140,7 +140,7 @@ void ADC_Configure(ADC_Config_t *pAdc)
 	}
 }
 
-void ADC_Start(void)
+void ADC_Start()
 {
 	SARADC_START = (SARADC_START & ~SARADC_START_START_MASK) | SARADC_START_START_BITS_ENABLE;
 }

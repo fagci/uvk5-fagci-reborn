@@ -2,7 +2,6 @@
 #define MEASUREMENTS_H
 
 #include "../misc.h"
-#include <stdbool.h>
 #include <stdint.h>
 
 static const uint8_t rssi2s[2][15] = {

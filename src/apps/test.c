@@ -9,9 +9,9 @@
 static uint32_t page = 0;
 const uint8_t PAGE_SZ = 64;
 
-static void TEST_Update(void) { gRedrawScreen = true; }
+static void TEST_Update() { gRedrawScreen = true; }
 
-static void TEST_Render(void) {
+static void TEST_Render() {
   UI_ClearScreen();
   uint8_t buf[64] = {0};
   EEPROM_ReadBuffer(page * PAGE_SZ, buf, PAGE_SZ);
@@ -65,4 +65,4 @@ static App meta = {
     .vfo = &vfo,
 };
 
-App *TEST_Meta(void) { return &meta; }
+App *TEST_Meta() { return &meta; }

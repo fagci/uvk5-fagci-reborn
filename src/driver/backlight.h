@@ -1,7 +1,6 @@
 #ifndef BACKLIGHT_H
 #define BACKLIGHT_H
 
-#include <stdbool.h>
 #include <stdint.h>
 
 void BACKLIGHT_Toggle(bool on);

@@ -76,7 +76,7 @@ const CH VFOS[] = {
     },
 };
 
-void RESET_Init(void) {
+void RESET_Init() {
   eepromType = gSettings.eepromType;
   bandsWrote = 0;
   bytesWrote = 0;
@@ -85,7 +85,7 @@ void RESET_Init(void) {
   memset(buf, 0xFF, sizeof(buf));
 }
 
-void RESET_Update(void) {
+void RESET_Update() {
   if (!settingsWrote) {
     gSettings = (Settings){
         .checkbyte = EEPROM_CHECKBYTE,
@@ -158,7 +158,7 @@ void RESET_Update(void) {
   gRedrawScreen = true;
 }
 
-void RESET_Render(void) {
+void RESET_Render() {
   uint8_t progressX =
       ConvertDomain(bytesWrote, 0, SETTINGS_GetEEPROMSize(), 1, LCD_WIDTH - 2);
   uint8_t POS_Y = LCD_HEIGHT / 2;
@@ -184,4 +184,4 @@ static App meta = {
     .vfo = &vfo,
 };
 
-App *RESET_Meta(void) { return &meta; }
+App *RESET_Meta() { return &meta; }

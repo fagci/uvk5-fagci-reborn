@@ -21,17 +21,17 @@ static void getBandText(int32_t i, char *name) {
   }
 }
 
-void BANDLIST_render(void) {
+void BANDLIST_render() {
   UI_ClearScreen();
   UI_ShowMenu(getBandText, BANDS_Size(), menuIndex);
 }
 
-void BANDLIST_init(void) {
+void BANDLIST_init() {
   gRedrawScreen = true;
   menuIndex = gSettings.activeBand;
 }
 
-void BANDLIST_update(void) {}
+void BANDLIST_update() {}
 
 static void setMenuIndexAndRun(uint16_t v) {
   menuIndex = v - 1;
@@ -88,4 +88,4 @@ static App meta = {
     .vfo = &vfo,
 };
 
-App *BANDLIST_Meta(void) { return &meta; }
+App *BANDLIST_Meta() { return &meta; }

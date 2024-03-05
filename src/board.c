@@ -33,7 +33,7 @@
 #include "misc.h"
 #include <string.h>
 
-void BOARD_GPIO_Init(void) {
+void BOARD_GPIO_Init() {
   GPIOA->DIR |= 0
                 // A7 = UART1 TX default as OUTPUT from bootloader!
                 // A8 = UART1 RX default as INPUT from bootloader!
@@ -86,7 +86,7 @@ void BOARD_GPIO_Init(void) {
 #endif
 }
 
-void BOARD_PORTCON_Init(void) {
+void BOARD_PORTCON_Init() {
   // PORT A pin selection
 
   PORTCON_PORTA_SEL0 &= ~(0
@@ -396,7 +396,7 @@ void BOARD_PORTCON_Init(void) {
                       | PORTCON_PORTC_OD_C5_BITS_ENABLE;
 }
 
-void BOARD_ADC_Init(void) {
+void BOARD_ADC_Init() {
   ADC_Config_t Config;
 
   Config.CLK_SEL = SYSCON_CLK_SEL_W_SARADC_SMPL_VALUE_DIV2;
@@ -428,7 +428,7 @@ void BOARD_ADC_GetBatteryInfo(uint16_t *pVoltage, uint16_t *pCurrent) {
   *pCurrent = ADC_GetValue(ADC_CH9);
 }
 
-void BOARD_Init(void) {
+void BOARD_Init() {
   BOARD_PORTCON_Init();
   BOARD_GPIO_Init();
   BOARD_ADC_Init();

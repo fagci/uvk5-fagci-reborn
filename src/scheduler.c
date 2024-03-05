@@ -5,7 +5,7 @@ volatile Task tasks[TASKS_MAX];
 uint8_t tasksCount = 0;
 volatile uint32_t elapsedMilliseconds = 0;
 
-Task *TaskAdd(const char *name, void (*handler)(void), uint16_t interval,
+Task *TaskAdd(const char *name, void (*handler)(), uint16_t interval,
               bool continuous, uint8_t priority) {
   UART_logf(3, "TaskAdd(%s)", name);
   if (tasksCount == TASKS_MAX) {
@@ -31,7 +31,7 @@ Task *TaskAdd(const char *name, void (*handler)(void), uint16_t interval,
   return &tasks[insertI];
 }
 
-void TaskRemove(void (*handler)(void)) {
+void TaskRemove(void (*handler)()) {
   uint8_t i;
   Task *t;
   for (i = 0; i < tasksCount; ++i) {
@@ -51,7 +51,7 @@ void TaskRemove(void (*handler)(void)) {
   }
 }
 
-bool TaskExists(void (*handler)(void)) {
+bool TaskExists(void (*handler)()) {
   uint8_t i;
   Task *t;
   for (i = 0; i < tasksCount; ++i) {
@@ -63,7 +63,7 @@ bool TaskExists(void (*handler)(void)) {
   return false;
 }
 
-void TaskTouch(void (*handler)(void)) {
+void TaskTouch(void (*handler)()) {
   Task *t;
   for (uint8_t i = 0; i < tasksCount; ++i) {
     t = &tasks[i];
@@ -81,7 +81,7 @@ static void handle(Task *task) {
   UART_logf(3, "%s::handle() end", task->name);
 }
 
-void TasksUpdate(void) {
+void TasksUpdate() {
   Task *task;
   for (uint8_t i = 0; i < tasksCount; ++i) {
     tasks[i].active = true;
@@ -99,7 +99,7 @@ void TasksUpdate(void) {
   }
 }
 
-void SystickHandler(void) {
+void SystickHandler() {
   Task *task;
   for (uint8_t i = 0; i < tasksCount; ++i) {
     task = &tasks[i];
@@ -110,7 +110,7 @@ void SystickHandler(void) {
   elapsedMilliseconds++;
 }
 
-uint32_t Now(void) { return elapsedMilliseconds; }
+uint32_t Now() { return elapsedMilliseconds; }
 
 void SetTimeout(uint32_t *v, uint32_t t) {
   uint32_t max = (uint32_t)0 - 1;

@@ -3,7 +3,6 @@
 
 #include "../driver/keyboard.h"
 #include "../settings.h"
-#include <stdbool.h>
 #include <stdint.h>
 
 typedef enum {
@@ -39,11 +38,11 @@ typedef enum {
 
 typedef struct {
   const char *name;
-  void (*init)(void);
-  void (*update)(void);
-  void (*render)(void);
+  void (*init)();
+  void (*update)();
+  void (*render)();
   bool (*key)(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
-  void (*deinit)(void);
+  void (*deinit)();
   CH *vfo;
   void *cfg;
   bool runnable;
@@ -52,7 +51,7 @@ typedef struct {
 } App;
 
 void APPS_Register(App *app);
-void APPS_RegisterAll(void);
+void APPS_RegisterAll();
 
 extern App *apps[256];
 extern App *appsAvailableToRun[256];

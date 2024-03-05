@@ -23,14 +23,14 @@ static bool pushApp(App *app) {
   return true;
 }
 
-static App *popApp(void) {
+static App *popApp() {
   if (stackIndex > 0) {
     return appsStack[stackIndex--]; // Do not care about existing value
   }
   return appsStack[stackIndex];
 }
 
-App *APPS_Peek(void) {
+App *APPS_Peek() {
   if (stackIndex >= 0) {
     return appsStack[stackIndex];
   }
@@ -53,17 +53,17 @@ void APPS_init(App *app) {
     gCurrentAppinit();
   }
 }
-void APPS_update(void) {
+void APPS_update() {
   if (gCurrentAppupdate) {
     gCurrentAppupdate();
   }
 }
-void APPS_render(void) {
+void APPS_render() {
   if (gCurrentApprender) {
     gCurrentApprender();
   }
 }
-void APPS_deinit(void) {
+void APPS_deinit() {
   if (gCurrentAppdeinit) {
     gCurrentAppdeinit();
   }
@@ -96,7 +96,7 @@ void APPS_runManual(App *app) {
   APPS_init(app); */
 }
 
-bool APPS_exit(void) {
+bool APPS_exit() {
   if (stackIndex == 0) {
     return false;
   }

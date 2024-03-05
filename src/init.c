@@ -24,10 +24,10 @@ extern uint8_t flash_data_start[];
 extern uint8_t sram_data_start[];
 extern uint8_t sram_data_end[];
 
-void BSS_Init(void);
-void DATA_Init(void);
+void BSS_Init();
+void DATA_Init();
 
-void BSS_Init(void)
+void BSS_Init()
 {
 	uint32_t *pBss;
 
@@ -36,7 +36,7 @@ void BSS_Init(void)
 	}
 }
 
-void DATA_Init(void)
+void DATA_Init()
 {
 	volatile uint32_t *pDataRam = (volatile uint32_t *)sram_data_start;
 	volatile uint32_t *pDataFlash = (volatile uint32_t *)flash_data_start;

@@ -146,12 +146,12 @@ static void getSubmenuItemText(uint16_t index, char *name) {
   }
 }
 
-static void setNickname(void) {
+static void setNickname() {
   strncpy(gSettings.nickName, gTextinputText, gTextInputSize);
   SETTINGS_Save();
 }
 
-static void accept(void) {
+static void accept() {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_UPCONVERTER: {
@@ -293,7 +293,7 @@ static const char *getValue(Menu type) {
   return "";
 }
 
-static void onSubChange(void) {
+static void onSubChange() {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_BRIGHTNESS:
@@ -310,7 +310,7 @@ static void onSubChange(void) {
   }
 }
 
-static void setInitialSubmenuIndex(void) {
+static void setInitialSubmenuIndex() {
   const MenuItem *item = &menu[menuIndex];
   uint8_t i = 0;
   switch (item->type) {
@@ -379,7 +379,7 @@ static void setInitialSubmenuIndex(void) {
   }
 }
 
-void SETTINGS_init(void) {
+void SETTINGS_init() {
   for (uint8_t i = 0; i < MENU_SIZE; ++i) {
     if (menu[i].type == M_MAIN_APP) {
       menu[i].size = appsToRunCount;
@@ -389,7 +389,7 @@ void SETTINGS_init(void) {
   gRedrawScreen = true;
 }
 
-void SETTINGS_update(void) {}
+void SETTINGS_update() {}
 
 static void setMenuIndexAndRun(uint16_t v) {
   menuIndex = v - 1;
@@ -456,7 +456,7 @@ bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void SETTINGS_render(void) {
+void SETTINGS_render() {
   UI_ClearScreen();
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
@@ -484,4 +484,4 @@ static App meta = {
     .vfo = &vfo,
 };
 
-App *SETTINGS_Meta(void) { return &meta; }
+App *SETTINGS_Meta() { return &meta; }

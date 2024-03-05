@@ -45,7 +45,7 @@ Sort sortType = SORT_LOT;
 static bool shortList = true;
 static bool sortRev = false;
 
-static void exportLootList(void) {
+static void exportLootList() {
   UART_printf("--- 8< ---\n");
   UART_printf("F,duration,ct,cd,rssi,noise\n");
   for (uint8_t i = 0; i < LOOT_Size(); ++i) {
@@ -126,13 +126,13 @@ static void sort(Sort type) {
   STATUSLINE_SetText("By %s %s", sortNames[sortType], sortRev ? "desc" : "asc");
 }
 
-void LOOTLIST_render(void) {
+void LOOTLIST_render() {
   UI_ClearScreen();
   UI_ShowMenuEx(shortList ? getLootItemShort : getLootItem, LOOT_Size(),
                 menuIndex, shortList ? 5 : 3);
 }
 
-void LOOTLIST_init(void) {
+void LOOTLIST_init() {
   gRedrawScreen = true;
   sortType = SORT_F;
   sort(SORT_LOT);
@@ -142,7 +142,7 @@ void LOOTLIST_init(void) {
   }
 }
 
-static void saveAllToFreeChannels(void) {
+static void saveAllToFreeChannels() {
   uint16_t chnum = 0;
   for (uint8_t i = 0; i < LOOT_Size(); ++i) {
     Loot *loot = LOOT_Item(i);
@@ -164,7 +164,7 @@ static void saveAllToFreeChannels(void) {
   }
 }
 
-void LOOTLIST_update(void) {}
+void LOOTLIST_update() {}
 
 bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   Loot *item = LOOT_Item(menuIndex);
@@ -269,4 +269,4 @@ static App meta = {
     .key = LOOTLIST_key,
     .vfo = &vfo,
 };
-App *LOOTLIST_Meta(void) { return &meta; }
+App *LOOTLIST_Meta() { return &meta; }

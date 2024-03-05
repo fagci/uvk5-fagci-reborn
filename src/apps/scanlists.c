@@ -6,7 +6,6 @@
 #include "../ui/statusline.h"
 #include "apps.h"
 #include "textinput.h"
-#include <stdbool.h>
 
 static int32_t count = 0;
 
@@ -47,15 +46,15 @@ static void toggleScanlist(uint8_t n) {
   CHANNELS_Save(gScanlist[currentIndex], &ch);
 }
 
-void SCANLISTS_init(void) {
+void SCANLISTS_init() {
   gRedrawScreen = true;
   CHANNELS_LoadScanlist(gSettings.currentScanlist);
   count = gScanlistSize;
 }
 
-void SCANLISTS_update(void) {}
+void SCANLISTS_update() {}
 
-static void saveRenamed(void) { CHANNELS_Save(chNum, &ch); }
+static void saveRenamed() { CHANNELS_Save(chNum, &ch); }
 
 bool SCANLISTS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   chNum = gScanlist[currentIndex];
@@ -131,7 +130,7 @@ bool SCANLISTS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void SCANLISTS_render(void) {
+void SCANLISTS_render() {
   UI_ClearScreen();
   if (gSettings.currentScanlist == 15) {
     STATUSLINE_SetText("CH scanlists");
@@ -156,4 +155,4 @@ static App meta = {
     .vfo = &vfo,
 };
 
-App *SCANLISTS_Meta(void) { return &meta; }
+App *SCANLISTS_Meta() { return &meta; }

@@ -17,7 +17,6 @@
 #ifndef BATTERY_H
 #define BATTERY_H
 
-#include <stdbool.h>
 #include <stdint.h>
 
 #define BAT_WARN_PERCENT 15

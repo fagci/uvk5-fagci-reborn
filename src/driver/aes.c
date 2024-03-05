@@ -14,7 +14,6 @@
  *     limitations under the License.
  */
 
-#include <stdbool.h>
 
 #include "../inc/dp32g030/aes.h"
 #include "../driver/aes.h"

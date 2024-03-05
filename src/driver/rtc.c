@@ -7,7 +7,7 @@
 
 uint8_t time[6] = {24, 2, 2, 18, 11, 00};
 
-void RTC_INIT(void) {
+void RTC_INIT() {
 
   RTC_PRE |= (CPU_CLOCK_HZ - 1)  // PRE_ROUND=32768HZ-1
              | (0 << 20)  // DECIMAL=0
@@ -42,7 +42,7 @@ void RTC_Set(uint8_t time[6]) {
            | (time[5] % 10 << 0); // sec个位
 }
 
-void RTC_Get(void) {
+void RTC_Get() {
   time[0] = (RTC_TSDR >> 20 & 0b1111) * 10 + (RTC_TSDR >> 16 & 0b1111);
   time[1] = (RTC_TSDR >> 12 & 0b1) * 10 + (RTC_TSDR >> 8 & 0b1111);
   time[2] = (RTC_TSDR >> 4 & 0b1111) * 10 + (RTC_TSDR >> 0 & 0b1111);

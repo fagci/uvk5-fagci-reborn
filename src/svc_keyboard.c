@@ -54,6 +54,6 @@ static void onKey(KEY_Code_t key, bool pressed, bool hold) {
   }
 }
 
-void SVC_KEYBOARD_Init(void) {}
-void SVC_KEYBOARD_Update(void) { KEYBOARD_CheckKeys(onKey); }
-void SVC_KEYBOARD_Deinit(void) {}
+void SVC_KEYBOARD_Init() {}
+void SVC_KEYBOARD_Update() { KEYBOARD_CheckKeys(onKey); }
+void SVC_KEYBOARD_Deinit() {}

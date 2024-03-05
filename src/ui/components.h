@@ -2,7 +2,6 @@
 #define COMPONENTS_H
 
 #include "../radio.h"
-#include <stdbool.h>
 #include <stdint.h>
 
 #define BATTERY_W 13

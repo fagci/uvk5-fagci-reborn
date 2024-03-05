@@ -20,7 +20,7 @@
 #include "gpio.h"
 #include "systick.h"
 
-void I2C_Start(void) {
+void I2C_Start() {
   GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_I2C_SDA);
   SYSTICK_DelayUs(1);
   GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_I2C_SCL);
@@ -31,7 +31,7 @@ void I2C_Start(void) {
   SYSTICK_DelayUs(1);
 }
 
-void I2C_Stop(void) {
+void I2C_Stop() {
   GPIO_ClearBit(&GPIOA->DATA, GPIOA_PIN_I2C_SDA);
   SYSTICK_DelayUs(1);
   GPIO_ClearBit(&GPIOA->DATA, GPIOA_PIN_I2C_SCL);

@@ -17,7 +17,6 @@
 #ifndef DRIVER_ADC_H
 #define DRIVER_ADC_H
 
-#include <stdbool.h>
 #include <stdint.h>
 
 enum ADC_CH_MASK {
@@ -61,12 +60,12 @@ typedef struct {
 } ADC_Config_t;
 
 uint8_t ADC_GetChannelNumber(ADC_CH_MASK Mask);
-void ADC_Disable(void);
-void ADC_Enable(void);
-void ADC_SoftReset(void);
-uint32_t ADC_GetClockConfig(void);
+void ADC_Disable();
+void ADC_Enable();
+void ADC_SoftReset();
+uint32_t ADC_GetClockConfig();
 void ADC_Configure(ADC_Config_t *pAdc);
-void ADC_Start(void);
+void ADC_Start();
 bool ADC_CheckEndOfConversion(ADC_CH_MASK Mask);
 uint16_t ADC_GetValue(ADC_CH_MASK Mask);
 

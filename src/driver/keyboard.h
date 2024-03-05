@@ -18,7 +18,6 @@
 #ifndef DRIVER_KEYBOARD_H
 #define DRIVER_KEYBOARD_H
 
-#include <stdbool.h>
 #include <stdint.h>
 
 typedef enum {
@@ -50,7 +49,7 @@ extern uint16_t gDebounceCounter;
 extern bool gKeyBeingHeld;
 extern bool gRepeatHeld;
 
-KEY_Code_t KEYBOARD_Poll(void);
+KEY_Code_t KEYBOARD_Poll();
 void KEYBOARD_CheckKeys(void onKey(KEY_Code_t, bool, bool));
 void KEYBOARD_CheckKeys2(void onKey(KEY_Code_t, bool, bool));
 

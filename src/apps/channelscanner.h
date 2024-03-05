@@ -3,15 +3,14 @@
 
 #include "../driver/keyboard.h"
 #include "../helper/appsregistry.h"
-#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 
-void CHSCANNER_init(void);
-void CHSCANNER_deinit(void);
+void CHSCANNER_init();
+void CHSCANNER_deinit();
 bool CHSCANNER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
-void CHSCANNER_update(void);
-void CHSCANNER_render(void);
-App *CHSCANNER_Meta(void);
+void CHSCANNER_update();
+void CHSCANNER_render();
+App *CHSCANNER_Meta();
 
 #endif /* end of include guard: CHANNELSCANNER_H */

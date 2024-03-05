@@ -95,9 +95,9 @@ void MSG_ConfigureFSK(bool rx) {
   BK4819_WriteRegister(BK4819_REG_02, 0);
 }
 
-void MSG_ClearPacketBuffer(void) { memset(packet.buf, 0, sizeof(packet.buf)); }
+void MSG_ClearPacketBuffer() { memset(packet.buf, 0, sizeof(packet.buf)); }
 
-void MSG_FSKSendData(void) {
+void MSG_FSKSendData() {
   // turn off CTCSS/CDCSS during FFSK
   const uint16_t css_val = BK4819_ReadRegister(BK4819_REG_51);
   BK4819_WriteRegister(BK4819_REG_51, 0);
@@ -170,7 +170,7 @@ void MSG_EnableRX(const bool enable) {
   }
 }
 
-void MSG_SendPacket(void) {
+void MSG_SendPacket() {
   if (msgStatus != READY || strlen((char *)packet.data.payload) == 0) {
     return;
   }
@@ -198,7 +198,7 @@ void MSG_SendPacket(void) {
   msgStatus = READY;
 }
 
-void MSG_SendAck(void) {
+void MSG_SendAck() {
   MSG_ClearPacketBuffer();
   packet.data.header = ACK_PACKET;
   // sending only empty header seems to not work
@@ -206,7 +206,7 @@ void MSG_SendAck(void) {
   MSG_SendPacket();
 }
 
-void MSG_HandleReceive(void) {
+void MSG_HandleReceive() {
   if (packet.data.header == ACK_PACKET) {
   } else {
     if (packet.data.header >= INVALID_PACKET) {
@@ -272,4 +272,4 @@ void MSG_Send(const char *message) {
   MSG_SendPacket();
 }
 
-void MSG_Init(void) { msgStatus = READY; }
+void MSG_Init() { msgStatus = READY; }

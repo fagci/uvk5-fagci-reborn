@@ -19,7 +19,7 @@ static uint8_t freqInputIndex = 0;
 
 static bool dotBlink = true;
 
-static void dotBlinkFn(void) {
+static void dotBlinkFn() {
   if (!freqInputDotIndex) {
     dotBlink = !dotBlink;
     gRedrawScreen = true;
@@ -65,7 +65,7 @@ static void input(KEY_Code_t key) {
   }
 }
 
-static void fillFromTempFreq(void) {
+static void fillFromTempFreq() {
   if (gFInputTempFreq == 0) {
     return;
   }
@@ -88,7 +88,7 @@ static void fillFromTempFreq(void) {
   }
 }
 
-void FINPUT_init(void) {
+void FINPUT_init() {
   UI_ClearStatus();
   freqInputIndex = 0;
   freqInputDotIndex = 0;
@@ -96,7 +96,7 @@ void FINPUT_init(void) {
   TaskAdd("Dot blink", dotBlinkFn, 250, true, 100);
 }
 
-void FINPUT_deinit(void) { TaskRemove(dotBlinkFn); }
+void FINPUT_deinit() { TaskRemove(dotBlinkFn); }
 
 bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyHeld && bKeyPressed && !gRepeatHeld && key == KEY_EXIT) {
@@ -151,7 +151,7 @@ bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void FINPUT_render(void) {
+void FINPUT_render() {
   UI_ClearScreen();
 
   uint8_t dotIndex = freqInputDotIndex ? freqInputDotIndex : freqInputIndex;
@@ -201,4 +201,4 @@ static App meta = {
     .deinit = FINPUT_deinit,
     .vfo = &vfo,
 };
-App *FINPUT_Meta(void) { return &meta; }
+App *FINPUT_Meta() { return &meta; }

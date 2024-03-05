@@ -38,7 +38,7 @@ static void scanFn(bool forward) {
   }
 }
 
-void CHSCANNER_init(void) {
+void CHSCANNER_init() {
   currentIndex = 0;
   scanIndex = 0;
   LOOT_Clear();
@@ -60,7 +60,7 @@ void CHSCANNER_init(void) {
   SVC_Toggle(SVC_SCAN, true, 10);
 }
 
-void CHSCANNER_deinit(void) { SVC_Toggle(SVC_SCAN, false, 0); }
+void CHSCANNER_deinit() { SVC_Toggle(SVC_SCAN, false, 0); }
 
 bool CHSCANNER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed || (bKeyPressed && !bKeyHeld)) {
@@ -99,9 +99,9 @@ bool CHSCANNER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void CHSCANNER_update(void) {}
+void CHSCANNER_update() {}
 
-void CHSCANNER_render(void) {
+void CHSCANNER_render() {
   UI_ClearScreen();
 
   if (gScanlistSize == 0) {
@@ -137,4 +137,4 @@ static App meta = {
     .vfo = &vfo,
 };
 
-App *CHSCANNER_Meta(void) { return &meta; }
+App *CHSCANNER_Meta() { return &meta; }

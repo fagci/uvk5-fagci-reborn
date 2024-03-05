@@ -2,7 +2,6 @@
 
 #define LOOTLIST_HELPER_H
 
-#include <stdbool.h>
 #include <stdint.h>
 
 #define LOOT_SIZE_MAX 128
@@ -44,7 +43,7 @@ bool LOOT_SortByDuration(Loot *a, Loot *b);
 bool LOOT_SortByF(Loot *a, Loot *b);
 bool LOOT_SortByBlacklist(Loot *a, Loot *b);
 
-void LOOT_RemoveBlacklisted(void);
+void LOOT_RemoveBlacklisted();
 
 extern Loot *gLastActiveLoot;
 extern int16_t gLastActiveLootIndex;

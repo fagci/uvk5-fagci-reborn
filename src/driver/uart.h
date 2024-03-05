@@ -18,14 +18,13 @@
 #ifndef DRIVER_UART_H
 #define DRIVER_UART_H
 
-#include <stdbool.h>
 #include <stdint.h>
 
 extern uint8_t UART_DMA_Buffer[256];
 extern uint8_t gUartData[512];
 extern uint8_t UART_IsLogEnabled;
 
-void UART_Init(void);
+void UART_Init();
 void UART_Send(const void *pBuffer, uint32_t Size);
 void UART_SendText(const void *str);
 void UART_LogSend(const void *pBuffer, uint32_t Size);

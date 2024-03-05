@@ -17,7 +17,6 @@
 #ifndef DRIVER_SPI_H
 #define DRIVER_SPI_H
 
-#include <stdbool.h>
 #include <stdint.h>
 
 typedef struct {
@@ -35,8 +34,8 @@ typedef struct {
 	uint8_t RXFIFO_OVF;
 } SPI_Config_t;
 
-void SPI0_Init(void);
-void SPI_WaitForUndocumentedTxFifoStatusBit(void);
+void SPI0_Init();
+void SPI_WaitForUndocumentedTxFifoStatusBit();
 
 void SPI_Disable(volatile uint32_t *pCR);
 void SPI_Configure(volatile SPI_Port_t *pPort, SPI_Config_t *pConfig);

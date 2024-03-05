@@ -5,9 +5,9 @@
 #include "radio.h"
 #include <stddef.h>
 
-Loot *(*gListenFn)(void) = NULL;
+Loot *(*gListenFn)() = NULL;
 
-void SVC_LISTEN_Init(void) {
+void SVC_LISTEN_Init() {
   if (!gListenFn) {
     gListenFn = RADIO_UpdateMeasurements;
   }
@@ -21,14 +21,14 @@ void SVC_LISTEN_Init(void) {
   // MSG_Init();
 }
 
-void SVC_LISTEN_Update(void) {
+void SVC_LISTEN_Update() {
   gListenFn();
   if (radio->scan.timeout < 10) {
     BK4819_ResetRSSI();
   }
 }
 
-void SVC_LISTEN_Deinit(void) {
+void SVC_LISTEN_Deinit() {
   gListenFn = NULL;
   BK4819_WriteRegister(BK4819_REG_3F, 0);
 }

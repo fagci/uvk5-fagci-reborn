@@ -103,7 +103,7 @@ const Gain gainTable[19] = {
     {0x3E0, 0},   //
 };
 
-void BK4819_Init(void) {
+void BK4819_Init() {
   GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCN);
   GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
   GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
@@ -147,7 +147,7 @@ void BK4819_WriteU8(uint8_t Data) {
   }
 }
 
-static uint16_t BK4819_ReadU16(void) {
+static uint16_t BK4819_ReadU16() {
   uint8_t i;
   uint16_t Value;
 
@@ -379,7 +379,7 @@ void BK4819_SetFrequency(uint32_t f) {
   BK4819_WriteRegister(BK4819_REG_39, (f >> 16) & 0xFFFF);
 }
 
-uint32_t BK4819_GetFrequency(void) {
+uint32_t BK4819_GetFrequency() {
   return (BK4819_ReadRegister(BK4819_REG_39) << 16) |
          BK4819_ReadRegister(BK4819_REG_38);
 }
@@ -454,7 +454,7 @@ void BK4819_SetModulation(ModulationType type) {
                      type == MOD_AM || type == MOD_USB || type == MOD_BYP);
 }
 
-void BK4819_RX_TurnOn(void) {
+void BK4819_RX_TurnOn() {
   // DSP Voltage Setting = 1
   // ANA LDO = 2.7v
   // VCO LDO = 2.7v
@@ -484,7 +484,7 @@ void BK4819_RX_TurnOn(void) {
   BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
 }
 
-void BK4819_DisableFilter(void) {
+void BK4819_DisableFilter() {
   BK4819_ToggleGpioOut(BK4819_GPIO4_PIN32_VHF_LNA, false);
   BK4819_ToggleGpioOut(BK4819_GPIO3_PIN31_UHF_LNA, false);
 }
@@ -502,7 +502,7 @@ void BK4819_SelectFilter(uint32_t f) {
   BK4819_ToggleGpioOut(BK4819_GPIO3_PIN31_UHF_LNA, filterNeeded == FILTER_UHF);
 }
 
-void BK4819_DisableScramble(void) {
+void BK4819_DisableScramble() {
   uint16_t Value;
 
   Value = BK4819_ReadRegister(BK4819_REG_31);
@@ -517,16 +517,16 @@ void BK4819_EnableScramble(uint8_t Type) {
   BK4819_WriteRegister(BK4819_REG_71, (Type * 0x0408) + 0x68DC);
 }
 
-void BK4819_DisableVox(void) {
+void BK4819_DisableVox() {
   uint16_t Value;
 
   Value = BK4819_ReadRegister(BK4819_REG_31);
   BK4819_WriteRegister(BK4819_REG_31, Value & 0xFFFB);
 }
 
-void BK4819_DisableDTMF(void) { BK4819_WriteRegister(BK4819_REG_24, 0); }
+void BK4819_DisableDTMF() { BK4819_WriteRegister(BK4819_REG_24, 0); }
 
-void BK4819_EnableDTMF(void) {
+void BK4819_EnableDTMF() {
   BK4819_WriteRegister(BK4819_REG_21, 0x06D8);
   BK4819_WriteRegister(BK4819_REG_24,
                        0 | (1U << BK4819_REG_24_SHIFT_UNKNOWN_15) |
@@ -559,16 +559,16 @@ void BK4819_PlayTone(uint16_t Frequency, bool bTuningGainSwitch) {
   BK4819_SetToneFrequency(Frequency);
 }
 
-void BK4819_EnterTxMute(void) { BK4819_WriteRegister(BK4819_REG_50, 0xBB20); }
+void BK4819_EnterTxMute() { BK4819_WriteRegister(BK4819_REG_50, 0xBB20); }
 
-void BK4819_ExitTxMute(void) { BK4819_WriteRegister(BK4819_REG_50, 0x3B20); }
+void BK4819_ExitTxMute() { BK4819_WriteRegister(BK4819_REG_50, 0x3B20); }
 
-void BK4819_Sleep(void) {
+void BK4819_Sleep() {
   BK4819_WriteRegister(BK4819_REG_30, 0);
   BK4819_WriteRegister(BK4819_REG_37, 0x1D00);
 }
 
-void BK4819_TurnsOffTones_TurnsOnRX(void) {
+void BK4819_TurnsOffTones_TurnsOnRX() {
   BK4819_WriteRegister(BK4819_REG_70, 0);
   BK4819_SetAF(BK4819_AF_MUTE);
   BK4819_ExitTxMute();
@@ -580,7 +580,7 @@ void BK4819_TurnsOffTones_TurnsOnRX(void) {
           BK4819_REG_30_ENABLE_PLL_VCO | BK4819_REG_30_ENABLE_RX_DSP);
 }
 
-void BK4819_ResetFSK(void) {
+void BK4819_ResetFSK() {
   BK4819_WriteRegister(BK4819_REG_3F, 0x0000); // Disable interrupts
   BK4819_WriteRegister(BK4819_REG_59,
                        0x0068); // Sync length 4 bytes, 7 byte preamble
@@ -588,44 +588,44 @@ void BK4819_ResetFSK(void) {
   BK4819_Idle();
 }
 
-void BK4819_FskClearFifo(void) {
+void BK4819_FskClearFifo() {
   const uint16_t fsk_reg59 = BK4819_ReadRegister(BK4819_REG_59);
   BK4819_WriteRegister(BK4819_REG_59, (1u << 15) | (1u << 14) | fsk_reg59);
 }
 
-void BK4819_FskEnableRx(void) {
+void BK4819_FskEnableRx() {
   const uint16_t fsk_reg59 = BK4819_ReadRegister(BK4819_REG_59);
   BK4819_WriteRegister(BK4819_REG_59, (1u << 12) | fsk_reg59);
 }
 
-void BK4819_FskEnableTx(void) {
+void BK4819_FskEnableTx() {
   const uint16_t fsk_reg59 = BK4819_ReadRegister(BK4819_REG_59);
   BK4819_WriteRegister(BK4819_REG_59, (1u << 11) | fsk_reg59);
 }
 
-void BK4819_Idle(void) { BK4819_WriteRegister(BK4819_REG_30, 0x0000); }
+void BK4819_Idle() { BK4819_WriteRegister(BK4819_REG_30, 0x0000); }
 
-void BK4819_ExitBypass(void) {
+void BK4819_ExitBypass() {
   BK4819_SetAF(BK4819_AF_MUTE);
   BK4819_WriteRegister(BK4819_REG_7E, 0x302E);
 }
 
-void BK4819_PrepareTransmit(void) {
+void BK4819_PrepareTransmit() {
   BK4819_ExitBypass();
   BK4819_ExitTxMute();
   BK4819_TxOn_Beep();
 }
 
-void BK4819_TxOn_Beep(void) {
+void BK4819_TxOn_Beep() {
   BK4819_WriteRegister(BK4819_REG_37, 0x1D0F);
   BK4819_WriteRegister(BK4819_REG_52, 0x028F);
   BK4819_WriteRegister(BK4819_REG_30, 0x0000);
   BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);
 }
 
-void BK4819_ExitSubAu(void) { BK4819_WriteRegister(BK4819_REG_51, 0x0000); }
+void BK4819_ExitSubAu() { BK4819_WriteRegister(BK4819_REG_51, 0x0000); }
 
-void BK4819_EnableRX(void) {
+void BK4819_EnableRX() {
   if (gRxIdleMode) {
     BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, true);
     BK4819_RX_TurnOn();
@@ -660,7 +660,7 @@ void BK4819_ExitDTMF_TX(bool bKeep) {
   }
 }
 
-void BK4819_EnableTXLink(void) {
+void BK4819_EnableTXLink() {
   BK4819_WriteRegister(
       BK4819_REG_30,
       0 | BK4819_REG_30_ENABLE_VCO_CALIB | BK4819_REG_30_ENABLE_UNKNOWN |
@@ -797,30 +797,30 @@ void BK4819_GenTail(uint8_t Tail) {
   }
 }
 
-void BK4819_EnableCDCSS(void) {
+void BK4819_EnableCDCSS() {
   BK4819_GenTail(0); // CTC134
   BK4819_WriteRegister(BK4819_REG_51, 0x804A);
 }
 
-void BK4819_EnableCTCSS(void) {
+void BK4819_EnableCTCSS() {
   // BK4819_GenTail(2); // CTC180
   BK4819_GenTail(4); // CTC55
   BK4819_WriteRegister(BK4819_REG_51, 0x904A);
 }
 
-uint16_t BK4819_GetRSSI(void) {
+uint16_t BK4819_GetRSSI() {
   return BK4819_ReadRegister(BK4819_REG_67) & 0x1FF;
 }
 
-uint8_t BK4819_GetNoise(void) {
+uint8_t BK4819_GetNoise() {
   return BK4819_ReadRegister(BK4819_REG_65) & 0x7F;
 }
 
-uint8_t BK4819_GetGlitch(void) {
+uint8_t BK4819_GetGlitch() {
   return BK4819_ReadRegister(BK4819_REG_63) & 0xFF;
 }
 
-uint8_t BK4819_GetSNR(void) { return (BK4819_ReadRegister(0x61) >> 8) & 0xFF; }
+uint8_t BK4819_GetSNR() { return (BK4819_ReadRegister(0x61) >> 8) & 0xFF; }
 
 bool BK4819_GetFrequencyScanResult(uint32_t *pFrequency) {
   uint16_t High = BK4819_ReadRegister(BK4819_REG_0D);
@@ -855,11 +855,11 @@ BK4819_CssScanResult_t BK4819_GetCxCSSScanResult(uint32_t *pCdcssFreq,
   return BK4819_CSS_RESULT_NOT_FOUND;
 }
 
-void BK4819_DisableFrequencyScan(void) {
+void BK4819_DisableFrequencyScan() {
   BK4819_WriteRegister(BK4819_REG_32, 0x0244);
 }
 
-void BK4819_EnableFrequencyScan(void) {
+void BK4819_EnableFrequencyScan() {
   BK4819_WriteRegister(BK4819_REG_32, 0x0245);
 }
 
@@ -879,20 +879,20 @@ void BK4819_SetScanFrequency(uint32_t Frequency) {
   BK4819_RX_TurnOn();
 }
 
-void BK4819_StopScan(void) {
+void BK4819_StopScan() {
   BK4819_DisableFrequencyScan();
   BK4819_Idle();
 }
 
-uint8_t BK4819_GetDTMF_5TONE_Code(void) {
+uint8_t BK4819_GetDTMF_5TONE_Code() {
   return (BK4819_ReadRegister(BK4819_REG_0B) >> 8) & 0x0F;
 }
 
-uint8_t BK4819_GetCDCSSCodeType(void) {
+uint8_t BK4819_GetCDCSSCodeType() {
   return (BK4819_ReadRegister(BK4819_REG_0C) >> 14) & 3;
 }
 
-uint8_t BK4819_GetCTCType(void) {
+uint8_t BK4819_GetCTCType() {
   return (BK4819_ReadRegister(BK4819_REG_0C) >> 10) & 3;
 }
 
@@ -928,7 +928,7 @@ void BK4819_SendFSKData(uint16_t *pData) {
   BK4819_ResetFSK();
 }
 
-void BK4819_PrepareFSKReceive(void) {
+void BK4819_PrepareFSKReceive() {
   BK4819_ResetFSK();
   BK4819_WriteRegister(BK4819_REG_02, 0);
   BK4819_WriteRegister(BK4819_REG_3F, 0);
@@ -947,7 +947,7 @@ void BK4819_PrepareFSKReceive(void) {
 }
 #endif
 
-void BK4819_PlayRoger(void) {
+void BK4819_PlayRoger() {
   BK4819_EnterTxMute();
   BK4819_SetAF(BK4819_AF_MUTE);
   BK4819_WriteRegister(BK4819_REG_70, 0xE000);
@@ -965,7 +965,7 @@ void BK4819_PlayRoger(void) {
   BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);
 }
 
-void BK4819_PlayRogerMDC(void) {
+void BK4819_PlayRogerMDC() {
   uint8_t i;
 
   BK4819_SetAF(BK4819_AF_MUTE);
@@ -1002,7 +1002,7 @@ void BK4819_PlayRogerMDC(void) {
   BK4819_WriteRegister(BK4819_REG_58, 0x0000);
 }
 
-void BK4819_Enable_AfDac_DiscMode_TxDsp(void) {
+void BK4819_Enable_AfDac_DiscMode_TxDsp() {
   BK4819_WriteRegister(BK4819_REG_30, 0x0000);
   BK4819_WriteRegister(BK4819_REG_30, 0x0302);
 }
@@ -1054,11 +1054,11 @@ void BK4819_SetToneFrequency(uint16_t f) {
   BK4819_WriteRegister(BK4819_REG_71, (f * 103U) / 10U);
 }
 
-bool BK4819_IsSquelchOpen(void) {
+bool BK4819_IsSquelchOpen() {
   return (BK4819_ReadRegister(BK4819_REG_0C) >> 1) & 1;
 }
 
-void BK4819_ResetRSSI(void) {
+void BK4819_ResetRSSI() {
   uint16_t Reg = BK4819_ReadRegister(BK4819_REG_30);
   Reg &= ~1;
   BK4819_WriteRegister(BK4819_REG_30, Reg);

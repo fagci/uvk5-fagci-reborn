@@ -3,7 +3,6 @@
 
 #include "../helper/lootlist.h"
 #include "../settings.h"
-#include <stdbool.h>
 #include <stdint.h>
 
 void SP_AddPoint(Loot *msm);

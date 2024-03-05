@@ -46,7 +46,7 @@ static void startNewScan(bool reset) {
   }
 }
 
-static void nextF(void) {
+static void nextF() {
   uint16_t step = StepFrequencyTable[opt.band.step];
 
   if (msm.f + step > opt.band.bounds.end) {
@@ -79,7 +79,7 @@ static void scanFn(bool forward) {
   SP_Next();
 }
 
-static void setup(void) {
+static void setup() {
   const uint32_t halfBW = StepFrequencyTable[opt.band.step] * 64;
   opt.band.bounds.start = centerF - halfBW;
   opt.band.bounds.end = centerF + halfBW;
@@ -87,7 +87,7 @@ static void setup(void) {
   startNewScan(true);
 }
 
-void ANALYZER_init(void) {
+void ANALYZER_init() {
   SVC_Toggle(SVC_LISTEN, false, 0);
   RADIO_ToggleRX(false);
   RADIO_LoadCurrentCH();
@@ -110,9 +110,9 @@ void ANALYZER_init(void) {
   gRedrawScreen = true;
 }
 
-void ANALYZER_update(void) {}
+void ANALYZER_update() {}
 
-void ANALYZER_deinit(void) {
+void ANALYZER_deinit() {
   SVC_Toggle(SVC_SCAN, false, 0);
   radio->scan.timeout = initialScanInterval;
   SVC_Toggle(SVC_LISTEN, true, 1);
@@ -215,7 +215,7 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void ANALYZER_render(void) {
+void ANALYZER_render() {
   UI_ClearScreen();
   STATUSLINE_SetText(opt.band.name);
 
@@ -260,4 +260,4 @@ static App meta = {
     .vfo = &vfo,
 };
 
-App *ANALYZER_Meta(void) { return &meta; }
+App *ANALYZER_Meta() { return &meta; }

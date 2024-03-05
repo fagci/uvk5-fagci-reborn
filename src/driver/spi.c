@@ -20,7 +20,7 @@
 #include "inc/dp32g030/irq.h"
 #include "driver/spi.h"
 
-void SPI0_Init(void)
+void SPI0_Init()
 {
 	SPI_Config_t Config;
 
@@ -43,7 +43,7 @@ void SPI0_Init(void)
 	SPI_Enable(&SPI0->CR);
 }
 
-void SPI_WaitForUndocumentedTxFifoStatusBit(void)
+void SPI_WaitForUndocumentedTxFifoStatusBit()
 {
 	uint32_t Timeout;
 

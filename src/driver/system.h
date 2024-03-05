@@ -22,7 +22,7 @@
 #define CPU_CLOCK_HZ 48000000
 
 void SYSTEM_DelayMs(uint32_t Delay);
-void SYSTEM_ConfigureClocks(void);
-void SYSTEM_ConfigureSysCon(void);
+void SYSTEM_ConfigureClocks();
+void SYSTEM_ConfigureSysCon();
 
 #endif

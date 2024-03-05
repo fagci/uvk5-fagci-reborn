@@ -4,6 +4,6 @@
 #include "../helper/appsregistry.h"
 #include "apps.h"
 
-App *TEST_Meta(void);
+App *TEST_Meta();
 
 #endif /* end of include guard: TEST_H */

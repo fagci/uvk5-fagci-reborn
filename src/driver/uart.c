@@ -27,7 +27,7 @@
 uint8_t UART_IsLogEnabled = 0;
 uint8_t UART_DMA_Buffer[256];
 
-void UART_Init(void) {
+void UART_Init() {
   uint32_t Delta;
   uint32_t Positive;
   uint32_t Frequency;

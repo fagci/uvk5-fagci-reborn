@@ -1,11 +1,10 @@
 #ifndef SVC_RENDER_H
 #define SVC_RENDER_H
 
-#include <stdbool.h>
 #include <stdint.h>
 
-void SVC_RENDER_Init(void);
-void SVC_RENDER_Update(void);
-void SVC_RENDER_Deinit(void);
+void SVC_RENDER_Init();
+void SVC_RENDER_Update();
+void SVC_RENDER_Deinit();
 
 #endif /* end of include guard: SVC_RENDER_H */

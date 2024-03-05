@@ -32,7 +32,7 @@ void NUMNAV_Init(uint16_t initialValue, uint16_t min, uint16_t max) {
   gIsNumNavInput = true;
 }
 
-uint16_t NUMNAV_GetCurrentValue(void) {
+uint16_t NUMNAV_GetCurrentValue() {
   if (pos == 0) {
     return initV;
   }
@@ -90,7 +90,7 @@ uint16_t NUMNAV_Input(KEY_Code_t key) {
   return NUMNAV_GetCurrentValue();
 }
 
-uint16_t NUMNAV_Deinit(void) {
+uint16_t NUMNAV_Deinit() {
   Log("NUMNAV_Deinit %u", initV);
   pos = 0;
   gNumNavCallback = NULL;
@@ -98,7 +98,7 @@ uint16_t NUMNAV_Deinit(void) {
   return initV;
 }
 
-void NUMNAV_Accept(void) {
+void NUMNAV_Accept() {
   Log("NUMNAV_Accept %u", NUMNAV_GetCurrentValue());
   gNumNavCallback(NUMNAV_GetCurrentValue());
   NUMNAV_Deinit();

@@ -1,7 +1,6 @@
 #ifndef SVC_H
 #define SVC_H
 
-#include <stdbool.h>
 #include <stdint.h>
 
 typedef enum {

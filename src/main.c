@@ -17,13 +17,12 @@
 #include "settings.h"
 #include "svc.h"
 #include "ui/graphics.h"
-#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 
 void _putchar(char c) {}
 
-static void selfTest(void) {
+static void selfTest() {
 
   uint8_t buf[8];
   for (uint8_t i = 0; i < 8; ++i) {
@@ -39,7 +38,7 @@ static void selfTest(void) {
     continue;
 }
 
-static void unreborn(void) {
+static void unreborn() {
   uint8_t tpl[128];
   memset(tpl, 0xFF, 128);
   UI_ClearScreen();
@@ -59,7 +58,7 @@ static void unreborn(void) {
     continue;
 }
 
-static void reset(void) {
+static void reset() {
   SVC_Toggle(SVC_APPS, true, 1);
   APPS_run(APP_RESET);
   while (true) {
@@ -69,12 +68,12 @@ static void reset(void) {
 
 // TODO:
 
-// static void TX(void) {
+// static void TX() {
 // DEV = 300 for SSB
 // SAVE 74, dev
 // }
 
-static void AddTasks(void) {
+static void AddTasks() {
   Log("Running base services...");
 
   SVC_Toggle(SVC_KEYBOARD, true, 10);
@@ -88,7 +87,7 @@ static void AddTasks(void) {
 }
 
 static uint8_t introIndex = 0;
-static void Intro(void) {
+static void Intro() {
   char pb[] = "-\\|/";
   UI_ClearScreen();
   PrintMedium(4, 0 + 12, "OSFW");
@@ -116,7 +115,7 @@ static void Intro(void) {
   }
 }
 
-void Main(void) {
+void Main() {
   SYSTICK_Init();
   SYSTEM_ConfigureSysCon();
 

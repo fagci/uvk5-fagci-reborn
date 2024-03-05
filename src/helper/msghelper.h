@@ -39,6 +39,6 @@ typedef union {
 void MSG_StorePacket(const uint16_t intBits);
 void MSG_Send(const char *message);
 DataPacket *MSG_GetMessage(uint8_t i);
-void MSG_Init(void);
+void MSG_Init();
 
 #endif /* end of include guard: MSG_H */

@@ -17,13 +17,13 @@ static uint32_t delta(uint32_t f1, uint32_t f2) {
   return d;
 }
 
-void FASTSCAN_init(void) {
+void FASTSCAN_init() {
   BK4819_StopScan();
   BK4819_DisableFilter();
   BK4819_EnableFrequencyScanEx(F_SC_T_0_2s);
 }
 
-void FASTSCAN_update(void) {
+void FASTSCAN_update() {
   uint32_t f = 0;
 
   if (BK4819_GetFrequencyScanResult(&f)) {
@@ -63,7 +63,7 @@ bool FASTSCAN_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void FASTSCAN_render(void) {
+void FASTSCAN_render() {
   UI_ClearScreen();
   PrintMediumEx(LCD_XCENTER, LCD_HEIGHT / 2, POS_C, C_FILL, "Scanning...");
   if (gotF > 0) {
@@ -72,7 +72,7 @@ void FASTSCAN_render(void) {
   }
 }
 
-void FASTSCAN_deinit(void) {
+void FASTSCAN_deinit() {
   BK4819_StopScan();
   BK4819_EnableRX();
 }
@@ -91,4 +91,4 @@ static App meta = {
     .vfo = &vfo,
 };
 
-App *FASTSCAN_Meta(void) { return &meta; }
+App *FASTSCAN_Meta() { return &meta; }

@@ -30,7 +30,7 @@ static MenuItem menu[] = {
 };
 static const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
 
-static void setInitialSubmenuIndex(void) {
+static void setInitialSubmenuIndex() {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_BW:
@@ -104,7 +104,7 @@ static void setTXOffset(uint32_t f) {
   BANDS_SaveCurrent();
 }
 
-void CHCFG_init(void) {
+void CHCFG_init() {
   gRedrawScreen = true;
   for (uint8_t i = 0; i < MENU_SIZE; ++i) {
     if (menu[i].type == M_MODULATION) {
@@ -116,9 +116,9 @@ void CHCFG_init(void) {
   }
 }
 
-void CHCFG_update(void) {}
+void CHCFG_update() {}
 
-static bool accept(void) {
+static bool accept() {
   MenuItem *item = &menu[menuIndex];
   // RUN APPS HERE
   switch (item->type) {
@@ -210,7 +210,7 @@ bool CHCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void CHCFG_render(void) {
+void CHCFG_render() {
   UI_ClearScreen();
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
@@ -239,4 +239,4 @@ static App meta = {
     .vfo = &vfo,
 };
 
-App *CHCFG_Meta(void) { return &meta; }
+App *CHCFG_Meta() { return &meta; }

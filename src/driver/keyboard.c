@@ -92,7 +92,7 @@ Keyboard keyboard[5] = {
          }},
 };
 
-KEY_Code_t KEYBOARD_Poll(void) {
+KEY_Code_t KEYBOARD_Poll() {
   KEY_Code_t Key = KEY_INVALID;
 
   // *****************

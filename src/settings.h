@@ -5,7 +5,7 @@
 #include "helper/appsregistry.h"
 #include <stdint.h>
 
-#define getsize(V) char (*__ #V)(void)[sizeof(V)] = 1;
+#define getsize(V) char (*__ #V)()[sizeof(V)] = 1;
 
 extern const uint8_t EEPROM_CHECKBYTE;
 

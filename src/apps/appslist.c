@@ -15,7 +15,7 @@ static void getMenuItemText(uint16_t index, char *name) {
   strncpy(name, appsAvailableToRun[index]->name, 31);
 }
 
-void APPSLIST_render(void) {
+void APPSLIST_render() {
   UI_ClearScreen();
 
   if (gIsNumNavInput) {
@@ -31,8 +31,8 @@ static void setMenuIndexAndRun(uint16_t v) {
   APPS_runManual(appsAvailableToRun[menuIndex]);
 }
 
-void APPSLIST_init(void) { gRedrawScreen = true; }
-void APPSLIST_update(void) {}
+void APPSLIST_init() { gRedrawScreen = true; }
+void APPSLIST_update() {}
 bool APPSLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld) {
     if (!gIsNumNavInput && key <= KEY_9) {
@@ -83,4 +83,4 @@ static App meta = {
     .vfo = &vfo,
 };
 
-App *APPSLIST_Meta(void) { return &meta; }
+App *APPSLIST_Meta() { return &meta; }

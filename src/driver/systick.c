@@ -20,7 +20,7 @@
 
 static uint32_t tickMultiplier;
 
-void SYSTICK_Init(void) {
+void SYSTICK_Init() {
   SysTick_Config(48000);
   tickMultiplier = 48;
 }

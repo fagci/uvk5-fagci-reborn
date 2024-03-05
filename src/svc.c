@@ -11,9 +11,9 @@
 
 typedef struct {
   const char *name;
-  void (*init)(void);
-  void (*update)(void);
-  void (*deinit)(void);
+  void (*init)();
+  void (*update)();
+  void (*deinit)();
   uint8_t priority;
 } Service;
 

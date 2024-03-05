@@ -19,15 +19,15 @@ static uint32_t lastRender = 0;
 
 static void tuneTo(uint32_t f) { RADIO_TuneToSave(GetTuneF(f)); }
 
-void MULTIVFO_init(void) {
+void MULTIVFO_init() {
   RADIO_LoadCurrentCH();
 
   gRedrawScreen = true;
 }
 
-void MULTIVFO_deinit(void) {}
+void MULTIVFO_deinit() {}
 
-void MULTIVFO_update(void) {
+void MULTIVFO_update() {
   if (elapsedMilliseconds - lastRender >= 500) {
     gRedrawScreen = true;
     lastRender = elapsedMilliseconds;
@@ -242,7 +242,7 @@ static void render2CHPart(uint8_t i) {
   }
 }
 
-void CH1_render(void) {
+void CH1_render() {
   UI_ClearScreen();
   const uint8_t BASE = 38;
 
@@ -270,7 +270,7 @@ void CH1_render(void) {
   }
 }
 
-void MULTIVFO_render(void) {
+void MULTIVFO_render() {
   UI_ClearScreen();
 
   if (gIsNumNavInput) {
@@ -298,4 +298,4 @@ static App meta = {
     .vfo = &vfo,
 };
 
-App *MULTIVFO_Meta(void) { return &meta; }
+App *MULTIVFO_Meta() { return &meta; }
