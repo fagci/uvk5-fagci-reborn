@@ -5,24 +5,6 @@
 Settings gSettings;
 
 uint8_t BL_TIME_VALUES[7] = {0, 5, 10, 20, 60, 120, 255};
-const char *BL_TIME_NAMES[7] = {"Off",  "5s",   "10s", "20s",
-                                "1min", "2min", "On"};
-
-const char *BL_SQL_MODE_NAMES[3] = {"Off", "On", "Open"};
-const char *TX_POWER_NAMES[3] = {"Low", "Mid", "High"};
-const char *TX_ALLOW_NAMES[5] = {"Disallow", "LPD+PMR", "LPD+PMR+SAT", "HAM",
-                                 "Allow"};
-const char *TX_OFFSET_NAMES[3] = {"Unset", "+", "-"};
-const char *EEPROM_TYPE_NAMES[8] = {
-    "Undefined 1",       // 000
-    "Undefined 2",       // 001
-    "BL24C64 (default)", // 010
-    "BL24C128",          // 011
-    "BL24C256",          // 100
-    "BL24C512",          // 101
-    "BL24C1024",         // 110
-    "M24M02 (x1)",       // 111
-};
 
 const FRange STOCK_BANDS[12] = {
     {1500000, 3000000},   {3000000, 5000000},    {5000000, 7600000},

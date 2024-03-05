@@ -4,8 +4,6 @@
 #include "../radio.h"
 #include "graphics.h"
 
-const char *onOff[] = {"Off", "On"};
-const char *yesNo[] = {"No", "Yes"};
 
 void UI_DrawScrollBar(const uint16_t size, const uint16_t iCurrent,
                       const uint8_t nLines) {
@@ -92,10 +90,10 @@ void GetMenuItemValue(BandCfgMenu type, char *Output) {
     strncpy(Output, band->name, 31);
     break;
   case M_BW:
-    strncpy(Output, bwNames[band->bw], 31);
+    strncpy(Output, BW_NAMES[band->bw], 31);
     break;
   case M_SQ_TYPE:
-    strncpy(Output, sqTypeNames[band->squelchType], 31);
+    strncpy(Output, SQ_TYPE_NAMES[band->squelchType], 31);
     break;
   case M_SQ:
     sprintf(Output, "%u", band->squelch);
@@ -111,7 +109,7 @@ void GetMenuItemValue(BandCfgMenu type, char *Output) {
             StepFrequencyTable[band->step] % 100);
     break;
   case M_TX:
-    strncpy(Output, yesNo[gCurrentBand->allowTx], 31);
+    strncpy(Output, YES_NO_NAMES[gCurrentBand->allowTx], 31);
     break;
   case M_F_RX:
     sprintf(Output, "%u.%05u", radio->f / 100000, radio->f % 100000);

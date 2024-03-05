@@ -7,8 +7,6 @@
 static const uint8_t MENU_Y = 8;
 static const uint8_t MENU_ITEM_H = 11;
 static const uint8_t MENU_LINES_TO_SHOW = 4;
-extern const char *onOff[];
-extern const char *yesNo[];
 
 typedef enum {
   M_START,

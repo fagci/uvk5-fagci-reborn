@@ -1,7 +1,7 @@
 #include "components.h"
 #include "../driver/st7565.h"
-#include "../helper/measurements.h"
 #include "../helper/bandlist.h"
+#include "../helper/measurements.h"
 #include "graphics.h"
 
 void UI_Battery(uint8_t Level) {
@@ -44,7 +44,7 @@ void UI_RSSIBar(uint16_t rssi, uint32_t f, uint8_t y) {
 void UI_FSmall(uint32_t f) {
   PrintSmallEx(LCD_WIDTH - 1, 15, 2, true,
                modulationTypeOptions[radio->modulation]);
-  PrintSmallEx(LCD_WIDTH - 1, 21, 2, true, bwNames[radio->bw]);
+  PrintSmallEx(LCD_WIDTH - 1, 21, 2, true, BW_NAMES[radio->bw]);
 
   uint16_t step = StepFrequencyTable[radio->step];
 
@@ -71,11 +71,11 @@ void drawTicks(uint8_t x1, uint8_t x2, uint8_t y, uint32_t fs, uint32_t fe,
   }
 }
 
-void UI_DrawTicks(uint8_t x1, uint8_t x2, uint8_t y, Band *band) {
+void UI_DrawTicks(uint8_t x1, uint8_t x2, uint8_t y, FRange *range) {
   // TODO: automatic ticks size determination
 
-  uint32_t fs = band->bounds.start;
-  uint32_t fe = band->bounds.end;
+  uint32_t fs = range->start;
+  uint32_t fe = range->end;
   uint32_t bw = fe - fs;
 
   if (bw > 5000000) {

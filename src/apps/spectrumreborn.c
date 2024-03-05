@@ -192,7 +192,7 @@ void SPECTRUM_render(void) {
   SP_Render(gCurrentBand, 0, SPECTRUM_Y, SPECTRUM_HEIGHT);
 
   PrintSmallEx(spectrumWidth - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "SQ%u %s",
-               band->squelch, sqTypeNames[band->squelchType]);
+               band->squelch, SQ_TYPE_NAMES[band->squelchType]);
   PrintSmallEx(0, SPECTRUM_Y - 3, POS_L, C_FILL, "%ums", vfo.scan.timeout);
   PrintSmallEx(0, SPECTRUM_Y - 3 + 6, POS_L, C_FILL, "%ums", scanTime);
   PrintSmallEx(0, SPECTRUM_Y - 3 + 12, POS_L, C_FILL, "%uCHps", chPerSec);

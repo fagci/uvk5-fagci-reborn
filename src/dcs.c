@@ -18,7 +18,6 @@
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
-const char *dcsNames[] = {"", "CT", "DCS", "DCS"};
 
 const uint16_t CTCSS_Options[50] = {
     0x029E, 0x02B5, 0x02CF, 0x02E8, 0x0302, 0x031D, 0x0339, 0x0356, 0x0375,

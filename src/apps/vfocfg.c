@@ -23,8 +23,8 @@ static MenuItem menu[] = {
     {"TX power", M_F_TXP, ARRAY_SIZE(TX_POWER_NAMES)},
     {"Step", M_STEP, ARRAY_SIZE(StepFrequencyTable)},
     {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions)},
-    {"BW", M_BW, ARRAY_SIZE(bwNames)},
-    {"SQ type", M_SQ_TYPE, ARRAY_SIZE(sqTypeNames)},
+    {"BW", M_BW, ARRAY_SIZE(BW_NAMES)},
+    {"SQ type", M_SQ_TYPE, ARRAY_SIZE(SQ_TYPE_NAMES)},
     {"SQ level", M_SQ, 10},
     {"Save", M_SAVE, 0},
 };
@@ -71,7 +71,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     strncpy(name, modulationTypeOptions[index], 31);
     return;
   case M_BW:
-    strncpy(name, bwNames[index], 15);
+    strncpy(name, BW_NAMES[index], 15);
     return;
   case M_F_TXP:
     strncpy(name, TX_POWER_NAMES[index], 15);
@@ -84,7 +84,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
             StepFrequencyTable[index] % 100);
     return;
   case M_SQ_TYPE:
-    strncpy(name, sqTypeNames[index], 31);
+    strncpy(name, SQ_TYPE_NAMES[index], 31);
     return;
   case M_SQ:
     sprintf(name, "%u", index);

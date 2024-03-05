@@ -40,14 +40,6 @@ const uint16_t StepFrequencyTable[14] = {
 };
 
 const uint32_t upConverterValues[3] = {0, 5000000, 12500000};
-const char *upConverterFreqNames[3] = {"None", "50M", "125M"};
-
-const char *modulationTypeOptions[6] = {"FM", "AM", "SSB", "BYP", "RAW", "WFM"};
-const char *powerNames[] = {"LOW", "MID", "HIGH"};
-const char *bwNames[3] = {"25k", "12.5k", "6.25k"};
-const char *TX_STATE_NAMES[7] = {"TX Off",         "TX On",    "VOL HIGH",
-                                 "BAT LOW",        "DISABLED", "UPCONVERTER",
-                                 "POWER OVERDRIVE"};
 
 const SquelchType sqTypeValues[4] = {
     SQUELCH_RSSI_NOISE_GLITCH,
@@ -55,8 +47,6 @@ const SquelchType sqTypeValues[4] = {
     SQUELCH_RSSI_NOISE,
     SQUELCH_RSSI,
 };
-const char *sqTypeNames[4] = {"RNG", "RG", "RN", "R"};
-const char *deviationNames[] = {"", "+", "-"};
 
 static uint8_t getBandIndex(uint32_t f) {
   for (uint8_t i = 0; i < ARRAY_SIZE(STOCK_BANDS); ++i) {
@@ -231,8 +221,6 @@ uint32_t RADIO_GetTXFEx(CH *vfo) {
 
   return txF;
 }
-
-uint32_t RADIO_GetTXF(void) { return RADIO_GetTXFEx(radio); }
 
 static FRange LPD = {43307500, 43477500};
 static FRange PMR = {44600625, 44609375};

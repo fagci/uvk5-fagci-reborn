@@ -2,7 +2,6 @@
 #include "../driver/st7565.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
-#include "../helper/bandlist.h"
 #include "../radio.h"
 #include "../scheduler.h"
 #include "../settings.h"

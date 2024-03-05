@@ -30,14 +30,6 @@ extern const uint16_t StepFrequencyTable[14];
 extern const char *modulationTypeOptions[6];
 extern const SquelchType sqTypeValues[4];
 
-extern const char *upConverterFreqNames[3];
-extern const char *vfoStateNames[];
-extern const char *powerNames[];
-extern const char *bwNames[3];
-extern const char *deviationNames[];
-extern const char *sqTypeNames[4];
-extern const char *TX_STATE_NAMES[7];
-
 void RADIO_SetupRegisters();
 
 void RADIO_SaveCurrentCH();
@@ -46,12 +38,6 @@ void RADIO_LoadCurrentCH();
 void RADIO_ToggleRX(bool on);
 void RADIO_ToggleTX(bool on);
 
-void RADIO_TuneTo(uint32_t f);
-bool RADIO_TuneToCH(int16_t num);
-void RADIO_TuneToPure(uint32_t f, bool precise);
-void RADIO_TuneToSave(uint32_t f);
-void RADIO_SelectBand(int8_t num);
-void RADIO_SelectBandSave(int8_t num);
 void RADIO_SetupParams();
 
 void RADIO_EnableToneDetection();
@@ -76,8 +62,7 @@ void RADIO_UpdateSquelchLevel(bool next);
 uint32_t GetScreenF(uint32_t f);
 uint32_t GetTuneF(uint32_t f);
 uint16_t RADIO_GetRSSI(void);
-uint32_t RADIO_GetTXF(void);
-uint32_t RADIO_GetTXFEx(CH *vfo, Band *p);
+uint32_t RADIO_GetTXFEx(CH *vfo);
 void RADIO_ToggleBK1080(bool on);
 
 bool RADIO_IsBK1080Range(uint32_t f);

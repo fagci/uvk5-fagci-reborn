@@ -47,13 +47,12 @@ static bool isSubMenu = false;
 
 static char Output[16];
 
-const char *fltBound[] = {"240MHz", "280MHz"};
 
 const uint16_t BAT_CAL_MIN = 1900;
 const uint16_t BAT_CAL_MAX = 2155;
 
 static MenuItem menu[] = {
-    {"Upconverter", M_UPCONVERTER, ARRAY_SIZE(upConverterFreqNames)},
+    {"Upconverter", M_UPCONVERTER, ARRAY_SIZE(UPCONVERTER_NAMES)},
     {"Main app", M_MAIN_APP, 0}, // will be ok at render
     {"SQL open time", M_SQL_OPEN_T, 7},
     {"SQL close time", M_SQL_CLOSE_T, 3},
@@ -83,7 +82,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
       gBatteryVoltage * gSettings.batteryCalibration / (index + BAT_CAL_MIN);
   switch (item->type) {
   case M_UPCONVERTER:
-    strncpy(name, upConverterFreqNames[index], 31);
+    strncpy(name, UPCONVERTER_NAMES[index], 31);
     return;
   case M_MAIN_APP:
     strncpy(name, appsAvailableToRun[index]->name, 31);
@@ -107,7 +106,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     strncpy(name, BL_SQL_MODE_NAMES[index], 31);
     return;
   case M_FLT_BOUND:
-    strncpy(name, fltBound[index], 31);
+    strncpy(name, FILTER_BOUND_NAMES[index], 31);
     return;
   case M_BRIGHTNESS:
     sprintf(name, "%u", index);
@@ -119,7 +118,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     strncpy(name, BL_TIME_NAMES[index], 31);
     return;
   case M_BEEP:
-    strncpy(name, onOff[index], 31);
+    strncpy(name, ON_OFF_NAMES[index], 31);
     return;
   case M_BAT_CAL:
     sprintf(name, "%u.%02u (%u)", v / 100, v % 100, index + BAT_CAL_MIN);
@@ -134,10 +133,10 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     strncpy(name, EEPROM_TYPE_NAMES[index], 31);
     return;
   case M_RESET:
-    strncpy(name, yesNo[index], 31);
+    strncpy(name, YES_NO_NAMES[index], 31);
     return;
   case M_SKIP_GARBAGE_FREQS:
-    strncpy(name, yesNo[index], 31);
+    strncpy(name, YES_NO_NAMES[index], 31);
     return;
   case M_NICKNAME:
     strncpy(name, gSettings.nickName, 31);
@@ -281,11 +280,11 @@ static const char *getValue(Menu type) {
     sprintf(Output, "%uMHz", SETTINGS_GetFilterBound() / 100000);
     return Output;
   case M_UPCONVERTER:
-    return upConverterFreqNames[gSettings.upconverter];
+    return UPCONVERTER_NAMES[gSettings.upconverter];
   case M_BEEP:
-    return onOff[gSettings.beep];
+    return ON_OFF_NAMES[gSettings.beep];
   case M_SKIP_GARBAGE_FREQS:
-    return yesNo[gSettings.skipGarbageFrequencies];
+    return YES_NO_NAMES[gSettings.skipGarbageFrequencies];
   case M_NICKNAME:
     return gSettings.nickName;
   default:

@@ -101,7 +101,6 @@ typedef enum {
   TX_ALLOW_ALL,
 } AllowTX;
 
-extern const char *EEPROM_TYPE_NAMES[8];
 
 typedef struct {
   uint8_t timeout : 8;
@@ -129,8 +128,8 @@ typedef struct {
 } __attribute__((packed)) PowerCalibration;
 
 typedef struct {
-  uint32_t lastUsedFreq : 27;
   int16_t channel;
+  ScanSettings scan;
 } VFO_Params;
 
 typedef struct {
@@ -177,6 +176,7 @@ typedef struct {
 // getsize(Settings)
 
 typedef struct {
+  ChannelType type : 2;
   union {
     char name[10];
     VFO_Params vfo;
@@ -193,7 +193,6 @@ typedef struct {
   uint8_t codeTypeTX : 4;
   uint8_t scanlists;
   SquelchSettings sq;
-  ChannelType type;
   uint8_t gainIndex : 5;
   Step step : 4;
 } __attribute__((packed)) CH; // 33 B
@@ -203,7 +202,6 @@ typedef struct {
 typedef struct {
   char name[10];
   uint8_t activeCH;
-  ScanSettings scan;
 } __attribute__((packed)) Scanlist;
 
 #define SETTINGS_SIZE sizeof(Settings)
@@ -224,11 +222,6 @@ typedef struct {
 
 extern Settings gSettings;
 extern uint8_t BL_TIME_VALUES[7];
-extern const char *BL_TIME_NAMES[7];
-extern const char *BL_SQL_MODE_NAMES[3];
-extern const char *TX_POWER_NAMES[3];
-extern const char *TX_OFFSET_NAMES[3];
-extern const char *TX_ALLOW_NAMES[5];
 
 extern const FRange STOCK_BANDS[12];
 
