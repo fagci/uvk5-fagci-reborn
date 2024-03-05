@@ -143,7 +143,7 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_SIDE2:
       return true;
     case KEY_8:
-      if (!isBK1080) {
+      if (!gIsBK1080) {
         IncDec8(&menuState, 1, ARRAY_SIZE(registerSpecs), 1);
       }
       return true;
@@ -221,7 +221,7 @@ void STILL_render(void) {
   UI_FSmall(gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(radio->f));
   UI_RSSIBar(gLoot[gSettings.activeCH].rssi, radio->f, 23);
 
-  if (!isBK1080) {
+  if (!gIsBK1080) {
     DrawRegs();
   }
 }

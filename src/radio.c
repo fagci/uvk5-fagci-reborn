@@ -7,14 +7,11 @@
 #include "driver/gpio.h"
 #include "driver/st7565.h"
 #include "driver/system.h"
-#include "driver/uart.h"
-#include "helper/adapter.h"
-#include "helper/bandlist.h"
 #include "helper/battery.h"
 #include "helper/channels.h"
 #include "helper/lootlist.h"
 #include "helper/measurements.h"
-#include "helper/msghelper.h"
+// #include "helper/msghelper.h"
 #include "helper/vfos.h"
 #include "inc/dp32g030/gpio.h"
 #include "misc.h"
@@ -31,12 +28,18 @@ char gCHNames[2][10] = {0};
 bool gIsListening = false;
 bool gMonitorMode = false;
 
-bool isBK1080 = false;
+bool gIsBK1080 = false;
 
-const uint16_t StepFrequencyTable[14] = {
-    1,   10,  50,  100,
+static FRange LPD = {43307500, 43477500};
+static FRange PMR = {44600625, 44609375};
+static FRange HAM2M = {14400000, 14599999};
+static FRange HAM70CM = {43000000, 44000000};
+static FRange SATCOM = {23000000, 32000000};
 
-    250, 500, 625, 833, 1000, 1250, 2500, 10000, 12500, 20000,
+TXState gTxState = TX_UNKNOWN;
+
+const uint16_t StepFrequencyTable[12] = {
+    1, 10, 100, 250, 500, 625, 833, 900, 1000, 1250, 2500, 10000,
 };
 
 const uint32_t upConverterValues[3] = {0, 5000000, 12500000};
@@ -58,6 +61,110 @@ static uint8_t getBandIndex(uint32_t f) {
   return 6;
 }
 
+static void onVfoUpdate(void) {
+  TaskRemove(RADIO_SaveCurrentCH);
+  TaskAdd("CH save", RADIO_SaveCurrentCH, 2000, false, 0);
+}
+
+static void toggleBK4819(bool on) {
+  if (on) {
+    BK4819_ToggleAFDAC(true);
+    BK4819_ToggleAFBit(true);
+    SYSTEM_DelayMs(10);
+    AUDIO_ToggleSpeaker(true);
+  } else {
+    AUDIO_ToggleSpeaker(false);
+    SYSTEM_DelayMs(10);
+    BK4819_ToggleAFDAC(false);
+    BK4819_ToggleAFBit(false);
+  }
+}
+
+static void toggleBK1080(bool on) {
+  if (on) {
+    BK1080_Init(radio->f, true);
+    BK1080_Mute(false);
+    SYSTEM_DelayMs(10);
+    AUDIO_ToggleSpeaker(true);
+  } else {
+    AUDIO_ToggleSpeaker(false);
+    SYSTEM_DelayMs(10);
+    BK1080_Mute(true);
+    BK1080_Init(0, false);
+  }
+}
+
+static uint8_t calculateOutputPower(uint32_t f) {
+  const uint8_t bi = getBandIndex(f);
+  const FRange *range = &STOCK_BANDS[bi];
+  const PowerCalibration *pCal = &gSettings.powCalib[bi];
+  const uint32_t Middle = range->start + (range->end - range->start) / 2;
+
+  if (f <= range->start) {
+    return pCal->s;
+  }
+
+  if (f >= range->end) {
+    return pCal->e;
+  }
+
+  if (f <= Middle) {
+    return (uint8_t)(pCal->m + (((pCal->m - pCal->s) * (f - range->start)) /
+                                (Middle - range->start)));
+  }
+
+  return (uint8_t)(pCal->m + (((pCal->e - pCal->m) * (f - Middle)) /
+                              (range->end - Middle)));
+}
+
+static bool isSqOpenSimple(uint16_t r) {
+  uint8_t band = radio->f > SETTINGS_GetFilterBound() ? 1 : 0;
+  uint8_t sq = radio->sq.level;
+  uint16_t ro = SQ[band][0][sq];
+  uint16_t rc = SQ[band][1][sq];
+  uint8_t no = SQ[band][2][sq];
+  uint8_t nc = SQ[band][3][sq];
+  uint8_t go = SQ[band][4][sq];
+  uint8_t gc = SQ[band][5][sq];
+
+  uint8_t n, g;
+
+  bool open;
+
+  switch (radio->sq.type) {
+  case SQUELCH_RSSI_NOISE_GLITCH:
+    n = BK4819_GetNoise();
+    g = BK4819_GetGlitch();
+    open = r >= ro && n <= no && g <= go;
+    if (r < rc || n > nc || g > gc) {
+      open = false;
+    }
+    break;
+  case SQUELCH_RSSI_NOISE:
+    n = BK4819_GetNoise();
+    open = r >= ro && n <= no;
+    if (r < rc || n > nc) {
+      open = false;
+    }
+    break;
+  case SQUELCH_RSSI_GLITCH:
+    g = BK4819_GetGlitch();
+    open = r >= ro && g <= go;
+    if (r < rc || g > gc) {
+      open = false;
+    }
+    break;
+  case SQUELCH_RSSI:
+    open = r >= ro;
+    if (r < rc) {
+      open = false;
+    }
+    break;
+  }
+
+  return open;
+}
+
 void RADIO_SetupRegisters(void) {
   uint32_t Frequency = 0;
 
@@ -76,10 +183,8 @@ void RADIO_SetupRegisters(void) {
   }
   BK4819_WriteRegister(BK4819_REG_3F, 0);
   BK4819_WriteRegister(BK4819_REG_7D, 0xE94F);
-  BK4819_SetFrequency(Frequency);
-  BK4819_SelectFilter(Frequency);
+  RADIO_TuneToPure(Frequency, true);
   BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, true);
-  // BK4819_WriteRegister(BK4819_REG_48, 0xB3A8);
   BK4819_WriteRegister(
       BK4819_REG_48,
       (11u << 12) |    // ??? .. 0 ~ 15, doesn't seem to make any difference
@@ -93,8 +198,6 @@ void RADIO_SetupRegisters(void) {
   BK4819_DisableDTMF();
 
   BK4819_WriteRegister(BK4819_REG_3F, 0);
-  /* BK4819_WriteRegister(BK4819_REG_3F, BK4819_REG_3F_SQUELCH_FOUND |
-                                          BK4819_REG_3F_SQUELCH_LOST); */
   BK4819_WriteRegister(0x40, (BK4819_ReadRegister(0x40) & ~(0b11111111111)) |
                                  0b10110101010 | (1 << 12));
   // BK4819_WriteRegister(0x40, (1 << 12) | (1450));
@@ -103,44 +206,12 @@ void RADIO_SetupRegisters(void) {
 uint32_t GetScreenF(uint32_t f) {
   return f - upConverterValues[gSettings.upconverter];
 }
+
 uint32_t GetTuneF(uint32_t f) {
   return f + upConverterValues[gSettings.upconverter];
 }
 
-static void onVfoUpdate(void) {
-  TaskRemove(RADIO_SaveCurrentCH);
-  TaskAdd("CH save", RADIO_SaveCurrentCH, 2000, false, 0);
-}
-
 bool RADIO_IsBK1080Range(uint32_t f) { return f >= 6400000 && f <= 10800000; }
-
-void toggleBK4819(bool on) {
-  if (on) {
-    BK4819_ToggleAFDAC(true);
-    BK4819_ToggleAFBit(true);
-    SYSTEM_DelayMs(10);
-    AUDIO_ToggleSpeaker(true);
-  } else {
-    AUDIO_ToggleSpeaker(false);
-    SYSTEM_DelayMs(10);
-    BK4819_ToggleAFDAC(false);
-    BK4819_ToggleAFBit(false);
-  }
-}
-
-void toggleBK1080(bool on) {
-  if (on) {
-    BK1080_Init(radio->f, true);
-    BK1080_Mute(false);
-    SYSTEM_DelayMs(10);
-    AUDIO_ToggleSpeaker(true);
-  } else {
-    AUDIO_ToggleSpeaker(false);
-    SYSTEM_DelayMs(10);
-    BK1080_Mute(true);
-    BK1080_Init(0, false);
-  }
-}
 
 void RADIO_ToggleRX(bool on) {
   if (gIsListening == on) {
@@ -162,7 +233,7 @@ void RADIO_ToggleRX(bool on) {
     }
   }
 
-  if (isBK1080) {
+  if (gIsBK1080) {
     toggleBK1080(on);
   } else {
     toggleBK4819(on);
@@ -183,56 +254,51 @@ void RADIO_EnableCxCSS(void) {
   SYSTEM_DelayMs(200);
 }
 
-static uint8_t calculateOutputPower(uint32_t Frequency) {
-  const uint8_t bi = getBandIndex(Frequency);
-  const FRange *p = &STOCK_BANDS[bi];
-  PowerCalibration *pc = &gSettings.powCalib[bi];
-  uint8_t TxpLow = pc->s;
-  uint8_t TxpMid = pc->m;
-  uint8_t TxpHigh = pc->e;
-  uint32_t LowerLimit = p->start;
-  uint32_t UpperLimit = p->end;
-  uint32_t Middle = LowerLimit + (UpperLimit - LowerLimit) / 2;
-
-  if (Frequency <= LowerLimit) {
-    return TxpLow;
-  }
-
-  if (UpperLimit <= Frequency) {
-    return TxpHigh;
-  }
-
-  if (Frequency <= Middle) {
-    TxpMid +=
-        ((TxpMid - TxpLow) * (Frequency - LowerLimit)) / (Middle - LowerLimit);
-    return TxpMid;
-  }
-
-  TxpMid += ((TxpHigh - TxpMid) * (Frequency - Middle)) / (UpperLimit - Middle);
-  return TxpMid;
-}
-
 uint32_t RADIO_GetTXFEx(CH *vfo) {
-  uint32_t txF = vfo->f;
-
-  if (vfo->offset && vfo->offsetDir != OFFSET_NONE) {
-    txF = vfo->f + (vfo->offsetDir == OFFSET_PLUS ? vfo->offset : -vfo->offset);
+  if (vfo->offset == 0 || vfo->offsetDir == OFFSET_NONE) {
+    return vfo->f;
   }
 
-  return txF;
+  return vfo->f + (vfo->offsetDir == OFFSET_PLUS ? vfo->offset : -vfo->offset);
 }
-
-static FRange LPD = {43307500, 43477500};
-static FRange PMR = {44600625, 44609375};
-static FRange HAM2M = {14400000, 14599999};
-static FRange HAM70CM = {43000000, 44000000};
-static FRange SATCOM = {23000000, 32000000};
 
 static bool FreqInRange(uint32_t f, FRange *r) {
   return f >= r->start && f <= r->end;
 }
 
-TXState gTxState = TX_UNKNOWN;
+static TXState getTXState(uint32_t txF) {
+  if (gSettings.upconverter) {
+    return TX_DISABLED_UPCONVERTER;
+  }
+
+  if (gSettings.allowTX == TX_DISALLOW) {
+    return TX_DISABLED;
+  }
+
+  if (gSettings.allowTX == TX_ALLOW_LPD_PMR && !FreqInRange(txF, &LPD) &&
+      !FreqInRange(txF, &PMR)) {
+    return TX_DISABLED;
+  }
+
+  if (gSettings.allowTX == TX_ALLOW_LPD_PMR_SATCOM && !FreqInRange(txF, &LPD) &&
+      !FreqInRange(txF, &PMR) && !FreqInRange(txF, &SATCOM)) {
+    return TX_DISABLED;
+  }
+
+  if (gSettings.allowTX == TX_ALLOW_HAM && !FreqInRange(txF, &HAM2M) &&
+      !FreqInRange(txF, &HAM70CM)) {
+    return TX_DISABLED;
+  }
+
+  if (gBatteryPercent == 0) {
+    return TX_BAT_LOW;
+  }
+  if (gChargingWithTypeC || gBatteryVoltage > 880) {
+    return TX_VOL_HIGH;
+  }
+
+  return TX_ON;
+}
 
 void RADIO_ToggleTX(bool on) {
   if (gTxState == on) {
@@ -243,43 +309,7 @@ void RADIO_ToggleTX(bool on) {
   uint32_t txF = RADIO_GetTXFEx(radio);
 
   if (on) {
-    if (gSettings.upconverter) {
-      gTxState = TX_DISABLED_UPCONVERTER;
-      return;
-    }
-
-    if (gSettings.allowTX == TX_DISALLOW) {
-      gTxState = TX_DISABLED;
-      return;
-    }
-
-    if (gSettings.allowTX == TX_ALLOW_LPD_PMR && !FreqInRange(txF, &LPD) &&
-        !FreqInRange(txF, &PMR)) {
-      gTxState = TX_DISABLED;
-      return;
-    }
-
-    if (gSettings.allowTX == TX_ALLOW_LPD_PMR_SATCOM &&
-        !FreqInRange(txF, &LPD) && !FreqInRange(txF, &PMR) &&
-        !FreqInRange(txF, &SATCOM)) {
-      gTxState = TX_DISABLED;
-      return;
-    }
-
-    if (gSettings.allowTX == TX_ALLOW_HAM && !FreqInRange(txF, &HAM2M) &&
-        !FreqInRange(txF, &HAM70CM)) {
-      gTxState = TX_DISABLED;
-      return;
-    }
-
-    if (gBatteryPercent == 0) {
-      gTxState = TX_BAT_LOW;
-      return;
-    }
-    if (gChargingWithTypeC || gBatteryVoltage > 880) {
-      gTxState = TX_VOL_HIGH;
-      return;
-    }
+    gTxState = getTXState(txF);
     power = calculateOutputPower(txF);
     if (power > 0x91) {
       power = 0;
@@ -295,8 +325,7 @@ void RADIO_ToggleTX(bool on) {
     BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, false);
     RADIO_SetupParams();
 
-    BK4819_SetFrequency(txF); // TODO: single call?
-    BK4819_SelectFilter(txF);
+    RADIO_TuneToPure(txF, true);
 
     BK4819_PrepareTransmit();
 
@@ -314,8 +343,7 @@ void RADIO_ToggleTX(bool on) {
     BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, false);
     BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, true);
 
-    BK4819_SetFrequency(radio->f); // TODO: single call?
-    BK4819_SelectFilter(radio->f);
+    RADIO_TuneToPure(radio->f, true);
     BK4819_RX_TurnOn();
   }
 
@@ -325,12 +353,12 @@ void RADIO_ToggleTX(bool on) {
 }
 
 void RADIO_ToggleBK1080(bool on) {
-  if (on == isBK1080) {
+  if (on == gIsBK1080) {
     return;
   }
-  isBK1080 = on;
+  gIsBK1080 = on;
 
-  if (isBK1080) {
+  if (gIsBK1080) {
     toggleBK4819(false);
     BK4819_Idle();
   } else {
@@ -389,8 +417,7 @@ void RADIO_ToggleTxPower(void) {
 }
 
 void RADIO_TuneToPure(uint32_t f, bool precise) {
-  LOOT_Add(f);
-  if (isBK1080) {
+  if (gIsBK1080) {
     BK1080_SetFrequency(f);
   } else {
     BK4819_TuneTo(f, precise);
@@ -428,17 +455,6 @@ void RADIO_VfoLoadCH(uint8_t i) {
   strncpy(gCHNames[i], ch.name, 9);
 }
 
-void RADIO_SelectBand(int8_t num) {
-  BAND_Select(num);
-  RADIO_TuneTo(gCurrentBand->lastUsedFreq);
-}
-
-void RADIO_SelectBandSave(int8_t num) {
-  BAND_Select(num);
-  BANDS_SaveCurrent();
-  RADIO_TuneToSave(gCurrentBand->lastUsedFreq);
-}
-
 void RADIO_LoadCurrentCH(void) {
   for (uint8_t i = 0; i < 2; ++i) {
     CHS_Load(i, &gCH[i]);
@@ -472,74 +488,25 @@ void RADIO_SetGain(uint8_t gainIndex) {
 }
 
 void RADIO_SetupParams(void) {
-  BK4819_SelectFilter(radio->f);
+  RADIO_TuneToPure(radio->f, true);
   BK4819_SquelchType(radio->sq.type);
   BK4819_Squelch(radio->sq.level, radio->f, radio->sq.openTime,
                  radio->sq.closeTime);
   BK4819_SetFilterBandwidth(radio->bw);
   BK4819_SetModulation(radio->modulation);
   BK4819_SetGain(radio->gainIndex);
-  // BK4819_RX_TurnOn(); // TODO: needeed?
 }
 
-uint16_t RADIO_GetRSSI(void) { return isBK1080 ? 128 : BK4819_GetRSSI(); }
-
-static bool isSqOpenSimple(uint16_t r) {
-  uint8_t band = radio->f > SETTINGS_GetFilterBound() ? 1 : 0;
-  uint8_t sq = radio->sq.level;
-  uint16_t ro = SQ[band][0][sq];
-  uint16_t rc = SQ[band][1][sq];
-  uint8_t no = SQ[band][2][sq];
-  uint8_t nc = SQ[band][3][sq];
-  uint8_t go = SQ[band][4][sq];
-  uint8_t gc = SQ[band][5][sq];
-
-  uint8_t n, g;
-
-  bool open;
-
-  switch (radio->sq.type) {
-  case SQUELCH_RSSI_NOISE_GLITCH:
-    n = BK4819_GetNoise();
-    g = BK4819_GetGlitch();
-    open = r >= ro && n <= no && g <= go;
-    if (r < rc || n > nc || g > gc) {
-      open = false;
-    }
-    break;
-  case SQUELCH_RSSI_NOISE:
-    n = BK4819_GetNoise();
-    open = r >= ro && n <= no;
-    if (r < rc || n > nc) {
-      open = false;
-    }
-    break;
-  case SQUELCH_RSSI_GLITCH:
-    g = BK4819_GetGlitch();
-    open = r >= ro && g <= go;
-    if (r < rc || g > gc) {
-      open = false;
-    }
-    break;
-  case SQUELCH_RSSI:
-    open = r >= ro;
-    if (r < rc) {
-      open = false;
-    }
-    break;
-  }
-
-  return open;
-}
+uint16_t RADIO_GetRSSI(void) { return gIsBK1080 ? 128 : BK4819_GetRSSI(); }
 
 static uint32_t lastTailTone = 0;
 Loot *RADIO_UpdateMeasurements(void) {
   Loot *msm = LOOT_Get(radio->f);
   msm->rssi = RADIO_GetRSSI();
-  msm->open = isBK1080 ? true
-                       : (radio->sq.openTime || radio->sq.closeTime
-                              ? BK4819_IsSquelchOpen()
-                              : isSqOpenSimple(msm->rssi));
+  msm->open = gIsBK1080 ? true
+                        : (radio->sq.openTime || radio->sq.closeTime
+                               ? BK4819_IsSquelchOpen()
+                               : isSqOpenSimple(msm->rssi));
 
   while (BK4819_ReadRegister(BK4819_REG_0C) & 1u) {
     BK4819_WriteRegister(BK4819_REG_02, 0);

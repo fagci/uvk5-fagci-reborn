@@ -192,7 +192,7 @@ static void render2CHPart(uint8_t i) {
     }
     if (gIsListening) {
       PrintMediumEx(0, bl, POS_L, C_INVERT, "RX");
-      if (!isBK1080) {
+      if (!gIsBK1080) {
         UI_RSSIBar(gLoot[i].rssi, vfo->f, 31);
       }
     }
@@ -254,7 +254,7 @@ void CH1_render(void) {
   uint8_t fp3 = f % 100;
   const char *mod = modulationTypeOptions[vfo->modulation];
   if (gIsListening) {
-    if (!isBK1080) {
+    if (!gIsBK1080) {
       UI_RSSIBar(gLoot[gSettings.activeCH].rssi, vfo->f, BASE + 2);
     }
   }

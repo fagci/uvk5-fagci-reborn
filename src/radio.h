@@ -23,10 +23,10 @@ extern FRange *gCurrentBounds;
 
 extern bool gIsListening;
 extern bool gMonitorMode;
-extern bool isBK1080;
+extern bool gIsBK1080;
 extern TXState gTxState;
 
-extern const uint16_t StepFrequencyTable[14];
+extern const uint16_t StepFrequencyTable[12];
 extern const char *modulationTypeOptions[6];
 extern const SquelchType sqTypeValues[4];
 
@@ -39,6 +39,7 @@ void RADIO_ToggleRX(bool on);
 void RADIO_ToggleTX(bool on);
 
 void RADIO_SetupParams();
+void RADIO_TuneToPure(uint32_t f, bool precise);
 
 void RADIO_EnableToneDetection();
 

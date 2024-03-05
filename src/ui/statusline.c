@@ -96,7 +96,7 @@ void STATUSLINE_render(void) {
     icons[idx++] = SYM_MONITOR;
   }
 
-  if (isBK1080) {
+  if (gIsBK1080) {
     icons[idx++] = SYM_BROADCAST;
   }
 

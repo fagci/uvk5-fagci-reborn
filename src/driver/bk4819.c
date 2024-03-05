@@ -450,7 +450,8 @@ void BK4819_SetModulation(ModulationType type) {
   BK4819_SetRegValue(afDacGainRegSpec, 0xF);
   BK4819_SetAGC(type != MOD_AM);
   BK4819_WriteRegister(0x3D, type == MOD_USB ? 0 : 0x2AAB);
-  BK4819_SetRegValue(afcDisableRegSpec, type == MOD_AM || type == MOD_USB || type == MOD_BYP);
+  BK4819_SetRegValue(afcDisableRegSpec,
+                     type == MOD_AM || type == MOD_USB || type == MOD_BYP);
 }
 
 void BK4819_RX_TurnOn(void) {
@@ -489,7 +490,8 @@ void BK4819_DisableFilter(void) {
 }
 
 void BK4819_SelectFilter(uint32_t f) {
-  Filter filterNeeded = f < SETTINGS_GetFilterBound() ? FILTER_VHF : FILTER_UHF;
+  const Filter filterNeeded =
+      f < SETTINGS_GetFilterBound() ? FILTER_VHF : FILTER_UHF;
 
   if (selectedFilter == filterNeeded) {
     return;
@@ -578,7 +580,6 @@ void BK4819_TurnsOffTones_TurnsOnRX(void) {
           BK4819_REG_30_ENABLE_PLL_VCO | BK4819_REG_30_ENABLE_RX_DSP);
 }
 
-
 void BK4819_ResetFSK(void) {
   BK4819_WriteRegister(BK4819_REG_3F, 0x0000); // Disable interrupts
   BK4819_WriteRegister(BK4819_REG_59,
@@ -587,19 +588,19 @@ void BK4819_ResetFSK(void) {
   BK4819_Idle();
 }
 
-void BK4819_FskClearFifo(void){
-	const uint16_t fsk_reg59 = BK4819_ReadRegister(BK4819_REG_59);
-	BK4819_WriteRegister(BK4819_REG_59, (1u << 15) | (1u << 14) | fsk_reg59);
+void BK4819_FskClearFifo(void) {
+  const uint16_t fsk_reg59 = BK4819_ReadRegister(BK4819_REG_59);
+  BK4819_WriteRegister(BK4819_REG_59, (1u << 15) | (1u << 14) | fsk_reg59);
 }
 
-void BK4819_FskEnableRx(void){
-	const uint16_t fsk_reg59 = BK4819_ReadRegister(BK4819_REG_59);
-	BK4819_WriteRegister(BK4819_REG_59, (1u << 12) | fsk_reg59);
+void BK4819_FskEnableRx(void) {
+  const uint16_t fsk_reg59 = BK4819_ReadRegister(BK4819_REG_59);
+  BK4819_WriteRegister(BK4819_REG_59, (1u << 12) | fsk_reg59);
 }
 
-void BK4819_FskEnableTx(void){
-	const uint16_t fsk_reg59 = BK4819_ReadRegister(BK4819_REG_59);
-	BK4819_WriteRegister(BK4819_REG_59, (1u << 11) | fsk_reg59);
+void BK4819_FskEnableTx(void) {
+  const uint16_t fsk_reg59 = BK4819_ReadRegister(BK4819_REG_59);
+  BK4819_WriteRegister(BK4819_REG_59, (1u << 11) | fsk_reg59);
 }
 
 void BK4819_Idle(void) { BK4819_WriteRegister(BK4819_REG_30, 0x0000); }
@@ -1041,11 +1042,11 @@ void BK4819_TuneTo(uint32_t f, bool precise) {
   BK4819_SelectFilter(f);
   BK4819_SetFrequency(f);
   uint16_t reg = BK4819_ReadRegister(BK4819_REG_30);
-    if(precise) {
-        BK4819_WriteRegister(BK4819_REG_30, 0);
-    } else {
-        BK4819_WriteRegister(BK4819_REG_30, reg & ~BK4819_REG_30_ENABLE_VCO_CALIB);
-    }
+  if (precise) {
+    BK4819_WriteRegister(BK4819_REG_30, 0);
+  } else {
+    BK4819_WriteRegister(BK4819_REG_30, reg & ~BK4819_REG_30_ENABLE_VCO_CALIB);
+  }
   BK4819_WriteRegister(BK4819_REG_30, reg);
 }
 
