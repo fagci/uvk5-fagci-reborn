@@ -16,6 +16,66 @@ static uint16_t bytesWrote = 0;
 
 static EEPROMType eepromType;
 
+const CH VFOS[] = {
+    // VFO 1
+    (CH){
+        .type = CH_VFO,
+        .scanlists = 1,
+        .f = 14550000,
+        .modulation = MOD_FM,
+        .bw = BK4819_FILTER_BW_WIDE,
+        .step = STEP_25_0kHz,
+        .gainIndex = 16,
+        .power = TX_POW_MID,
+        .sq.level = 4,
+        .sq.closeTime = 1,
+        .sq.openTime = 1,
+        .vfo.app = APP_MULTIVFO,
+    },
+    // VFO 2
+    (CH){
+        .type = CH_VFO,
+        .scanlists = 1,
+        .f = 43307500,
+        .modulation = MOD_FM,
+        .bw = BK4819_FILTER_BW_WIDE,
+        .step = STEP_25_0kHz,
+        .gainIndex = 16,
+        .power = TX_POW_MID,
+        .sq.level = 4,
+        .sq.closeTime = 1,
+        .sq.openTime = 1,
+    },
+    // VFO pro
+    (CH){
+        .type = CH_VFO,
+        .scanlists = 1,
+        .f = 14550000,
+        .modulation = MOD_FM,
+        .bw = BK4819_FILTER_BW_WIDE,
+        .step = STEP_25_0kHz,
+        .gainIndex = 16,
+        .power = TX_POW_MID,
+        .sq.level = 4,
+        .sq.closeTime = 1,
+        .sq.openTime = 1,
+    },
+    // Analyzer
+    (CH){
+        .type = CH_VFO,
+        .scanlists = 1,
+        .f = 14550000,
+        .modulation = MOD_FM,
+        .bw = BK4819_FILTER_BW_WIDE,
+        .step = STEP_25_0kHz,
+        .gainIndex = 16,
+        .power = TX_POW_MID,
+        .sq.level = 4,
+        .sq.closeTime = 1,
+        .sq.openTime = 1,
+    },
+};
+
 void RESET_Init(void) {
   eepromType = gSettings.eepromType;
   bandsWrote = 0;
@@ -79,6 +139,10 @@ void RESET_Update(void) {
     };
     settingsWrote = true;
     bytesWrote += SETTINGS_SIZE;
+  } else if (vfosWrote < ARRAY_SIZE(VFOS)) {
+    CHANNELS_Save(vfosWrote, &VFOS[vfosWrote]);
+    vfosWrote++;
+    bytesWrote += sizeof(CH);
   } else if (channelsWrote < CHANNELS_GetCountMax()) {
     CH ch = {
         .name = {0},

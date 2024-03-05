@@ -442,9 +442,6 @@ void RADIO_TuneTo(uint32_t f) {
 void RADIO_TuneToSave(uint32_t f) {
   RADIO_TuneTo(f);
   RADIO_SaveCurrentCH();
-  radio->vfo.lastUsedFreq = f;
-
-  RADIO_SaveCurrentCH();
 }
 
 void RADIO_SaveCurrentCH(void) { CHS_Save(gSettings.activeCH, radio); }
@@ -596,6 +593,8 @@ void RADIO_NextCH(bool next) {
   RADIO_TuneToCH(i);
 }
 
+uint8_t RADIO_GetActiveVFOGroup(void) { return radio->scanlists; }
+
 void RADIO_NextVFO(void) {
   gSettings.activeCH = !gSettings.activeCH;
   radio = &gCH[gSettings.activeCH];
@@ -606,8 +605,8 @@ void RADIO_NextVFO(void) {
 }
 
 void RADIO_ToggleVfoMR(void) {
-  if (radio->channel >= 0) {
-    radio->channel = -1;
+  if (radio->vfo.channel >= 0) {
+    radio->vfo.channel = -1;
   } else {
     RADIO_NextCH(true);
   }

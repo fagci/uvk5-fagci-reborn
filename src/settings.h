@@ -2,28 +2,27 @@
 #define SETTINGS_H
 
 #include "driver/bk4819.h"
+#include "helper/appsregistry.h"
 #include <stdint.h>
 
 #define getsize(V) char (*__ #V)(void)[sizeof(V)] = 1;
 
 extern const uint8_t EEPROM_CHECKBYTE;
 
+//    1, 10, 100, 250, 500, 625, 833, 900, 1000, 1250, 2500, 10000,
 typedef enum {
   STEP_0_01kHz,
   STEP_0_1kHz,
-  STEP_0_5kHz,
   STEP_1_0kHz,
-
   STEP_2_5kHz,
   STEP_5_0kHz,
   STEP_6_25kHz,
   STEP_8_33kHz,
+  STEP_9kHz,
   STEP_10_0kHz,
   STEP_12_5kHz,
   STEP_25_0kHz,
   STEP_100_0kHz,
-  STEP_125_0kHz,
-  STEP_200_0kHz,
 } Step;
 
 typedef enum {
@@ -101,7 +100,6 @@ typedef enum {
   TX_ALLOW_ALL,
 } AllowTX;
 
-
 typedef struct {
   uint8_t timeout : 8;
   ScanTimeout openedTimeout : 4;
@@ -128,6 +126,7 @@ typedef struct {
 } __attribute__((packed)) PowerCalibration;
 
 typedef struct {
+  AppType_t app;
   int16_t channel;
   ScanSettings scan;
 } VFO_Params;
