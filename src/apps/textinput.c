@@ -261,7 +261,6 @@ void TEXTINPUT_render() {
   FillRect(0 + 86, LCD_HEIGHT - 9, 7, 9, C_INVERT);
 }
 
-static CH vfo;
 
 static App meta = {
     .id = APP_TEXTINPUT,
@@ -271,7 +270,6 @@ static App meta = {
     .render = TEXTINPUT_render,
     .key = TEXTINPUT_key,
     .deinit = TEXTINPUT_deinit,
-    .vfo = &vfo,
 };
 
 App *TEXTINPUT_Meta() { return &meta; }

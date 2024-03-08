@@ -53,7 +53,6 @@ static bool TEST_key(KEY_Code_t k, bool p, bool h) {
   return true;
 }
 
-static CH vfo;
 
 static App meta = {
     .id = APP_TEST,
@@ -62,7 +61,6 @@ static App meta = {
     .update = TEST_Update,
     .render = TEST_Render,
     .key = TEST_key,
-    .vfo = &vfo,
 };
 
 App *TEST_Meta() { return &meta; }

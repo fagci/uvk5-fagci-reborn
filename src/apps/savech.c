@@ -101,7 +101,6 @@ void SAVECH_render() {
   UI_ShowMenu(getChannelName, chCount, currentChannelIndex);
 }
 
-static CH vfo;
 
 static App meta = {
     .id = APP_SAVECH,
@@ -110,7 +109,6 @@ static App meta = {
     .update = SAVECH_update,
     .render = SAVECH_render,
     .key = SAVECH_key,
-    .vfo = &vfo,
 };
 
 App *SAVECH_Meta() { return &meta; }

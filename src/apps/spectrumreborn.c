@@ -28,7 +28,6 @@ static uint32_t lastReady = 0;
 static uint32_t chPerSec = 0;
 static uint32_t scanTime = 0;
 
-static CH vfo;
 
 static void scanFn(bool forward);
 
@@ -233,7 +232,6 @@ static App meta = {
     .render = SPECTRUM_render,
     .key = SPECTRUM_key,
     .deinit = SPECTRUM_deinit,
-    .vfo = &vfo,
 };
 
 App *SPECTRUM_Meta() { return &meta; }

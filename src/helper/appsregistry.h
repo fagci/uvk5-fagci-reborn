@@ -2,6 +2,7 @@
 #define APPSREGISTRY_H
 
 #include "../driver/keyboard.h"
+#include "channels.h"
 // #include "../settings.h"
 #include <stdint.h>
 
@@ -45,6 +46,7 @@ typedef struct {
   void (*deinit)();
   void *cfg;
   bool runnable;
+  CH *vfo;
   AppCategory tags;
   AppType_t id;
 } App;

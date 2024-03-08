@@ -123,7 +123,6 @@ void CHSCANNER_render() {
   UI_ShowMenuEx(showItem, gScanlistSize, currentIndex, 4);
 }
 
-static CH vfo;
 
 static App meta = {
     .id = APP_CH_SCANNER,
@@ -134,7 +133,6 @@ static App meta = {
     .render = CHSCANNER_render,
     .key = CHSCANNER_key,
     .deinit = CHSCANNER_deinit,
-    .vfo = &vfo,
 };
 
 App *CHSCANNER_Meta() { return &meta; }

@@ -86,7 +86,6 @@ void ANTENNA_render() {
 
 void ANTENNA_deinit() {}
 
-static CH vfo;
 
 static App meta = {
     .id = APP_ANT,
@@ -97,7 +96,6 @@ static App meta = {
     .render = ANTENNA_render,
     .key = ANTENNA_key,
     .deinit = ANTENNA_deinit,
-    .vfo = &vfo,
 };
 
 App *ANTENNA_Meta() { return &meta; }

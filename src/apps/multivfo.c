@@ -284,7 +284,6 @@ void MULTIVFO_render() {
   render2CHPart(1);
 }
 
-static CH vfo;
 
 static App meta = {
     .id = APP_MULTIVFO,
@@ -295,7 +294,6 @@ static App meta = {
     .render = MULTIVFO_render,
     .key = MULTIVFO_key,
     .deinit = MULTIVFO_deinit,
-    .vfo = &vfo,
 };
 
 App *MULTIVFO_Meta() { return &meta; }

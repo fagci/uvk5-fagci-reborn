@@ -71,7 +71,6 @@ bool APPSLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-static CH vfo;
 
 static App meta = {
     .id = APP_APPSLIST,
@@ -80,7 +79,6 @@ static App meta = {
     .update = APPSLIST_update,
     .render = APPSLIST_render,
     .key = APPSLIST_key,
-    .vfo = &vfo,
 };
 
 App *APPSLIST_Meta() { return &meta; }

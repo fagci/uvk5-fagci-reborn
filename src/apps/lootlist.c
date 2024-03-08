@@ -257,7 +257,6 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-static CH vfo;
 
 static App meta = {
     .id = APP_LOOT_LIST,
@@ -267,6 +266,5 @@ static App meta = {
     .update = LOOTLIST_update,
     .render = LOOTLIST_render,
     .key = LOOTLIST_key,
-    .vfo = &vfo,
 };
 App *LOOTLIST_Meta() { return &meta; }

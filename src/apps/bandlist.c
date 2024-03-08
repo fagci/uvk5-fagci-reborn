@@ -75,7 +75,6 @@ bool BANDLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-static CH vfo;
 
 static App meta = {
     .id = APP_BANDS_LIST,
@@ -85,7 +84,6 @@ static App meta = {
     .update = BANDLIST_update,
     .render = BANDLIST_render,
     .key = BANDLIST_key,
-    .vfo = &vfo,
 };
 
 App *BANDLIST_Meta() { return &meta; }

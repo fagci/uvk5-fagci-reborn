@@ -77,7 +77,6 @@ void FASTSCAN_deinit() {
   BK4819_EnableRX();
 }
 
-static CH vfo;
 
 static App meta = {
     .id = APP_FASTSCAN,
@@ -88,7 +87,6 @@ static App meta = {
     .render = FASTSCAN_render,
     .key = FASTSCAN_key,
     .deinit = FASTSCAN_deinit,
-    .vfo = &vfo,
 };
 
 App *FASTSCAN_Meta() { return &meta; }

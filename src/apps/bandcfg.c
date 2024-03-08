@@ -190,7 +190,6 @@ void BANDCFG_render() {
   }
 }
 
-static CH vfo;
 
 static App meta = {
     .id = APP_BAND_CFG,
@@ -199,6 +198,5 @@ static App meta = {
     .update = BANDCFG_update,
     .render = BANDCFG_render,
     .key = BANDCFG_key,
-    .vfo = &vfo,
 };
 App *BANDCFG_Meta() { return &meta; }

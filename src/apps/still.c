@@ -226,7 +226,6 @@ void STILL_render() {
   }
 }
 
-static CH vfo;
 
 static App meta = {
     .id = APP_STILL,
@@ -237,7 +236,6 @@ static App meta = {
     .render = STILL_render,
     .key = STILL_key,
     .deinit = STILL_deinit,
-    .vfo = &vfo,
 };
 
 App *STILL_Meta() { return &meta; }

@@ -141,7 +141,6 @@ void SCANLISTS_render() {
   }
 }
 
-static CH vfo;
 
 static App meta = {
     .id = APP_SCANLISTS,
@@ -152,7 +151,6 @@ static App meta = {
     .render = SCANLISTS_render,
     .key = SCANLISTS_key,
     // .deinit = SCANLISTS_deinit,
-    .vfo = &vfo,
 };
 
 App *SCANLISTS_Meta() { return &meta; }

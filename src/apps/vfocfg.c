@@ -227,7 +227,6 @@ void CHCFG_render() {
   }
 }
 
-static CH vfo;
 
 static App meta = {
     .id = APP_CH_CFG,
@@ -236,7 +235,6 @@ static App meta = {
     .update = CHCFG_update,
     .render = CHCFG_render,
     .key = CHCFG_key,
-    .vfo = &vfo,
 };
 
 App *CHCFG_Meta() { return &meta; }

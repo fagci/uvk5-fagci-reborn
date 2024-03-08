@@ -472,7 +472,6 @@ void SETTINGS_render() {
   }
 }
 
-static CH vfo;
 
 static App meta = {
     .id = APP_SETTINGS,
@@ -481,7 +480,6 @@ static App meta = {
     .update = SETTINGS_update,
     .render = SETTINGS_render,
     .key = SETTINGS_key,
-    .vfo = &vfo,
 };
 
 App *SETTINGS_Meta() { return &meta; }

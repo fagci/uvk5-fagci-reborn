@@ -29,7 +29,6 @@ bool TASKMAN_Key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-static CH vfo;
 
 static App meta = {
     .id = APP_TASKMAN,
@@ -38,7 +37,6 @@ static App meta = {
     .init = TASKMAN_Init,
     .render = TASKMAN_Render,
     .key = TASKMAN_Key,
-    .vfo = &vfo,
 };
 
 App *TASKMAN_Meta() { return &meta; }

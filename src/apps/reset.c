@@ -170,7 +170,6 @@ void RESET_Render() {
                 bytesWrote * 100 / SETTINGS_GetEEPROMSize());
 }
 
-static CH vfo;
 
 static App meta = {
     .id = APP_RESET,
@@ -178,7 +177,6 @@ static App meta = {
     .init = RESET_Init,
     .update = RESET_Update,
     .render = RESET_Render,
-    .vfo = &vfo,
 };
 
 App *RESET_Meta() { return &meta; }

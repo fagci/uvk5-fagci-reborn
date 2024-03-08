@@ -246,7 +246,6 @@ void ANALYZER_render() {
   lastRender = elapsedMilliseconds;
 }
 
-static CH vfo;
 
 static App meta = {
     .id = APP_ANALYZER,
@@ -257,7 +256,6 @@ static App meta = {
     .render = ANALYZER_render,
     .key = ANALYZER_key,
     .deinit = ANALYZER_deinit,
-    .vfo = &vfo,
 };
 
 App *ANALYZER_Meta() { return &meta; }

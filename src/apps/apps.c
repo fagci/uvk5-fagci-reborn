@@ -46,6 +46,8 @@ bool APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 void APPS_init(App *app) {
   gCurrentApp = app;
 
+  gCurrentApp->vfo = CHANNELS_GetVfo(...);
+
   STATUSLINE_SetText("%s", gCurrentApp->name);
   gRedrawScreen = true;
 
