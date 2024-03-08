@@ -6,16 +6,6 @@
 #include "helper/lootlist.h"
 #include <stdint.h>
 
-typedef enum {
-  TX_UNKNOWN,
-  TX_ON,
-  TX_VOL_HIGH,
-  TX_BAT_LOW,
-  TX_DISABLED,
-  TX_DISABLED_UPCONVERTER,
-  TX_POW_OVERDRIVE,
-} TXState;
-
 extern CH *radio;
 extern Loot *gCurrentLoot;
 extern FRange *gCurrentBounds;

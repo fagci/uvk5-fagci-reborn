@@ -7,6 +7,7 @@
 #include "driver/gpio.h"
 #include "driver/st7565.h"
 #include "driver/system.h"
+#include "frequency.h"
 #include "helper/battery.h"
 #include "helper/channels.h"
 #include "helper/lootlist.h"
@@ -235,10 +236,6 @@ uint32_t RADIO_GetTXFEx(CH *vfo) {
   return vfo->f + (vfo->offsetDir == OFFSET_PLUS ? vfo->offset : -vfo->offset);
 }
 
-static bool FreqInRange(uint32_t f, FRange *r) {
-  return f >= r->start && f <= r->end;
-}
-
 static TXState getTXState(uint32_t txF) {
   if (gSettings.upconverter) {
     return TX_DISABLED_UPCONVERTER;
@@ -248,18 +245,19 @@ static TXState getTXState(uint32_t txF) {
     return TX_DISABLED;
   }
 
-  if (gSettings.allowTX == TX_ALLOW_LPD_PMR && !FreqInRange(txF, &LPD) &&
-      !FreqInRange(txF, &PMR)) {
+  if (gSettings.allowTX == TX_ALLOW_LPD_PMR && !FreqInRange(txF, &BAND_LPD) &&
+      !FreqInRange(txF, &BAND_PMR)) {
     return TX_DISABLED;
   }
 
-  if (gSettings.allowTX == TX_ALLOW_LPD_PMR_SATCOM && !FreqInRange(txF, &LPD) &&
-      !FreqInRange(txF, &PMR) && !FreqInRange(txF, &SATCOM)) {
+  if (gSettings.allowTX == TX_ALLOW_LPD_PMR_SATCOM &&
+      !FreqInRange(txF, &BAND_LPD) && !FreqInRange(txF, &BAND_PMR) &&
+      !FreqInRange(txF, &BAND_SATCOM)) {
     return TX_DISABLED;
   }
 
-  if (gSettings.allowTX == TX_ALLOW_HAM && !FreqInRange(txF, &HAM2M) &&
-      !FreqInRange(txF, &HAM70CM)) {
+  if (gSettings.allowTX == TX_ALLOW_HAM && !FreqInRange(txF, &BAND_HAM2M) &&
+      !FreqInRange(txF, &BAND_HAM70CM)) {
     return TX_DISABLED;
   }
 

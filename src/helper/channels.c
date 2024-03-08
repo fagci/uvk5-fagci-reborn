@@ -1,18 +1,16 @@
 #include "channels.h"
 #include "../driver/eeprom.h"
 #include "../helper/measurements.h"
+#include "../settings.h"
 #include <stddef.h>
 
-int32_t gScanlistSize = 0;
+int16_t gScanlistSize = 0;
 int32_t gScanlist[350] = {0};
 
-static uint16_t bandsSizeBytes() {
-  return gSettings.bandsCount * BAND_SIZE;
-}
+static uint16_t bandsSizeBytes() { return gSettings.bandsCount * BAND_SIZE; }
 
-int32_t CHANNELS_GetCountMax() {
-  return (SETTINGS_GetEEPROMSize() - BANDS_OFFSET - bandsSizeBytes()) /
-         CH_SIZE;
+int16_t CHANNELS_GetCountMax() {
+  return (SETTINGS_GetEEPROMSize() - BANDS_OFFSET - bandsSizeBytes()) / CH_SIZE;
 }
 
 void CHANNELS_Load(int16_t num, CH *p) {
@@ -39,8 +37,8 @@ bool CHANNELS_Existing(int16_t i) {
 
 uint8_t CHANNELS_Scanlists(int16_t i) {
   uint8_t scanlists;
-  uint32_t addr = SETTINGS_GetEEPROMSize() - ((i + 1) * CH_SIZE) +
-                  offsetof(CH, scanlists);
+  uint32_t addr =
+      SETTINGS_GetEEPROMSize() - ((i + 1) * CH_SIZE) + offsetof(CH, scanlists);
   EEPROM_ReadBuffer(addr, &scanlists, 1);
   return scanlists;
 }

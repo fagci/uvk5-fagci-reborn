@@ -76,6 +76,16 @@ typedef enum {
   TX_ALLOW_ALL,
 } AllowTX;
 
+typedef enum {
+  TX_UNKNOWN,
+  TX_ON,
+  TX_VOL_HIGH,
+  TX_BAT_LOW,
+  TX_DISABLED,
+  TX_DISABLED_UPCONVERTER,
+  TX_POW_OVERDRIVE,
+} TXState;
+
 typedef struct {
   uint8_t s : 8;
   uint8_t m : 8;

@@ -1,9 +1,11 @@
 #include "msghelper.h"
 #include "../driver/audio.h"
+#include "../driver/bk4819.h"
 #include "../driver/system.h"
 #include "../external/printf/printf.h"
-#include "../helper/bandlist.h"
 #include "../misc.h"
+#include "../radio.h"
+#include "../settings.h"
 #include <string.h>
 
 DataPacket packet;
@@ -106,8 +108,7 @@ void MSG_FSKSendData() {
   const uint16_t dev_val = BK4819_ReadRegister(BK4819_REG_40);
 
   BK4819_WriteRegister(BK4819_REG_40,
-                       (dev_val & 0xf000) |
-                           (BW_DEVIATIONS[radio->bw] & 0xfff));
+                       (dev_val & 0xf000) | (BW_DEVIATIONS[radio->bw] & 0xfff));
 
   const uint16_t filt_val = BK4819_ReadRegister(BK4819_REG_2B);
   BK4819_WriteRegister(BK4819_REG_2B, (1u << 2) | (1u << 0));
