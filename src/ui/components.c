@@ -1,7 +1,8 @@
 #include "components.h"
 #include "../driver/st7565.h"
-#include "../helper/bandlist.h"
 #include "../helper/measurements.h"
+#include "../settings.h"
+#include "globals.h"
 #include "graphics.h"
 
 void UI_Battery(uint8_t Level) {
