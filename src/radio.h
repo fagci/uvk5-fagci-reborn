@@ -2,6 +2,7 @@
 #define RADIO_H
 
 #include "frequency.h"
+#include "helper/channels.h"
 #include "helper/lootlist.h"
 #include <stdint.h>
 

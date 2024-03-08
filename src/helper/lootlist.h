@@ -1,5 +1,4 @@
 #ifndef LOOTLIST_HELPER_H
-
 #define LOOTLIST_HELPER_H
 
 #include <stdint.h>
