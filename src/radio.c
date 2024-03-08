@@ -30,26 +30,7 @@ bool gMonitorMode = false;
 
 bool gIsBK1080 = false;
 
-static FRange LPD = {43307500, 43477500};
-static FRange PMR = {44600625, 44609375};
-static FRange HAM2M = {14400000, 14599999};
-static FRange HAM70CM = {43000000, 44000000};
-static FRange SATCOM = {23000000, 32000000};
-
 TXState gTxState = TX_UNKNOWN;
-
-const uint16_t StepFrequencyTable[12] = {
-    1, 10, 100, 250, 500, 625, 833, 900, 1000, 1250, 2500, 10000,
-};
-
-const uint32_t upConverterValues[3] = {0, 5000000, 12500000};
-
-const SquelchType sqTypeValues[4] = {
-    SQUELCH_RSSI_NOISE_GLITCH,
-    SQUELCH_RSSI_GLITCH,
-    SQUELCH_RSSI_NOISE,
-    SQUELCH_RSSI,
-};
 
 static uint8_t getBandIndex(uint32_t f) {
   for (uint8_t i = 0; i < ARRAY_SIZE(STOCK_BANDS); ++i) {
@@ -201,14 +182,6 @@ void RADIO_SetupRegisters() {
   BK4819_WriteRegister(0x40, (BK4819_ReadRegister(0x40) & ~(0b11111111111)) |
                                  0b10110101010 | (1 << 12));
   // BK4819_WriteRegister(0x40, (1 << 12) | (1450));
-}
-
-uint32_t GetScreenF(uint32_t f) {
-  return f - upConverterValues[gSettings.upconverter];
-}
-
-uint32_t GetTuneF(uint32_t f) {
-  return f + upConverterValues[gSettings.upconverter];
 }
 
 bool RADIO_IsBK1080Range(uint32_t f) { return f >= 6400000 && f <= 10800000; }

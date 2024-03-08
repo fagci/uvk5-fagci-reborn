@@ -1,9 +1,8 @@
 #ifndef RADIO_H
 #define RADIO_H
 
-#include "driver/bk4819.h"
+#include "frequency.h"
 #include "helper/lootlist.h"
-#include "settings.h"
 #include <stdint.h>
 
 typedef enum {
@@ -24,10 +23,6 @@ extern bool gIsListening;
 extern bool gMonitorMode;
 extern bool gIsBK1080;
 extern TXState gTxState;
-
-extern const uint16_t StepFrequencyTable[12];
-extern const char *modulationTypeOptions[6];
-extern const SquelchType sqTypeValues[4];
 
 void RADIO_SetupRegisters();
 
@@ -59,8 +54,6 @@ void RADIO_ToggleTxPower();
 void RADIO_UpdateStep(bool inc);
 void RADIO_UpdateSquelchLevel(bool next);
 
-uint32_t GetScreenF(uint32_t f);
-uint32_t GetTuneF(uint32_t f);
 uint16_t RADIO_GetRSSI();
 uint32_t RADIO_GetTXFEx(CH *vfo);
 void RADIO_ToggleBK1080(bool on);

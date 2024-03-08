@@ -2,7 +2,7 @@
 #define APPSREGISTRY_H
 
 #include "../driver/keyboard.h"
-#include "../settings.h"
+// #include "../settings.h"
 #include <stdint.h>
 
 typedef enum {
@@ -43,7 +43,6 @@ typedef struct {
   void (*render)();
   bool (*key)(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
   void (*deinit)();
-  CH *vfo;
   void *cfg;
   bool runnable;
   AppCategory tags;

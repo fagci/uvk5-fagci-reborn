@@ -1,5 +1,6 @@
 CompileFlags:
   Add: [-std=c2x,
+        -xc,
         -mcpu=cortex-m0,
         -Wall,
         -Werror=implicit-function-declaration,
@@ -10,5 +11,6 @@ CompileFlags:
         -Wextra,
         -Wimplicit-fallthrough,
         -Wpedantic,
+        -fstack-protector-strong
       ]
   Compiler: arm-none-eabi-gcc
