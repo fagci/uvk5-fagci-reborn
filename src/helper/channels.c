@@ -7,38 +7,35 @@
 int16_t gScanlistSize = 0;
 int32_t gScanlist[350] = {0};
 
-static uint16_t bandsSizeBytes() { return gSettings.bandsCount * BAND_SIZE; }
-
 int16_t CHANNELS_GetCountMax() {
-  return (SETTINGS_GetEEPROMSize() - BANDS_OFFSET - bandsSizeBytes()) / CH_SIZE;
+  return (SETTINGS_GetEEPROMSize() - CHANNELS_END_OFFSET) / CH_SIZE;
+}
+
+static uint32_t getChOffset(int16_t num) {
+  return SETTINGS_GetEEPROMSize() - (num + 1) * CH_SIZE;
 }
 
 void CHANNELS_Load(int16_t num, CH *p) {
   if (num >= 0) {
-    EEPROM_ReadBuffer(SETTINGS_GetEEPROMSize() - (num + 1) * CH_SIZE, p,
-                      CH_SIZE);
+    EEPROM_ReadBuffer(getChOffset(num), p, CH_SIZE);
   }
 }
 
 void CHANNELS_Save(int16_t num, CH *p) {
   if (num >= 0) {
-    EEPROM_WriteBuffer(SETTINGS_GetEEPROMSize() - (num + 1) * CH_SIZE, p,
-                       CH_SIZE);
+    EEPROM_WriteBuffer(getChOffset(num), p, CH_SIZE);
   }
 }
 
 bool CHANNELS_Existing(int16_t i) {
-  char name[2] = {0};
-  uint32_t addr =
-      SETTINGS_GetEEPROMSize() - ((i + 1) * CH_SIZE) + offsetof(CH, name);
-  EEPROM_ReadBuffer(addr, name, 1);
-  return IsReadable(name);
+  ChannelType type;
+  EEPROM_ReadBuffer(getChOffset(i), &type, 1);
+  return type != 255;
 }
 
 uint8_t CHANNELS_Scanlists(int16_t i) {
   uint8_t groups;
-  uint32_t addr =
-      SETTINGS_GetEEPROMSize() - ((i + 1) * CH_SIZE) + offsetof(CH, groups);
+  uint32_t addr = getChOffset(i) + offsetof(CH, groups);
   EEPROM_ReadBuffer(addr, &groups, 1);
   return groups;
 }
@@ -75,7 +72,7 @@ int16_t CHANNELS_Next(int16_t base, bool next) {
 }
 
 void CHANNELS_Delete(int16_t i) {
-  CH v = {0};
+  CH v = {.type = 255};
   CHANNELS_Save(i, &v);
 }
 

@@ -49,13 +49,12 @@ typedef struct {
 
 #define SETTINGS_SIZE sizeof(Settings)
 #define BAND_SIZE sizeof(CH)
-#define SCANLIST_SIZE sizeof(Scanlist)
+#define SCANLIST_SIZE 10
 #define CH_SIZE sizeof(CH)
 
 #define SETTINGS_OFFSET (0)
 #define SCANLISTS_OFFSET (SETTINGS_OFFSET + SETTINGS_SIZE)
-#define VFO_OFFSET (SCANLISTS_OFFSET + SCANLIST_SIZE * 8)
-#define BANDS_OFFSET (VFO_OFFSET + CH_SIZE * 8) // TODO: Count apps with VFO
+#define CHANNELS_END_OFFSET (SCANLISTS_OFFSET + SCANLIST_SIZE * 8)
 
 // settings
 // CHs

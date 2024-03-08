@@ -170,8 +170,6 @@ void RESET_Render() {
                 bytesWrote * 100 / SETTINGS_GetEEPROMSize());
 }
 
-bool RESET_key(KEY_Code_t k, bool p, bool h) { return true; }
-
 static CH vfo;
 
 static App meta = {
@@ -180,7 +178,6 @@ static App meta = {
     .init = RESET_Init,
     .update = RESET_Update,
     .render = RESET_Render,
-    .key = RESET_key,
     .vfo = &vfo,
 };
 
