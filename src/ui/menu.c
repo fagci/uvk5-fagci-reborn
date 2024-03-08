@@ -1,9 +1,15 @@
 #include "menu.h"
 #include "../driver/st7565.h"
+#include "../external/printf/printf.h"
 #include "../helper/measurements.h"
 #include "../radio.h"
+#include "globals.h"
 #include "graphics.h"
+#include <string.h>
 
+const uint8_t MENU_Y = 8;
+const uint8_t MENU_ITEM_H = 11;
+const uint8_t MENU_LINES_TO_SHOW = 4;
 
 void UI_DrawScrollBar(const uint16_t size, const uint16_t iCurrent,
                       const uint8_t nLines) {
@@ -73,12 +79,11 @@ void UI_ShowMenuEx(void (*showItem)(uint16_t i, uint16_t index, bool isCurrent),
   UI_DrawScrollBar(size, currentIndex, linesMax);
 }
 
-#include "../helper/bandlist.h"
-
 void GetMenuItemValue(BandCfgMenu type, char *Output) {
-  Band *band = &gCurrentBand->band;
-  uint32_t fs = band->bounds.start;
-  uint32_t fe = band->bounds.end;
+  CH band;
+  CHANNELS_Load(radio->vfo.channel, &band);
+  uint32_t fs = band.f;
+  uint32_t fe = band.offset;
   switch (type) {
   case M_START:
     sprintf(Output, "%lu.%03lu", fs / 100000, fs / 100 % 1000);
@@ -87,45 +92,26 @@ void GetMenuItemValue(BandCfgMenu type, char *Output) {
     sprintf(Output, "%lu.%03lu", fe / 100000, fe / 100 % 1000);
     break;
   case M_NAME:
-    strncpy(Output, band->name, 31);
+    strncpy(Output, band.name, 31);
     break;
   case M_BW:
-    strncpy(Output, BW_NAMES[band->bw], 31);
+    strncpy(Output, BW_NAMES[band.bw], 31);
     break;
   case M_SQ_TYPE:
-    strncpy(Output, SQ_TYPE_NAMES[band->squelchType], 31);
+    strncpy(Output, SQ_TYPE_NAMES[band.sq.type], 31);
     break;
   case M_SQ:
-    sprintf(Output, "%u", band->squelch);
+    sprintf(Output, "%u", band.sq.level);
     break;
   case M_GAIN:
-    sprintf(Output, "%ddB", gainTable[band->gainIndex].gainDb);
+    sprintf(Output, "%ddB", gainTable[band.gainIndex].gainDb);
     break;
   case M_MODULATION:
-    strncpy(Output, modulationTypeOptions[band->modulation], 31);
+    strncpy(Output, modulationTypeOptions[band.modulation], 31);
     break;
   case M_STEP:
-    sprintf(Output, "%u.%02uKHz", StepFrequencyTable[band->step] / 100,
-            StepFrequencyTable[band->step] % 100);
-    break;
-  case M_TX:
-    strncpy(Output, YES_NO_NAMES[gCurrentBand->allowTx], 31);
-    break;
-  case M_F_RX:
-    sprintf(Output, "%u.%05u", radio->f / 100000, radio->f % 100000);
-    break;
-  case M_F_TX:
-    sprintf(Output, "%u.%05u", radio->tx.f / 100000, radio->tx.f % 100000);
-    break;
-  case M_TX_OFFSET:
-    sprintf(Output, "%u.%05u", gCurrentBand->offset / 100000,
-            gCurrentBand->offset % 100000);
-    break;
-  case M_TX_OFFSET_DIR:
-    snprintf(Output, 15, TX_OFFSET_NAMES[gCurrentBand->offsetDir]);
-    break;
-  case M_F_TXP:
-    snprintf(Output, 15, TX_POWER_NAMES[gCurrentBand->power]);
+    sprintf(Output, "%u.%02uKHz", StepFrequencyTable[band.step] / 100,
+            StepFrequencyTable[band.step] % 100);
     break;
   default:
     break;
@@ -140,11 +126,11 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
     BANDS_SaveCurrent();
     break;
   case M_F_TXP:
-    gCurrentBand->power = subMenuIndex;
+    radio->power = subMenuIndex;
     BANDS_SaveCurrent();
     break;
   case M_TX_OFFSET_DIR:
-    gCurrentBand->offsetDir = subMenuIndex;
+    radio->offsetDir = subMenuIndex;
     BANDS_SaveCurrent();
     break;
   case M_MODULATION:
@@ -157,7 +143,7 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
     BANDS_SaveCurrent();
     break;
   case M_SQ_TYPE:
-    radio->sq.levelType = subMenuIndex;
+    radio->sq.type = subMenuIndex;
     BK4819_SquelchType(subMenuIndex);
     BANDS_SaveCurrent();
     break;
@@ -169,15 +155,10 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
     break;
 
   case M_GAIN:
-    gCurrentBand->band.gainIndex = subMenuIndex;
+    radio->gainIndex = subMenuIndex;
     BK4819_SetGain(subMenuIndex);
     BANDS_SaveCurrent();
     break;
-  case M_TX:
-    gCurrentBand->allowTx = subMenuIndex;
-    BANDS_SaveCurrent();
-    break;
-
   default:
     break;
   }

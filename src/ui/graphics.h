@@ -2,11 +2,7 @@
 
 #define GRAPHICS_H
 
-#include "../driver/st7565.h"
-#include "../external/printf/printf.h"
-#include "gfxfont.h"
 #include <stdint.h>
-#include <string.h>
 
 typedef enum {
   POS_L,

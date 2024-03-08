@@ -1,16 +1,23 @@
 CompileFlags:
   Add: [-std=c2x,
-        -xc,
-        -mcpu=cortex-m0,
+        -MMD,
+        -Os,
         -Wall,
+        -Werror=deprecated-non-prototype,
         -Werror=implicit-function-declaration,
         -Werror=implicit-int,
         -Werror=return-type,
         -Werror=strict-prototypes,
-        -Werror=deprecated-non-prototype
         -Wextra,
         -Wimplicit-fallthrough,
+        -Wno-error,
         -Wpedantic,
-        -fstack-protector-strong
+        -flto=auto,
+        # -fno-builtin,
+        -fno-delete-null-pointer-checks,
+        -fshort-enums,
+        -fstack-protector-strong,
+        -mcpu=cortex-m0,
+        -xc
       ]
   Compiler: arm-none-eabi-gcc

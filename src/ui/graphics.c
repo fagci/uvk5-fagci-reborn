@@ -1,4 +1,5 @@
 #include "graphics.h"
+#include "../driver/st7565.h"
 #include "fonts/NumbersStepanv3.h"
 #include "fonts/NumbersStepanv4.h"
 #include "fonts/TomThumb.h"
@@ -6,6 +7,7 @@
 #include "fonts/muMatrix8ptRegular.h"
 #include "fonts/symbols.h"
 #include <stdlib.h>
+#include <stdarg.h>
 
 #ifndef _swap_int16_t
 #define _swap_int16_t(a, b)                                                    \
@@ -24,9 +26,7 @@ static const GFXfont *fontMediumBold = &muHeavy8ptBold;
 static const GFXfont *fontBig = &dig_11;
 static const GFXfont *fontBiggest = &dig_14;
 
-void UI_ClearStatus() {
-  memset(gFrameBuffer[0], 0, sizeof(gFrameBuffer[0]));
-}
+void UI_ClearStatus() { memset(gFrameBuffer[0], 0, sizeof(gFrameBuffer[0])); }
 
 void UI_ClearScreen() {
   for (uint8_t i = 1; i < 8; ++i) {

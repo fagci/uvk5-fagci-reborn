@@ -21,6 +21,7 @@
 #include <string.h>
 
 CH *radio;
+uint8_t gCurrentVfo;
 Loot *gCurrentLoot;
 FRange *gCurrentBounds;
 
@@ -360,7 +361,7 @@ void RADIO_ToggleModulation() {
 
 void RADIO_UpdateStep(bool inc) {
   uint8_t step = radio->step;
-  IncDec8(&step, 0, STEP_200_0kHz, inc ? 1 : -1);
+  IncDec8(&step, 0, ARRAY_SIZE(StepFrequencyTable), inc ? 1 : -1);
   radio->step = step;
   onVfoUpdate();
 }
@@ -564,7 +565,7 @@ void RADIO_NextCH(bool next) {
   RADIO_TuneToCH(i);
 }
 
-uint8_t RADIO_GetActiveVFOGroup() { return radio->scanlists; }
+uint8_t RADIO_GetActiveVFOGroup() { return radio->groups; }
 
 void RADIO_NextVFO() {
   gSettings.activeCH = !gSettings.activeCH;

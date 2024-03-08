@@ -47,7 +47,7 @@ typedef struct {
 } VFO_Params;
 
 typedef struct {
-  ChannelType type : 2;
+  ChannelType type;
   union {
     char name[10];
     VFO_Params vfo;
@@ -62,12 +62,12 @@ typedef struct {
   uint8_t codeTX;
   uint8_t codeTypeRX : 4;
   uint8_t codeTypeTX : 4;
-  uint8_t scanlists;
+  uint8_t groups;
   SquelchSettings sq;
   uint8_t gainIndex : 5;
   Step step : 4;
 } __attribute__((packed)) CH; // 33 B
-// getsize(CH);
+// getsize(CH)
 
 int16_t CHANNELS_GetCountMax();
 void CHANNELS_Load(int16_t num, CH *p);

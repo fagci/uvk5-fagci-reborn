@@ -20,7 +20,7 @@ const CH VFOS[] = {
     // VFO 1
     (CH){
         .type = CH_VFO,
-        .scanlists = 1,
+        .groups = 1,
         .f = 14550000,
         .modulation = MOD_FM,
         .bw = BK4819_FILTER_BW_WIDE,
@@ -35,7 +35,7 @@ const CH VFOS[] = {
     // VFO 2
     (CH){
         .type = CH_VFO,
-        .scanlists = 1,
+        .groups = 1,
         .f = 43307500,
         .modulation = MOD_FM,
         .bw = BK4819_FILTER_BW_WIDE,
@@ -49,7 +49,7 @@ const CH VFOS[] = {
     // VFO pro
     (CH){
         .type = CH_VFO,
-        .scanlists = 1,
+        .groups = 1,
         .f = 14550000,
         .modulation = MOD_FM,
         .bw = BK4819_FILTER_BW_WIDE,
@@ -63,7 +63,7 @@ const CH VFOS[] = {
     // Analyzer
     (CH){
         .type = CH_VFO,
-        .scanlists = 1,
+        .groups = 1,
         .f = 14550000,
         .modulation = MOD_FM,
         .bw = BK4819_FILTER_BW_WIDE,
@@ -146,7 +146,7 @@ void RESET_Update() {
   } else if (channelsWrote < CHANNELS_GetCountMax()) {
     CH ch = {
         .name = {0},
-        .scanlists = 0,
+        .groups = 0,
     };
     CHANNELS_Save(channelsWrote, &ch);
     channelsWrote++;
