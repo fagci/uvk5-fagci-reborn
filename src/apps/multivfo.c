@@ -17,6 +17,8 @@
 
 static uint32_t lastRender = 0;
 
+static AppVFOSlots slots = {.maxCount = 2};
+
 static void tuneTo(uint32_t f) { RADIO_TuneToSave(GetTuneF(f)); }
 
 void MULTIVFO_init() {
@@ -283,7 +285,6 @@ void MULTIVFO_render() {
   render2CHPart(0);
   render2CHPart(1);
 }
-
 
 static App meta = {
     .id = APP_MULTIVFO,

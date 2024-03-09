@@ -64,3 +64,12 @@ void APPS_RegisterAll() {
   APPS_Register(TEST_Meta());
   APPS_Register(ABOUT_Meta());
 }
+
+App *APPS_GetById(AppType_t id) {
+  for (uint8_t i = 0; i < appsCount; i++) {
+    if (apps[i]->id == id) {
+      return apps[i];
+    }
+  }
+  return nullptr;
+}

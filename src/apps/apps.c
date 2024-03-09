@@ -46,8 +46,6 @@ bool APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 void APPS_init(App *app) {
   gCurrentApp = app;
 
-  gCurrentApp->vfo = CHANNELS_GetVfo(...);
-
   STATUSLINE_SetText("%s", gCurrentApp->name);
   gRedrawScreen = true;
 
@@ -82,12 +80,8 @@ void APPS_RunPure(App *app) {
 
 void APPS_run(AppType_t id) {
   Log("APPS_run %u...", id);
-  for (uint8_t i = 0; i < appsCount; i++) {
-    if (apps[i]->id == id) {
-      APPS_RunPure(apps[i]);
-      return;
-    }
-  }
+  App *app = APPS_GetById(id);
+  APPS_RunPure(app);
 }
 
 void APPS_runManual(App *app) {

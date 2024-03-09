@@ -7,6 +7,32 @@
 #define getsize(V) char (*__ #V)()[sizeof(V)] = 1;
 
 typedef enum {
+  APP_NONE,
+  APP_TEST,
+  APP_SPECTRUM,
+  APP_ANALYZER,
+  APP_CH_SCANNER,
+  APP_FASTSCAN,
+  APP_STILL,
+  APP_FINPUT,
+  APP_APPSLIST,
+  APP_LOOT_LIST,
+  APP_BANDS_LIST,
+  APP_RESET,
+  APP_TEXTINPUT,
+  APP_CH_CFG,
+  APP_BAND_CFG,
+  APP_SCANLISTS,
+  APP_SAVECH,
+  APP_SETTINGS,
+  APP_MULTIVFO,
+  APP_ABOUT,
+  APP_ANT,
+  APP_TASKMAN,
+  APP_MESSENGER,
+} AppType_t;
+
+typedef enum {
   STEP_0_01kHz,
   STEP_0_1kHz,
   STEP_1_0kHz,
@@ -86,6 +112,70 @@ typedef enum {
   TX_POW_OVERDRIVE,
 } TXState;
 
+typedef enum {
+  CH_CHANNEL,
+  CH_VFO,
+  CH_BAND,
+  CH_EMPTY = 255,
+} ChannelType;
+
+typedef enum {
+  SCAN_TO_0,
+  SCAN_TO_500ms,
+  SCAN_TO_1s,
+  SCAN_TO_2s,
+  SCAN_TO_5s,
+  SCAN_TO_10s,
+  SCAN_TO_30s,
+  SCAN_TO_1min,
+  SCAN_TO_2min,
+  SCAN_TO_5min,
+  SCAN_TO_NONE,
+} ScanTimeout;
+
+typedef struct {
+  uint8_t timeout : 8;
+  ScanTimeout openedTimeout : 4;
+  ScanTimeout closedTimeout : 4;
+} __attribute__((packed)) ScanSettings;
+
+typedef struct {
+  uint8_t level : 6;
+  uint8_t openTime : 2;
+  SquelchType type;
+  uint8_t closeTime : 3;
+} __attribute__((packed)) SquelchSettings;
+// getsize(SquelchSettings)
+
+typedef struct {
+  AppType_t app;
+  int16_t channel;
+  ScanSettings scan;
+} VFO_Params;
+
+typedef struct {
+  ChannelType type;
+  union {
+    char name[10];
+    VFO_Params vfo;
+  };
+  uint32_t f : 27;
+  uint32_t offset : 27;
+  OffsetDirection offsetDir;
+  ModulationType modulation : 4;
+  BK4819_FilterBandwidth_t bw : 2;
+  TXOutputPower power : 2;
+  uint8_t codeRX;
+  uint8_t codeTX;
+  uint8_t codeTypeRX : 4;
+  uint8_t codeTypeTX : 4;
+  uint8_t groups;
+  SquelchSettings sq;
+  uint8_t gainIndex : 5;
+  Step step : 4;
+} __attribute__((packed)) CH; // 29 B
+// getsize(CH)
+
 typedef struct {
   uint8_t s : 8;
   uint8_t m : 8;
@@ -94,7 +184,6 @@ typedef struct {
 
 typedef struct {
   char name[10];
-  uint8_t activeCH;
 } __attribute__((packed)) Scanlist;
 
 extern const uint16_t StepFrequencyTable[12];
