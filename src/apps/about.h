@@ -2,7 +2,7 @@
 #define ABOUT_H
 
 #include "../driver/keyboard.h"
-#include "../helper/appsregistry.h"
+#include "../globals.h"
 
 void ABOUT_Init();
 void ABOUT_Deinit();

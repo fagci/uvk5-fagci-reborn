@@ -152,10 +152,12 @@ typedef struct {
   AppType_t app;
   int16_t channel;
   ScanSettings scan;
+  Step step : 4;
 } VFO_Params;
 
 typedef struct {
   ChannelType type;
+  uint8_t groups;
   union {
     char name[10];
     VFO_Params vfo;
@@ -170,10 +172,8 @@ typedef struct {
   uint8_t codeTX;
   uint8_t codeTypeRX : 4;
   uint8_t codeTypeTX : 4;
-  uint8_t groups;
   SquelchSettings sq;
   uint8_t gainIndex : 5;
-  Step step : 4;
 } __attribute__((packed)) CH; // 29 B
 // getsize(CH)
 

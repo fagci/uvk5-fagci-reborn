@@ -8,6 +8,7 @@
 #include "../svc.h"
 #include "components.h"
 #include "graphics.h"
+#include <stdarg.h>
 #include <string.h>
 
 static uint8_t previousBatteryLevel = 255;
@@ -104,7 +105,8 @@ void STATUSLINE_render() {
     icons[idx++] = SYM_CONVERTER;
   }
 
-  if (gSettings.noListen && (gCurrentApptags & APP_TAG_SPECTRUM)) {
+  if (gSettings.noListen &&
+      (gCurrentApp->id == APP_SPECTRUM || gCurrentApp->id == APP_ANALYZER)) {
     icons[idx++] = SYM_NO_LISTEN;
   }
 

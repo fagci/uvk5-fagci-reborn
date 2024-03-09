@@ -20,11 +20,8 @@ static uint32_t centerF = 0;
 static uint8_t initialScanInterval = 0;
 static uint8_t scanInterval = 2;
 
-static Band opt = {
-    .band =
-        {
-            .name = "Analyzer",
-        },
+static CH opt = {
+    .name = "Analyzer",
 };
 
 static uint8_t spectrumWidth = LCD_WIDTH;
@@ -37,7 +34,7 @@ static uint32_t lastRender = 0;
 static void startNewScan(bool reset) {
   if (reset) {
     LOOT_Standby();
-    RADIO_TuneToPure(msm.f = opt.band.bounds.start, true);
+    RADIO_TuneToPure(msm.f = opt.f, true);
     SP_Init(BANDS_GetSteps(&opt), spectrumWidth);
     bandFilled = false;
   } else {
@@ -47,7 +44,7 @@ static void startNewScan(bool reset) {
 }
 
 static void nextF() {
-  uint16_t step = StepFrequencyTable[opt.band.step];
+  uint16_t step = StepFrequencyTable[opt.vfo.step];
 
   if (msm.f + step > opt.band.bounds.end) {
     msm.f = opt.band.bounds.start;
@@ -73,14 +70,14 @@ static void scanFn(bool forward) {
   if (msm.f == opt.band.bounds.start) {
     startNewScan(false);
     return;
-  } else if (msm.f + StepFrequencyTable[opt.band.step] > opt.band.bounds.end) {
+  } else if (msm.f + StepFrequencyTable[opt.vfo.step] > opt.band.bounds.end) {
     gRedrawScreen = true;
   }
   SP_Next();
 }
 
 static void setup() {
-  const uint32_t halfBW = StepFrequencyTable[opt.band.step] * 64;
+  const uint32_t halfBW = StepFrequencyTable[opt.vfo.step] * 64;
   opt.band.bounds.start = centerF - halfBW;
   opt.band.bounds.end = centerF + halfBW;
   radio->scan.timeout = scanInterval;
@@ -97,7 +94,7 @@ void ANALYZER_init() {
 
   centerF = radio->f;
   initialScanInterval = radio->scan.timeout;
-  opt.band.step = radio->step;
+  opt.vfo.step = radio->step;
   opt.band.squelch = 0;
 
   setup();
@@ -146,11 +143,11 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       LOOT_Clear();
       return true;
     case KEY_UP:
-      centerF += StepFrequencyTable[opt.band.step] * 64;
+      centerF += StepFrequencyTable[opt.vfo.step] * 64;
       setup();
       return true;
     case KEY_DOWN:
-      centerF -= StepFrequencyTable[opt.band.step] * 64;
+      centerF -= StepFrequencyTable[opt.vfo.step] * 64;
       setup();
       return true;
     default:
@@ -164,22 +161,22 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       APPS_exit();
       return true;
     case KEY_UP:
-      centerF += StepFrequencyTable[opt.band.step];
+      centerF += StepFrequencyTable[opt.vfo.step];
       setup();
       return true;
     case KEY_DOWN:
-      centerF -= StepFrequencyTable[opt.band.step];
+      centerF -= StepFrequencyTable[opt.vfo.step];
       setup();
       return true;
     case KEY_2:
-      if (opt.band.step < STEP_200_0kHz) {
-        opt.band.step++;
+      if (opt.vfo.step < ARRAY_SIZE(StepFrequencyTable) - 1) {
+        opt.vfo.step++;
       }
       setup();
       return true;
     case KEY_8:
-      if (opt.band.step > 0) {
-        opt.band.step--;
+      if (opt.vfo.step > 0) {
+        opt.vfo.step--;
       }
       setup();
       return true;
@@ -237,15 +234,14 @@ void ANALYZER_render() {
                opt.band.squelch);
   PrintSmallEx(0, ANALYZER_Y - 3 + 6, POS_L, C_FILL, "%ums", scanInterval);
   PrintSmallEx(LCD_XCENTER, ANALYZER_Y - 3, POS_C, C_FILL, "Step: %u.%02uk",
-               StepFrequencyTable[opt.band.step] / 100,
-               StepFrequencyTable[opt.band.step] % 100);
+               StepFrequencyTable[opt.vfo.step] / 100,
+               StepFrequencyTable[opt.vfo.step] % 100);
 
   PrintSmallEx(spectrumWidth / 2, LCD_HEIGHT - 1, POS_C, C_FILL, "%u.%05u",
                centerF / 100000, centerF % 100000);
 
   lastRender = elapsedMilliseconds;
 }
-
 
 static App meta = {
     .id = APP_ANALYZER,

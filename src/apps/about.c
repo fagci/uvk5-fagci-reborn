@@ -1,5 +1,5 @@
 #include "about.h"
-#include "../driver/bk4819.h"
+#include "../driver/st7565.h"
 #include "../misc.h"
 #include "../scheduler.h"
 #include "../ui/graphics.h"

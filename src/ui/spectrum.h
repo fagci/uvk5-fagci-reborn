@@ -1,8 +1,8 @@
 #ifndef UI_SPECTRUM_H
 #define UI_SPECTRUM_H
 
+#include "../frequency.h"
 #include "../helper/lootlist.h"
-#include "../settings.h"
 #include <stdint.h>
 
 void SP_AddPoint(Loot *msm);
