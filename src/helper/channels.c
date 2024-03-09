@@ -7,9 +7,6 @@
 int16_t gScanlistSize = 0;
 int32_t gScanlist[350] = {0};
 
-CH vfos[10] = {0};
-uint8_t vfosCount = 0;
-
 int16_t CHANNELS_GetCountMax() {
   return (SETTINGS_GetEEPROMSize() - CHANNELS_END_OFFSET) / CH_SIZE;
 }
@@ -98,20 +95,4 @@ void CHANNELS_LoadScanlist(uint8_t n) {
     }
   }
   SETTINGS_Save();
-}
-
-void VFO_LoadAll() {
-  for (int16_t i = 0; i < CHANNELS_GetCountMax(); ++i) {
-    if (CHANNELS_GetType(i) == CH_VFO) {
-      CHANNELS_Load(i, &vfos[vfosCount]);
-
-      App *app = APPS_GetById(vfos[vfosCount].vfo.app);
-      AppVFOSlots *slots = app->vfoSlots;
-      if (slots && slots->count < slots->maxCount) {
-        slots->slots[slots->count++] = vfos[vfosCount];
-      }
-
-      vfosCount++;
-    }
-  }
 }

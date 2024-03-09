@@ -1,13 +1,18 @@
 #include "vfo.h"
-#include "../driver/eeprom.h"
-#include "../settings.h"
-#include "appsregistry.h"
+#include "channels.h"
 
+CH vfos[10] = {0};
+uint8_t vfosCount = 0;
 
-void VFO_Load(uint16_t num, CH *p) {
-  EEPROM_ReadBuffer(CHANNELS_END_OFFSET + num * CH_SIZE, p, CH_SIZE);
+void VFO_LoadVFOS() {
+  vfosCount = 0;
+  for (int16_t i = 0; i < CHANNELS_GetCountMax(); ++i) {
+    if (CHANNELS_GetType(i) == CH_VFO) {
+      CHANNELS_Load(i, &vfos[vfosCount]);
+      vfosCount++;
+    }
+  }
 }
 
-void VFO_Save(uint16_t num, CH *p) {
-  EEPROM_WriteBuffer(CHANNELS_END_OFFSET + num * CH_SIZE, p, CH_SIZE);
-}
+uint8_t VFO_GetVfosCount() { return vfosCount; }
+CH *VFO_GetVfo(uint8_t i) { return &vfos[i]; }

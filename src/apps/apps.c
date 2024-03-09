@@ -1,6 +1,7 @@
 #include "apps.h"
 #include "../driver/st7565.h"
 #include "../driver/uart.h"
+#include "../helper/vfo.h"
 #include "../ui/statusline.h"
 #include <stddef.h>
 
@@ -43,8 +44,25 @@ bool APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   }
   return false;
 }
+static void loadVfo(App *app) {
+  AppVFOSlots *slots = app->vfoSlots;
+  if (slots) {
+    slots->count = 0;
+    for (uint8_t i = 0; i < VFO_GetVfosCount(); ++i) {
+      if (slots->count >= slots->maxCount) {
+        break;
+      }
+      CH *vfo = VFO_GetVfo(i);
+      if (vfo->vfo.app == app->id) {
+        slots->slots[slots->count++] = vfo;
+      }
+    }
+  }
+}
 void APPS_init(App *app) {
   gCurrentApp = app;
+
+  loadVfo(app);
 
   STATUSLINE_SetText("%s", gCurrentApp->name);
   gRedrawScreen = true;

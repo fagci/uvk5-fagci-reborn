@@ -15,6 +15,7 @@ bool CHANNELS_Existing(int16_t i);
 ChannelType CHANNELS_GetType(int16_t i);
 uint8_t CHANNELS_Scanlists(int16_t i);
 void CHANNELS_LoadScanlist(uint8_t n);
+void CHANNELS_LoadVFOS();
 
 extern int16_t gScanlistSize;
 extern int32_t gScanlist[350];

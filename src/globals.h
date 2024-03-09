@@ -2,6 +2,7 @@
 #define GLOBALS_H
 
 #include "driver/bk4819.h"
+#include "driver/keyboard.h"
 #include <stdint.h>
 
 #define getsize(V) char (*__ #V)()[sizeof(V)] = 1;
@@ -175,6 +176,25 @@ typedef struct {
   Step step : 4;
 } __attribute__((packed)) CH; // 29 B
 // getsize(CH)
+
+typedef struct {
+  uint8_t count;
+  uint8_t maxCount;
+  CH *slots[5];
+} AppVFOSlots;
+
+typedef struct {
+  const char *name;
+  void (*init)();
+  void (*update)();
+  void (*render)();
+  bool (*key)(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
+  void (*deinit)();
+  void *cfg;
+  bool runnable;
+  AppType_t id;
+  AppVFOSlots *vfoSlots;
+} App;
 
 typedef struct {
   uint8_t s : 8;

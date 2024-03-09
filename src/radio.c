@@ -13,7 +13,6 @@
 #include "helper/lootlist.h"
 #include "helper/measurements.h"
 // #include "helper/msghelper.h"
-#include "helper/vfo.h"
 #include "inc/dp32g030/gpio.h"
 #include "misc.h"
 #include "scheduler.h"
