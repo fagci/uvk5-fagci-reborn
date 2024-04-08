@@ -131,7 +131,7 @@ void Main(void) {
   }
 
   SETTINGS_Load();
-  gSettings.eepromType = EEPROM_M24M02;
+  // gSettings.eepromType = EEPROM_M24M02;
 
   /* if (gSettings.checkbyte != EEPROM_CHECKBYTE) {
     gSettings.eepromType = EEPROM_BL24C64;
