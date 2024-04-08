@@ -11,6 +11,7 @@
 
 static uint32_t freq = 10320;
 static uint32_t lastUpdate = 0;
+static uint32_t lastRdsUpdate = 0;
 
 static void tune(uint32_t f) { SI4732_SetFreq(freq = f); }
 
@@ -26,9 +27,15 @@ void SI_init() {
 static bool hasRDS = false;
 
 void SI_update() {
-  if (Now() - lastUpdate > 1000) {
-    RSQ_GET();
+  if (Now() - lastRdsUpdate >= 10) {
     hasRDS = SI4732_GetRDS();
+    lastRdsUpdate = Now();
+  }
+  if (hasRDS) {
+    gRedrawScreen = true;
+  }
+  if (Now() - lastUpdate >= 500) {
+    RSQ_GET();
     lastUpdate = Now();
     gRedrawScreen = true;
   }
@@ -99,18 +106,18 @@ void SI_render() {
   uint16_t fp1 = f / 100000;
   uint16_t fp2 = f / 100 % 1000;
 
-  UI_RSSIBar(SI4732_GetRSSI(), f, 42);
+  UI_RSSIBar(SI4732_GetRSSI() << 1, f, 42);
 
-  if (hasRDS) {
+  if (rdsResponse.resp.RDSSYNC) {
     PrintMediumEx(LCD_XCENTER, 18, POS_C, C_FILL, "RDS!");
   } else {
     PrintMediumEx(LCD_XCENTER, 18, POS_C, C_FILL, "NO RDS =(");
   }
   DateTime *dt;
   bool hasDT = SI4732_GetLocalDateTime(dt);
-  const char *wd[] = {"SU", "MO", "TU", "WE", "TH", "FR", "SA"};
+  const char wd[8][3] = {"SU", "MO", "TU", "WE", "TH", "FR", "SA", "SU"};
   PrintSmall(0, LCD_HEIGHT - 2, "%16s", rds.radioText);
-  if (hasDT) {
+  if (hasDT && dt->year > 2000 && dt->year < 3000) {
     PrintSmall(0, LCD_HEIGHT - 8, "%02u.%02u.%04u, %s %02u:%02u", dt->day,
                dt->month, dt->year, wd[dt->wday], dt->hour, dt->minute);
   }
