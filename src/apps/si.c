@@ -106,12 +106,19 @@ void SI_render() {
   } else {
     PrintMediumEx(LCD_XCENTER, 18, POS_C, C_FILL, "NO RDS =(");
   }
+  DateTime *dt;
+  bool hasDT = SI4732_GetLocalDateTime(dt);
+  const char *wd[] = {"SU", "MO", "TU", "WE", "TH", "FR", "SA"};
+  PrintSmall(0, LCD_HEIGHT - 2, "%16s", rds.radioText);
+  if (hasDT) {
+    PrintSmall(0, LCD_HEIGHT - 8, "%02u.%02u.%04u, %s %02u:%02u", dt->day,
+               dt->month, dt->year, wd[dt->wday], dt->hour, dt->minute);
+  }
 
-  PrintSmall(0, 16, "%02u:%02u %u %u", rds.hour, rds.minute,
-             rdsResponse.resp.RDSSYNCFOUND, rds.radioTextLen);
-  PrintSmall(0, 16 + 6, "%16s", rds.radioText);
-  PrintSmall(0, 16 + 12, "%u, %u", rds.groupA, rds.groupB);
-  PrintSmall(0, 16 + 18, "CC:%u M:%u SIG:%u", rds.extendedCountryCode, rds.music, rds.RDSSignal);
+  PrintSmallEx(LCD_WIDTH, LCD_HEIGHT - 8, POS_R, C_FILL, "%s",
+               rds.programTypeName);
+  PrintSmall(0, 16 + 12, "CC:%u M:%u", rds.extendedCountryCode, rds.music);
+  PrintSmall(0, 16 + 18, "SIG:%u", rds.RDSSignal);
 
   if (gTxState && gTxState != TX_ON) {
     PrintMediumBoldEx(LCD_XCENTER, BASE, POS_C, C_FILL, "%s",

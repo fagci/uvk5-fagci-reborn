@@ -401,19 +401,7 @@ RDS rds;
 
 #define MAKE_WORD(hb, lb) (((uint8_t)(hb) << 8U) | (uint8_t)lb)
 
-typedef struct DateTime {
-  uint16_t year;
-  uint8_t month;
-  uint8_t day;
-  uint8_t wday; // Day of the week, Sunday = 0
-  uint8_t hour;
-  uint8_t minute;
-};
-
-typedef struct Time {
-  uint8_t hour;
-  uint8_t minute;
-};
+enum { NO_DATE_TIME = 127 };
 
 enum {
   RDS_THRESHOLD = 3,     // Threshold for larger variables
@@ -455,8 +443,6 @@ bool SI4732_GetRDS() {
     // Stop if nothing returned
     if (!num_groups)
       break;
-
-    rds.hour = 42;
 
     /* Because PI is resent in every packet's Block A, we told the radio its OK
      * to give us packets with a corrupted Block A.
@@ -666,6 +652,126 @@ bool SI4732_GetRDS() {
     }
   }
   return new_info;
+}
+
+#define DAYS_PER_YEAR 365U
+// Leap year
+#define DAYS_PER_LEAP_YEAR (DAYS_PER_YEAR + 1)
+// Leap year every 4 years
+#define DAYS_PER_4YEARS (DAYS_PER_YEAR * 4 + 1)
+// Leap year every 4 years except century year (divisable by 100)
+#define DAYS_PER_100YEARS (DAYS_PER_4YEARS * (100 / 4) - 1)
+
+// Get last RDS date and time converted to local date and time.
+// Returns true if current station has sent date and time.  Otherwise, it
+// returns false and writes nothing to structure. Only provides info if mode==FM
+// and station is sending RDS data.
+bool SI4732_GetLocalDateTime(DateTime *time) {
+  // Look for date/time info
+  if (rds.offset == NO_DATE_TIME)
+    return false; // No date or time info available
+
+  // Origin for Modified Julian Date (MJD) is November 17, 1858, Wednesday.
+  // Move origin to Jan. 2, 2000, Sunday.
+  // Note: We don't use Jan. 1 to compensate for the fact that 2000 is a leap
+  // year.
+  unsigned short days = rds.MJD - (                          // 1858-Nov-17
+                                      14 +                   // 1858-Dec-1
+                                      31 +                   // 1859-Jan-1
+                                      DAYS_PER_YEAR +        // 1860-Jan-1
+                                      10 * DAYS_PER_4YEARS + // 1900-Jan-1
+                                      DAYS_PER_100YEARS +    // 2000-Jan-1
+                                      1);                    // 2000-Jan-2
+
+  // Convert UTC date and time to local date and time.
+  // Combine date and time
+  unsigned long date_time = ((unsigned long)days) * (24 * 60) +
+                            ((unsigned short)rds.hour) * 60 + rds.minute;
+  // Adjust offset from units of half hours to minutes
+  int16_t offset = (int16_t)(rds.offset) * 30;
+  // Compute local date/time
+  date_time += offset;
+  // Break down date and time
+  time->minute = date_time % 60;
+  date_time /= 60;
+  time->hour = date_time % 24;
+  days = date_time / 24;
+
+  // Compute day of the week - Sunday = 0
+  time->wday = days % 7;
+
+  // Compute year
+  unsigned char leap_year = 0; /* 1 if leap year, else 0 */
+  // Note: This code assumes all century years (2000, 2100...) are not leap
+  // years. This will break in 2400 AD.  However, RDS' date field will overflow
+  // long before 2400 AD.
+  time->year = days / DAYS_PER_100YEARS * 100 + 2000;
+  days %= DAYS_PER_100YEARS;
+  if (!(days < DAYS_PER_YEAR)) {
+    days++; // Adjust for no leap year for century year
+    time->year += days / DAYS_PER_4YEARS * 4;
+    days %= DAYS_PER_4YEARS;
+    if (days < DAYS_PER_LEAP_YEAR) {
+      leap_year = 1;
+    } else {
+      days--; // Adjust for leap year for first of 4 years
+      time->year += days / DAYS_PER_YEAR;
+      days %= DAYS_PER_YEAR;
+    }
+  }
+
+  // Compute month and day of the month
+  if (days < 31 + 28 + leap_year) {
+    if (days < 31) {
+      /* January */
+      time->month = 1;
+      time->day = days + 1;
+    } else {
+      /* February */
+      time->month = 2;
+      time->day = days + 1 - 31;
+    }
+  } else {
+    /* March - December */
+    enum { NUM_MONTHS = 10 };
+    static const unsigned short month[NUM_MONTHS] = {
+        0,
+        31,
+        31 + 30,
+        31 + 30 + 31,
+        31 + 30 + 31 + 30,
+        31 + 30 + 31 + 30 + 31,
+        31 + 30 + 31 + 30 + 31 + 31,
+        31 + 30 + 31 + 30 + 31 + 31 + 30,
+        31 + 30 + 31 + 30 + 31 + 31 + 30 + 31,
+        31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 + 30};
+    unsigned short value; // Value from table
+    unsigned char mon;    // Index to month[]
+
+    days -= 31 + 28 + leap_year;
+    // Look up month
+    for (mon = NUM_MONTHS; days < (value = (month[--mon]));)
+      ;
+    time->day = days - value + 1;
+    time->month = mon + 2 + 1;
+  }
+  return true;
+}
+
+bool SI4732_GetLocalTime(Time *time) {
+  // Look for date/time info
+  if (rds.offset == NO_DATE_TIME)
+    return false; // No date or time info available
+
+  // Convert UTC to local time
+  /* Note: If the offset is negative, 'hour' and 'minute' could become negative.
+   * To compensate, we add 24 to hour and 60 to minute.  We then do a modulus
+   * division (%24 and %60) to correct for any overflow caused by either a
+   * positive offset or the above mentioned addition.
+   */
+  time->hour = (rds.hour + rds.offset / 2 + 24) % 24;
+  time->minute = (rds.minute + rds.offset % 2 * 30 + 60) % 60;
+  return true;
 }
 
 void SI4732_SwitchMode() { SI4732_PowerDown(); }

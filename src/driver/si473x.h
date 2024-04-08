@@ -384,6 +384,20 @@ typedef struct {
               // If offset==NO_DATE_TIME then MJD, hour, minute are invalid.
 } RDS;
 
+typedef struct DateTime {
+  uint16_t year;
+  uint8_t month;
+  uint8_t day;
+  uint8_t wday; // Day of the week, Sunday = 0
+  uint8_t hour;
+  uint8_t minute;
+} DateTime;
+
+typedef struct Time {
+  uint8_t hour;
+  uint8_t minute;
+} Time;
+
 extern RDS rds;
 
 void SI4732_Init();
@@ -394,6 +408,8 @@ void SI4732_SetFreq(uint32_t freq);
 uint8_t SI4732_GetRSSI();
 uint8_t SI4732_GetSNR();
 bool SI4732_GetRDS();
+bool SI4732_GetLocalDateTime(DateTime *time);
+bool SI4732_GetLocalTime(Time *time);
 
 extern si47x_rds_status rdsResponse;
 
