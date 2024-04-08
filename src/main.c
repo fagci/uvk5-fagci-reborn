@@ -5,6 +5,7 @@
 #include "driver/bk4819.h"
 #include "driver/eeprom.h"
 #include "driver/keyboard.h"
+#include "driver/si473x.h"
 #include "driver/st7565.h"
 #include "driver/system.h"
 #include "driver/systick.h"
@@ -162,14 +163,6 @@ void Main(void) {
     TaskAdd("Intro", Intro, 2, true, 5);
   } else if (KEYBOARD_Poll() == KEY_MENU) {
     selfTest();
-    /* PrintMediumEx(LCD_WIDTH - 1, 7, POS_R, C_FILL, "%u", PRESETS_Size());
-    for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
-      Preset p;
-      PRESETS_LoadPreset(i, &p);
-      PrintSmall(i / 10 * 40, 6 * (i % 10) + 6, "%u - %u",
-                 p.band.bounds.start / 100000, p.band.bounds.end / 100000);
-    }
-    ST7565_Blit(); */
   } else if (KEYBOARD_Poll() == KEY_5) {
     SVC_Toggle(SVC_KEYBOARD, true, 10);
     SVC_Toggle(SVC_LISTEN, true, 10);

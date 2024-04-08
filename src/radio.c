@@ -146,15 +146,15 @@ void toggleBK4819(bool on) {
 
 void toggleBK1080(bool on) {
   if (on) {
-    BK1080_Init(radio->rx.f, true);
-    BK1080_Mute(false);
+    // BK1080_Init(radio->rx.f, true);
+    // BK1080_Mute(false);
     SYSTEM_DelayMs(10);
     AUDIO_ToggleSpeaker(true);
   } else {
     AUDIO_ToggleSpeaker(false);
     SYSTEM_DelayMs(10);
-    BK1080_Mute(true);
-    BK1080_Init(0, false);
+    // BK1080_Mute(true);
+    // BK1080_Init(0, false);
   }
 }
 

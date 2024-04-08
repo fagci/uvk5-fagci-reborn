@@ -433,7 +433,7 @@ void BOARD_Init(void) {
   BOARD_GPIO_Init();
   BOARD_ADC_Init();
   ST7565_Init();
-  BK1080_Init(0, false);
+  // BK1080_Init(0, false);
   BK4819_Init();
   BACKLIGHT_Init();
 }
