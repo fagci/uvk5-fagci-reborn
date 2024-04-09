@@ -31,4 +31,5 @@ void SVC_LISTEN_Update(void) {
 void SVC_LISTEN_Deinit(void) {
   gListenFn = NULL;
   BK4819_WriteRegister(BK4819_REG_3F, 0);
+  RADIO_ToggleRX(false);
 }

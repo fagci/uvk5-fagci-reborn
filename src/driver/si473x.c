@@ -957,10 +957,10 @@ void SI4732_Init() {
 
     AM_FRONTEND_AGC_CONTROL(10, 12);
   } else {
-    waitToSend();
+    /* waitToSend();
     uint8_t cmd2[6] = {SI4735_CMD_FM_AGC_OVERRIDE, 0x01, 0};
     SI4732_WriteBuffer(cmd2, 3);
-    SYSTEM_DelayMs(100);
+    SYSTEM_DelayMs(100); */
   }
 
   SI4732_SetFreq(currentFreq);

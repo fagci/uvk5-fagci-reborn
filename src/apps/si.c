@@ -1,6 +1,5 @@
 #include "si.h"
 #include "../driver/si473x.h"
-#include "../driver/uart.h"
 #include "../scheduler.h"
 #include "../svc.h"
 #include "../ui/components.h"
@@ -16,6 +15,7 @@ static void tune(uint32_t f) { SI4732_SetFreq(freq = f); }
 
 void SI_init() {
   SVC_Toggle(SVC_LISTEN, false, 0);
+  BK4819_Idle();
   SI4732_Init();
 }
 
@@ -138,5 +138,6 @@ void SI_render() {
 }
 void SI_deinit() {
   SI4732_PowerDown();
+  BK4819_RX_TurnOn();
   SVC_Toggle(SVC_LISTEN, true, 10);
 }
