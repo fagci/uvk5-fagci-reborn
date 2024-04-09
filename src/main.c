@@ -100,14 +100,13 @@ static void Intro(void) {
     TaskRemove(Intro);
     if (gSettings.beep)
       AUDIO_PlayTone(1400, 50);
+    RADIO_LoadCurrentVFO();
     AddTasks();
-    Log("SETTINGS %02u sz %02u", SETTINGS_OFFSET, SETTINGS_SIZE);
+    /* Log("SETTINGS %02u sz %02u", SETTINGS_OFFSET, SETTINGS_SIZE);
     Log("VFO1 %02u sz %02u", VFOS_OFFSET, VFO_SIZE);
     Log("VFO2 %02u sz %02u", VFOS_OFFSET + VFO_SIZE, VFO_SIZE);
     Log("PRESET %02u sz %02u", PRESETS_OFFSET, PRESET_SIZE);
-    Log("P22 BW: %u", PRESETS_Item(22)->band.bw);
-
-    RADIO_LoadCurrentVFO();
+    Log("P22 BW: %u", PRESETS_Item(22)->band.bw); */
   }
 }
 
@@ -117,6 +116,8 @@ void Main(void) {
 
   BOARD_Init();
   BACKLIGHT_Toggle(true);
+  UART_Init();
+
   SVC_Toggle(SVC_RENDER, true, 25);
   KEY_Code_t pressedKey = KEYBOARD_Poll();
   if (pressedKey == KEY_EXIT) {
@@ -141,8 +142,6 @@ void Main(void) {
     BACKLIGHT_On();
     reset();
   } */
-
-  UART_Init();
 
   BATTERY_UpdateBatteryInfo();
   RADIO_SetupRegisters();

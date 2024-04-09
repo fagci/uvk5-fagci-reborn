@@ -1,7 +1,6 @@
 #include "si.h"
-#include "../driver/gpio.h"
 #include "../driver/si473x.h"
-#include "../inc/dp32g030/gpio.h"
+#include "../driver/uart.h"
 #include "../scheduler.h"
 #include "../svc.h"
 #include "../ui/components.h"
@@ -17,17 +16,13 @@ static void tune(uint32_t f) { SI4732_SetFreq(freq = f); }
 
 void SI_init() {
   SVC_Toggle(SVC_LISTEN, false, 0);
-
-  SI4732_PowerUp();
-  BK4819_Idle();
-  SI4732_PowerDown();
   SI4732_Init();
 }
 
 static bool hasRDS = false;
 
 void SI_update() {
-  if (Now() - lastRdsUpdate >= 10) {
+  if (Now() - lastRdsUpdate >= 100) {
     hasRDS = SI4732_GetRDS();
     lastRdsUpdate = Now();
   }
@@ -141,4 +136,7 @@ void SI_render() {
                          fp2);
   }
 }
-void SI_deinit() { SVC_Toggle(SVC_LISTEN, true, 10); }
+void SI_deinit() {
+  SI4732_PowerDown();
+  SVC_Toggle(SVC_LISTEN, true, 10);
+}
