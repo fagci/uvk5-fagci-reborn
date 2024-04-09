@@ -410,6 +410,7 @@ uint8_t SI4732_GetSNR();
 bool SI4732_GetRDS();
 bool SI4732_GetLocalDateTime(DateTime *time);
 bool SI4732_GetLocalTime(Time *time);
+void SI4732_GetProgramType(char buffer[17]);
 
 extern si47x_rds_status rdsResponse;
 

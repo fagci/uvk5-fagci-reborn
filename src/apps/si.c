@@ -107,19 +107,25 @@ void SI_render() {
   uint16_t fp2 = f / 100 % 1000;
 
   UI_RSSIBar(SI4732_GetRSSI() << 1, f, 42);
+  char genre[17];
+  SI4732_GetProgramType(genre);
 
   if (rdsResponse.resp.RDSSYNC) {
-    PrintMediumEx(LCD_XCENTER, 18, POS_C, C_FILL, "RDS!");
-  } else {
-    PrintMediumEx(LCD_XCENTER, 18, POS_C, C_FILL, "NO RDS =(");
+    PrintMediumEx(LCD_WIDTH, 14, POS_R, C_FILL, "RDS");
   }
   DateTime *dt;
+  Time *t;
   bool hasDT = SI4732_GetLocalDateTime(dt);
+  bool hasT = SI4732_GetLocalTime(t);
   const char wd[8][3] = {"SU", "MO", "TU", "WE", "TH", "FR", "SA", "SU"};
   PrintSmall(0, LCD_HEIGHT - 2, "%16s", rds.radioText);
+  PrintSmallEx(LCD_XCENTER, 14, POS_C, C_FILL, "%16s", genre);
+
   if (hasDT && dt->year > 2000 && dt->year < 3000) {
     PrintSmall(0, LCD_HEIGHT - 8, "%02u.%02u.%04u, %s %02u:%02u", dt->day,
                dt->month, dt->year, wd[dt->wday], dt->hour, dt->minute);
+  } else if (hasT) {
+    PrintSmall(0, LCD_HEIGHT - 8, "%02u:%02u", t->hour, t->minute);
   }
 
   PrintSmallEx(LCD_WIDTH, LCD_HEIGHT - 8, POS_R, C_FILL, "%s",
