@@ -163,11 +163,11 @@ void SI_render() {
   uint16_t fp1 = f / 100000;
   uint16_t fp2 = f / 100 % 1000;
 
-  UI_RSSIBar(SI4732_GetRSSI() << 1, f, 42);
+  UI_RSSIBar(rsqStatus.resp.RSSI << 1, f, 42);
   char genre[17];
   SI4732_GetProgramType(genre);
 
-  PrintSmallEx(0, 12, POS_L, C_FILL, "SNR: %u dB", BK4819_GetSNR());
+  PrintSmallEx(0, 12, POS_L, C_FILL, "SNR: %u dB", rsqStatus.resp.SNR);
   if (rds.RDSSignal) {
     PrintSmallEx(LCD_WIDTH - 1, 12, POS_R, C_FILL, "RDS");
     // FillRect(LCD_WIDTH - 14, 6, 14, 7, C_INVERT);

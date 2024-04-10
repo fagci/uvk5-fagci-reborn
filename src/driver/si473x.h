@@ -277,6 +277,47 @@
 #define SI4735_PROP_AUX_ASQ_INTERRUPT_SOURCE 0x6600
 #define SI4735_PROP_DEBUG_CONTROL 0xFF00
 
+typedef union {
+  struct {
+    // status ("RESP0")
+    uint8_t STCINT : 1;
+    uint8_t DUMMY1 : 1;
+    uint8_t RDSINT : 1;
+    uint8_t RSQINT : 1;
+    uint8_t DUMMY2 : 2;
+    uint8_t ERR : 1;
+    uint8_t CTS : 1;
+    // RESP1
+    uint8_t RSSIILINT : 1; //!<  RSSI Detect Low.
+    uint8_t RSSIHINT : 1;  //!<  RSSI Detect High.
+    uint8_t SNRLINT : 1;   //!<  SNR Detect Low.
+    uint8_t SNRHINT : 1;   //!<  SNR Detect High.
+    uint8_t MULTLINT : 1;  //!<  Multipath Detect Low
+    uint8_t MULTHINT : 1;  //!<  Multipath Detect High
+    uint8_t DUMMY3 : 1;
+    uint8_t BLENDINT : 1; //!<  Blend Detect Interrupt.
+    // RESP2
+    uint8_t VALID : 1; //!<  Valid Channel.
+    uint8_t AFCRL : 1; //!<  AFC Rail Indicator.
+    uint8_t DUMMY4 : 1;
+    uint8_t
+        SMUTE : 1; //!<  Soft Mute Indicator. Indicates soft mute is engaged.
+    uint8_t DUMMY5 : 4;
+    // RESP3
+    uint8_t STBLEND : 7; //!<  Indicates amount of stereo blend in% (100 = full
+                         //!<  stereo, 0 = full mono).
+    uint8_t PILOT : 1;   //!<  Indicates stereo pilot presence.
+    // RESP4 to RESP7
+    uint8_t RSSI; //!<  RESP4 - Contains the current receive signal strength
+                  //!<  (0–127 dBμV).
+    uint8_t SNR;  //!<  RESP5 - Contains the current SNR metric (0–127 dB).
+    uint8_t MULT; //!<  RESP6 - Contains the current multipath metric. (0 = no
+                  //!<  multipath; 100 = full multipath)
+    uint8_t FREQOFF; //!<  RESP7 - Signed frequency offset (kHz).
+  } resp;
+  uint8_t raw[8];
+} RSQStatus;
+
 // Command responses
 // Names that begin with FIELD are argument masks.  Others are argument
 // constants.
@@ -347,10 +388,9 @@ void SI4732_PowerUp();
 void SI4732_PowerUpAlt();
 void SI4732_PowerDown();
 void SI4732_SetFreq(uint32_t freq);
-uint8_t SI4732_GetRSSI();
-uint8_t SI4732_GetSNR();
 void SI4732_ReadRDS(uint8_t buf[13]);
-
 void RSQ_GET();
+
+extern RSQStatus rsqStatus;
 
 #endif /* end of include guard: SI473X_H */

@@ -191,13 +191,10 @@ enum {
   GPIO_ARG1_GPO1 = 0b0010, // GPO1
 };
 
-static SI4732_MODE si4732mode = SI4732_FM;
-static uint8_t rssi = 0;
-static uint8_t snr = 0;
-static uint32_t currentFreq = 10320;
+RSQStatus rsqStatus;
 
-uint8_t SI4732_GetRSSI() { return rssi; }
-uint8_t SI4732_GetSNR() { return snr; }
+static SI4732_MODE si4732mode = SI4732_FM;
+static uint32_t currentFreq = 10320;
 
 static const uint8_t SI4732_I2C_ADDR = 0x22;
 
@@ -236,17 +233,14 @@ void sendProperty(uint16_t prop, uint16_t parameter) {
 void RSQ_GET() {
   waitToSend();
   if (si4732mode == SI4732_AM) {
-    uint8_t cmd[2] = {CMD_AM_RSQ_STATUS, 0x00};
+    uint8_t cmd[2] = {CMD_AM_RSQ_STATUS, 0x01};
     SI4732_WriteBuffer(cmd, 2);
   } else if (si4732mode == SI4732_FM) {
-    uint8_t cmd[2] = {CMD_FM_RSQ_STATUS, 0x00};
+    uint8_t cmd[2] = {CMD_FM_RSQ_STATUS, 0x01};
     SI4732_WriteBuffer(cmd, 2);
   }
 
-  uint8_t cmd_read[6] = {0};
-  SI4732_ReadBuffer(cmd_read, 6);
-  rssi = cmd_read[4];
-  snr = cmd_read[5];
+  SI4732_ReadBuffer(rsqStatus.raw, si4732mode == SI4732_FM ? 8 : 6);
 }
 
 void enableRDS(void) {
@@ -293,6 +287,7 @@ void SI4732_SetFreq(uint32_t freq) {
   currentFreq = freq;
   uint8_t hb = (freq >> 8) & 0xFF;
   uint8_t lb = freq & 0xFF;
+
   waitToSend();
   if (si4732mode == SI4732_FM) {
     uint8_t cmd[5] = {CMD_FM_TUNE_FREQ, 0x00, hb, lb};
@@ -308,12 +303,11 @@ void SI4732_SetFreq(uint32_t freq) {
 }
 
 void setVolume(uint8_t volume) {
-#define RX_VOLUME 0x4000
   if (volume < 0)
     volume = 0;
   if (volume > 63)
     volume = 63;
-  sendProperty(RX_VOLUME, volume);
+  sendProperty(PROP_RX_VOLUME, volume);
 }
 
 void setAvcAmMaxGain(uint8_t gain) {
@@ -332,8 +326,8 @@ void setAmSoftMuteMaxAttenuation(uint8_t smattn) {
 }
 
 void setBandwidth(uint8_t AMCHFLT, uint8_t AMPLFLT) {
-  waitToSend();
   uint8_t tmp[6] = {0x12, 0, 0x31, 0x02, AMCHFLT, AMPLFLT};
+  waitToSend();
   SI4732_WriteBuffer(tmp, 6);
 }
 
@@ -346,7 +340,8 @@ void SI4732_Init() {
   SI4732_PowerUp();
 
   AUDIO_ToggleSpeaker(true);
-  setVolume(63); // Default volume level.
+
+  setVolume(63);
 
   SI4732_SetFreq(currentFreq);
 }
