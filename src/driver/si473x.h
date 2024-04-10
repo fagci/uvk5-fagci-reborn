@@ -277,128 +277,70 @@
 #define SI4735_PROP_AUX_ASQ_INTERRUPT_SOURCE 0x6600
 #define SI4735_PROP_DEBUG_CONTROL 0xFF00
 
-typedef enum { SI4732_FM, SI4732_AM } SI4732_MODE;
-typedef union {
-  struct {
-    // status ("RESP0")
-    uint8_t STCINT : 1;
-    uint8_t DUMMY1 : 1;
-    uint8_t RDSINT : 1;
-    uint8_t RSQINT : 1;
-    uint8_t DUMMY2 : 2;
-    uint8_t ERR : 1;
-    uint8_t CTS : 1;
-    // RESP1
-    uint8_t RDSRECV : 1; //!<  RDS Received; 1 = FIFO filled to minimum number
-                         //!<  of groups set by RDSFIFOCNT.
-    uint8_t RDSSYNCLOST : 1; //!<  RDS Sync Lost; 1 = Lost RDS synchronization.
-    uint8_t
-        RDSSYNCFOUND : 1; //!<  RDS Sync Found; 1 = Found RDS synchronization.
-    uint8_t DUMMY3 : 1;
-    uint8_t RDSNEWBLOCKA : 1; //!<  RDS New Block A; 1 = Valid Block A data has
-                              //!<  been received.
-    uint8_t RDSNEWBLOCKB : 1; //!<  RDS New Block B; 1 = Valid Block B data has
-                              //!<  been received.
-    uint8_t DUMMY4 : 2;
-    // RESP2
-    uint8_t RDSSYNC : 1; //!<  RDS Sync; 1 = RDS currently synchronized.
-    uint8_t DUMMY5 : 1;
-    uint8_t GRPLOST : 1; //!<  Group Lost; 1 = One or more RDS groups discarded
-                         //!<  due to FIFO overrun.
-    uint8_t DUMMY6 : 5;
-    // RESP3 to RESP11
-    uint8_t RDSFIFOUSED; //!<  RESP3 - RDS FIFO Used; Number of groups remaining
-                         //!<  in the RDS FIFO (0 if empty).
-    uint8_t BLOCKAH;     //!<  RESP4 - RDS Block A; HIGH byte
-    uint8_t BLOCKAL;     //!<  RESP5 - RDS Block A; LOW byte
-    uint8_t BLOCKBH;     //!<  RESP6 - RDS Block B; HIGH byte
-    uint8_t BLOCKBL;     //!<  RESP7 - RDS Block B; LOW byte
-    uint8_t BLOCKCH;     //!<  RESP8 - RDS Block C; HIGH byte
-    uint8_t BLOCKCL;     //!<  RESP9 - RDS Block C; LOW byte
-    uint8_t BLOCKDH;     //!<  RESP10 - RDS Block D; HIGH byte
-    uint8_t BLOCKDL;     //!<  RESP11 - RDS Block D; LOW byte
-    // RESP12 - Blocks A to D Corrected Errors.
-    // 0 = No errors;
-    // 1 = 1–2 bit errors detected and corrected;
-    // 2 = 3–5 bit errors detected and corrected.
-    // 3 = Uncorrectable.
-    uint8_t BLED : 2;
-    uint8_t BLEC : 2;
-    uint8_t BLEB : 2;
-    uint8_t BLEA : 2;
-  } resp;
-  uint8_t raw[13];
-} si47x_rds_status;
+// Command responses
+// Names that begin with FIELD are argument masks.  Others are argument
+// constants.
+enum {
+  // FM_TUNE_STATUS, AM_TUNE_STATUS, WB_TUNE_STATUS
+  FIELD_TUNE_STATUS_RESP1_SEEK_LIMIT =
+      0b10000000,                            // Seek hit search limit - not WB
+  FIELD_TUNE_STATUS_RESP1_AFC_RAILED = 0b10, // AFC railed
+  FIELD_TUNE_STATUS_RESP1_SEEKABLE =
+      0b01, // Station could currently be found by seek,
+  FIELD_TUNE_STATUS_RESP1_VALID = 0b01, // that is, the station is valid
+  // FM_RSQ_STATUS, AM_RSQ_STATUS, WB_RSQ_STATUS
+  /* See RSQ interrupts above for RESP1. */
+  FIELD_RSQ_STATUS_RESP2_SOFT_MUTE = 0b1000,  // Soft mute active - not WB
+  FIELD_RSQ_STATUS_RESP2_AFC_RAILED = 0b0010, // AFC railed
+  FIELD_RSQ_STATUS_RESP2_SEEKABLE =
+      0b0001, // Station could currently be found by seek,
+  FIELD_RSQ_STATUS_RESP2_VALID = 0b0001,      // that is, the station is valid
+  FIELD_RSQ_STATUS_RESP3_STEREO = 0b10000000, // Stereo pilot found - FM only
+  FIELD_RSQ_STATUS_RESP3_STEREO_BLEND =
+      0b01111111, // Stereo blend in % (100 = full stereo, 0 = full mono) - FM
+                  // only
+  // FM_RDS_STATUS
+  /* See RDS interrupts above for RESP1. */
+  FIELD_RDS_STATUS_RESP2_FIFO_OVERFLOW = 0b00000100, // FIFO overflowed
+  FIELD_RDS_STATUS_RESP2_SYNC = 0b00000001, // RDS currently synchronized
+  FIELD_RDS_STATUS_RESP12_BLOCK_A = 0b11000000,
+  FIELD_RDS_STATUS_RESP12_BLOCK_B = 0b00110000,
+  FIELD_RDS_STATUS_RESP12_BLOCK_C = 0b00001100,
+  FIELD_RDS_STATUS_RESP12_BLOCK_D = 0b00000011,
+  RDS_STATUS_RESP12_BLOCK_A_NO_ERRORS = 0U << 6,     // Block had no errors
+  RDS_STATUS_RESP12_BLOCK_A_2_BIT_ERRORS = 1U << 6,  // Block had 1-2 bit errors
+  RDS_STATUS_RESP12_BLOCK_A_5_BIT_ERRORS = 2U << 6,  // Block had 3-5 bit errors
+  RDS_STATUS_RESP12_BLOCK_A_UNCORRECTABLE = 3U << 6, // Block was uncorrectable
+  RDS_STATUS_RESP12_BLOCK_B_NO_ERRORS = 0U << 4,
+  RDS_STATUS_RESP12_BLOCK_B_2_BIT_ERRORS = 1U << 4,
+  RDS_STATUS_RESP12_BLOCK_B_5_BIT_ERRORS = 2U << 4,
+  RDS_STATUS_RESP12_BLOCK_B_UNCORRECTABLE = 3U << 4,
+  RDS_STATUS_RESP12_BLOCK_C_NO_ERRORS = 0U << 2,
+  RDS_STATUS_RESP12_BLOCK_C_2_BIT_ERRORS = 1U << 2,
+  RDS_STATUS_RESP12_BLOCK_C_5_BIT_ERRORS = 2U << 2,
+  RDS_STATUS_RESP12_BLOCK_C_UNCORRECTABLE = 3U << 2,
+  RDS_STATUS_RESP12_BLOCK_D_NO_ERRORS = 0U << 0,
+  RDS_STATUS_RESP12_BLOCK_D_2_BIT_ERRORS = 1U << 0,
+  RDS_STATUS_RESP12_BLOCK_D_5_BIT_ERRORS = 2U << 0,
+  RDS_STATUS_RESP12_BLOCK_D_UNCORRECTABLE = 3U << 0,
+  // WB_SAME_STATUS - TODO
 
-typedef signed char ternary;
-/* RDS and RBDS data */
-typedef struct {
-  uint16_t
-      programId; // Program Identification (PI) code - unique code assigned to
-                 // program. In the US, except for simulcast stations, each
-                 // station has a unique PI. PI = 0 if no RDS info received.
-  /* groupA and groupB indicate if the station has broadcast one or more of each
-   * RDS group type and version. There is one bit for each group type.  Bit
-   * number 0 is for group type 0, and so on. groupA gives version A groups
-   * (packets), groupB gives version B groups. If a bit is true then one or more
-   * of that group type and version has been received. Example:  If (groupA &
-   * 1<<4) is true then at least one Group type 4, version A group (packet) has
-   * been received. Note: If the RDS signal is weak, many bad packets will be
-   * received.  Sometimes, the packets are so corrupted that the radio thinks
-   * the bad data is OK.  This can cause false information to be recorded in the
-   * groupA and groupB variables.
-   */
-  uint16_t groupA;     // One bit for each group type, version A
-  uint16_t groupB;     // One bit for each group type, version B
-  bool RDSSignal;      // True if RDS (or RBDS) signal currently detected
-  bool RBDS;           // True if station using RBDS, else using RDS
-  uint8_t programType; // Program Type (PTY) code - identifies program format -
-                       // call getProgramTypeStr()
-  uint8_t extendedCountryCode; // Extended Country Code (ECC) - constants
-                               // defined above
-  uint8_t language;            // Language Code - constants defined above
-  ternary trafficProgram;      // Traffic Program flag - True if station gives
-                               // Traffic Alerts
-  ternary trafficAlert;        // Traffic Alert flag - True if station currently
-                               // broadcasting Traffic Alert
-  ternary
-      music; // Music/speech flag - True if broadcasting music, false if speech
-  ternary dynamicPTY;      // Dynamic PTY flag - True if dynamic (changing) PTY,
-                           // false if static PTY
-  ternary compressedAudio; // Compressed audio flag - True if compressed audio,
-                           // false if not compressed
-  ternary binauralAudio; // Binaural audio flag - True if binaural audio, false
-                         // if not binaural audio
-  ternary RDSStereo; // RDS stereo/mono flag - True if RDS info says station is
-                     // stereo, false if mono
-  char programService[9];  // Station's name or slogan - usually used like Radio
-                           // Text
-  uint8_t radioTextLen;    // Length of Radio Text message
-  char radioText[65];      // Descriptive message from station
-  char programTypeName[9]; // Program Type Name (PTYN)
-  unsigned long MJD; // UTC Modified Julian Date - origin is November 17, 1858
-  uint8_t hour;      // UTC Hour
-  uint8_t minute;    // UTC Minute
-  signed char
-      offset; // Offset measured in half hours to convert UTC to local time.
-              // If offset==NO_DATE_TIME then MJD, hour, minute are invalid.
-} RDS;
+  // AUX_ASQ_STATUS, WB_ASQ_STATUS
+  /* See ASQ interrupts above for RESP1. */
+  FIELD_AUX_ASQ_STATUS_RESP2_OVERLOAD =
+      0b1, // Audio input is currently overloading ADC
+  FIELD_WB_ASQ_STATUS_RESP2_ALERT = 0b1, // Alert tone is present
+  // FM_AGC_STATUS, AM_AGC_STATUS, WB_AGC_STATUS
+  FIELD_AGC_STATUS_RESP1_DISABLE_AGC = 0b1, // True if AGC disabled
+};
 
-typedef struct DateTime {
-  uint16_t year;
-  uint8_t month;
-  uint8_t day;
-  uint8_t wday; // Day of the week, Sunday = 0
-  uint8_t hour;
-  uint8_t minute;
-} DateTime;
-
-typedef struct Time {
-  uint8_t hour;
-  uint8_t minute;
-} Time;
-
-extern RDS rds;
+typedef enum {
+  SI4732_FM,
+  SI4732_AM,
+  SI4732_LSB,
+  SI4732_USB,
+  SI4732_CW,
+} SI4732_MODE;
 
 void SI4732_Init();
 void SI4732_PowerUp();
@@ -407,12 +349,7 @@ void SI4732_PowerDown();
 void SI4732_SetFreq(uint32_t freq);
 uint8_t SI4732_GetRSSI();
 uint8_t SI4732_GetSNR();
-bool SI4732_GetRDS();
-bool SI4732_GetLocalDateTime(DateTime *time);
-bool SI4732_GetLocalTime(Time *time);
-void SI4732_GetProgramType(char buffer[17]);
-
-extern si47x_rds_status rdsResponse;
+void SI4732_ReadRDS(uint8_t buf[13]);
 
 void RSQ_GET();
 
