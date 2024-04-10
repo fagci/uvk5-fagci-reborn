@@ -225,12 +225,12 @@ void waitToSend() {
 }
 
 void sendProperty(uint16_t prop, uint16_t parameter) {
+  waitToSend();
   uint8_t tmp[6] = {CMD_SET_PROPERTY, 0, prop >> 8, prop & 0xff, parameter >> 8,
                     parameter & 0xff};
   SI4732_WriteBuffer(tmp, 6);
   // SYSTEM_DelayMs(550);
   // SYSTEM_DelayMs(100);
-  waitToSend();
 }
 
 void RSQ_GET() {
@@ -242,7 +242,6 @@ void RSQ_GET() {
     uint8_t cmd[2] = {CMD_FM_RSQ_STATUS, 0x00};
     SI4732_WriteBuffer(cmd, 2);
   }
-  waitToSend();
 
   uint8_t cmd_read[6] = {0};
   SI4732_ReadBuffer(cmd_read, 6);
@@ -281,6 +280,7 @@ void SI4732_PowerUp() {
 void SI4732_PowerDown() {
   AUDIO_ToggleSpeaker(false);
   uint8_t cmd[1] = {0x11};
+  waitToSend();
   SI4732_WriteBuffer(cmd, 1);
   waitToSend();
   SYSTICK_Delay250ns(1);
@@ -290,33 +290,21 @@ void SI4732_PowerDown() {
 void SI4732_SwitchMode() { SI4732_PowerDown(); }
 
 void SI4732_SetFreq(uint32_t freq) {
-  waitToSend();
   currentFreq = freq;
   uint8_t hb = (freq >> 8) & 0xFF;
   uint8_t lb = freq & 0xFF;
+  waitToSend();
   if (si4732mode == SI4732_FM) {
-    uint8_t cmd[5] = {SI4735_CMD_FM_TUNE_FREQ, 0x00, hb, lb};
+    uint8_t cmd[5] = {CMD_FM_TUNE_FREQ, 0x00, hb, lb};
     SI4732_WriteBuffer(cmd, 4);
 
   } else if (si4732mode == SI4732_AM) {
-    uint8_t cmd[6] = {0x40, 0x00, hb, lb, 0};
+    uint8_t cmd[6] = {CMD_AM_TUNE_FREQ, 0x00, hb, lb, 0};
     SI4732_WriteBuffer(cmd, 5);
   }
-  waitToSend();
 
-  SYSTEM_DelayMs(30);
-  //    SYSTEM_DelayMs(500);
+  SYSTEM_DelayMs(80);
   RSQ_GET();
-}
-
-void SI4732_GET_INT_STATUS() {
-  uint8_t state = 0;
-  while (state != 0x81) {
-    uint8_t cmd3[1] = {0x14};
-    SI4732_WriteBuffer(cmd3, 1);
-    SI4732_ReadBuffer((uint8_t *)&state, 1);
-  }
-  // SYSTEM_DelayMs(SI4732_DELAY_MS);
 }
 
 void setVolume(uint8_t volume) {
@@ -344,10 +332,9 @@ void setAmSoftMuteMaxAttenuation(uint8_t smattn) {
 }
 
 void setBandwidth(uint8_t AMCHFLT, uint8_t AMPLFLT) {
+  waitToSend();
   uint8_t tmp[6] = {0x12, 0, 0x31, 0x02, AMCHFLT, AMPLFLT};
   SI4732_WriteBuffer(tmp, 6);
-
-  waitToSend();
 }
 
 void SI4732_Init() {
@@ -366,8 +353,7 @@ void SI4732_Init() {
 
 void SI4732_ReadRDS(uint8_t buf[13]) {
   uint8_t cmd[2] = {CMD_FM_RDS_STATUS, RDS_STATUS_ARG1_CLEAR_INT};
+  waitToSend();
   SI4732_WriteBuffer(cmd, 2);
-  // waitToSend();
-
   SI4732_ReadBuffer(buf, 13);
 }
