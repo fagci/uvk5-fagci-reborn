@@ -233,13 +233,6 @@ void sendProperty(uint16_t prop, uint16_t parameter) {
   waitToSend();
 }
 
-void SI4732_WAIT_STATUS(uint8_t state) {
-  uint8_t tmp = 0;
-  do {
-    SI4732_ReadBuffer((uint8_t *)&tmp, 1);
-  } while (tmp != state);
-}
-
 void RSQ_GET() {
   waitToSend();
   if (si4732mode == SI4732_AM) {
@@ -283,21 +276,13 @@ void SI4732_PowerUp() {
   SYSTEM_DelayMs(10);
 
   enableRDS();
-
-  /* uint16_t int_mask; // Interrupts to enable
-  if (si4732mode == SI4732_FM) {
-    int_mask = CTS_MASK | RDS_MASK;
-  } else { // AM, SW, LW, and FM without RDS
-    int_mask = STC_MASK | RSQ_MASK;
-  }
-  sendProperty(PROP_GPO_IEN, int_mask); */
 }
 
 void SI4732_PowerDown() {
   AUDIO_ToggleSpeaker(false);
   uint8_t cmd[1] = {0x11};
   SI4732_WriteBuffer(cmd, 1);
-  SI4732_WAIT_STATUS(0x80);
+  waitToSend();
   SYSTICK_Delay250ns(1);
   RST_LOW;
 }
@@ -359,8 +344,6 @@ void setAmSoftMuteMaxAttenuation(uint8_t smattn) {
 }
 
 void setBandwidth(uint8_t AMCHFLT, uint8_t AMPLFLT) {
-  waitToSend();
-
   uint8_t tmp[6] = {0x12, 0, 0x31, 0x02, AMCHFLT, AMPLFLT};
   SI4732_WriteBuffer(tmp, 6);
 
@@ -378,43 +361,13 @@ void SI4732_Init() {
   AUDIO_ToggleSpeaker(true);
   setVolume(63); // Default volume level.
 
-  if (si4732mode == SI4732_AM) {
-    SYSTEM_DelayMs(250);
-    setAvcAmMaxGain(48);
-    SYSTEM_DelayMs(500);
-
-    waitToSend();
-    uint8_t cmd2[6] = {SI4735_CMD_AM_AGC_OVERRIDE, 0x01, 0};
-    SI4732_WriteBuffer(cmd2, 3);
-    waitToSend();
-
-    setAmSoftMuteMaxAttenuation(8);
-
-    setBandwidth(2, 1);
-
-    setAvcAmMaxGain(38);
-
-    AM_FRONTEND_AGC_CONTROL(10, 12);
-  } else {
-    /* waitToSend();
-    uint8_t cmd2[6] = {SI4735_CMD_FM_AGC_OVERRIDE, 0x01, 0};
-    SI4732_WriteBuffer(cmd2, 3);
-    SYSTEM_DelayMs(100); */
-  }
-
   SI4732_SetFreq(currentFreq);
-
-  // SI4732_GET_INT_STATUS();
-
-  // SYSTEM_DelayMs(100);
 }
 
 void SI4732_ReadRDS(uint8_t buf[13]) {
-  waitToSend();
-  // Ask for next RDS group and clear RDS interrupt
   uint8_t cmd[2] = {CMD_FM_RDS_STATUS, RDS_STATUS_ARG1_CLEAR_INT};
   SI4732_WriteBuffer(cmd, 2);
-  waitToSend();
+  // waitToSend();
 
   SI4732_ReadBuffer(buf, 13);
 }
