@@ -246,11 +246,11 @@ void RSQ_GET() {
 void enableRDS(void) {
   // Enable and configure RDS reception
   if (si4732mode == SI4732_FM) {
-    sendProperty(SI4735_PROP_FM_RDS_INT_SOURCE, SI4735_FLG_RDSRECV);
+    sendProperty(PROP_FM_RDS_INT_SOURCE, SI4735_FLG_RDSRECV);
     // Set the FIFO high-watermark to 12 RDS blocks, which is safe even for
     // old chips, yet large enough to improve performance.
-    sendProperty(SI4735_PROP_FM_RDS_INT_FIFO_COUNT, 12);
-    sendProperty(SI4735_PROP_FM_RDS_CONFIG,
+    sendProperty(PROP_FM_RDS_INT_FIFO_COUNT, 12);
+    sendProperty(PROP_FM_RDS_CONFIG,
                  ((SI4735_FLG_BLETHA_35 | SI4735_FLG_BLETHB_35 |
                    SI4735_FLG_BLETHC_35 | SI4735_FLG_BLETHD_35)
                   << 8) |
