@@ -108,7 +108,6 @@ enum {
   PROP_AUX_ASQ_INT_SOURCE = 0x6600,
 };
 
-
 // Si4735 command codes
 enum {
   CMD_POWER_UP = 0x01,
@@ -200,38 +199,37 @@ static uint32_t currentFreq = 10320;
 uint8_t SI4732_GetRSSI() { return rssi; }
 uint8_t SI4732_GetSNR() { return snr; }
 
-void SI4732_ReadBuffer(uint8_t *Value, uint8_t size) {
+static const uint8_t SI4732_I2C_ADDR = 0x22;
+
+void SI4732_ReadBuffer(uint8_t *buf, uint8_t size) {
   I2C_Start();
-  I2C_Write(0x23);
-  I2C_ReadBuffer(Value, size);
+  I2C_Write(SI4732_I2C_ADDR + 1);
+  I2C_ReadBuffer(buf, size);
   I2C_Stop();
 }
 
-void SI4732_WriteBuffer(uint8_t *buff, uint8_t size) {
+void SI4732_WriteBuffer(uint8_t *buf, uint8_t size) {
   I2C_Start();
-  I2C_Write(0x22);
-  I2C_WriteBuffer(buff, size);
+  I2C_Write(SI4732_I2C_ADDR);
+  I2C_WriteBuffer(buf, size);
   I2C_Stop();
 }
 
 void waitToSend() {
   uint8_t tmp = 0;
   SI4732_ReadBuffer((uint8_t *)&tmp, 1);
-  while (!(tmp & 0x80) || tmp & 0x40) {
+  while (!(tmp & SI4735_STATUS_CTS)) {
     SYSTICK_DelayUs(100);
     SI4732_ReadBuffer((uint8_t *)&tmp, 1);
   }
 }
 
 void sendProperty(uint16_t propertyNumber, uint16_t parameter) {
-  waitToSend();
+  // waitToSend();
 
-  uint8_t tmp[6] = {0x12,
-                    0,
-                    propertyNumber >> 8,
-                    propertyNumber & 0xff,
-                    parameter >> 8,
-                    parameter & 0xff};
+  uint8_t tmp[6] = {CMD_SET_PROPERTY,    0,
+                    propertyNumber >> 8, propertyNumber & 0xff,
+                    parameter >> 8,      parameter & 0xff};
   SI4732_WriteBuffer(tmp, 6);
   // SYSTEM_DelayMs(550);
   SYSTEM_DelayMs(100);
