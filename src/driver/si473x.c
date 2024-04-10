@@ -224,15 +224,13 @@ void waitToSend() {
   }
 }
 
-void sendProperty(uint16_t propertyNumber, uint16_t parameter) {
-  // waitToSend();
-
-  uint8_t tmp[6] = {CMD_SET_PROPERTY,    0,
-                    propertyNumber >> 8, propertyNumber & 0xff,
-                    parameter >> 8,      parameter & 0xff};
+void sendProperty(uint16_t prop, uint16_t parameter) {
+  uint8_t tmp[6] = {CMD_SET_PROPERTY, 0, prop >> 8, prop & 0xff, parameter >> 8,
+                    parameter & 0xff};
   SI4732_WriteBuffer(tmp, 6);
   // SYSTEM_DelayMs(550);
-  SYSTEM_DelayMs(100);
+  // SYSTEM_DelayMs(100);
+  waitToSend();
 }
 
 void SI4732_WAIT_STATUS(uint8_t state) {
@@ -243,8 +241,6 @@ void SI4732_WAIT_STATUS(uint8_t state) {
 }
 
 void RSQ_GET() {
-  // AM_RSQ_STATUS
-  //    GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
   waitToSend();
   if (si4732mode == SI4732_AM) {
     uint8_t cmd[2] = {CMD_AM_RSQ_STATUS, 0x00};
@@ -259,18 +255,7 @@ void RSQ_GET() {
   SI4732_ReadBuffer(cmd_read, 6);
   rssi = cmd_read[4];
   snr = cmd_read[5];
-  //    GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 }
-
-enum {
-  CTS_MASK = 0b10000000,  // Clear To Send
-  ERR_MASK = 0b01000000,  // Error occurred
-  RSQ_MASK = 0b00001000,  // Received Signal Quality measurement has triggered
-  RDS_MASK = 0b00000100,  // RDS data received (FM mode only)
-  SAME_MASK = 0b00000100, // SAME (WB) data received (Si4707 only)
-  ASQ_MASK = 0b00000010,  // Audio Signal Quality (AUX and WB modes only)
-  STC_MASK = 0b00000001   // Seek/Tune Complete
-};
 
 void enableRDS(void) {
   // Enable and configure RDS reception
@@ -278,7 +263,7 @@ void enableRDS(void) {
     sendProperty(SI4735_PROP_FM_RDS_INT_SOURCE, SI4735_FLG_RDSRECV);
     // Set the FIFO high-watermark to 12 RDS blocks, which is safe even for
     // old chips, yet large enough to improve performance.
-    sendProperty(SI4735_PROP_FM_RDS_INT_FIFO_COUNT, 0xFF);
+    sendProperty(SI4735_PROP_FM_RDS_INT_FIFO_COUNT, 12);
     sendProperty(SI4735_PROP_FM_RDS_CONFIG,
                  ((SI4735_FLG_BLETHA_35 | SI4735_FLG_BLETHB_35 |
                    SI4735_FLG_BLETHC_35 | SI4735_FLG_BLETHD_35)

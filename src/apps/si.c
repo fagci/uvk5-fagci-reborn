@@ -1,10 +1,10 @@
 #include "si.h"
 #include "../driver/si473x.h"
+#include "../helper/rds.h"
 #include "../scheduler.h"
 #include "../svc.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
-#include "../helper/rds.h"
 #include "apps.h"
 #include "finput.h"
 
@@ -84,14 +84,14 @@ void SI_init() {
 static bool hasRDS = false;
 
 void SI_update() {
-  if (Now() - lastRdsUpdate >= 100) {
+  if (Now() - lastRdsUpdate >= 1000) {
     hasRDS = SI4732_GetRDS();
     lastRdsUpdate = Now();
+    if (hasRDS) {
+      gRedrawScreen = true;
+    }
   }
-  if (hasRDS) {
-    gRedrawScreen = true;
-  }
-  if (Now() - lastUpdate >= 500) {
+  if (Now() - lastUpdate >= 1000) {
     RSQ_GET();
     lastUpdate = Now();
     gRedrawScreen = true;
