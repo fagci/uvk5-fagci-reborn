@@ -389,6 +389,7 @@ void SI4732_SetFreq(uint32_t freq);
 void SI4732_ReadRDS(uint8_t buf[13]);
 void SI4732_SwitchMode(SI4732_MODE mode);
 void RSQ_GET();
+void SI4732_SetAutomaticGainControl(uint8_t AGCDIS, uint8_t AGCIDX);
 
 extern SI4732_MODE si4732mode;
 extern RSQStatus rsqStatus;

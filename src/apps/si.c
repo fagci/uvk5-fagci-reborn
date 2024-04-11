@@ -62,6 +62,7 @@ SIBand band[] = {
     {"SW", SW_BT, SI4732_AM, 100, 30000, 15500, 5, 0, 0}      // Whole SW 29
 };
 
+static uint8_t att = 0;
 static uint32_t divider = 1000;
 static uint32_t freq = 10000;
 static uint16_t step = 10;
@@ -83,6 +84,8 @@ void SI_init() {
   BK4819_Idle();
   SI4732_PowerUp();
   SI4732_SetFreq(freq);
+
+  SI4732_SetAutomaticGainControl(1, att);
 }
 
 static bool hasRDS = false;
@@ -122,6 +125,18 @@ bool SI_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_7:
       if (step > 1) {
         step /= 10;
+      }
+      return true;
+    case KEY_2:
+      if (att < 37) {
+        att++;
+        SI4732_SetAutomaticGainControl(1, att);
+      }
+      return true;
+    case KEY_8:
+      if (att > 0) {
+        att--;
+        SI4732_SetAutomaticGainControl(1, att);
       }
       return true;
     default:
@@ -207,7 +222,8 @@ void SI_render() {
 
   PrintBiggestDigitsEx(LCD_WIDTH - 22, BASE, POS_R, C_FILL, "%3u.%03u", fp1,
                        fp2);
-  PrintSmallEx(LCD_XCENTER, BASE + 6, POS_C, C_FILL, "%u", step);
+  PrintSmallEx(LCD_XCENTER, BASE + 6, POS_C, C_FILL, "STP %u ATT %u", step,
+               att);
 
   PrintSmall(0, LCD_HEIGHT - 8, "%s", rds.radioText);
 }

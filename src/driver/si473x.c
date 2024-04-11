@@ -271,6 +271,42 @@ void enableRDS(void) {
   };
 }
 
+typedef union {
+  struct {
+    // ARG1
+    uint8_t AGCDIS : 1; // if set to 1 indicates if the AGC is disabled. 0 = AGC
+                        // enabled; 1 = AGC disabled.
+    uint8_t DUMMY : 7;
+    // ARG2
+    uint8_t AGCIDX; // AGC Index; If AMAGCDIS = 1, this byte forces the AGC gain
+                    // index; 0 = Minimum attenuation (max gain)
+  } arg;
+  uint8_t raw[2];
+} si47x_agc_overrride;
+
+void SI4732_SetAutomaticGainControl(uint8_t AGCDIS, uint8_t AGCIDX) {
+  si47x_agc_overrride agc;
+
+  uint8_t cmd;
+
+  // cmd = (currentTune == FM_TUNE_FREQ) ? FM_AGC_OVERRIDE : AM_AGC_OVERRIDE; //
+  // AM_AGC_OVERRIDE = SSB_AGC_OVERRIDE = 0x48
+
+  if (si4732mode == SI4732_FM)
+    cmd = CMD_FM_AGC_OVERRIDE;
+  else
+    cmd = CMD_AM_AGC_OVERRIDE;
+
+  agc.arg.DUMMY = 0; // ARG1: bits 7:1 Always write to 0;
+  agc.arg.AGCDIS = AGCDIS;
+  agc.arg.AGCIDX = AGCIDX;
+
+  waitToSend();
+
+  uint8_t cmd2[] = {cmd, agc.raw[0], agc.raw[1]};
+  SI4732_WriteBuffer(cmd2, 3);
+}
+
 void SI4732_PowerUp() {
   RST_HIGH;
   // SYSTEM_DelayMs(10);
@@ -297,6 +333,12 @@ void SI4732_PowerUp() {
     sendProperty(PROP_AM_SOFT_MUTE_MAX_ATTENUATION, 0);
     sendProperty(PROP_AM_AUTOMATIC_VOLUME_CONTROL_MAX_GAIN, 0x7800);
     sendProperty(SI4735_PROP_AM_NB_DELAY, 0);
+    sendProperty(PROP_AM_SOFT_MUTE_SLOPE, 0); // 0-5
+    sendProperty(PROP_AM_SOFT_MUTE_RATE, 1);  // 1..255
+    // sendProperty(PROP_AM_SOFT_MUTE_SNR_THRESHOLD, 0); // 0-63 *8
+    // sendProperty(PROP_AM_SOFT_MUTE_RELEASE_RATE, 32767); // 1-32767 *8192
+    sendProperty(SI4735_PROP_AM_AGC_ATTACK_RATE, 4);  // 4..248 *4
+    sendProperty(SI4735_PROP_AM_AGC_RELEASE_RATE, 4); // 4..248 *0x8c
   }
 }
 
