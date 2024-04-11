@@ -193,7 +193,7 @@ enum {
 
 RSQStatus rsqStatus;
 
-static SI4732_MODE si4732mode = SI4732_FM;
+SI4732_MODE si4732mode = SI4732_FM;
 static uint32_t currentFreq = 10320;
 
 static const uint8_t SI4732_I2C_ADDR = 0x22;
@@ -226,8 +226,7 @@ void sendProperty(uint16_t prop, uint16_t parameter) {
   uint8_t tmp[6] = {CMD_SET_PROPERTY, 0, prop >> 8, prop & 0xff, parameter >> 8,
                     parameter & 0xff};
   SI4732_WriteBuffer(tmp, 6);
-  // SYSTEM_DelayMs(550);
-  // SYSTEM_DelayMs(100);
+  SYSTEM_DelayMs(10); // irrespective of CTS coming up earlier than that
 }
 
 void RSQ_GET() {
@@ -241,6 +240,20 @@ void RSQ_GET() {
   }
 
   SI4732_ReadBuffer(rsqStatus.raw, si4732mode == SI4732_FM ? 8 : 6);
+}
+
+void setVolume(uint8_t volume) {
+  if (volume < 0)
+    volume = 0;
+  if (volume > 63)
+    volume = 63;
+  sendProperty(PROP_RX_VOLUME, volume);
+}
+
+void setAvcAmMaxGain(uint8_t gain) {
+  if (gain < 12 || gain > 90)
+    return;
+  sendProperty(PROP_AM_AUTOMATIC_VOLUME_CONTROL_MAX_GAIN, gain * 340);
 }
 
 void enableRDS(void) {
@@ -259,29 +272,50 @@ void enableRDS(void) {
 }
 
 void SI4732_PowerUp() {
-  waitToSend();
-  uint8_t cmd[3] = {SI4735_CMD_POWER_UP, 0x10 | SI4735_FUNC_FM,
+  RST_HIGH;
+  // SYSTEM_DelayMs(10);
+  uint8_t cmd[3] = {SI4735_CMD_POWER_UP, SI4735_FLG_XOSCEN | SI4735_FUNC_FM,
                     SI4735_OUT_ANALOG};
   if (si4732mode == SI4732_AM) {
-    cmd[1] = 0x10 | SI4735_FUNC_AM;
+    cmd[1] = SI4735_FLG_XOSCEN | SI4735_FUNC_AM;
   }
+  waitToSend();
   SI4732_WriteBuffer(cmd, 3);
-  SYSTEM_DelayMs(10);
+  SYSTEM_DelayMs(500);
 
-  enableRDS();
+  waitToSend(); // stability gpo... maybe not needed
+  uint8_t cmd2[2] = {SI4735_CMD_GPIO_CTL,
+                     SI4735_FLG_GPO1OEN | SI4735_FLG_GPO2OEN};
+
+  SI4732_WriteBuffer(cmd2, 2);
+  AUDIO_ToggleSpeaker(true);
+  setVolume(63);
+
+  if (si4732mode == SI4732_FM) {
+    enableRDS();
+  } else {
+    sendProperty(PROP_AM_SOFT_MUTE_MAX_ATTENUATION, 0);
+    sendProperty(PROP_AM_AUTOMATIC_VOLUME_CONTROL_MAX_GAIN, 0x7800);
+    sendProperty(SI4735_PROP_AM_NB_DELAY, 0);
+  }
 }
 
 void SI4732_PowerDown() {
   AUDIO_ToggleSpeaker(false);
-  uint8_t cmd[1] = {0x11};
+  uint8_t cmd[1] = {CMD_POWER_DOWN};
   waitToSend();
   SI4732_WriteBuffer(cmd, 1);
-  waitToSend();
-  SYSTICK_Delay250ns(1);
+  SYSTICK_Delay250ns(10);
   RST_LOW;
 }
 
-void SI4732_SwitchMode() { SI4732_PowerDown(); }
+void SI4732_SwitchMode(SI4732_MODE mode) {
+  if (si4732mode != mode) {
+    SI4732_PowerDown();
+    si4732mode = mode;
+    SI4732_PowerUp();
+  }
+}
 
 void SI4732_SetFreq(uint32_t freq) {
   currentFreq = freq;
@@ -302,20 +336,6 @@ void SI4732_SetFreq(uint32_t freq) {
   RSQ_GET();
 }
 
-void setVolume(uint8_t volume) {
-  if (volume < 0)
-    volume = 0;
-  if (volume > 63)
-    volume = 63;
-  sendProperty(PROP_RX_VOLUME, volume);
-}
-
-void setAvcAmMaxGain(uint8_t gain) {
-  if (gain < 12 || gain > 90)
-    return;
-  sendProperty(PROP_AM_AUTOMATIC_VOLUME_CONTROL_MAX_GAIN, gain * 340);
-}
-
 void AM_FRONTEND_AGC_CONTROL(uint8_t MIN_GAIN_INDEX, uint8_t ATTN_BACKUP) {
   uint16_t num = MIN_GAIN_INDEX << 8 | ATTN_BACKUP;
   sendProperty(PROP_AM_FRONTEND_AGC_CONTROL, num);
@@ -329,21 +349,6 @@ void setBandwidth(uint8_t AMCHFLT, uint8_t AMPLFLT) {
   uint8_t tmp[6] = {0x12, 0, 0x31, 0x02, AMCHFLT, AMPLFLT};
   waitToSend();
   SI4732_WriteBuffer(tmp, 6);
-}
-
-void SI4732_Init() {
-  RST_LOW;
-  SYSTEM_DelayMs(10);
-  RST_HIGH;
-  SYSTEM_DelayMs(10);
-
-  SI4732_PowerUp();
-
-  AUDIO_ToggleSpeaker(true);
-
-  setVolume(63);
-
-  SI4732_SetFreq(currentFreq);
 }
 
 void SI4732_ReadRDS(uint8_t buf[13]) {

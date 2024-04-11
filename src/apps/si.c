@@ -62,29 +62,33 @@ SIBand band[] = {
     {"SW", SW_BT, SI4732_AM, 100, 30000, 15500, 5, 0, 0}      // Whole SW 29
 };
 
+static uint32_t divider = 1000;
 static uint32_t freq = 10000;
+static uint16_t step = 10;
 static uint32_t lastUpdate = 0;
 static uint32_t lastRdsUpdate = 0;
 static DateTime dt;
 static Time t;
 
 static void tune(uint32_t f) {
-  f /= 1000;
-  f -= f % 5;
+  f /= divider;
+  if (si4732mode == SI4732_FM) {
+    f -= f % 5;
+  }
   SI4732_SetFreq(freq = f);
 }
 
 void SI_init() {
   SVC_Toggle(SVC_LISTEN, false, 0);
   BK4819_Idle();
-  SI4732_Init();
+  SI4732_PowerUp();
   SI4732_SetFreq(freq);
 }
 
 static bool hasRDS = false;
 
 void SI_update() {
-  if (Now() - lastRdsUpdate >= 1000) {
+  if (si4732mode == SI4732_FM && Now() - lastRdsUpdate >= 1000) {
     hasRDS = SI4732_GetRDS();
     lastRdsUpdate = Now();
     if (hasRDS) {
@@ -103,12 +107,22 @@ bool SI_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (key) {
     case KEY_UP:
-      freq += 10;
+      freq += step;
       SI4732_SetFreq(freq);
       return true;
     case KEY_DOWN:
-      freq -= 10;
+      freq -= step;
       SI4732_SetFreq(freq);
+      return true;
+    case KEY_1:
+      if (step < 1000) {
+        step *= 10;
+      }
+      return true;
+    case KEY_7:
+      if (step > 1) {
+        step /= 10;
+      }
       return true;
     default:
       break;
@@ -141,6 +155,15 @@ bool SI_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       APPS_key(key, bKeyPressed, bKeyHeld);
       return true;
     case KEY_F:
+      if (si4732mode == SI4732_FM) {
+        divider = 100;
+        SI4732_SwitchMode(SI4732_AM);
+        tune(720000);
+      } else {
+        divider = 1000;
+        SI4732_SwitchMode(SI4732_FM);
+        tune(10000000);
+      }
       return true;
     case KEY_STAR:
       BK4819_Idle();
@@ -159,7 +182,7 @@ void SI_render() {
   UI_ClearScreen();
   const uint8_t BASE = 38;
 
-  uint32_t f = freq * 1000;
+  uint32_t f = freq * divider;
   uint16_t fp1 = f / 100000;
   uint16_t fp2 = f / 100 % 1000;
 
@@ -184,6 +207,7 @@ void SI_render() {
 
   PrintBiggestDigitsEx(LCD_WIDTH - 22, BASE, POS_R, C_FILL, "%3u.%03u", fp1,
                        fp2);
+  PrintSmallEx(LCD_XCENTER, BASE + 6, POS_C, C_FILL, "%u", step);
 
   PrintSmall(0, LCD_HEIGHT - 8, "%s", rds.radioText);
 }

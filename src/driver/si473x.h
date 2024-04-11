@@ -383,14 +383,14 @@ typedef enum {
   SI4732_CW,
 } SI4732_MODE;
 
-void SI4732_Init();
 void SI4732_PowerUp();
-void SI4732_PowerUpAlt();
 void SI4732_PowerDown();
 void SI4732_SetFreq(uint32_t freq);
 void SI4732_ReadRDS(uint8_t buf[13]);
+void SI4732_SwitchMode(SI4732_MODE mode);
 void RSQ_GET();
 
+extern SI4732_MODE si4732mode;
 extern RSQStatus rsqStatus;
 
 #endif /* end of include guard: SI473X_H */
