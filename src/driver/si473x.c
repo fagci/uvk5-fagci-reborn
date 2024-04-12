@@ -195,6 +195,7 @@ RSQStatus rsqStatus;
 
 SI4732_MODE si4732mode = SI4732_FM;
 uint16_t siCurrentFreq = 10320;
+ResponseStatus siCurrentStatus;
 
 static const uint8_t SI4732_I2C_ADDR = 0x22;
 
@@ -254,9 +255,16 @@ void RSQ_GET() {
   SI4732_ReadBuffer(rsqStatus.raw, si4732mode == SI4732_FM ? 8 : 6);
 }
 
-ResponseStatus currentStatus;
+typedef union {
+  struct {
+    uint8_t FREQL; //!<  Tune Frequency Low byte.
+    uint8_t FREQH; //!<  Tune Frequency High byte.
+  } raw; //!<  Raw data that represents the frequency stored in the Si47XX
+         //!<  device.
+  uint16_t value; //!<  frequency (integer value)
+} Si4735_Freq;
 
-void getTuneStatus(uint8_t INTACK, uint8_t CANCEL) {
+void SI4735_GetTuneStatus(uint8_t INTACK, uint8_t CANCEL) {
   TuneStatus status;
   int limitResp = 8;
   uint8_t cmd[2] = {CMD_FM_TUNE_STATUS, status.raw};
@@ -274,19 +282,14 @@ void getTuneStatus(uint8_t INTACK, uint8_t CANCEL) {
   // Reads the current status (including current frequency).
   do {
     waitToSend();
-    SI4732_ReadBuffer(currentStatus.raw, limitResp);
-  } while (currentStatus.resp.ERR); // If error, try it again
+    SI4732_ReadBuffer(siCurrentStatus.raw, limitResp);
+  } while (siCurrentStatus.resp.ERR); // If error, try it again
   waitToSend();
+  Si4735_Freq freq;
+  freq.raw.FREQH = siCurrentStatus.resp.READFREQH;
+  freq.raw.FREQL = siCurrentStatus.resp.READFREQL;
+  siCurrentFreq = freq.value;
 }
-
-typedef union {
-  struct {
-    uint8_t FREQL; //!<  Tune Frequency Low byte.
-    uint8_t FREQH; //!<  Tune Frequency High byte.
-  } raw; //!<  Raw data that represents the frequency stored in the Si47XX
-         //!<  device.
-  uint16_t value; //!<  frequency (integer value)
-} Si4735_Freq;
 
 #include "../scheduler.h"
 
@@ -414,10 +417,10 @@ void SI4735_SeekStationProgress(void (*showFunc)(uint16_t f),
   do {
     SI4732_Seek(up_down, 0);
     SYSTEM_DelayMs(30);
-    getTuneStatus(0, 0);
+    SI4735_GetTuneStatus(0, 0);
     SYSTEM_DelayMs(30);
-    freq.raw.FREQH = currentStatus.resp.READFREQH;
-    freq.raw.FREQL = currentStatus.resp.READFREQL;
+    freq.raw.FREQH = siCurrentStatus.resp.READFREQH;
+    freq.raw.FREQL = siCurrentStatus.resp.READFREQL;
     siCurrentFreq = freq.value;
     if (showFunc != NULL) {
       showFunc(freq.value);
@@ -425,7 +428,7 @@ void SI4735_SeekStationProgress(void (*showFunc)(uint16_t f),
     if (stopSeking != NULL && stopSeking()) {
       return;
     }
-  } while (!currentStatus.resp.VALID && !currentStatus.resp.BLTF &&
+  } while (!siCurrentStatus.resp.VALID && !siCurrentStatus.resp.BLTF &&
            (Now() - elapsedSeek) < maxSeekTime);
 }
 

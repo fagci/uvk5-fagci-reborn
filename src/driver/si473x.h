@@ -460,9 +460,11 @@ void SI4735_SetSeekFmSpacing(uint16_t spacing);
 void SI4735_SetSeekAmSpacing(uint16_t spacing);
 void SI4735_SetSeekFmRssiThreshold(uint16_t value);
 void SI4735_SetSeekAmRssiThreshold(uint16_t value);
+void SI4735_GetTuneStatus(uint8_t INTACK, uint8_t CANCEL);
 
 extern SI4732_MODE si4732mode;
 extern RSQStatus rsqStatus;
 extern uint16_t siCurrentFreq;
+extern ResponseStatus siCurrentStatus;
 
 #endif /* end of include guard: SI473X_H */

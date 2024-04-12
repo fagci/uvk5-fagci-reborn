@@ -96,7 +96,6 @@ void SI_init() {
 
 static bool hasRDS = false;
 static bool seeking = false;
-static uint16_t seekingFreq = 0;
 
 void SI_update() {
   if (si4732mode == SI4732_FM && Now() - lastRdsUpdate >= 1000) {
@@ -108,15 +107,14 @@ void SI_update() {
   }
   if (Now() - lastUpdate >= 1000) {
     // RSQ_GET();
+    siCurrentFreq = SI4732_getFrequency(0);
     lastUpdate = Now();
     gRedrawScreen = true;
   }
   if (seeking && Now() - lastSeekUpdate >= 100) {
-    bool valid = false;
-    seekingFreq = SI4732_getFrequency(&valid);
-    if (valid) {
-      seeking = 0;
-      siCurrentFreq = seekingFreq;
+    SI4735_GetTuneStatus(0, 0);
+    if (siCurrentStatus.resp.VALID || siCurrentStatus.resp.BLTF) {
+      seeking = false;
     }
     lastSeekUpdate = Now();
     gRedrawScreen = true;
@@ -144,8 +142,13 @@ bool SI_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     switch (key) {
     case KEY_STAR:
-      seeking = true;
+      if (si4732mode == SI4732_FM) {
+        SI4735_SetSeekFmSpacing(step);
+      } else {
+        SI4735_SetSeekAmSpacing(step);
+      }
       SI4732_Seek(1, 1);
+      seeking = true;
       return true;
     default:
       break;
@@ -219,7 +222,7 @@ void SI_render() {
   UI_ClearScreen();
   const uint8_t BASE = 38;
 
-  uint32_t f = (seeking ? seekingFreq : siCurrentFreq) * divider;
+  uint32_t f = siCurrentFreq * divider;
   uint16_t fp1 = f / 100000;
   uint16_t fp2 = f / 100 % 1000;
 
