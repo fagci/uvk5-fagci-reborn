@@ -15,6 +15,12 @@ typedef enum {
   LW_BT,
 } BandType;
 
+static const char SI4735_BW_NAMES[5][6] = {
+    "6 kHz", "4 kHz", "3 kHz", "2 kHz", "1 kHz",
+};
+
+SI4735_FilterBW bw = SI4735_BW_6_kHz;
+
 typedef struct // Band data
 {
   const char *bandName; // Bandname
@@ -63,11 +69,11 @@ SIBand band[] = {
 };
 
 static uint8_t att = 0;
-static uint32_t divider = 1000;
-static uint32_t freq = 10000;
+static uint16_t divider = 1000;
 static uint16_t step = 10;
 static uint32_t lastUpdate = 0;
 static uint32_t lastRdsUpdate = 0;
+static uint32_t lastSeekUpdate = 0;
 static DateTime dt;
 static Time t;
 
@@ -76,19 +82,21 @@ static void tune(uint32_t f) {
   if (si4732mode == SI4732_FM) {
     f -= f % 5;
   }
-  SI4732_SetFreq(freq = f);
+  SI4732_SetFreq(f);
+  SI4732_ClearRDS();
 }
 
 void SI_init() {
   SVC_Toggle(SVC_LISTEN, false, 0);
   BK4819_Idle();
   SI4732_PowerUp();
-  SI4732_SetFreq(freq);
 
   SI4732_SetAutomaticGainControl(1, att);
 }
 
 static bool hasRDS = false;
+static bool seeking = false;
+static uint16_t seekingFreq = 0;
 
 void SI_update() {
   if (si4732mode == SI4732_FM && Now() - lastRdsUpdate >= 1000) {
@@ -99,8 +107,18 @@ void SI_update() {
     }
   }
   if (Now() - lastUpdate >= 1000) {
-    RSQ_GET();
+    // RSQ_GET();
     lastUpdate = Now();
+    gRedrawScreen = true;
+  }
+  if (seeking && Now() - lastSeekUpdate >= 100) {
+    bool valid = false;
+    seekingFreq = SI4732_getFrequency(&valid);
+    if (valid) {
+      seeking = 0;
+      siCurrentFreq = seekingFreq;
+    }
+    lastSeekUpdate = Now();
     gRedrawScreen = true;
   }
 }
@@ -110,13 +128,33 @@ bool SI_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (key) {
     case KEY_UP:
-      freq += step;
-      SI4732_SetFreq(freq);
+      SI4732_SetFreq(siCurrentFreq + step);
+      SI4732_ClearRDS();
       return true;
     case KEY_DOWN:
-      freq -= step;
-      SI4732_SetFreq(freq);
+      SI4732_SetFreq(siCurrentFreq - step);
+      SI4732_ClearRDS();
       return true;
+    default:
+      break;
+    }
+  }
+
+  // long held
+  if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
+    switch (key) {
+    case KEY_STAR:
+      seeking = true;
+      SI4732_Seek(1, 1);
+      return true;
+    default:
+      break;
+    }
+  }
+
+  // Simple keypress
+  if (!bKeyPressed && !bKeyHeld) {
+    switch (key) {
     case KEY_1:
       if (step < 1000) {
         step *= 10;
@@ -136,43 +174,27 @@ bool SI_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_8:
       if (att > 0) {
         att--;
-        SI4732_SetAutomaticGainControl(1, att);
+        SI4732_SetAutomaticGainControl(att > 0, att);
       }
       return true;
-    default:
-      break;
-    }
-  }
-
-  // long held
-  if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
-    switch (key) {
-    default:
-      break;
-    }
-  }
-
-  // Simple keypress
-  if (!bKeyPressed && !bKeyHeld) {
-    switch (key) {
-    case KEY_0:
-    case KEY_1:
-    case KEY_2:
-    case KEY_3:
-    case KEY_4:
-    case KEY_5:
     case KEY_6:
-    case KEY_7:
-    case KEY_8:
-    case KEY_9:
+      if (bw == SI4735_BW_1_kHz) {
+        bw = SI4735_BW_6_kHz;
+      } else {
+        bw++;
+      }
+      SI4735_SetBandwidth(bw, true);
+      return true;
+    case KEY_5:
       gFInputCallback = tune;
       APPS_run(APP_FINPUT);
-      APPS_key(key, bKeyPressed, bKeyHeld);
       return true;
     case KEY_F:
+      SI4732_ClearRDS();
       if (si4732mode == SI4732_FM) {
         divider = 100;
         SI4732_SwitchMode(SI4732_AM);
+        SI4735_SetBandwidth(bw, true);
         tune(720000);
       } else {
         divider = 1000;
@@ -197,36 +219,43 @@ void SI_render() {
   UI_ClearScreen();
   const uint8_t BASE = 38;
 
-  uint32_t f = freq * divider;
+  uint32_t f = (seeking ? seekingFreq : siCurrentFreq) * divider;
   uint16_t fp1 = f / 100000;
   uint16_t fp2 = f / 100 % 1000;
 
-  UI_RSSIBar(rsqStatus.resp.RSSI << 1, f, 42);
-  char genre[17];
-  SI4732_GetProgramType(genre);
-
-  PrintSmallEx(0, 12, POS_L, C_FILL, "SNR: %u dB", rsqStatus.resp.SNR);
-  if (rds.RDSSignal) {
-    PrintSmallEx(LCD_WIDTH - 1, 12, POS_R, C_FILL, "RDS");
-    // FillRect(LCD_WIDTH - 14, 6, 14, 7, C_INVERT);
-  }
-
-  bool hasDT = SI4732_GetLocalDateTime(&dt);
-  const char wd[8][3] = {"SU", "MO", "TU", "WE", "TH", "FR", "SA", "SU"};
-  PrintSmallEx(LCD_XCENTER, 14, POS_C, C_FILL, "%s", genre);
-
-  if (hasDT) {
-    PrintSmallEx(LCD_XCENTER, 22, POS_C, C_FILL, "%02u.%02u.%04u, %s %02u:%02u",
-                 dt.day, dt.month, dt.year, wd[dt.wday], dt.hour, dt.minute);
-  }
+  // PrintSmallEx(0, 12, POS_L, C_FILL, "SNR: %u dB", rsqStatus.resp.SNR);
 
   PrintBiggestDigitsEx(LCD_WIDTH - 22, BASE, POS_R, C_FILL, "%3u.%03u", fp1,
                        fp2);
-  PrintSmallEx(LCD_XCENTER, BASE + 6, POS_C, C_FILL, "STP %u ATT %u", step,
-               att);
 
-  PrintSmall(0, LCD_HEIGHT - 8, "%s", rds.radioText);
+  if (si4732mode == SI4732_FM) {
+    if (rds.RDSSignal) {
+      PrintSmallEx(LCD_WIDTH - 1, 12, POS_R, C_FILL, "RDS");
+    }
+
+    char genre[17];
+    const char wd[8][3] = {"SU", "MO", "TU", "WE", "TH", "FR", "SA", "SU"};
+    SI4732_GetProgramType(genre);
+    PrintSmallEx(LCD_XCENTER, 14, POS_C, C_FILL, "%s", genre);
+
+    if (SI4732_GetLocalDateTime(&dt)) {
+      PrintSmallEx(LCD_XCENTER, 22, POS_C, C_FILL,
+                   "%02u.%02u.%04u, %s %02u:%02u", dt.day, dt.month, dt.year,
+                   wd[dt.wday], dt.hour, dt.minute);
+    }
+
+    PrintSmall(0, LCD_HEIGHT - 8, "%s", rds.radioText);
+  }
+
+  if (si4732mode == SI4732_FM) {
+    PrintSmallEx(LCD_XCENTER, BASE + 6, POS_C, C_FILL, "STP %u ATT %u", step,
+                 att);
+  } else {
+    PrintSmallEx(LCD_XCENTER, BASE + 6, POS_C, C_FILL, "STP %u ATT %u BW %s",
+                 step, att, SI4735_BW_NAMES[bw]);
+  }
 }
+
 void SI_deinit() {
   SI4732_PowerDown();
   BK4819_RX_TurnOn();

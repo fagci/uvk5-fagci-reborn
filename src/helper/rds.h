@@ -127,6 +127,7 @@ typedef struct Time {
 bool SI4732_GetLocalDateTime(DateTime *time);
 bool SI4732_GetLocalTime(Time *time);
 void SI4732_GetProgramType(char buffer[17]);
+void SI4732_ClearRDS();
 bool SI4732_GetRDS();
 
 extern RDS rds;

@@ -39,6 +39,11 @@ static ternary _abProgramTypeName; // Indicates new programTypeName[] string
 static uint8_t _extendedCountryCode_count;
 static uint8_t _language_count;
 
+void SI4732_ClearRDS() {
+  memset(&rds, 0, sizeof(RDS));
+  rds.offset = NO_DATE_TIME;
+}
+
 bool SI4732_GetRDS() {
 
   bool new_info = false;

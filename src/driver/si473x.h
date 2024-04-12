@@ -318,6 +318,55 @@ typedef union {
   uint8_t raw[8];
 } RSQStatus;
 
+typedef union {
+  struct {
+    uint8_t INTACK : 1; //!<  If set, clears the seek/tune complete interrupt
+                        //!<  status indicator.
+    uint8_t CANCEL : 1; //!<  If set, aborts a seek currently in progress.
+    uint8_t RESERVED2 : 6;
+  } arg;
+  uint8_t raw;
+} TuneStatus;
+
+typedef union {
+  struct {
+    // Status
+    uint8_t STCINT : 1; //!<  Seek/Tune Complete Interrupt; 1 = Tune complete
+                        //!<  has been triggered.
+    uint8_t DUMMY1 : 1;
+    uint8_t RDSINT : 1; //!<  Radio Data System (RDS) Interrup; 0 = interrupt
+                        //!<  has not been triggered.
+    uint8_t RSQINT : 1; //!<  Received Signal Quality Interrupt; 0 = interrupt
+                        //!<  has not been triggered.
+    uint8_t DUMMY2 : 2;
+    uint8_t ERR : 1; //!<  Error. 0 = No error 1 = Error
+    uint8_t CTS : 1; //!<  Clear to Send.
+    // RESP1
+    uint8_t VALID : 1; //!<  Valid Channel
+    uint8_t AFCRL : 1; //!<  AFC Rail Indicator
+    uint8_t DUMMY3 : 5;
+    uint8_t BLTF : 1; //!<  Reports if a seek hit the band limit
+    // RESP2
+    uint8_t READFREQH; //!<  Read Frequency High byte.
+    // RESP3
+    uint8_t READFREQL; //!<  Read Frequency Low byte.
+    // RESP4
+    uint8_t RSSI; //!<  Received Signal Strength Indicator (dBμV)
+    // RESP5
+    uint8_t
+        SNR; //!<  This byte contains the SNR metric when tune is complete (dB).
+    // RESP6
+    uint8_t
+        MULT; //!<  If FM, contains the multipath metric when tune is complete;
+              //!<  IF AM READANTCAPH (tuning capacitor value high byte)
+    // RESP7
+    uint8_t READANTCAP; //!<  If FM, contains the current antenna tuning
+                        //!<  capacitor value; IF AM READANTCAPL (tuning
+                        //!<  capacitor value low byte)
+  } resp;
+  uint8_t raw[8]; //!<  Check it
+} ResponseStatus;
+
 // Command responses
 // Names that begin with FIELD are argument masks.  Others are argument
 // constants.
@@ -383,15 +432,37 @@ typedef enum {
   SI4732_CW,
 } SI4732_MODE;
 
+typedef enum {
+  SI4735_BW_6_kHz,
+  SI4735_BW_4_kHz,
+  SI4735_BW_3_kHz,
+  SI4735_BW_2_kHz,
+  SI4735_BW_1_kHz,
+  SI4735_BW_1_8_kHz,
+  SI4735_BW_2_5_kHz,
+} SI4735_FilterBW;
+
 void SI4732_PowerUp();
 void SI4732_PowerDown();
-void SI4732_SetFreq(uint32_t freq);
+void SI4732_SetFreq(uint16_t freq);
 void SI4732_ReadRDS(uint8_t buf[13]);
 void SI4732_SwitchMode(SI4732_MODE mode);
 void RSQ_GET();
 void SI4732_SetAutomaticGainControl(uint8_t AGCDIS, uint8_t AGCIDX);
+void SI4732_Seek(bool up, bool wrap);
+void SI4735_SeekStationProgress(void (*showFunc)(uint16_t f),
+                                bool (*stopSeking)(), uint8_t up_down);
+uint16_t SI4732_getFrequency(bool *valid);
+void SI4735_SetBandwidth(SI4735_FilterBW AMCHFLT, bool AMPLFLT);
+void SI4735_SetSeekFmLimits(uint16_t bottom, uint16_t top);
+void SI4735_SetSeekAmLimits(uint16_t bottom, uint16_t top);
+void SI4735_SetSeekFmSpacing(uint16_t spacing);
+void SI4735_SetSeekAmSpacing(uint16_t spacing);
+void SI4735_SetSeekFmRssiThreshold(uint16_t value);
+void SI4735_SetSeekAmRssiThreshold(uint16_t value);
 
 extern SI4732_MODE si4732mode;
 extern RSQStatus rsqStatus;
+extern uint16_t siCurrentFreq;
 
 #endif /* end of include guard: SI473X_H */
