@@ -16,7 +16,7 @@
   }
 #endif
 
-Cursor cursor = {0, 0};
+static Cursor cursor = {0, 0};
 
 static const GFXfont *fontSmall = &TomThumb;
 static const GFXfont *fontMedium = &MuMatrix8ptRegular;
@@ -243,10 +243,7 @@ void write(uint8_t c, uint8_t textsize_x, uint8_t textsize_y, bool wrap,
   }
 }
 
-void moveTo(uint8_t x, uint8_t y) {
-  cursor.x = x;
-  cursor.y = y;
-}
+void moveTo(uint8_t x, uint8_t y) {}
 
 static void printString(const GFXfont *gfxFont, uint8_t x, uint8_t y,
                         Color color, TextPos posLCR, const char *pattern,
@@ -256,14 +253,14 @@ static void printString(const GFXfont *gfxFont, uint8_t x, uint8_t y,
 
   int16_t x1, y1;
   uint16_t w, h;
-  getTextBounds(String, x, y, &x1, &y1, &w, &h, false,
-                gfxFont); // calc width of new string
-  if (posLCR == 1) {      // centered
+  getTextBounds(String, x, y, &x1, &y1, &w, &h, false, gfxFont);
+  if (posLCR == POS_C) {
     x = x - w / 2;
-  } else if (posLCR == 2) {
+  } else if (posLCR == POS_R) {
     x = x - w;
   }
-  moveTo(x, y);
+  cursor.x = x;
+  cursor.y = y;
   for (uint8_t i = 0; i < strlen(String); i++) {
     write(String[i], 1, 1, true, color, false, gfxFont);
   }

@@ -44,8 +44,6 @@ typedef struct {
   uint8_t y;
 } Cursor;
 
-extern Cursor cursor;
-
 void UI_ClearStatus();
 void UI_ClearScreen();
 
