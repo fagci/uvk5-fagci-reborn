@@ -1,5 +1,4 @@
 #include "scanlists.h"
-#include "../external/printf/printf.h"
 #include "../helper/channels.h"
 #include "../helper/measurements.h"
 #include "../ui/graphics.h"
@@ -8,13 +7,12 @@
 #include "apps.h"
 #include "textinput.h"
 #include <stdbool.h>
-#include <string.h>
 
 static uint16_t count = 0;
 
 static uint16_t currentIndex = 0;
-CH ch;
-uint16_t chNum = 0;
+static CH ch;
+static uint16_t chNum = 0;
 
 static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
   CH ch;
