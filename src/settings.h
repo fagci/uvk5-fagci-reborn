@@ -190,11 +190,11 @@ typedef struct {
   PowerCalibration powCalib;
   uint32_t lastUsedFreq : 27;
   uint32_t offset : 26;
+  Band band;
   uint8_t memoryBanks : 8;
   TXOutputPower power : 2;
   OffsetDirection offsetDir : 2;
   bool allowTx : 1;
-  Band band;
 } __attribute__((packed)) Preset;
 // getsize(Preset)
 

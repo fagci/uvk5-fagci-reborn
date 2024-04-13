@@ -54,9 +54,9 @@ const char *upConverterFreqNames[3] = {"None", "50M", "125M"};
 const char *modulationTypeOptions[6] = {"FM", "AM", "SSB", "BYP", "RAW", "WFM"};
 const char *powerNames[] = {"LOW", "MID", "HIGH"};
 const char *bwNames[3] = {"25k", "12.5k", "6.25k"};
-const char *TX_STATE_NAMES[7] = {"TX Off",         "TX On",    "VOL HIGH",
-                                 "BAT LOW",        "DISABLED", "UPCONVERTER",
-                                 "POWER OVERDRIVE"};
+const char *TX_STATE_NAMES[7] = {"TX Off",    "TX On",    "VOL HIGH",
+                                 "BAT LOW",   "DISABLED", "UPCONVERTER",
+                                 "HIGH POWER"};
 
 const SquelchType sqTypeValues[4] = {
     SQUELCH_RSSI_NOISE_GLITCH,
