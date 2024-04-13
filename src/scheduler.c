@@ -1,9 +1,9 @@
 #include "scheduler.h"
 #include "driver/uart.h"
 
-volatile Task tasks[TASKS_MAX];
+Task tasks[TASKS_MAX];
 uint8_t tasksCount = 0;
-volatile uint32_t elapsedMilliseconds = 0;
+uint32_t elapsedMilliseconds = 0;
 
 Task *TaskAdd(const char *name, void (*handler)(void), uint16_t interval,
               bool continuous, uint8_t priority) {

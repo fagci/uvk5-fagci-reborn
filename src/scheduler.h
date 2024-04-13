@@ -5,9 +5,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define TASKS_MAX 64
+#define TASKS_MAX 32
 
-typedef volatile struct {
+typedef struct {
   const char *name;
   void (*handler)(void);
   uint16_t interval;
@@ -16,7 +16,6 @@ typedef volatile struct {
   uint8_t priority;
   bool active;
 } Task;
-extern volatile uint32_t elapsedMilliseconds;
 
 Task *TaskAdd(const char *name, void (*handler)(void), uint16_t interval,
               bool continuous, uint8_t priority);
@@ -29,6 +28,7 @@ uint32_t Now(void);
 void SetTimeout(uint32_t *v, uint32_t t);
 bool CheckTimeout(uint32_t *v);
 
-extern volatile Task tasks[TASKS_MAX];
+extern Task tasks[TASKS_MAX];
+extern uint32_t elapsedMilliseconds;
 
 #endif /* end of include guard: SCHEDULER_H */

@@ -76,4 +76,4 @@ $(BIN_DIR) $(OBJ_DIR) $(BIN_DIR):
 -include $(DEPS)
 
 clean:
-	rm -f $(TARGET).bin $(TARGET).packed.bin $(TARGET) $(OBJS) $(DEPS)
+	rm -f $(TARGET).bin $(TARGET).packed.bin $(TARGET) $(OBJ_DIR)/*.o $(OBJ_DIR)/*.d
