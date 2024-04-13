@@ -2,12 +2,6 @@
 #include "../ui/graphics.h"
 #include "apps.h"
 
-void ABOUT_Init() {}
-
-void ABOUT_Deinit() {}
-
-void ABOUT_Update() {}
-
 void ABOUT_Render() {
   UI_ClearScreen();
   PrintMediumEx(LCD_XCENTER, LCD_YCENTER + 8, POS_C, C_FILL, "r3b0rn");
