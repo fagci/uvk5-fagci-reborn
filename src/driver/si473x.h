@@ -320,16 +320,6 @@ typedef union {
 
 typedef union {
   struct {
-    uint8_t INTACK : 1; //!<  If set, clears the seek/tune complete interrupt
-                        //!<  status indicator.
-    uint8_t CANCEL : 1; //!<  If set, aborts a seek currently in progress.
-    uint8_t RESERVED2 : 6;
-  } arg;
-  uint8_t raw;
-} TuneStatus;
-
-typedef union {
-  struct {
     // Status
     uint8_t STCINT : 1; //!<  Seek/Tune Complete Interrupt; 1 = Tune complete
                         //!<  has been triggered.
@@ -450,8 +440,6 @@ void SI4732_SwitchMode(SI4732_MODE mode);
 void RSQ_GET();
 void SI4732_SetAutomaticGainControl(uint8_t AGCDIS, uint8_t AGCIDX);
 void SI4732_Seek(bool up, bool wrap);
-void SI4735_SeekStationProgress(void (*showFunc)(uint16_t f),
-                                bool (*stopSeking)(), uint8_t up_down);
 uint16_t SI4732_getFrequency(bool *valid);
 void SI4735_SetBandwidth(SI4735_FilterBW AMCHFLT, bool AMPLFLT);
 void SI4735_SetSeekFmLimits(uint16_t bottom, uint16_t top);
@@ -460,7 +448,6 @@ void SI4735_SetSeekFmSpacing(uint16_t spacing);
 void SI4735_SetSeekAmSpacing(uint16_t spacing);
 void SI4735_SetSeekFmRssiThreshold(uint16_t value);
 void SI4735_SetSeekAmRssiThreshold(uint16_t value);
-void SI4735_GetTuneStatus(uint8_t INTACK, uint8_t CANCEL);
 
 extern SI4732_MODE si4732mode;
 extern RSQStatus rsqStatus;

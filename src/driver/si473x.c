@@ -264,37 +264,6 @@ typedef union {
   uint16_t value; //!<  frequency (integer value)
 } Si4735_Freq;
 
-void SI4735_GetTuneStatus(uint8_t INTACK, uint8_t CANCEL) {
-  TuneStatus status;
-  int limitResp = 8;
-  uint8_t cmd[2] = {CMD_FM_TUNE_STATUS, status.raw};
-
-  if (si4732mode == SI4732_AM) {
-    cmd[0] = CMD_AM_TUNE_STATUS;
-  }
-
-  status.arg.INTACK = INTACK;
-  status.arg.CANCEL = CANCEL;
-  status.arg.RESERVED2 = 0;
-
-  waitToSend();
-  SI4732_WriteBuffer(cmd, 2);
-  // Reads the current status (including current frequency).
-  do {
-    waitToSend();
-    SI4732_ReadBuffer(siCurrentStatus.raw, limitResp);
-  } while (siCurrentStatus.resp.ERR); // If error, try it again
-  waitToSend();
-  Si4735_Freq freq;
-  freq.raw.FREQH = siCurrentStatus.resp.READFREQH;
-  freq.raw.FREQL = siCurrentStatus.resp.READFREQL;
-  siCurrentFreq = freq.value;
-}
-
-#include "../scheduler.h"
-
-static uint32_t maxSeekTime = 8000;
-
 void setVolume(uint8_t volume) {
   if (volume < 0)
     volume = 0;
@@ -402,34 +371,6 @@ void SI4732_Seek(bool up, bool wrap) {
 
   waitToSend();
   SI4732_WriteBuffer(cmd, si4732mode == SI4732_FM ? 2 : 6);
-}
-
-void SI4735_SeekStationProgress(void (*showFunc)(uint16_t f),
-                                bool (*stopSeking)(), uint8_t up_down) {
-  Si4735_Freq freq;
-  uint32_t elapsedSeek = Now();
-
-  // seek command does not work for SSB
-  if (si4732mode == SI4732_LSB || si4732mode == SI4732_USB) {
-    return;
-  }
-
-  do {
-    SI4732_Seek(up_down, 0);
-    SYSTEM_DelayMs(30);
-    SI4735_GetTuneStatus(0, 0);
-    SYSTEM_DelayMs(30);
-    freq.raw.FREQH = siCurrentStatus.resp.READFREQH;
-    freq.raw.FREQL = siCurrentStatus.resp.READFREQL;
-    siCurrentFreq = freq.value;
-    if (showFunc != NULL) {
-      showFunc(freq.value);
-    }
-    if (stopSeking != NULL && stopSeking()) {
-      return;
-    }
-  } while (!siCurrentStatus.resp.VALID && !siCurrentStatus.resp.BLTF &&
-           (Now() - elapsedSeek) < maxSeekTime);
 }
 
 uint16_t SI4732_getFrequency(bool *valid) {
