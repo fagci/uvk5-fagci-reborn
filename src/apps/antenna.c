@@ -18,8 +18,6 @@ void ANTENNA_init(void) {
   f = GetScreenF(radio->rx.f);
 }
 
-void ANTENNA_update(void) {}
-
 bool ANTENNA_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld) {
     switch (key) {
