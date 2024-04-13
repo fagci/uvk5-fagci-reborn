@@ -38,11 +38,12 @@ enum BK4819_AF_Type_t {
   BK4819_AF_FM,
   BK4819_AF_ALAM, // tone
   BK4819_AF_BEEP, // for tx
-  BK4819_AF_RAW, // (ssb without if filter = raw in sdr sharp)
-  BK4819_AF_USB, // (or ssb = lsb and usb at the same time)
+  BK4819_AF_RAW,  // (ssb without if filter = raw in sdr sharp)
+  BK4819_AF_USB,  // (or ssb = lsb and usb at the same time)
   BK4819_AF_CTCO, // ctcss/dcs (fm with narrow filters for ctcss/dcs)
   BK4819_AF_AM,
-  BK4819_AF_FSKO, // fsk out test with special fsk filters (need reg58 fsk on to give sound on speaker )
+  BK4819_AF_FSKO, // fsk out test with special fsk filters (need reg58 fsk on to
+                  // give sound on speaker )
   BK4819_AF_BYPASS, // (fm without filter = discriminator output)
 };
 
