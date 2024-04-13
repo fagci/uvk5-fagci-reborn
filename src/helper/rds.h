@@ -124,11 +124,11 @@ typedef struct Time {
   uint8_t minute;
 } Time;
 
-bool SI4732_GetLocalDateTime(DateTime *time);
-bool SI4732_GetLocalTime(Time *time);
-void SI4732_GetProgramType(char buffer[17]);
-void SI4732_ClearRDS();
-bool SI4732_GetRDS();
+bool SI47XX_GetLocalDateTime(DateTime *time);
+bool SI47XX_GetLocalTime(Time *time);
+void SI47XX_GetProgramType(char buffer[17]);
+void SI47XX_ClearRDS();
+bool SI47XX_GetRDS();
 
 extern RDS rds;
 extern si47x_rds_status rdsResponse;

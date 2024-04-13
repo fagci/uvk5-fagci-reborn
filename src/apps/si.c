@@ -15,17 +15,17 @@ typedef enum {
   LW_BT,
 } BandType;
 
-static const char SI4735_BW_NAMES[5][6] = {
+static const char SI47XX_BW_NAMES[5][6] = {
     "6 kHz", "4 kHz", "3 kHz", "2 kHz", "1 kHz",
 };
 
-SI4735_FilterBW bw = SI4735_BW_6_kHz;
+SI47XX_FilterBW bw = SI47XX_BW_6_kHz;
 
 typedef struct // Band data
 {
   const char *bandName; // Bandname
   BandType bandType;    // Band type (FM, MW or SW)
-  SI4732_MODE prefmod;  // Pref. modulation
+  SI47XX_MODE prefmod;  // Pref. modulation
   uint16_t minimumFreq; // Minimum frequency of the band
   uint16_t maximumFreq; // maximum frequency of the band
   uint16_t currentFreq; // Default frequency or current frequency
@@ -36,36 +36,36 @@ typedef struct // Band data
 } SIBand;
 
 SIBand band[] = {
-    {"FM", FM_BT, SI4732_FM, 6400, 10800, 9920, 10, 0, 0},    //  FM 0
-    {"LW", LW_BT, SI4732_AM, 100, 514, 198, 9, 0, 0},         //  LW          1
-    {"MW", MW_BT, SI4732_AM, 514, 1800, 1395, 9, 0, 0},       //  MW          2
-    {"BACON", LW_BT, SI4732_AM, 280, 470, 284, 1, 0, 0},      // Ham  800M 3
-    {"630M", SW_BT, SI4732_LSB, 470, 480, 475, 1, 0, 0},      // Ham  630M 4
-    {"160M", SW_BT, SI4732_LSB, 1800, 2000, 1850, 1, 0, 0},   // Ham  160M    5
-    {"120M", SW_BT, SI4732_AM, 2000, 3200, 2400, 5, 0, 0},    //      120M 6
-    {"90M", SW_BT, SI4732_AM, 3200, 3500, 3300, 5, 0, 0},     //       90M 7
-    {"80M", SW_BT, SI4732_LSB, 3500, 3900, 3630, 1, 0, 0},    // Ham   80M 8
-    {"75M", SW_BT, SI4732_AM, 3900, 5300, 3950, 5, 0, 0},     //       75M 9
-    {"60M", SW_BT, SI4732_USB, 5300, 5900, 5375, 1, 0, 0},    // Ham   60M   10
-    {"49M", SW_BT, SI4732_AM, 5900, 7000, 6000, 5, 0, 0},     //       49M 11
-    {"40M", SW_BT, SI4732_LSB, 7000, 7500, 7074, 1, 0, 0},    // Ham   40M   12
-    {"41M", SW_BT, SI4732_AM, 7200, 9000, 7210, 5, 0, 0},     //       41M 13
-    {"31M", SW_BT, SI4732_AM, 9000, 10000, 9600, 5, 0, 0},    //       31M   14
-    {"30M", SW_BT, SI4732_USB, 10000, 10200, 10099, 1, 0, 0}, // Ham   30M   15
-    {"25M", SW_BT, SI4732_AM, 10200, 13500, 11700, 5, 0, 0},  //       25M   16
-    {"22M", SW_BT, SI4732_AM, 13500, 14000, 13700, 5, 0, 0},  //       22M   17
-    {"20M", SW_BT, SI4732_USB, 14000, 14500, 14074, 1, 0, 0}, // Ham   20M   18
-    {"19M", SW_BT, SI4732_AM, 14500, 17500, 15700, 5, 0, 0},  //       19M   19
-    {"17M", SW_BT, SI4732_AM, 17500, 18000, 17600, 5, 0, 0},  //       17M   20
-    {"16M", SW_BT, SI4732_USB, 18000, 18500, 18100, 1, 0, 0}, // Ham   16M   21
-    {"15M", SW_BT, SI4732_AM, 18500, 21000, 18950, 5, 0, 0},  //       15M   22
-    {"14M", SW_BT, SI4732_USB, 21000, 21500, 21074, 1, 0, 0}, // Ham   14M   23
-    {"13M", SW_BT, SI4732_AM, 21500, 24000, 21500, 5, 0, 0},  //       13M   24
-    {"12M", SW_BT, SI4732_USB, 24000, 25500, 24940, 1, 0, 0}, // Ham   12M   25
-    {"11M", SW_BT, SI4732_AM, 25500, 26100, 25800, 5, 0, 0},  //       11M   26
-    {"CB", SW_BT, SI4732_AM, 26100, 28000, 27200, 1, 0, 0},   // CB band 27
-    {"10M", SW_BT, SI4732_USB, 28000, 30000, 28500, 1, 0, 0}, // Ham   10M   28
-    {"SW", SW_BT, SI4732_AM, 100, 30000, 15500, 5, 0, 0}      // Whole SW 29
+    {"FM", FM_BT, SI47XX_FM, 6400, 10800, 9920, 10, 0, 0},    //  FM 0
+    {"LW", LW_BT, SI47XX_AM, 100, 514, 198, 9, 0, 0},         //  LW          1
+    {"MW", MW_BT, SI47XX_AM, 514, 1800, 1395, 9, 0, 0},       //  MW          2
+    {"BACON", LW_BT, SI47XX_AM, 280, 470, 284, 1, 0, 0},      // Ham  800M 3
+    {"630M", SW_BT, SI47XX_LSB, 470, 480, 475, 1, 0, 0},      // Ham  630M 4
+    {"160M", SW_BT, SI47XX_LSB, 1800, 2000, 1850, 1, 0, 0},   // Ham  160M    5
+    {"120M", SW_BT, SI47XX_AM, 2000, 3200, 2400, 5, 0, 0},    //      120M 6
+    {"90M", SW_BT, SI47XX_AM, 3200, 3500, 3300, 5, 0, 0},     //       90M 7
+    {"80M", SW_BT, SI47XX_LSB, 3500, 3900, 3630, 1, 0, 0},    // Ham   80M 8
+    {"75M", SW_BT, SI47XX_AM, 3900, 5300, 3950, 5, 0, 0},     //       75M 9
+    {"60M", SW_BT, SI47XX_USB, 5300, 5900, 5375, 1, 0, 0},    // Ham   60M   10
+    {"49M", SW_BT, SI47XX_AM, 5900, 7000, 6000, 5, 0, 0},     //       49M 11
+    {"40M", SW_BT, SI47XX_LSB, 7000, 7500, 7074, 1, 0, 0},    // Ham   40M   12
+    {"41M", SW_BT, SI47XX_AM, 7200, 9000, 7210, 5, 0, 0},     //       41M 13
+    {"31M", SW_BT, SI47XX_AM, 9000, 10000, 9600, 5, 0, 0},    //       31M   14
+    {"30M", SW_BT, SI47XX_USB, 10000, 10200, 10099, 1, 0, 0}, // Ham   30M   15
+    {"25M", SW_BT, SI47XX_AM, 10200, 13500, 11700, 5, 0, 0},  //       25M   16
+    {"22M", SW_BT, SI47XX_AM, 13500, 14000, 13700, 5, 0, 0},  //       22M   17
+    {"20M", SW_BT, SI47XX_USB, 14000, 14500, 14074, 1, 0, 0}, // Ham   20M   18
+    {"19M", SW_BT, SI47XX_AM, 14500, 17500, 15700, 5, 0, 0},  //       19M   19
+    {"17M", SW_BT, SI47XX_AM, 17500, 18000, 17600, 5, 0, 0},  //       17M   20
+    {"16M", SW_BT, SI47XX_USB, 18000, 18500, 18100, 1, 0, 0}, // Ham   16M   21
+    {"15M", SW_BT, SI47XX_AM, 18500, 21000, 18950, 5, 0, 0},  //       15M   22
+    {"14M", SW_BT, SI47XX_USB, 21000, 21500, 21074, 1, 0, 0}, // Ham   14M   23
+    {"13M", SW_BT, SI47XX_AM, 21500, 24000, 21500, 5, 0, 0},  //       13M   24
+    {"12M", SW_BT, SI47XX_USB, 24000, 25500, 24940, 1, 0, 0}, // Ham   12M   25
+    {"11M", SW_BT, SI47XX_AM, 25500, 26100, 25800, 5, 0, 0},  //       11M   26
+    {"CB", SW_BT, SI47XX_AM, 26100, 28000, 27200, 1, 0, 0},   // CB band 27
+    {"10M", SW_BT, SI47XX_USB, 28000, 30000, 28500, 1, 0, 0}, // Ham   10M   28
+    {"SW", SW_BT, SI47XX_AM, 100, 30000, 15500, 5, 0, 0}      // Whole SW 29
 };
 
 static uint8_t att = 0;
@@ -79,27 +79,27 @@ static Time t;
 
 static void tune(uint32_t f) {
   f /= divider;
-  if (si4732mode == SI4732_FM) {
+  if (si4732mode == SI47XX_FM) {
     f -= f % 5;
   }
-  SI4732_SetFreq(f);
-  SI4732_ClearRDS();
+  SI47XX_SetFreq(f);
+  SI47XX_ClearRDS();
 }
 
 void SI_init() {
   SVC_Toggle(SVC_LISTEN, false, 0);
   BK4819_Idle();
-  SI4732_PowerUp();
+  SI47XX_PowerUp();
 
-  SI4732_SetAutomaticGainControl(1, att);
+  SI47XX_SetAutomaticGainControl(1, att);
 }
 
 static bool hasRDS = false;
 static bool seeking = false;
 
 void SI_update() {
-  if (si4732mode == SI4732_FM && Now() - lastRdsUpdate >= 1000) {
-    hasRDS = SI4732_GetRDS();
+  if (si4732mode == SI47XX_FM && Now() - lastRdsUpdate >= 1000) {
+    hasRDS = SI47XX_GetRDS();
     lastRdsUpdate = Now();
     if (hasRDS) {
       gRedrawScreen = true;
@@ -107,13 +107,13 @@ void SI_update() {
   }
   if (Now() - lastUpdate >= 1000) {
     // RSQ_GET();
-    siCurrentFreq = SI4732_getFrequency(0);
     lastUpdate = Now();
     gRedrawScreen = true;
   }
   if (seeking && Now() - lastSeekUpdate >= 100) {
-    SI4735_GetTuneStatus(0, 0);
-    if (siCurrentStatus.resp.VALID || siCurrentStatus.resp.BLTF) {
+    bool valid = false;
+    siCurrentFreq = SI47XX_getFrequency(&valid);
+    if (valid) {
       seeking = false;
     }
     lastSeekUpdate = Now();
@@ -126,12 +126,12 @@ bool SI_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (key) {
     case KEY_UP:
-      SI4732_SetFreq(siCurrentFreq + step);
-      SI4732_ClearRDS();
+      SI47XX_SetFreq(siCurrentFreq + step);
+      SI47XX_ClearRDS();
       return true;
     case KEY_DOWN:
-      SI4732_SetFreq(siCurrentFreq - step);
-      SI4732_ClearRDS();
+      SI47XX_SetFreq(siCurrentFreq - step);
+      SI47XX_ClearRDS();
       return true;
     default:
       break;
@@ -142,12 +142,12 @@ bool SI_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     switch (key) {
     case KEY_STAR:
-      if (si4732mode == SI4732_FM) {
-        SI4735_SetSeekFmSpacing(step);
+      if (si4732mode == SI47XX_FM) {
+        SI47XX_SetSeekFmSpacing(step);
       } else {
-        SI4735_SetSeekAmSpacing(step);
+        SI47XX_SetSeekAmSpacing(step);
       }
-      SI4732_Seek(1, 1);
+      SI47XX_Seek(1, 1);
       seeking = true;
       return true;
     default:
@@ -171,37 +171,37 @@ bool SI_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_2:
       if (att < 37) {
         att++;
-        SI4732_SetAutomaticGainControl(1, att);
+        SI47XX_SetAutomaticGainControl(1, att);
       }
       return true;
     case KEY_8:
       if (att > 0) {
         att--;
-        SI4732_SetAutomaticGainControl(att > 0, att);
+        SI47XX_SetAutomaticGainControl(att > 0, att);
       }
       return true;
     case KEY_6:
-      if (bw == SI4735_BW_1_kHz) {
-        bw = SI4735_BW_6_kHz;
+      if (bw == SI47XX_BW_1_kHz) {
+        bw = SI47XX_BW_6_kHz;
       } else {
         bw++;
       }
-      SI4735_SetBandwidth(bw, true);
+      SI47XX_SetBandwidth(bw, true);
       return true;
     case KEY_5:
       gFInputCallback = tune;
       APPS_run(APP_FINPUT);
       return true;
     case KEY_F:
-      SI4732_ClearRDS();
-      if (si4732mode == SI4732_FM) {
+      SI47XX_ClearRDS();
+      if (si4732mode == SI47XX_FM) {
         divider = 100;
-        SI4732_SwitchMode(SI4732_AM);
-        SI4735_SetBandwidth(bw, true);
+        SI47XX_SwitchMode(SI47XX_AM);
+        SI47XX_SetBandwidth(bw, true);
         tune(720000);
       } else {
         divider = 1000;
-        SI4732_SwitchMode(SI4732_FM);
+        SI47XX_SwitchMode(SI47XX_FM);
         tune(10000000);
       }
       return true;
@@ -231,17 +231,17 @@ void SI_render() {
   PrintBiggestDigitsEx(LCD_WIDTH - 22, BASE, POS_R, C_FILL, "%3u.%03u", fp1,
                        fp2);
 
-  if (si4732mode == SI4732_FM) {
+  if (si4732mode == SI47XX_FM) {
     if (rds.RDSSignal) {
       PrintSmallEx(LCD_WIDTH - 1, 12, POS_R, C_FILL, "RDS");
     }
 
     char genre[17];
     const char wd[8][3] = {"SU", "MO", "TU", "WE", "TH", "FR", "SA", "SU"};
-    SI4732_GetProgramType(genre);
+    SI47XX_GetProgramType(genre);
     PrintSmallEx(LCD_XCENTER, 14, POS_C, C_FILL, "%s", genre);
 
-    if (SI4732_GetLocalDateTime(&dt)) {
+    if (SI47XX_GetLocalDateTime(&dt)) {
       PrintSmallEx(LCD_XCENTER, 22, POS_C, C_FILL,
                    "%02u.%02u.%04u, %s %02u:%02u", dt.day, dt.month, dt.year,
                    wd[dt.wday], dt.hour, dt.minute);
@@ -250,17 +250,17 @@ void SI_render() {
     PrintSmall(0, LCD_HEIGHT - 8, "%s", rds.radioText);
   }
 
-  if (si4732mode == SI4732_FM) {
+  if (si4732mode == SI47XX_FM) {
     PrintSmallEx(LCD_XCENTER, BASE + 6, POS_C, C_FILL, "STP %u ATT %u", step,
                  att);
   } else {
     PrintSmallEx(LCD_XCENTER, BASE + 6, POS_C, C_FILL, "STP %u ATT %u BW %s",
-                 step, att, SI4735_BW_NAMES[bw]);
+                 step, att, SI47XX_BW_NAMES[bw]);
   }
 }
 
 void SI_deinit() {
-  SI4732_PowerDown();
+  SI47XX_PowerDown();
   BK4819_RX_TurnOn();
   SVC_Toggle(SVC_LISTEN, true, 10);
 }

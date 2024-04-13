@@ -39,18 +39,18 @@ static ternary _abProgramTypeName; // Indicates new programTypeName[] string
 static uint8_t _extendedCountryCode_count;
 static uint8_t _language_count;
 
-void SI4732_ClearRDS() {
+void SI47XX_ClearRDS() {
   memset(&rds, 0, sizeof(RDS));
   rds.offset = NO_DATE_TIME;
 }
 
-bool SI4732_GetRDS() {
+bool SI47XX_GetRDS() {
 
   bool new_info = false;
   uint8_t segment;
 
   while (1) {
-    SI4732_ReadRDS(rdsResponse.raw);
+    SI47XX_ReadRDS(rdsResponse.raw);
 
     // Check for RDS signal
     rds.RDSSignal = rdsResponse.raw[2] & FIELD_RDS_STATUS_RESP2_SYNC;
@@ -282,7 +282,7 @@ bool SI4732_GetRDS() {
 // Returns true if current station has sent date and time.  Otherwise, it
 // returns false and writes nothing to structure. Only provides info if mode==FM
 // and station is sending RDS data.
-bool SI4732_GetLocalDateTime(DateTime *time) {
+bool SI47XX_GetLocalDateTime(DateTime *time) {
   // Look for date/time info
   if (rds.offset == NO_DATE_TIME)
     return false; // No date or time info available
@@ -374,7 +374,7 @@ bool SI4732_GetLocalDateTime(DateTime *time) {
   return true;
 }
 
-bool SI4732_GetLocalTime(Time *time) {
+bool SI47XX_GetLocalTime(Time *time) {
   // Look for date/time info
   if (rds.offset == NO_DATE_TIME)
     return false; // No date or time info available
@@ -390,7 +390,7 @@ bool SI4732_GetLocalTime(Time *time) {
   return true;
 }
 
-void SI4732_GetProgramType(char buffer[17]) {
+void SI47XX_GetProgramType(char buffer[17]) {
   typedef struct {
     char *pRds;
     char *pRdbs;

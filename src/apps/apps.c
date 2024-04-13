@@ -109,7 +109,7 @@ const App apps[APPS_COUNT] = {
     {"Settings", SETTINGS_init, SETTINGS_update, SETTINGS_render, SETTINGS_key},
     {"1 VFO", VFO1_init, VFO1_update, VFO1_render, VFO1_key, VFO1_deinit},
     {"2 VFO", VFO2_init, VFO2_update, VFO2_render, VFO2_key, VFO2_deinit},
-    {"SI4732", SI_init, SI_update, SI_render, SI_key, SI_deinit},
+    {"SI47XX", SI_init, SI_update, SI_render, SI_key, SI_deinit},
     {"ABOUT", ABOUT_Init, ABOUT_Update, ABOUT_Render, ABOUT_key, ABOUT_Deinit},
     {"Antenna len", ANTENNA_init, ANTENNA_update, ANTENNA_render, ANTENNA_key,
      ANTENNA_deinit},
