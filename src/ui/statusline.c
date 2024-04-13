@@ -1,7 +1,6 @@
 #include "statusline.h"
 #include "../driver/eeprom.h"
 #include "../driver/st7565.h"
-#include "../driver/uart.h"
 #include "../helper/battery.h"
 #include "../scheduler.h"
 #include "../svc.h"
@@ -112,11 +111,7 @@ void STATUSLINE_render(void) {
                      (gSettings.batteryStyle == BAT_VOLTAGE ? 38 : 18),
                  BASE_Y, POS_R, C_FILL, "%s", icons);
 
-  if (UART_IsLogEnabled) {
-    PrintSmall(0, BASE_Y, statuslineText, "D:%u", UART_IsLogEnabled);
-  } else if (statuslineText[0] >= 32) {
-    PrintSmall(0, BASE_Y, statuslineText);
-  }
+  PrintSmall(0, BASE_Y, statuslineText);
 
   // FillRect(0, 0, LCD_WIDTH, 7, C_INVERT);
 }

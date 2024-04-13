@@ -44,10 +44,8 @@ static void next(void) {
   }
 }
 
-#include "driver/uart.h"
 void SVC_SCAN_Init(void) {
   gScanForward = true;
-  Log("SCAN init, SF:%u", !!gScanFn);
   if (!gScanFn) {
     if (radio->channel >= 0) {
       gScanFn = RADIO_NextCH;

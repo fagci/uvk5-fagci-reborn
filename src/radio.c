@@ -7,13 +7,11 @@
 #include "driver/gpio.h"
 #include "driver/st7565.h"
 #include "driver/system.h"
-#include "driver/uart.h"
 #include "helper/adapter.h"
 #include "helper/battery.h"
 #include "helper/channels.h"
 #include "helper/lootlist.h"
 #include "helper/measurements.h"
-#include "helper/msghelper.h"
 #include "helper/presetlist.h"
 #include "helper/vfos.h"
 #include "inc/dp32g030/gpio.h"
@@ -388,7 +386,7 @@ void RADIO_SetSquelchPure(uint32_t f, uint8_t sql) {
 void RADIO_TuneToPure(uint32_t f, bool precise) {
   LOOT_Replace(&gLoot[gSettings.activeVFO], f);
   if (isBK1080) {
-    BK1080_SetFrequency(f);
+    // BK1080_SetFrequency(f);
   } else {
     BK4819_TuneTo(f, precise);
   }

@@ -157,9 +157,6 @@ void Main(void) {
     PrintMediumEx(0, 7 + 16, POS_L, C_FILL, "PRES CNT: %u",
                   gSettings.presetsCount);
     ST7565_Blit();
-  } else if (KEYBOARD_Poll() == KEY_F) {
-    UART_IsLogEnabled = 5;
-    TaskAdd("Intro", Intro, 2, true, 5);
   } else if (KEYBOARD_Poll() == KEY_MENU) {
     selfTest();
   } else if (KEYBOARD_Poll() == KEY_5) {

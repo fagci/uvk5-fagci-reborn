@@ -1,7 +1,6 @@
 #include "lootlist.h"
 #include "../dcs.h"
 #include "../driver/bk4819.h"
-#include "../driver/uart.h"
 #include "../scheduler.h"
 
 static Loot loot[LOOT_SIZE_MAX] = {0};
@@ -199,7 +198,6 @@ void LOOT_Update(Loot *msm) {
 
   if (item == NULL && msm->open) {
     item = LOOT_Add(msm->f);
-    UART_logf(1, "[LOOT] %u", msm->f);
   }
 
   LOOT_UpdateEx(item, msm);

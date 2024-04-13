@@ -24,7 +24,6 @@
 #include "uart.h"
 #include <string.h>
 
-uint8_t UART_IsLogEnabled = 0;
 uint8_t UART_DMA_Buffer[256];
 
 void UART_Init(void) {
@@ -95,16 +94,6 @@ void UART_SendText(const void *str) {
     UART_Send(str, strlen(str));
 }
 
-void UART_LogSend(const void *pBuffer, uint32_t Size) {
-  if (UART_IsLogEnabled)
-    UART_Send(pBuffer, Size);
-}
-
-void UART_LogSendText(const void *str) {
-  if (UART_IsLogEnabled && str)
-    UART_Send(str, strlen(str));
-}
-
 static char sendBuffer[512] = {0};
 static uint32_t sendBufferIndex = 0;
 
@@ -127,26 +116,6 @@ void UART_printf(const char *str, ...) {
 
   if (sendBufferIndex >= 384) {
     UART_flush();
-  }
-}
-
-void UART_ToggleLog(bool on) {
-  if (on && UART_IsLogEnabled < 5) {
-    UART_IsLogEnabled++;
-  }
-  if (!on && UART_IsLogEnabled > 0) {
-    UART_IsLogEnabled--;
-  }
-}
-
-void UART_logf(uint8_t level, const char *pattern, ...) {
-  if (UART_IsLogEnabled >= level) {
-    char text[128];
-    va_list args;
-    va_start(args, pattern);
-    vsnprintf(text, sizeof(text), pattern, args);
-    va_end(args);
-    UART_printf("%u %s\n", Now(), text);
   }
 }
 
