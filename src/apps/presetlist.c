@@ -31,8 +31,6 @@ void PRESETLIST_init(void) {
   menuIndex = gSettings.activePreset;
 }
 
-void PRESETLIST_update(void) {}
-
 static void setMenuIndexAndRun(uint16_t v) {
   menuIndex = v - 1;
   RADIO_SelectPresetSave(menuIndex);

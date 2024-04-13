@@ -6,7 +6,6 @@
 #include <stdint.h>
 
 void PRESETLIST_init();
-void PRESETLIST_update();
 bool PRESETLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
 void PRESETLIST_render();
 
