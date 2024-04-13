@@ -1,4 +1,4 @@
-#include "test.h"
+#include "memview.h"
 #include "../driver/eeprom.h"
 #include "../driver/st7565.h"
 #include "../helper/measurements.h"
@@ -6,14 +6,14 @@
 #include "../ui/graphics.h"
 #include "apps.h"
 
-void TEST_Init(void) {}
+void MEMVIEW_Init(void) {}
 
-void TEST_Update(void) { gRedrawScreen = true; }
+void MEMVIEW_Update(void) { gRedrawScreen = true; }
 
 static uint32_t page = 0;
 const uint8_t PAGE_SZ = 64;
 
-void TEST_Render(void) {
+void MEMVIEW_Render(void) {
   UI_ClearScreen();
   uint8_t buf[64] = {0};
   EEPROM_ReadBuffer(page * PAGE_SZ, buf, PAGE_SZ);
@@ -36,7 +36,7 @@ void TEST_Render(void) {
   }
 }
 
-bool TEST_key(KEY_Code_t k, bool p, bool h) {
+bool MEMVIEW_key(KEY_Code_t k, bool p, bool h) {
   switch (k) {
   case KEY_EXIT:
     APPS_exit();

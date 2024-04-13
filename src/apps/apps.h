@@ -8,7 +8,7 @@
 
 typedef enum {
   APP_NONE,
-  APP_TEST,
+  APP_MEMVIEW,
   APP_SPECTRUM,
   APP_ANALYZER,
   APP_CH_SCANNER,
@@ -30,7 +30,6 @@ typedef enum {
   APP_SI,
   APP_ABOUT,
   APP_ANT,
-  APP_TASKMAN,
 } AppType_t;
 
 typedef struct App {

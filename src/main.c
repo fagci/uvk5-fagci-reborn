@@ -115,7 +115,7 @@ void Main(void) {
   BACKLIGHT_On();
 
   if (KEYBOARD_Poll() == KEY_5) {
-    Boot(APP_TEST);
+    Boot(APP_MEMVIEW);
   } else {
     TaskAdd("Intro", Intro, 1, true, 5);
   }

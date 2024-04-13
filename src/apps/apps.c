@@ -11,6 +11,7 @@
 #include "fastscan.h"
 #include "finput.h"
 #include "lootlist.h"
+#include "memview.h"
 #include "presetcfg.h"
 #include "presetlist.h"
 #include "reset.h"
@@ -20,8 +21,6 @@
 #include "si.h"
 #include "spectrumreborn.h"
 #include "still.h"
-#include "taskman.h"
-#include "test.h"
 #include "textinput.h"
 #include "vfo1.h"
 #include "vfo2.h"
@@ -73,14 +72,13 @@ const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
     APP_SCANLISTS,    //
     APP_PRESETS_LIST, //
     APP_ANT,          //
-    APP_TASKMAN,      //
-    APP_TEST,         //
+    APP_MEMVIEW,      //
     APP_ABOUT,        //
 };
 
 const App apps[APPS_COUNT] = {
     {"None"},
-    {"Test", TEST_Init, TEST_Update, TEST_Render, TEST_key},
+    {"EEPROM view", MEMVIEW_Init, MEMVIEW_Update, MEMVIEW_Render, MEMVIEW_key},
     {"Spectrum band", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render,
      SPECTRUM_key, SPECTRUM_deinit},
     {"Spectrum analyzer", ANALYZER_init, ANALYZER_update, ANALYZER_render,
@@ -97,8 +95,8 @@ const App apps[APPS_COUNT] = {
     {"Loot", LOOTLIST_init, NULL, LOOTLIST_render, LOOTLIST_key},
     {"Presets", PRESETLIST_init, NULL, PRESETLIST_render, PRESETLIST_key},
     {"Reset", RESET_Init, RESET_Update, RESET_Render, RESET_key},
-    {"Text input", TEXTINPUT_init, NULL, TEXTINPUT_render,
-     TEXTINPUT_key, TEXTINPUT_deinit},
+    {"Text input", TEXTINPUT_init, NULL, TEXTINPUT_render, TEXTINPUT_key,
+     TEXTINPUT_deinit},
     {"VFO config", VFOCFG_init, VFOCFG_update, VFOCFG_render, VFOCFG_key},
     {"Preset config", PRESETCFG_init, PRESETCFG_update, PRESETCFG_render,
      PRESETCFG_key},
@@ -112,7 +110,6 @@ const App apps[APPS_COUNT] = {
     {"ABOUT", ABOUT_Init, ABOUT_Update, ABOUT_Render, ABOUT_key, ABOUT_Deinit},
     {"Antenna len", ANTENNA_init, ANTENNA_update, ANTENNA_render, ANTENNA_key,
      ANTENNA_deinit},
-    {"Task manager", TASKMAN_Init, NULL, TASKMAN_Render, TASKMAN_Key},
 };
 
 bool APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
