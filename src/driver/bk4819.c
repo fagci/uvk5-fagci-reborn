@@ -18,7 +18,6 @@
 #include "../driver/gpio.h"
 #include "../driver/system.h"
 #include "../driver/systick.h"
-#include "../driver/uart.h"
 #include "../inc/dp32g030/gpio.h"
 #include "../inc/dp32g030/portcon.h"
 #include "../misc.h"

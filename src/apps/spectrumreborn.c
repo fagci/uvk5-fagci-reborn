@@ -1,7 +1,6 @@
 #include "spectrumreborn.h"
 #include "../dcs.h"
 #include "../driver/st7565.h"
-#include "../driver/uart.h"
 #include "../helper/lootlist.h"
 #include "../helper/presetlist.h"
 #include "../scheduler.h"

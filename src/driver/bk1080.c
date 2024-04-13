@@ -1,5 +1,4 @@
 #include "bk1080.h"
-#include "../driver/uart.h"
 #include "../inc/dp32g030/gpio.h"
 #include "../misc.h"
 #include "bk1080-regs.h"
