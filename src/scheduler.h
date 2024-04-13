@@ -5,15 +5,15 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define TASKS_MAX 32
+#define TASKS_MAX 64
 
 typedef struct {
   const char *name;
   void (*handler)(void);
   uint16_t interval;
   uint16_t countdown;
-  bool continuous;
   uint8_t priority;
+  bool continuous;
   bool active;
 } Task;
 
@@ -29,6 +29,5 @@ void SetTimeout(uint32_t *v, uint32_t t);
 bool CheckTimeout(uint32_t *v);
 
 extern Task tasks[TASKS_MAX];
-extern uint32_t elapsedMilliseconds;
 
 #endif /* end of include guard: SCHEDULER_H */

@@ -76,9 +76,9 @@ void STILL_deinit(void) { RADIO_ToggleRX(false); }
 void STILL_update(void) {
   RADIO_UpdateMeasurementsEx(gCurrentLoot);
 
-  if (elapsedMilliseconds - lastUpdate >= 500) {
+  if (Now() - lastUpdate >= 500) {
     gRedrawScreen = true;
-    lastUpdate = elapsedMilliseconds;
+    lastUpdate = Now();
   }
 }
 

@@ -9,12 +9,12 @@ static uint32_t lastRender = 0;
 
 void SVC_RENDER_Init(void) {}
 void SVC_RENDER_Update(void) {
-  if (gRedrawScreen && elapsedMilliseconds - lastRender >= RENDER_TIME) {
+  if (gRedrawScreen && Now() - lastRender >= RENDER_TIME) {
     APPS_render();
     STATUSLINE_render();
     ST7565_Render();
     gRedrawScreen = false;
-    lastRender = elapsedMilliseconds;
+    lastRender = Now();
   }
 }
 void SVC_RENDER_Deinit(void) {}

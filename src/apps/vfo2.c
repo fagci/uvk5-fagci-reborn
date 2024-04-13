@@ -28,9 +28,9 @@ void VFO2_init(void) {
 void VFO2_deinit(void) {}
 
 void VFO2_update(void) {
-  if (elapsedMilliseconds - lastRender >= 500) {
+  if (Now() - lastRender >= 500) {
     gRedrawScreen = true;
-    lastRender = elapsedMilliseconds;
+    lastRender = Now();
   }
 }
 
@@ -216,7 +216,7 @@ static void render2VFOPart(uint8_t i) {
   }
 
   uint32_t est = loot->lastTimeOpen
-                     ? (elapsedMilliseconds - loot->lastTimeOpen) / 1000
+                     ? (Now() - loot->lastTimeOpen) / 1000
                      : 0;
   if (loot->ct != 0xFF) {
     PrintSmallEx(0, bl + 6, POS_L, C_FILL, "CT:%u.%uHz",

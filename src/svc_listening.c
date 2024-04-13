@@ -1,5 +1,4 @@
 #include "svc_listening.h"
-// #include "apps/messenger.h"
 #include "driver/bk4819-regs.h"
 #include "driver/bk4819.h"
 #include "radio.h"

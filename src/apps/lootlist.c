@@ -92,7 +92,7 @@ static void getLootItemShort(uint16_t i, uint16_t index, bool isCurrent) {
   uint32_t f = item->f;
   const uint8_t x = LCD_WIDTH - 6;
   const uint8_t y = MENU_Y + i * MENU_ITEM_H;
-  const uint32_t ago = (elapsedMilliseconds - item->lastTimeOpen) / 1000;
+  const uint32_t ago = (Now() - item->lastTimeOpen) / 1000;
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
   }

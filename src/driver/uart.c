@@ -146,7 +146,7 @@ void UART_logf(uint8_t level, const char *pattern, ...) {
     va_start(args, pattern);
     vsnprintf(text, sizeof(text), pattern, args);
     va_end(args);
-    UART_printf("%u %s\n", elapsedMilliseconds, text);
+    UART_printf("%u %s\n", Now(), text);
   }
 }
 
@@ -156,7 +156,7 @@ void Log(const char *pattern, ...) {
     va_start(args, pattern);
     vsnprintf(text, sizeof(text), pattern, args);
     va_end(args);
-    UART_printf("%u %s\n", elapsedMilliseconds, text);
+    UART_printf("%u %s\n", Now(), text);
     UART_flush();
 }
 

@@ -43,7 +43,7 @@ static void startNewScan(bool reset) {
     gScanRedraw = stepsCount * gSettings.scanTimeout >= 500;
     gScanFn = scanFn;
     uint16_t t = gSettings.scanTimeout < 10 ? gSettings.scanTimeout : 10;
-    lastReady = elapsedMilliseconds;
+    lastReady = Now();
     SVC_Toggle(SVC_SCAN, true, t);
     SVC_Toggle(SVC_LISTEN, true, t);
 
@@ -64,9 +64,9 @@ static void scanFn(bool forward) {
   RADIO_NextPresetFreqEx(forward, gSettings.scanTimeout >= 10);
 
   if (PRESETS_GetChannel(gCurrentPreset, radio->rx.f) == stepsCount - 1) {
-    scanTime = elapsedMilliseconds - lastReady;
+    scanTime = Now() - lastReady;
     chPerSec = stepsCount * 1000 / scanTime;
-    lastReady = elapsedMilliseconds;
+    lastReady = Now();
     gRedrawScreen = true;
   }
 
@@ -219,5 +219,5 @@ void SPECTRUM_render(void) {
                   SPECTRUM_HEIGHT);
   }
 
-  lastRender = elapsedMilliseconds;
+  lastRender = Now();
 }

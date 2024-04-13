@@ -37,12 +37,12 @@ static uint32_t lastUpdate = 0;
 static bool red = false;
 
 void ABOUT_Update() {
-  if (elapsedMilliseconds - lastUpdate >= 500) {
-    red = (elapsedMilliseconds / 500) % 3;
+  if (Now() - lastUpdate >= 500) {
+    red = (Now() / 500) % 3;
     BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN,
-                         (elapsedMilliseconds / 500) % 2);
+                         (Now() / 500) % 2);
     BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, red);
-    lastUpdate = elapsedMilliseconds;
+    lastUpdate = Now();
     gRedrawScreen = true;
   }
 }
