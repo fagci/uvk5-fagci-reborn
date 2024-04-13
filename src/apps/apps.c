@@ -97,7 +97,7 @@ const App apps[APPS_COUNT] = {
     {"Loot", LOOTLIST_init, NULL, LOOTLIST_render, LOOTLIST_key},
     {"Presets", PRESETLIST_init, NULL, PRESETLIST_render, PRESETLIST_key},
     {"Reset", RESET_Init, RESET_Update, RESET_Render, RESET_key},
-    {"Text input", TEXTINPUT_init, TEXTINPUT_update, TEXTINPUT_render,
+    {"Text input", TEXTINPUT_init, NULL, TEXTINPUT_render,
      TEXTINPUT_key, TEXTINPUT_deinit},
     {"VFO config", VFOCFG_init, VFOCFG_update, VFOCFG_render, VFOCFG_key},
     {"Preset config", PRESETCFG_init, PRESETCFG_update, PRESETCFG_render,

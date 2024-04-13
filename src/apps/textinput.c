@@ -79,15 +79,12 @@ static void backspace(void) {
 void TEXTINPUT_init(void) {
   strncpy(inputField, gTextinputText, 15);
   inputIndex = strlen(inputField);
-  TaskAdd("Coursor blink", blink, 250, true, 100);
+  TaskAdd("Cursor blnk", blink, 250, true, 100);
 }
 
 void TEXTINPUT_deinit(void) { TaskRemove(blink); }
 
-void TEXTINPUT_update(void) {}
-
 bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-
   // up-down keys
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (key) {
