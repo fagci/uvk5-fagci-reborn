@@ -18,7 +18,6 @@
 #include "../external/printf/printf.h"
 #include "../inc/dp32g030/dma.h"
 #include "../inc/dp32g030/syscon.h"
-#include "../misc.h"
 #include "../scheduler.h"
 #include "system.h"
 #include "uart.h"
