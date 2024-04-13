@@ -268,7 +268,7 @@ void RADIO_ToggleTX(bool on) {
       gTxState = TX_VOL_HIGH;
       return;
     }
-    power = calculateOutputPower(gCurrentPreset, radio->tx.f);
+    power = calculateOutputPower(txPreset, txF);
     if (power > 0x91) {
       power = 0;
       gTxState = TX_POW_OVERDRIVE;
@@ -291,7 +291,7 @@ void RADIO_ToggleTX(bool on) {
     SYSTEM_DelayMs(10);
     BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, true);
     SYSTEM_DelayMs(5);
-    BK4819_SetupPowerAmplifier(power, radio->tx.f);
+    BK4819_SetupPowerAmplifier(power, txF);
     SYSTEM_DelayMs(10);
     BK4819_ExitSubAu();
   } else if (gTxState == TX_ON) {

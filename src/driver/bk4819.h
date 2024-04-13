@@ -113,7 +113,7 @@ void BK4819_SetCTCSSFrequency(uint32_t BaudRate);
 void BK4819_SetTailDetection(const uint32_t freq_10Hz);
 void BK4819_EnableVox(uint16_t Vox1Threshold, uint16_t Vox0Threshold);
 void BK4819_SetFilterBandwidth(BK4819_FilterBandwidth_t Bandwidth);
-void BK4819_SetupPowerAmplifier(uint16_t Bias, uint32_t Frequency);
+void BK4819_SetupPowerAmplifier(uint8_t Bias, uint32_t Frequency);
 void BK4819_SetFrequency(uint32_t Frequency);
 uint32_t BK4819_GetFrequency(void);
 void BK4819_SetupSquelch(uint8_t SquelchOpenRSSIThresh,
@@ -211,6 +211,5 @@ void BK4819_SetModulation(ModulationType type);
 bool BK4819_IsSquelchOpen();
 void BK4819_ResetRSSI();
 void BK4819_SetGain(uint8_t gainIndex);
-void BK4819_HandleInterrupts(void (*handler)(uint16_t intStatus));
 
 #endif

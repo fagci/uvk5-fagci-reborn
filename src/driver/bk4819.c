@@ -318,26 +318,14 @@ void BK4819_EnableVox(uint16_t VoxEnableThreshold,
 }
 
 void BK4819_SetFilterBandwidth(BK4819_FilterBandwidth_t Bandwidth) {
-  /* if (BK4819_ReadRegister(BK4819_REG_43) !=
-      BWRegValues[Bandwidth]) { // TODO: maybe slow */
   BK4819_WriteRegister(BK4819_REG_43, BWRegValues[Bandwidth]);
-  // }
 }
 
-void BK4819_SetupPowerAmplifier(uint16_t Bias, uint32_t Frequency) {
-  uint8_t Gain;
+void BK4819_SetupPowerAmplifier(uint8_t Bias, uint32_t Frequency) {
+  uint8_t Gain = Frequency < VHF_UHF_BOUND2 ? 0x08 : 0x22;
 
   if (Bias > 255) {
     Bias = 255;
-  }
-  if (Frequency < VHF_UHF_BOUND2) {
-    // Gain 1 = 1
-    // Gain 2 = 0
-    Gain = 0x08U;
-  } else {
-    // Gain 1 = 4
-    // Gain 2 = 2
-    Gain = 0x22U;
   }
   // Enable PACTLoutput
   BK4819_WriteRegister(BK4819_REG_36, (Bias << 8) | 0x80U | Gain);
@@ -1035,11 +1023,4 @@ void BK4819_ResetRSSI(void) {
 void BK4819_SetGain(uint8_t gainIndex) {
   BK4819_WriteRegister(BK4819_REG_13,
                        gainTable[gainIndex].regValue | 6 | (3 << 3));
-}
-
-void BK4819_HandleInterrupts(void (*handler)(uint16_t intStatus)) {
-  while (BK4819_ReadRegister(BK4819_REG_0C) & 1u) {
-    BK4819_WriteRegister(BK4819_REG_02, 0);
-    handler(BK4819_ReadRegister(BK4819_REG_02));
-  }
 }
