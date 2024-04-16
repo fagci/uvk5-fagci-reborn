@@ -33,14 +33,14 @@ const uint32_t EEPROM_SIZES[8] = {
     262144, // 111
 };
 
-const uint8_t PAGE_SIZES[8] = {
+const uint16_t PAGE_SIZES[8] = {
     32,  // 000
     32,  // 001
     32,  // 010
-    32,  // 011
-    32,  // 100
-    32,  // 101
-    32,  // 110
+    64,  // 011
+    64,  // 100
+    128, // 101
+    128, // 110
     128, // 111
 };
 
@@ -65,4 +65,4 @@ uint32_t SETTINGS_GetEEPROMSize(void) {
   return EEPROM_SIZES[gSettings.eepromType];
 }
 
-uint8_t SETTINGS_GetPageSize(void) { return PAGE_SIZES[gSettings.eepromType]; }
+uint16_t SETTINGS_GetPageSize(void) { return PAGE_SIZES[gSettings.eepromType]; }

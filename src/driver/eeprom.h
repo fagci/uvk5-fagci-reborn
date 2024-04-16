@@ -7,7 +7,7 @@
 extern bool gEepromRead;
 extern bool gEepromWrite;
 
-void EEPROM_ReadBuffer(uint32_t Address, void *pBuffer, uint8_t Size);
-void EEPROM_WriteBuffer(uint32_t Address, void *pBuffer, uint8_t Size);
+void EEPROM_ReadBuffer(uint32_t Address, void *pBuffer, uint16_t Size);
+void EEPROM_WriteBuffer(uint32_t Address, void *pBuffer, uint16_t Size);
 
 #endif

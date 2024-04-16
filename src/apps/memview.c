@@ -52,6 +52,12 @@ bool MEMVIEW_key(KEY_Code_t k, bool p, bool h) {
   case KEY_DOWN:
     IncDec32(&page, 0, pagesCount, 1);
     return true;
+  case KEY_3:
+    IncDec32(&page, 0, pagesCount, -8196 / PAGE_SZ);
+    return true;
+  case KEY_9:
+    IncDec32(&page, 0, pagesCount, 8196 / PAGE_SZ);
+    return true;
   case KEY_MENU:
     return false;
   default:

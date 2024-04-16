@@ -1,9 +1,9 @@
 #include "si.h"
+#include "../driver/bk4819.h"
 #include "../driver/si473x.h"
 #include "../helper/rds.h"
 #include "../scheduler.h"
 #include "../svc.h"
-#include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "apps.h"
 #include "finput.h"
@@ -19,7 +19,11 @@ static const char SI47XX_BW_NAMES[5][6] = {
     "6 kHz", "4 kHz", "3 kHz", "2 kHz", "1 kHz",
 };
 
-SI47XX_FilterBW bw = SI47XX_BW_6_kHz;
+static const char SI47XX_MODE_NAMES[5][6] = {
+    "FM", "AM", "LSB", "USB", "CW",
+};
+
+static SI47XX_FilterBW bw = SI47XX_BW_6_kHz;
 
 typedef struct // Band data
 {
@@ -199,6 +203,11 @@ bool SI_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         SI47XX_SwitchMode(SI47XX_AM);
         SI47XX_SetBandwidth(bw, true);
         tune(720000);
+      } else if (si4732mode == SI47XX_AM) {
+        divider = 100;
+        SI47XX_SwitchMode(SI47XX_LSB);
+        SI47XX_SetBandwidth(bw, true);
+        tune(711300);
       } else {
         divider = 1000;
         SI47XX_SwitchMode(SI47XX_FM);
@@ -230,6 +239,8 @@ void SI_render() {
 
   PrintBiggestDigitsEx(LCD_WIDTH - 22, BASE, POS_R, C_FILL, "%3u.%03u", fp1,
                        fp2);
+  PrintSmallEx(LCD_WIDTH - 1, BASE - 6, POS_R, C_FILL, "%s",
+               SI47XX_MODE_NAMES[si4732mode]);
 
   if (si4732mode == SI47XX_FM) {
     if (rds.RDSSignal) {

@@ -1,12 +1,12 @@
 #include "si473x.h"
 #include "../inc/dp32g030/gpio.h"
+#include "../misc.h"
 #include "audio.h"
 #include "gpio.h"
 #include "i2c.h"
+#include "si473x-patch.h"
 #include "system.h"
 #include "systick.h"
-
-#define SI47XX_DELAY_MS 400
 
 #define RST_HIGH GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BK1080)
 #define RST_LOW GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BK1080)
@@ -41,6 +41,50 @@ void waitToSend() {
     SYSTICK_DelayUs(100);
     SI47XX_ReadBuffer((uint8_t *)&tmp, 1);
   }
+}
+
+bool SI47XX_downloadPatch(const uint8_t *ssb_patch_content,
+                          const uint16_t ssb_patch_content_size) {
+  // Send patch to the SI4735 device
+  for (uint16_t offset = 0; offset < ssb_patch_content_size; offset += 8) {
+    I2C_Start();
+    I2C_Write(SI47XX_I2C_ADDR);
+    for (uint16_t i = 0; i < 8; i++) {
+      I2C_Write(ssb_patch_content[i + offset]);
+    }
+    I2C_Stop();
+
+    // Testing download performance
+    // approach 1 - Faster - less secure (it might crash in some architectures)
+    // delayMicroseconds(MIN_DELAY_WAIT_SEND_LOOP); // Need check the minimum
+    // value
+
+    // approach 2 - More control. A little more secure than approach 1
+    /*
+    do
+    {
+        delayMicroseconds(150); // Minimum delay founded (Need check the minimum
+    value) Wire.requestFrom(deviceAddress, 1); } while (!(Wire.read() &
+    B10000000));
+    */
+
+    // approach 3 - same approach 2
+    waitToSend();
+
+    // approach 4 - safer
+    /*
+    waitToSend();
+    uint8_t cmd_status;
+    // Uncomment the lines below if you want to check erro.
+    Wire.requestFrom(deviceAddress, 1);
+    cmd_status = Wire.read();
+    // The SI4735 issues a status after each 8 byte transfered.
+    // Just the bit 7 (CTS) should be seted. if bit 6 (ERR) is seted, the system
+    halts. if (cmd_status != 0x80) return false;
+    */
+  }
+  SYSTEM_DelayMs(250);
+  return true;
 }
 
 void sendProperty(uint16_t prop, uint16_t parameter) {
@@ -135,10 +179,10 @@ void SI47XX_PowerUp() {
   SI47XX_WriteBuffer(cmd, 3);
   SYSTEM_DelayMs(500);
 
-  waitToSend(); // for stability. gpo... maybe not needed
+  /* waitToSend(); // for stability. gpo... maybe not needed
   uint8_t cmd2[2] = {CMD_GPIO_CTL, FLG_GPO1OEN | FLG_GPO2OEN};
+  SI47XX_WriteBuffer(cmd2, 2); */
 
-  SI47XX_WriteBuffer(cmd2, 2);
   AUDIO_ToggleSpeaker(true);
   setVolume(63);
 
@@ -150,6 +194,21 @@ void SI47XX_PowerUp() {
     sendProperty(PROP_AM_AUTOMATIC_VOLUME_CONTROL_MAX_GAIN, 0x7800);
     SI47XX_SetSeekAmLimits(1800, 30000);
   }
+  SI47XX_SetFreq(siCurrentFreq);
+}
+
+void SI47XX_PatchPowerUp() {
+  RST_HIGH;
+  uint8_t cmd[3] = {CMD_POWER_UP, 0b00110001, OUT_ANALOG};
+  waitToSend();
+  SI47XX_WriteBuffer(cmd, 3);
+  SYSTEM_DelayMs(500);
+
+  SI47XX_downloadPatch(SSB_PATCH_CONTENT, ARRAY_SIZE(SSB_PATCH_CONTENT));
+
+  AUDIO_ToggleSpeaker(true);
+  setVolume(63);
+
   SI47XX_SetFreq(siCurrentFreq);
 }
 
@@ -199,7 +258,11 @@ void SI47XX_SwitchMode(SI47XX_MODE mode) {
   if (si4732mode != mode) {
     SI47XX_PowerDown();
     si4732mode = mode;
-    SI47XX_PowerUp();
+    if (si4732mode == SI47XX_USB || si4732mode == SI47XX_LSB) {
+      SI47XX_PatchPowerUp();
+    } else {
+      SI47XX_PowerUp();
+    }
   }
 }
 

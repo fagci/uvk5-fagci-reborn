@@ -8,6 +8,7 @@
 #include "driver/system.h"
 #include "driver/systick.h"
 #include "driver/uart.h"
+#include "external/CMSIS_5/Device/ARM/ARMCM0/Include/ARMCM0.h"
 #include "helper/battery.h"
 #include "helper/presetlist.h"
 #include "radio.h"
@@ -61,6 +62,26 @@ static void reset(void) {
   }
 }
 
+static void uploadPatch(void) {
+  const uint32_t EEPROM_SIZE = SETTINGS_GetEEPROMSize();
+  const uint8_t PAGE_SIZE = SETTINGS_GetPageSize();
+
+  while (true) {
+    __disable_irq();
+    if (UART_HasData()) {
+      UI_ClearScreen();
+      char tb[8] = {0};
+      strncpy(tb, gUartData, 7);
+      tb[7] = 0;
+      PrintMediumEx(LCD_XCENTER, LCD_YCENTER - 8, POS_C, C_FILL, "DATA!");
+      PrintMediumEx(LCD_XCENTER, LCD_YCENTER, POS_C, C_FILL, "%s", tb);
+      ST7565_Blit();
+      Log(tb);
+    }
+    __enable_irq();
+  }
+}
+
 static void Intro(void) {
   UI_ClearScreen();
   PrintMediumBoldEx(LCD_XCENTER, LCD_YCENTER, POS_C, C_FILL, "r3b0rn");
@@ -86,15 +107,14 @@ static void Intro(void) {
 }
 
 void Main(void) {
+  gSettings.contrast = 6;
   SYSTICK_Init();
   SYSTEM_ConfigureSysCon();
 
   BOARD_Init();
   UART_Init();
 
-  BACKLIGHT_SetDuration(120);
   BACKLIGHT_SetBrightness(7);
-  BACKLIGHT_On();
 
   SVC_Toggle(SVC_RENDER, true, 25);
 
@@ -103,6 +123,8 @@ void Main(void) {
     reset();
   } else if (pressedKey == KEY_7) {
     unreborn();
+  } else if (pressedKey == KEY_F) {
+    uploadPatch();
   }
 
   SETTINGS_Load();
@@ -113,6 +135,7 @@ void Main(void) {
   BACKLIGHT_SetDuration(BL_TIME_VALUES[gSettings.backlight]);
   BACKLIGHT_SetBrightness(gSettings.brightness);
   BACKLIGHT_On();
+  ST7565_Init();
 
   if (KEYBOARD_Poll() == KEY_5) {
     Boot(APP_MEMVIEW);

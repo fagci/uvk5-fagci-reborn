@@ -15,7 +15,7 @@ static uint8_t vfosWrote = 0;
 static uint16_t channelsWrote = 0;
 static bool settingsWrote = 0;
 static uint8_t buf[8];
-static uint16_t bytesWrote = 0;
+static uint32_t bytesWrote = 0;
 
 static EEPROMType eepromType;
 
