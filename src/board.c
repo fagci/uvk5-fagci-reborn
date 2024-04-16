@@ -18,8 +18,9 @@
 #include "board.h"
 #include "driver/adc.h"
 #include "driver/backlight.h"
-#include "driver/bk1080.h"
+// #include "driver/bk1080.h"
 #include "driver/bk4819.h"
+#include "driver/crc.h"
 #include "driver/gpio.h"
 #include "driver/st7565.h"
 #include "inc/dp32g030/gpio.h"
@@ -430,4 +431,5 @@ void BOARD_Init(void) {
   // BK1080_Init(0, false);
   BK4819_Init();
   BACKLIGHT_Init();
+  CRC_Init();
 }

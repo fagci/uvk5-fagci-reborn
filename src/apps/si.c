@@ -79,7 +79,6 @@ static uint32_t lastUpdate = 0;
 static uint32_t lastRdsUpdate = 0;
 static uint32_t lastSeekUpdate = 0;
 static DateTime dt;
-static Time t;
 
 static void tune(uint32_t f) {
   f /= divider;

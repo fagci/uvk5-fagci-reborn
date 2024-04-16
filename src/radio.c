@@ -2,7 +2,6 @@
 #include "apps/apps.h"
 #include "driver/audio.h"
 #include "driver/backlight.h"
-#include "driver/bk1080.h"
 #include "driver/bk4819.h"
 #include "driver/gpio.h"
 #include "driver/st7565.h"
@@ -144,15 +143,11 @@ void toggleBK4819(bool on) {
 
 void toggleBK1080(bool on) {
   if (on) {
-    // BK1080_Init(radio->rx.f, true);
-    // BK1080_Mute(false);
     SYSTEM_DelayMs(10);
     AUDIO_ToggleSpeaker(true);
   } else {
     AUDIO_ToggleSpeaker(false);
     SYSTEM_DelayMs(10);
-    // BK1080_Mute(true);
-    // BK1080_Init(0, false);
   }
 }
 

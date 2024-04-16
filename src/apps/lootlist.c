@@ -52,7 +52,6 @@ static void exportLootList(void) {
     }
   }
   UART_printf("--- >8 ---\n");
-  UART_flush();
 }
 
 static void getLootItem(uint16_t i, uint16_t index, bool isCurrent) {

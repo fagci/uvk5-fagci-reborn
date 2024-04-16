@@ -29,7 +29,9 @@ static void Boot(AppType_t appToRun) {
   APPS_run(appToRun);
 }
 
-void _putchar(char c) {}
+void _putchar(char c) { 
+    // UART_Send((uint8_t *)&c, 1);
+}
 
 static void unreborn(void) {
   uint8_t tpl[128];
@@ -63,22 +65,10 @@ static void reset(void) {
 }
 
 static void uploadPatch(void) {
-  const uint32_t EEPROM_SIZE = SETTINGS_GetEEPROMSize();
-  const uint8_t PAGE_SIZE = SETTINGS_GetPageSize();
+  /* const uint32_t EEPROM_SIZE = SETTINGS_GetEEPROMSize();
+  const uint8_t PAGE_SIZE = SETTINGS_GetPageSize(); */
 
   while (true) {
-    __disable_irq();
-    if (UART_HasData()) {
-      UI_ClearScreen();
-      char tb[8] = {0};
-      strncpy(tb, gUartData, 7);
-      tb[7] = 0;
-      PrintMediumEx(LCD_XCENTER, LCD_YCENTER - 8, POS_C, C_FILL, "DATA!");
-      PrintMediumEx(LCD_XCENTER, LCD_YCENTER, POS_C, C_FILL, "%s", tb);
-      ST7565_Blit();
-      Log(tb);
-    }
-    __enable_irq();
   }
 }
 
@@ -108,9 +98,8 @@ static void Intro(void) {
 
 void Main(void) {
   gSettings.contrast = 6;
-  SYSTICK_Init();
   SYSTEM_ConfigureSysCon();
-
+  SYSTICK_Init();
   BOARD_Init();
   UART_Init();
 
@@ -144,6 +133,11 @@ void Main(void) {
   }
 
   while (true) {
+    if (UART_IsCommandAvailable()) {
+      __disable_irq();
+      UART_HandleCommand();
+      __enable_irq();
+    }
     TasksUpdate(); // TODO: check if delay not needed or something
   }
 }

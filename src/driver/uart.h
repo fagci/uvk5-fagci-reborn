@@ -22,16 +22,14 @@
 #include <stdint.h>
 
 extern uint8_t UART_DMA_Buffer[256];
-extern uint8_t gUartData[512];
 
 void UART_Init(void);
 void UART_Send(const void *pBuffer, uint32_t Size);
-void UART_SendText(const void *str);
-void UART_LogSendText(const void *str);
+void UART_LogSend(const void *pBuffer, uint32_t Size);
 void UART_printf(const char *str, ...);
-uint16_t UART_HasData();
-void UART_ResetData();
+
+bool UART_IsCommandAvailable(void);
+void UART_HandleCommand(void);
 void Log(const char *pattern, ...);
-void UART_flush();
 
 #endif

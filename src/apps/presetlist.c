@@ -9,7 +9,7 @@
 
 static uint8_t menuIndex = 0;
 
-static void getPresetText(int32_t i, char *name) {
+static void getPresetText(uint16_t i, char *name) {
   Preset *item = PRESETS_Item(i);
   uint32_t fs = item->band.bounds.start;
   uint32_t fe = item->band.bounds.end;

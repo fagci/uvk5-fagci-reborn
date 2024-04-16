@@ -50,7 +50,7 @@ static char Output[16];
 static const char *fltBound[] = {"240MHz", "280MHz"};
 
 static const uint16_t BAT_CAL_MIN = 1900;
-static const uint16_t BAT_CAL_MAX = 2155;
+// static const uint16_t BAT_CAL_MAX = 2155;
 
 static const MenuItem menu[] = {
     {"Upconverter", M_UPCONVERTER, ARRAY_SIZE(upConverterFreqNames)},
