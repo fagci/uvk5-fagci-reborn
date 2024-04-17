@@ -10,7 +10,7 @@ bool gEepromWrite = false;
 bool gEepromRead = false;
 
 void EEPROM_ReadBuffer(uint32_t address, void *pBuffer, uint16_t size) {
-  // __disable_irq();
+  __disable_irq();
   uint8_t IIC_ADD = (uint8_t)(0xA0 | ((address / 0x10000) << 1));
 
   I2C_Start();
@@ -26,7 +26,7 @@ void EEPROM_ReadBuffer(uint32_t address, void *pBuffer, uint16_t size) {
   I2C_ReadBuffer(pBuffer, size);
 
   I2C_Stop();
-  // __enable_irq();
+  __enable_irq();
 
   gEepromRead = true;
 }

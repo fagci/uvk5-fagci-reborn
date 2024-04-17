@@ -29,8 +29,8 @@ static void Boot(AppType_t appToRun) {
   APPS_run(appToRun);
 }
 
-void _putchar(char c) { 
-    // UART_Send((uint8_t *)&c, 1);
+void _putchar(char c) {
+  // UART_Send((uint8_t *)&c, 1);
 }
 
 static void unreborn(void) {
@@ -61,14 +61,6 @@ static void reset(void) {
   APPS_run(APP_RESET);
   while (true) {
     TasksUpdate();
-  }
-}
-
-static void uploadPatch(void) {
-  /* const uint32_t EEPROM_SIZE = SETTINGS_GetEEPROMSize();
-  const uint8_t PAGE_SIZE = SETTINGS_GetPageSize(); */
-
-  while (true) {
   }
 }
 
@@ -112,8 +104,6 @@ void Main(void) {
     reset();
   } else if (pressedKey == KEY_7) {
     unreborn();
-  } else if (pressedKey == KEY_F) {
-    uploadPatch();
   }
 
   SETTINGS_Load();
@@ -133,11 +123,6 @@ void Main(void) {
   }
 
   while (true) {
-    if (UART_IsCommandAvailable()) {
-      __disable_irq();
-      UART_HandleCommand();
-      __enable_irq();
-    }
     TasksUpdate(); // TODO: check if delay not needed or something
   }
 }
