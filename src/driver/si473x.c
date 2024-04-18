@@ -43,14 +43,18 @@ void waitToSend() {
   }
 }
 
-bool SI47XX_downloadPatch(const uint8_t *ssb_patch_content,
-                          const uint16_t ssb_patch_content_size) {
+#include "../settings.h"
+#include "eeprom.h"
+
+bool SI47XX_downloadPatch() {
   // Send patch to the SI4735 device
-  for (uint16_t offset = 0; offset < ssb_patch_content_size; offset += 8) {
+  uint8_t buf[8];
+  for (uint16_t offset = 0; offset < PATCH_SIZE; offset += 8) {
+    EEPROM_ReadBuffer(SETTINGS_GetEEPROMSize() - PATCH_SIZE + offset, buf, 8);
     I2C_Start();
     I2C_Write(SI47XX_I2C_ADDR);
     for (uint16_t i = 0; i < 8; i++) {
-      I2C_Write(ssb_patch_content[i + offset]);
+      I2C_Write(buf[i]);
     }
     I2C_Stop();
 
@@ -188,23 +192,48 @@ void SI47XX_PowerUp() {
 
   if (si4732mode == SI47XX_FM) {
     enableRDS();
-  } else {
+  } else if (si4732mode == SI47XX_AM) {
     SI47XX_SetAutomaticGainControl(1, 0);
     sendProperty(PROP_AM_SOFT_MUTE_MAX_ATTENUATION, 0);
     sendProperty(PROP_AM_AUTOMATIC_VOLUME_CONTROL_MAX_GAIN, 0x7800);
     SI47XX_SetSeekAmLimits(1800, 30000);
+  } else {
+    sendProperty(PROP_SSB_SOFT_MUTE_MAX_ATTENUATION, 0);
   }
   SI47XX_SetFreq(siCurrentFreq);
 }
+
+typedef union {
+  struct {
+    uint8_t AUDIOBW : 4;  //!<  0 = 1.2kHz (default); 1=2.2kHz; 2=3kHz; 3=4kHz;
+                          //!<  4=500Hz; 5=1kHz
+    uint8_t SBCUTFLT : 4; //!<  SSB side band cutoff filter for band passand low
+                          //!<  pass filter
+    uint8_t AVC_DIVIDER : 4; //!<  set 0 for SSB mode; set 3 for SYNC mode;
+    uint8_t AVCEN : 1;       //!<  SSB Automatic Volume Control (AVC) enable;
+                             //!<  0=disable; 1=enable (default);
+    uint8_t SMUTESEL : 1;    //!<  SSB Soft-mute Based on RSSI or SNR
+    uint8_t DUMMY1 : 1;      //!<  Always write 0;
+    uint8_t
+        DSP_AFCDIS : 1; //!<  0=SYNC MODE, AFC enable; 1=SSB MODE, AFC disable.
+  } param;
+  uint8_t raw[2];
+} SsbMode;
+
+SsbMode currentSsbMode;
 
 void SI47XX_PatchPowerUp() {
   RST_HIGH;
   uint8_t cmd[3] = {CMD_POWER_UP, 0b00110001, OUT_ANALOG};
   waitToSend();
   SI47XX_WriteBuffer(cmd, 3);
-  SYSTEM_DelayMs(500);
+  SYSTEM_DelayMs(550);
 
-  SI47XX_downloadPatch(SSB_PATCH_CONTENT, ARRAY_SIZE(SSB_PATCH_CONTENT));
+  SI47XX_downloadPatch();
+
+  sendProperty(PROP_SSB_MODE,
+               (currentSsbMode.raw[1] << 8) | currentSsbMode.raw[0]);
+  SYSTEM_DelayMs(550);
 
   AUDIO_ToggleSpeaker(true);
   setVolume(63);

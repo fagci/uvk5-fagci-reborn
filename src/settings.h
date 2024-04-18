@@ -148,7 +148,7 @@ typedef struct {
   F rx;
   F tx;
   char name[10];
-  uint8_t memoryBanks : 8;
+  uint8_t memoryBanks;
   ModulationType modulation : 4;
   BK4819_FilterBandwidth_t bw : 2;
   TXOutputPower power : 2;
@@ -210,6 +210,8 @@ typedef struct {
 
 #define VFOS_OFFSET (SETTINGS_OFFSET + SETTINGS_SIZE)
 #define PRESETS_OFFSET (VFOS_OFFSET + VFO_SIZE * 2)
+
+#define PATCH_SIZE 15832
 
 // settings
 // VFOs

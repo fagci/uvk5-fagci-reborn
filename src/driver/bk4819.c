@@ -400,15 +400,34 @@ void BK4819_SetModulation(ModulationType type) {
     return;
   }
   modTypeCurrent = type;
-  const uint16_t modTypeReg47Values[] = {BK4819_AF_FM,  BK4819_AF_AM,
-                                         BK4819_AF_USB, BK4819_AF_BYPASS,
-                                         BK4819_AF_RAW, BK4819_AF_FM};
+  const uint16_t modTypeReg47Values[] = {
+      BK4819_AF_FM,  BK4819_AF_AM, BK4819_AF_USB, BK4819_AF_BYPASS,
+      BK4819_AF_RAW, BK4819_AF_FM, BK4819_AF_BEEP};
   BK4819_SetAF(modTypeReg47Values[type]);
   BK4819_SetRegValue(afDacGainRegSpec, 0xF);
   BK4819_SetAGC(type != MOD_AM);
   BK4819_WriteRegister(0x3D, type == MOD_USB ? 0 : 0x2AAB);
   BK4819_SetRegValue(afcDisableRegSpec,
                      type == MOD_AM || type == MOD_USB || type == MOD_BYP);
+  RegisterSpec xtalMode = {"XTAL F Mode Select", 0x3C, 6, 0b11, 1};
+  RegisterSpec rfFltBW = {"RF filt BW", 0x43, 12, 0b111, 1};
+  RegisterSpec rfFltBWw = {"RFfiltBWweak", 0x43, 9, 0b111, 1};
+  RegisterSpec bwMode = {"BW Mode Selection", 0x43, 4, 0b11, 1};
+  RegisterSpec ifF = {"IF step1x", 0x3D, 0, 0xFFFF, 1};
+  if (type == MOD_WFM) {
+    BK4819_SetRegValue(xtalMode, 0);
+    BK4819_SetRegValue(afDacGainRegSpec, 0x8);
+    BK4819_SetRegValue(rfFltBW, 7);
+    BK4819_SetRegValue(rfFltBWw, 7);
+    BK4819_SetRegValue(bwMode, 3);
+    BK4819_SetRegValue(ifF, 14223);
+  } else {
+    BK4819_SetRegValue(xtalMode, 2);
+    BK4819_SetRegValue(rfFltBW, 7);
+    BK4819_SetRegValue(rfFltBWw, 7);
+    BK4819_SetRegValue(bwMode, 3);
+    BK4819_SetRegValue(ifF, 10923);
+  }
 }
 
 void BK4819_RX_TurnOn(void) {

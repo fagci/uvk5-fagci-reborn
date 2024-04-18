@@ -307,7 +307,7 @@ void RADIO_ToggleTX(bool on) {
   gTxState = on;
 }
 
-void RADIO_ToggleBK1080(bool on) {
+/* void RADIO_ToggleBK1080(bool on) {
   if (on == isBK1080) {
     return;
   }
@@ -320,10 +320,10 @@ void RADIO_ToggleBK1080(bool on) {
     toggleBK1080(false);
     BK4819_RX_TurnOn();
   }
-}
+} */
 
 void RADIO_SetModulationByPreset(void) {
-  ModulationType mod = gCurrentPreset->band.modulation;
+  /* ModulationType mod = gCurrentPreset->band.modulation;
   if (mod == MOD_WFM) {
     if (RADIO_IsBK1080Range(radio->rx.f)) {
       RADIO_ToggleBK1080(true);
@@ -331,7 +331,7 @@ void RADIO_SetModulationByPreset(void) {
     }
     gCurrentPreset->band.modulation = MOD_FM;
   }
-  RADIO_ToggleBK1080(false);
+  RADIO_ToggleBK1080(false); */
   BK4819_SetModulation(gCurrentPreset->band.modulation);
   onPresetUpdate();
 }
@@ -380,11 +380,11 @@ void RADIO_SetSquelchPure(uint32_t f, uint8_t sql) {
 
 void RADIO_TuneToPure(uint32_t f, bool precise) {
   LOOT_Replace(&gLoot[gSettings.activeVFO], f);
-  if (isBK1080) {
+  /* if (isBK1080) {
     // BK1080_SetFrequency(f);
-  } else {
+  } else { */
     BK4819_TuneTo(f, precise);
-  }
+  // }
 }
 
 void RADIO_SetupByCurrentVFO(void) {
@@ -400,8 +400,8 @@ void RADIO_SetupByCurrentVFO(void) {
     // NOTE: commented coz we think, that band not contains boundary
     // BK4819_Squelch(gCurrentPreset->band.squelch, f);
 
-    RADIO_ToggleBK1080(gCurrentPreset->band.modulation == MOD_WFM &&
-                       RADIO_IsBK1080Range(f));
+    /* RADIO_ToggleBK1080(gCurrentPreset->band.modulation == MOD_WFM &&
+                       RADIO_IsBK1080Range(f)); */
   }
 
   RADIO_TuneToPure(f, true);

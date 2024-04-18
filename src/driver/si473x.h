@@ -307,6 +307,40 @@ typedef enum {
   PROP_WB_SAME_INT_SOURCE = 0x5500, // Si4707 only
   PROP_WB_ASQ_INT_SOURCE = 0x5600,
   PROP_AUX_ASQ_INT_SOURCE = 0x6600, // AUX mode - Si4735-D60 or later
+
+  PROP_SSB_BFO = 0x0100, // Sets the Beat Frequency Offset (BFO) under SSB mode.
+  PROP_SSB_MODE = 0x0101, // Sets number of properties of the SSB mode.
+  PROP_SSB_RSQ_INTERRUPTS = 0x3200, // Configure Interrupts related to RSQ
+  PROP_SSB_RSQ_SNR_HI_THRESHOLD =
+      0x3201, // Sets high threshold for SNR interrupt
+  PROP_SSB_RSQ_SNR_LO_THRESHOLD =
+      0x3202, // Sets low threshold for SNR interrupt
+  PROP_SSB_RSQ_RSSI_HI_THRESHOLD =
+      0x3203, // Sets high threshold for RSSI interrupt
+  PROP_SSB_RSQ_RSSI_LO_THRESHOLD =
+      0x3204,                       // Sets low threshold for RSSI interrupt
+  PROP_SSB_SOFT_MUTE_RATE = 0x3300, // Sets the attack and decay rates when
+                                    // entering or leaving soft mute
+  PROP_SSB_SOFT_MUTE_MAX_ATTENUATION =
+      0x3302, // Sets the maximum attenuation during soft mute (db); 0dB to
+              // disable soft mute; defaul 8dB;
+  PROP_SSB_SOFT_MUTE_SNR_THRESHOLD =
+      0x3303, // Sets SNR threshould to engage soft mute. Defaul 8dB
+  PROP_SSB_RF_AGC_ATTACK_RATE =
+      0x3700, // Sets the number of milliseconds the high RF peak detector must
+              // be exceeded before decreasing the gain. Defaul 4.
+  PROP_SSB_RF_AGC_RELEASE_RATE =
+      0x3701, // Sets the number of milliseconds the low RF peak detector must
+              // be exceeded before increasing the gain. Defaul 24.
+  PROP_SSB_IF_AGC_RELEASE_RATE =
+      0x3703, // Sets the number of milliseconds the low IF peak detector must
+              // not be exceeded before increasing the gain. Default value is
+              // 140 (approximately 40 dB / s).
+  PROP_SSB_IF_AGC_ATTACK_RATE =
+      0x3702, // Sets the number of milliseconds the high IF peak detector must
+              // be exceeded before decreasing gain. Default value is 4
+              // (approximately 1400 dB / s).
+
 } SI47XX_PropertyCodes;
 
 enum {

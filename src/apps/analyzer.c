@@ -92,7 +92,7 @@ void ANALYZER_init(void) {
   SVC_Toggle(SVC_LISTEN, false, 0);
   RADIO_ToggleRX(false);
   RADIO_LoadCurrentVFO();
-  RADIO_ToggleBK1080(false);
+  // RADIO_ToggleBK1080(false);
 
   gMonitorMode = false;
 

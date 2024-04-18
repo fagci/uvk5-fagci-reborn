@@ -29,8 +29,14 @@ static void Boot(AppType_t appToRun) {
   APPS_run(appToRun);
 }
 
-void _putchar(char c) {
-  // UART_Send((uint8_t *)&c, 1);
+void _putchar(char c) { UART_Send((uint8_t *)&c, 1); }
+
+void uartHandle() {
+  if (UART_IsCommandAvailable()) {
+    __disable_irq();
+    UART_HandleCommand();
+    __enable_irq();
+  }
 }
 
 static void unreborn(void) {
@@ -93,7 +99,9 @@ void Main(void) {
   SYSTEM_ConfigureSysCon();
   SYSTICK_Init();
   BOARD_Init();
+
   UART_Init();
+  UART_Send("fagci r3b0rn", 13);
 
   BACKLIGHT_SetBrightness(7);
 
@@ -121,6 +129,8 @@ void Main(void) {
   } else {
     TaskAdd("Intro", Intro, 1, true, 5);
   }
+
+  TaskAdd("UART", uartHandle, 10, true, 0);
 
   while (true) {
     TasksUpdate(); // TODO: check if delay not needed or something
