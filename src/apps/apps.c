@@ -78,7 +78,8 @@ const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
 
 const App apps[APPS_COUNT] = {
     {"None"},
-    {"EEPROM view", MEMVIEW_Init, MEMVIEW_Update, MEMVIEW_Render, MEMVIEW_key, NULL},
+    {"EEPROM view", MEMVIEW_Init, MEMVIEW_Update, MEMVIEW_Render, MEMVIEW_key,
+     NULL},
     {"Spectrum band", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render,
      SPECTRUM_key, SPECTRUM_deinit},
     {"Spectrum analyzer", ANALYZER_init, ANALYZER_update, ANALYZER_render,
@@ -102,7 +103,8 @@ const App apps[APPS_COUNT] = {
      PRESETCFG_key, NULL},
     {"Scanlists", SCANLISTS_init, SCANLISTS_update, SCANLISTS_render,
      SCANLISTS_key, NULL},
-    {"Save to channel", SAVECH_init, SAVECH_update, SAVECH_render, SAVECH_key, NULL},
+    {"Save to channel", SAVECH_init, SAVECH_update, SAVECH_render, SAVECH_key,
+     NULL},
     {"Settings", SETTINGS_init, NULL, SETTINGS_render, SETTINGS_key, NULL},
     {"1 VFO", VFO1_init, VFO1_update, VFO1_render, VFO1_key, VFO1_deinit},
     {"2 VFO", VFO2_init, VFO2_update, VFO2_render, VFO2_key, VFO2_deinit},
@@ -147,7 +149,9 @@ void APPS_run(AppType_t app) {
   if (appsStack[stackIndex] == app) {
     return;
   }
-  APPS_deinit();
+  if (app != APP_FINPUT && app != APP_TEXTINPUT) {
+    APPS_deinit();
+  }
   pushApp(app);
   APPS_init(app);
 }
@@ -165,7 +169,14 @@ bool APPS_exit(void) {
     return false;
   }
   APPS_deinit();
-  popApp();
-  APPS_init(APPS_Peek());
+  AppType_t app = popApp();
+  if (app != APP_FINPUT && app != APP_TEXTINPUT) {
+    APPS_init(APPS_Peek());
+  } else {
+    gCurrentApp = APPS_Peek();
+
+    STATUSLINE_SetText("%s", apps[gCurrentApp].name);
+    gRedrawScreen = true;
+  }
   return true;
 }

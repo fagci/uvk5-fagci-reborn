@@ -49,13 +49,14 @@ void waitToSend() {
 bool SI47XX_downloadPatch() {
   // Send patch to the SI4735 device
   uint8_t buf[8];
+  const uint8_t PAGE_SIZE = SETTINGS_GetPageSize();
+  const uint32_t EEPROM_SIZE = SETTINGS_GetEEPROMSize();
+  const uint32_t PATCH_START = EEPROM_SIZE - PATCH_SIZE;
   for (uint16_t offset = 0; offset < PATCH_SIZE; offset += 8) {
     EEPROM_ReadBuffer(SETTINGS_GetEEPROMSize() - PATCH_SIZE + offset, buf, 8);
     I2C_Start();
     I2C_Write(SI47XX_I2C_ADDR);
-    for (uint16_t i = 0; i < 8; i++) {
-      I2C_Write(buf[i]);
-    }
+    I2C_WriteBuffer(buf, 8);
     I2C_Stop();
 
     // Testing download performance
@@ -231,6 +232,20 @@ void SI47XX_PatchPowerUp() {
 
   SI47XX_downloadPatch();
 
+  currentSsbMode.param.SBCUTFLT = 1;
+  currentSsbMode.param.AVC_DIVIDER = 0;
+  currentSsbMode.param.AVCEN = 1;
+  currentSsbMode.param.SMUTESEL = 0;
+  currentSsbMode.param.DSP_AFCDIS = 1;
+  /*
+  { 4, "0.5k" },
+  { 5, "1.0k" },
+  { 0, "1.2k" },
+  { 1, "2.2k" },
+  { 2, "3.0k" },
+  { 3, "4.0k" }
+  */
+  currentSsbMode.param.AUDIOBW = 2;
   sendProperty(PROP_SSB_MODE,
                (currentSsbMode.raw[1] << 8) | currentSsbMode.raw[0]);
   SYSTEM_DelayMs(550);
@@ -302,9 +317,21 @@ void SI47XX_SetFreq(uint16_t freq) {
   uint8_t size = 4;
   uint8_t cmd[5] = {CMD_FM_TUNE_FREQ, 0x00, hb, lb, 0};
 
+  if (si4732mode == SI47XX_FM) {
+    cmd[1] = 0x01; // FAST
+  }
+
+  if (false) { // for SW
+    cmd[4] = 1;
+  }
+
   if (si4732mode == SI47XX_AM) {
     cmd[0] = CMD_AM_TUNE_FREQ;
     size = 5;
+  }
+
+  if (si4732mode == SI47XX_LSB || si4732mode == SI47XX_USB) {
+    cmd[0] = CMD_AM_TUNE_FREQ; // same as AM 0x40
   }
 
   waitToSend();
