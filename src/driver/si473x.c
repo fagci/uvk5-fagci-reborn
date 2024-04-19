@@ -53,7 +53,7 @@ bool SI47XX_downloadPatch() {
   const uint32_t EEPROM_SIZE = SETTINGS_GetEEPROMSize();
   const uint32_t PATCH_START = EEPROM_SIZE - PATCH_SIZE;
   for (uint16_t offset = 0; offset < PATCH_SIZE; offset += 8) {
-    EEPROM_ReadBuffer(SETTINGS_GetEEPROMSize() - PATCH_SIZE + offset, buf, 8);
+    EEPROM_ReadBuffer(PATCH_START + offset, buf, 8);
     I2C_Start();
     I2C_Write(SI47XX_I2C_ADDR);
     I2C_WriteBuffer(buf, 8);
@@ -88,7 +88,7 @@ bool SI47XX_downloadPatch() {
     halts. if (cmd_status != 0x80) return false;
     */
   }
-  SYSTEM_DelayMs(250);
+  // SYSTEM_DelayMs(250);
   return true;
 }
 
@@ -248,7 +248,7 @@ void SI47XX_PatchPowerUp() {
   currentSsbMode.param.AUDIOBW = 2;
   sendProperty(PROP_SSB_MODE,
                (currentSsbMode.raw[1] << 8) | currentSsbMode.raw[0]);
-  SYSTEM_DelayMs(550);
+  // SYSTEM_DelayMs(550);
 
   AUDIO_ToggleSpeaker(true);
   setVolume(63);
