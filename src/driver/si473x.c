@@ -54,39 +54,8 @@ bool SI47XX_downloadPatch() {
   const uint32_t PATCH_START = EEPROM_SIZE - PATCH_SIZE;
   for (uint16_t offset = 0; offset < PATCH_SIZE; offset += 8) {
     EEPROM_ReadBuffer(PATCH_START + offset, buf, 8);
-    I2C_Start();
-    I2C_Write(SI47XX_I2C_ADDR);
-    I2C_WriteBuffer(buf, 8);
-    I2C_Stop();
-
-    // Testing download performance
-    // approach 1 - Faster - less secure (it might crash in some architectures)
-    // delayMicroseconds(MIN_DELAY_WAIT_SEND_LOOP); // Need check the minimum
-    // value
-
-    // approach 2 - More control. A little more secure than approach 1
-    /*
-    do
-    {
-        delayMicroseconds(150); // Minimum delay founded (Need check the minimum
-    value) Wire.requestFrom(deviceAddress, 1); } while (!(Wire.read() &
-    B10000000));
-    */
-
-    // approach 3 - same approach 2
     waitToSend();
-
-    // approach 4 - safer
-    /*
-    waitToSend();
-    uint8_t cmd_status;
-    // Uncomment the lines below if you want to check erro.
-    Wire.requestFrom(deviceAddress, 1);
-    cmd_status = Wire.read();
-    // The SI4735 issues a status after each 8 byte transfered.
-    // Just the bit 7 (CTS) should be seted. if bit 6 (ERR) is seted, the system
-    halts. if (cmd_status != 0x80) return false;
-    */
+    SI47XX_WriteBuffer(buf, 8);
   }
   // SYSTEM_DelayMs(250);
   return true;
