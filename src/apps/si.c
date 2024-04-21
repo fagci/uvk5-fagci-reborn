@@ -7,6 +7,7 @@
 #include "../ui/graphics.h"
 #include "apps.h"
 #include "finput.h"
+#include <stdint.h>
 
 typedef enum {
   FM_BT,
@@ -15,15 +16,15 @@ typedef enum {
   LW_BT,
 } BandType;
 
-static const char SI47XX_BW_NAMES[5][6] = {
+static const char SI47XX_BW_NAMES[5][8] = {
     "6 kHz", "4 kHz", "3 kHz", "2 kHz", "1 kHz",
 };
 
-static const char SI47XX_SSB_BW_NAMES[6][7] = {
+static const char SI47XX_SSB_BW_NAMES[6][8] = {
     "1.2 kHz", "2.2 kHz", "3 kHz", "4 kHz", "0.5 kHz", "1 kHz",
 };
 
-static const char SI47XX_MODE_NAMES[5][6] = {
+static const char SI47XX_MODE_NAMES[5][4] = {
     "FM", "AM", "LSB", "USB", "CW",
 };
 
@@ -84,6 +85,7 @@ static uint32_t lastUpdate = 0;
 static uint32_t lastRdsUpdate = 0;
 static uint32_t lastSeekUpdate = 0;
 static DateTime dt;
+static int16_t bfo = 0;
 
 static void tune(uint32_t f) {
   f /= divider;
@@ -131,6 +133,13 @@ void SI_update() {
 
 uint32_t lastFreqChange = 0;
 
+static void resetBFO() {
+  if (bfo != 0) {
+    bfo = 0;
+    SI47XX_SetBFO(bfo);
+  }
+}
+
 bool SI_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   // up-down keys
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
@@ -140,6 +149,7 @@ bool SI_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         lastFreqChange = Now();
         SI47XX_SetFreq(siCurrentFreq + step);
         SI47XX_ClearRDS();
+        resetBFO();
       }
       return true;
     case KEY_DOWN:
@@ -147,7 +157,20 @@ bool SI_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         lastFreqChange = Now();
         SI47XX_SetFreq(siCurrentFreq - step);
         SI47XX_ClearRDS();
+        resetBFO();
       }
+      return true;
+    case KEY_SIDE1:
+      if (bfo < INT16_MAX - 10) {
+        bfo += 10;
+      }
+      SI47XX_SetBFO(bfo);
+      return true;
+    case KEY_SIDE2:
+      if (bfo > INT16_MIN + 10) {
+        bfo -= 10;
+      }
+      SI47XX_SetBFO(bfo);
       return true;
     default:
       break;
@@ -158,6 +181,9 @@ bool SI_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     switch (key) {
     case KEY_STAR:
+      if (SI47XX_IsSSB()) {
+        return false;
+      }
       if (si4732mode == SI47XX_FM) {
         SI47XX_SetSeekFmSpacing(step);
       } else {
@@ -217,28 +243,30 @@ bool SI_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       gFInputCallback = tune;
       APPS_run(APP_FINPUT);
       return true;
-    case KEY_F:
+    case KEY_0:
+      divider = 100;
       if (si4732mode == SI47XX_FM) {
-        divider = 100;
         SI47XX_SwitchMode(SI47XX_AM);
         SI47XX_SetBandwidth(bw, true);
         tune(720000);
       } else if (si4732mode == SI47XX_AM) {
-        divider = 100;
         SI47XX_SwitchMode(SI47XX_LSB);
         SI47XX_SetSsbBandwidth(ssbBw);
         tune(711300);
-      } else if (si4732mode == SI47XX_LSB) {
-        divider = 100;
-        SI47XX_SwitchMode(SI47XX_USB);
-        SI47XX_SetSsbBandwidth(ssbBw);
-        tune(1422000);
       } else {
         divider = 1000;
         SI47XX_SwitchMode(SI47XX_FM);
         tune(10000000);
       }
+      resetBFO();
       return true;
+    case KEY_F:
+      if (SI47XX_IsSSB()) {
+        SI47XX_SwitchMode(si4732mode == SI47XX_LSB ? SI47XX_USB : SI47XX_LSB);
+        tune(siCurrentFreq * divider); // to apply SSB
+        return true;
+      }
+      return false;
     case KEY_STAR:
       BK4819_Idle();
       return true;
@@ -289,10 +317,13 @@ void SI_render() {
   if (si4732mode == SI47XX_FM) {
     PrintSmallEx(LCD_XCENTER, BASE + 6, POS_C, C_FILL, "STP %u ATT %u", step,
                  att);
+  } else if (SI47XX_IsSSB()) {
+    PrintSmallEx(LCD_XCENTER, BASE + 6, POS_C, C_FILL,
+                 "STP %u ATT %u BW %s BFO %d", step, att,
+                 SI47XX_SSB_BW_NAMES[ssbBw], bfo);
   } else {
-    PrintSmallEx(
-        LCD_XCENTER, BASE + 6, POS_C, C_FILL, "STP %u ATT %u BW %s", step, att,
-        SI47XX_IsSSB() ? SI47XX_SSB_BW_NAMES[ssbBw] : SI47XX_BW_NAMES[bw]);
+    PrintSmallEx(LCD_XCENTER, BASE + 6, POS_C, C_FILL, "STP %u ATT %u BW %s",
+                 step, att, SI47XX_BW_NAMES[bw]);
   }
 }
 

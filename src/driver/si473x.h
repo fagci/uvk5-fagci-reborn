@@ -522,6 +522,25 @@ typedef union {
   uint8_t raw[2];
 } SI47XX_AgcOverrride;
 
+typedef union {
+  struct {
+    uint8_t
+        FAST : 1; //!<  ARG1 - FAST Tuning. If set, executes fast and
+                  //!<  invalidated tune. The tune status will not be accurate.
+    uint8_t FREEZE : 1; //!<  Valid only for FM (Must be 0 to AM)
+    uint8_t DUMMY1 : 4; //!<  Always set 0
+    uint8_t
+        USBLSB : 2; //!<  SSB Upper Side Band (USB) and Lower Side Band (LSB)
+                    //!<  Selection. 10 = USB is selected; 01 = LSB is selected.
+    uint8_t FREQH;  //!<  ARG2 - Tune Frequency High byte.
+    uint8_t FREQL;  //!<  ARG3 - Tune Frequency Low byte.
+    uint8_t ANTCAPH; //!<  ARG4 - Antenna Tuning Capacitor High byte.
+    uint8_t ANTCAPL; //!<  ARG5 - Antenna Tuning Capacitor Low byte. Note used
+                     //!<  for FM.
+  } arg;
+  uint8_t raw[5];
+} SI47XX_SetFrequency;
+
 void SI47XX_PowerUp();
 void SI47XX_PowerDown();
 void SI47XX_SetFreq(uint16_t freq);
@@ -540,6 +559,7 @@ void SI47XX_SetSeekFmSpacing(uint16_t spacing);
 void SI47XX_SetSeekAmSpacing(uint16_t spacing);
 void SI47XX_SetSeekFmRssiThreshold(uint16_t value);
 void SI47XX_SetSeekAmRssiThreshold(uint16_t value);
+void SI47XX_SetBFO(int16_t bfo);
 
 extern SI47XX_MODE si4732mode;
 extern RSQStatus rsqStatus;

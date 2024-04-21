@@ -165,8 +165,6 @@ void SI47XX_PowerUp() {
     sendProperty(PROP_AM_SOFT_MUTE_MAX_ATTENUATION, 0);
     sendProperty(PROP_AM_AUTOMATIC_VOLUME_CONTROL_MAX_GAIN, 0x7800);
     SI47XX_SetSeekAmLimits(1800, 30000);
-  } else {
-    sendProperty(PROP_SSB_SOFT_MUTE_MAX_ATTENUATION, 0);
   }
   SI47XX_SetFreq(siCurrentFreq);
 }
@@ -199,6 +197,8 @@ void SI47XX_PatchPowerUp() {
   setVolume(63);
 
   SI47XX_SetFreq(siCurrentFreq);
+  sendProperty(PROP_SSB_SOFT_MUTE_MAX_ATTENUATION, 0);
+  sendProperty(PROP_AM_AUTOMATIC_VOLUME_CONTROL_MAX_GAIN, 0x7800);
 }
 
 void SI47XX_SetSsbBandwidth(SI47XX_SsbFilterBW bw) {
@@ -249,14 +249,15 @@ void SI47XX_PowerDown() {
 
 void SI47XX_SwitchMode(SI47XX_MODE mode) {
   if (si4732mode != mode) {
-    SI47XX_PowerDown();
+    bool wasSSB = SI47XX_IsSSB();
+    si4732mode = mode;
     if (mode == SI47XX_USB || mode == SI47XX_LSB) {
-      if (!SI47XX_IsSSB()) {
-        si4732mode = mode;
+      if (!wasSSB) {
+        SI47XX_PowerDown();
         SI47XX_PatchPowerUp();
       }
     } else {
-      si4732mode = mode;
+      SI47XX_PowerDown();
       SI47XX_PowerUp();
     }
   }
@@ -267,7 +268,7 @@ void SI47XX_SetFreq(uint16_t freq) {
   uint8_t lb = freq & 0xFF;
 
   uint8_t size = 4;
-  uint8_t cmd[5] = {CMD_FM_TUNE_FREQ, 0x00, hb, lb, 0};
+  uint8_t cmd[6] = {CMD_FM_TUNE_FREQ, 0x00, hb, lb, 0, 1};
 
   if (si4732mode == SI47XX_FM) {
     cmd[1] = 0x01; // FAST
@@ -284,6 +285,12 @@ void SI47XX_SetFreq(uint16_t freq) {
 
   if (SI47XX_IsSSB()) {
     cmd[0] = CMD_AM_TUNE_FREQ; // same as AM 0x40
+    if (si4732mode == SI47XX_USB) {
+      cmd[1] = 0b10000000;
+    } else {
+      cmd[1] = 0b01000000;
+    }
+    size = 6;
   }
 
   waitToSend();
@@ -334,3 +341,5 @@ void SI47XX_SetSeekFmRssiThreshold(uint16_t value) {
 void SI47XX_SetSeekAmRssiThreshold(uint16_t value) {
   sendProperty(PROP_AM_SEEK_TUNE_RSSI_THRESHOLD, value);
 }
+
+void SI47XX_SetBFO(int16_t bfo) { sendProperty(PROP_SSB_BFO, bfo); }
