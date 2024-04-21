@@ -306,7 +306,10 @@ void SI47XX_SetAMFrontendAGC(uint8_t minGainIdx, uint8_t attnBackup) {
 }
 
 void SI47XX_SetBandwidth(SI47XX_FilterBW AMCHFLT, bool AMPLFLT) {
-  sendProperty(PROP_AM_CHANNEL_FILTER, AMCHFLT << 8 | AMPLFLT);
+  SI47XX_BW_Config cfg = {0};
+  cfg.param.AMCHFLT = AMCHFLT;
+  cfg.param.AMPLFLT = AMPLFLT;
+  sendProperty(PROP_AM_CHANNEL_FILTER, (cfg.raw[1] << 8) | cfg.raw[0]);
 }
 
 void SI47XX_ReadRDS(uint8_t buf[13]) {

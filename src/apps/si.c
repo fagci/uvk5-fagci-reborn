@@ -311,6 +311,9 @@ void SI_render() {
                        fp2);
   PrintSmallEx(LCD_WIDTH - 1, BASE - 6, POS_R, C_FILL, "%s",
                SI47XX_MODE_NAMES[si4732mode]);
+  if (SI47XX_IsSSB()) {
+    PrintSmallEx(LCD_WIDTH - 1, BASE, POS_R, C_FILL, "%03d", bfo);
+  }
 
   if (si4732mode == SI47XX_FM) {
     if (rds.RDSSignal) {
@@ -335,9 +338,8 @@ void SI_render() {
     PrintSmallEx(LCD_XCENTER, BASE + 6, POS_C, C_FILL, "STP %u ATT %u", step,
                  att);
   } else if (SI47XX_IsSSB()) {
-    PrintSmallEx(LCD_XCENTER, BASE + 6, POS_C, C_FILL,
-                 "STP %u ATT %u BW %s BFO %d", step, att,
-                 SI47XX_SSB_BW_NAMES[ssbBw], bfo);
+    PrintSmallEx(LCD_XCENTER, BASE + 6, POS_C, C_FILL, "STP %u BW %s", step,
+                 SI47XX_SSB_BW_NAMES[ssbBw]);
   } else {
     PrintSmallEx(LCD_XCENTER, BASE + 6, POS_C, C_FILL, "STP %u ATT %u BW %s",
                  step, att, SI47XX_BW_NAMES[bw]);

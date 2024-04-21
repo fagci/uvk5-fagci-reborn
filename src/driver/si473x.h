@@ -541,6 +541,16 @@ typedef union {
   uint8_t raw[5];
 } SI47XX_SetFrequency;
 
+typedef union {
+  struct {
+    uint8_t AMCHFLT : 4; //!<  Selects the bandwidth of the AM channel filter.
+    uint8_t DUMMY1 : 4;
+    uint8_t AMPLFLT : 1; //!<  Enables the AM Power Line Noise Rejection Filter.
+    uint8_t DUMMY2 : 7;
+  } param;
+  uint8_t raw[2];
+} SI47XX_BW_Config; // AM_CHANNEL_FILTER
+
 void SI47XX_PowerUp();
 void SI47XX_PowerDown();
 void SI47XX_SetFreq(uint16_t freq);
