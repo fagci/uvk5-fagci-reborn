@@ -270,7 +270,7 @@ void SI47XX_SetFreq(uint16_t freq) {
   uint8_t size = 4;
   uint8_t cmd[6] = {CMD_FM_TUNE_FREQ, 0x00, hb, lb, 0, 1};
 
-  if (si4732mode == SI47XX_FM) {
+  if (si4732mode == SI47XX_FM || si4732mode == SI47XX_AM) {
     cmd[1] = 0x01; // FAST
   }
 

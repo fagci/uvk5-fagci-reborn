@@ -86,6 +86,7 @@ static uint32_t lastRdsUpdate = 0;
 static uint32_t lastSeekUpdate = 0;
 static DateTime dt;
 static int16_t bfo = 0;
+static bool showSNR = false;
 
 static void tune(uint32_t f) {
   f /= divider;
@@ -116,7 +117,9 @@ void SI_update() {
     }
   }
   if (Now() - lastUpdate >= 1000) {
-    // RSQ_GET();
+    if (showSNR) {
+      RSQ_GET();
+    }
     lastUpdate = Now();
     gRedrawScreen = true;
   }
@@ -131,7 +134,7 @@ void SI_update() {
   }
 }
 
-uint32_t lastFreqChange = 0;
+static uint32_t lastFreqChange = 0;
 
 static void resetBFO() {
   if (bfo != 0) {
@@ -202,12 +205,20 @@ bool SI_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     switch (key) {
     case KEY_1:
       if (step < 1000) {
-        step *= 10;
+        if (step == 1 || step == 10 || step == 100 || step == 1000) {
+          step *= 5;
+        } else {
+          step *= 2;
+        }
       }
       return true;
     case KEY_7:
       if (step > 1) {
-        step /= 10;
+        if (step == 1 || step == 10 || step == 100 || step == 1000) {
+          step /= 2;
+        } else {
+          step /= 5;
+        }
       }
       return true;
     case KEY_2:
@@ -239,6 +250,9 @@ bool SI_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         SI47XX_SetBandwidth(bw, true);
       }
       return true;
+    case KEY_4:
+      showSNR = !showSNR;
+      return true;
     case KEY_5:
       gFInputCallback = tune;
       APPS_run(APP_FINPUT);
@@ -249,14 +263,17 @@ bool SI_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         SI47XX_SwitchMode(SI47XX_AM);
         SI47XX_SetBandwidth(bw, true);
         tune(720000);
+        step = 5;
       } else if (si4732mode == SI47XX_AM) {
         SI47XX_SwitchMode(SI47XX_LSB);
         SI47XX_SetSsbBandwidth(ssbBw);
         tune(711300);
+        step = 1;
       } else {
         divider = 1000;
         SI47XX_SwitchMode(SI47XX_FM);
         tune(10000000);
+        step = 10;
       }
       resetBFO();
       return true;
@@ -324,6 +341,15 @@ void SI_render() {
   } else {
     PrintSmallEx(LCD_XCENTER, BASE + 6, POS_C, C_FILL, "STP %u ATT %u BW %s",
                  step, att, SI47XX_BW_NAMES[bw]);
+  }
+
+  if (showSNR) {
+    uint8_t rssi = rsqStatus.resp.RSSI;
+    if (rssi > 64) {
+      rssi = 64;
+    }
+    FillRect(0, 8, rssi * 2, 2, C_FILL);
+    PrintSmall(0, 15, "SNR %u", rsqStatus.resp.SNR);
   }
 }
 
