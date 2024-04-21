@@ -6,24 +6,24 @@
 
 void I2C_Start(void) {
   GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_I2C_SDA);
-  SYSTICK_Delay250ns(2);
+  SYSTICK_Delay250ns(4);
   GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_I2C_SCL);
-  SYSTICK_Delay250ns(2);
+  SYSTICK_Delay250ns(4);
   GPIO_ClearBit(&GPIOA->DATA, GPIOA_PIN_I2C_SDA);
-  SYSTICK_Delay250ns(2);
+  SYSTICK_Delay250ns(4);
   GPIO_ClearBit(&GPIOA->DATA, GPIOA_PIN_I2C_SCL);
-  SYSTICK_Delay250ns(2);
+  SYSTICK_Delay250ns(4);
 }
 
 void I2C_Stop(void) {
   GPIO_ClearBit(&GPIOA->DATA, GPIOA_PIN_I2C_SDA);
-  SYSTICK_Delay250ns(2);
+  SYSTICK_Delay250ns(4);
   GPIO_ClearBit(&GPIOA->DATA, GPIOA_PIN_I2C_SCL);
-  SYSTICK_Delay250ns(2);
+  SYSTICK_Delay250ns(4);
   GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_I2C_SCL);
-  SYSTICK_Delay250ns(2);
+  SYSTICK_Delay250ns(4);
   GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_I2C_SDA);
-  SYSTICK_Delay250ns(2);
+  SYSTICK_Delay250ns(4);
 }
 
 uint8_t I2C_Read(const bool end) {
