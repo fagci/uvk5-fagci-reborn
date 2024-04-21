@@ -312,7 +312,7 @@ void SI_render() {
   PrintSmallEx(LCD_WIDTH - 1, BASE - 6, POS_R, C_FILL, "%s",
                SI47XX_MODE_NAMES[si4732mode]);
   if (SI47XX_IsSSB()) {
-    PrintSmallEx(LCD_WIDTH - 1, BASE, POS_R, C_FILL, "%03d", bfo);
+    PrintSmallEx(LCD_WIDTH - 1, BASE, POS_R, C_FILL, "%d", bfo);
   }
 
   if (si4732mode == SI47XX_FM) {
