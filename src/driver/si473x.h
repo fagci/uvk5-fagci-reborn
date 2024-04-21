@@ -23,6 +23,15 @@ typedef enum {
 } SI47XX_FilterBW;
 
 typedef enum {
+  SI47XX_SSB_BW_1_2_kHz,
+  SI47XX_SSB_BW_2_2_kHz,
+  SI47XX_SSB_BW_3_kHz,
+  SI47XX_SSB_BW_4_kHz,
+  SI47XX_SSB_BW_0_5_kHz,
+  SI47XX_SSB_BW_1_0_kHz,
+} SI47XX_SsbFilterBW;
+
+typedef enum {
   CMD_POWER_UP = 0x01,
   CMD_GET_REV = 0x10,
   CMD_POWER_DOWN = 0x11,
@@ -142,6 +151,23 @@ typedef enum {
   OUT_DIGITAL2 = 0xB0, // DCLK, DFS, DIO
   OUT_BOTH = OUT_ANALOG | OUT_DIGITAL2,
 } SI47XX_OutputModes;
+
+typedef union {
+  struct {
+    uint8_t AUDIOBW : 4;  //!<  0 = 1.2kHz (default); 1=2.2kHz; 2=3kHz; 3=4kHz;
+                          //!<  4=500Hz; 5=1kHz
+    uint8_t SBCUTFLT : 4; //!<  SSB side band cutoff filter for band passand low
+                          //!<  pass filter
+    uint8_t AVC_DIVIDER : 4; //!<  set 0 for SSB mode; set 3 for SYNC mode;
+    uint8_t AVCEN : 1;       //!<  SSB Automatic Volume Control (AVC) enable;
+                             //!<  0=disable; 1=enable (default);
+    uint8_t SMUTESEL : 1;    //!<  SSB Soft-mute Based on RSSI or SNR
+    uint8_t DUMMY1 : 1;      //!<  Always write 0;
+    uint8_t
+        DSP_AFCDIS : 1; //!<  0=SYNC MODE, AFC enable; 1=SSB MODE, AFC disable.
+  } param;
+  uint8_t raw[2];
+} SsbMode;
 
 // Define Si47xx Status flag masks (bits the chip fed us)
 typedef enum {
@@ -501,11 +527,13 @@ void SI47XX_PowerDown();
 void SI47XX_SetFreq(uint16_t freq);
 void SI47XX_ReadRDS(uint8_t buf[13]);
 void SI47XX_SwitchMode(SI47XX_MODE mode);
+bool SI47XX_IsSSB();
 void RSQ_GET();
 void SI47XX_SetAutomaticGainControl(uint8_t AGCDIS, uint8_t AGCIDX);
 void SI47XX_Seek(bool up, bool wrap);
 uint16_t SI47XX_getFrequency(bool *valid);
 void SI47XX_SetBandwidth(SI47XX_FilterBW AMCHFLT, bool AMPLFLT);
+void SI47XX_SetSsbBandwidth(SI47XX_SsbFilterBW bw);
 void SI47XX_SetSeekFmLimits(uint16_t bottom, uint16_t top);
 void SI47XX_SetSeekAmLimits(uint16_t bottom, uint16_t top);
 void SI47XX_SetSeekFmSpacing(uint16_t spacing);

@@ -19,11 +19,16 @@ static const char SI47XX_BW_NAMES[5][6] = {
     "6 kHz", "4 kHz", "3 kHz", "2 kHz", "1 kHz",
 };
 
+static const char SI47XX_SSB_BW_NAMES[6][7] = {
+    "1.2 kHz", "2.2 kHz", "3 kHz", "4 kHz", "0.5 kHz", "1 kHz",
+};
+
 static const char SI47XX_MODE_NAMES[5][6] = {
     "FM", "AM", "LSB", "USB", "CW",
 };
 
 static SI47XX_FilterBW bw = SI47XX_BW_6_kHz;
+static SI47XX_SsbFilterBW ssbBw = SI47XX_SSB_BW_3_kHz;
 
 typedef struct // Band data
 {
@@ -85,8 +90,8 @@ static void tune(uint32_t f) {
   if (si4732mode == SI47XX_FM) {
     f -= f % 5;
   }
-  SI47XX_SetFreq(f);
   SI47XX_ClearRDS();
+  SI47XX_SetFreq(f);
 }
 
 void SI_init() {
@@ -124,17 +129,25 @@ void SI_update() {
   }
 }
 
+uint32_t lastFreqChange = 0;
+
 bool SI_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   // up-down keys
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (key) {
     case KEY_UP:
-      SI47XX_SetFreq(siCurrentFreq + step);
-      SI47XX_ClearRDS();
+      if (Now() - lastFreqChange > 250) {
+        lastFreqChange = Now();
+        SI47XX_SetFreq(siCurrentFreq + step);
+        SI47XX_ClearRDS();
+      }
       return true;
     case KEY_DOWN:
-      SI47XX_SetFreq(siCurrentFreq - step);
-      SI47XX_ClearRDS();
+      if (Now() - lastFreqChange > 250) {
+        lastFreqChange = Now();
+        SI47XX_SetFreq(siCurrentFreq - step);
+        SI47XX_ClearRDS();
+      }
       return true;
     default:
       break;
@@ -184,19 +197,27 @@ bool SI_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       }
       return true;
     case KEY_6:
-      if (bw == SI47XX_BW_1_kHz) {
-        bw = SI47XX_BW_6_kHz;
+      if (SI47XX_IsSSB()) {
+        if (ssbBw == SI47XX_SSB_BW_1_0_kHz) {
+          ssbBw = SI47XX_SSB_BW_1_2_kHz;
+        } else {
+          ssbBw++;
+        }
+        SI47XX_SetSsbBandwidth(ssbBw);
       } else {
-        bw++;
+        if (bw == SI47XX_BW_1_kHz) {
+          bw = SI47XX_BW_6_kHz;
+        } else {
+          bw++;
+        }
+        SI47XX_SetBandwidth(bw, true);
       }
-      SI47XX_SetBandwidth(bw, true);
       return true;
     case KEY_5:
       gFInputCallback = tune;
       APPS_run(APP_FINPUT);
       return true;
     case KEY_F:
-      SI47XX_ClearRDS();
       if (si4732mode == SI47XX_FM) {
         divider = 100;
         SI47XX_SwitchMode(SI47XX_AM);
@@ -205,8 +226,13 @@ bool SI_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       } else if (si4732mode == SI47XX_AM) {
         divider = 100;
         SI47XX_SwitchMode(SI47XX_LSB);
-        SI47XX_SetBandwidth(bw, true);
+        SI47XX_SetSsbBandwidth(ssbBw);
         tune(711300);
+      } else if (si4732mode == SI47XX_LSB) {
+        divider = 100;
+        SI47XX_SwitchMode(SI47XX_USB);
+        SI47XX_SetSsbBandwidth(ssbBw);
+        tune(1422000);
       } else {
         divider = 1000;
         SI47XX_SwitchMode(SI47XX_FM);
@@ -264,8 +290,9 @@ void SI_render() {
     PrintSmallEx(LCD_XCENTER, BASE + 6, POS_C, C_FILL, "STP %u ATT %u", step,
                  att);
   } else {
-    PrintSmallEx(LCD_XCENTER, BASE + 6, POS_C, C_FILL, "STP %u ATT %u BW %s",
-                 step, att, SI47XX_BW_NAMES[bw]);
+    PrintSmallEx(
+        LCD_XCENTER, BASE + 6, POS_C, C_FILL, "STP %u ATT %u BW %s", step, att,
+        SI47XX_IsSSB() ? SI47XX_SSB_BW_NAMES[ssbBw] : SI47XX_BW_NAMES[bw]);
   }
 }
 

@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-extern bool gEepromRead;
 extern bool gEepromWrite;
 
 void EEPROM_ReadBuffer(uint32_t Address, void *pBuffer, uint16_t Size);

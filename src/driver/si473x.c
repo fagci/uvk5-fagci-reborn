@@ -1,24 +1,23 @@
 #include "si473x.h"
 #include "../inc/dp32g030/gpio.h"
-#include "../misc.h"
+#include "../settings.h"
 #include "audio.h"
+#include "eeprom.h"
 #include "gpio.h"
 #include "i2c.h"
-#include "si473x-patch.h"
 #include "system.h"
 #include "systick.h"
+
+static const uint8_t SI47XX_I2C_ADDR = 0x22;
 
 #define RST_HIGH GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BK1080)
 #define RST_LOW GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BK1080)
 
-// Command arguments
-
 RSQStatus rsqStatus;
+SsbMode currentSsbMode;
 
 SI47XX_MODE si4732mode = SI47XX_FM;
 uint16_t siCurrentFreq = 10320;
-
-static const uint8_t SI47XX_I2C_ADDR = 0x22;
 
 void SI47XX_ReadBuffer(uint8_t *buf, uint8_t size) {
   I2C_Start();
@@ -34,28 +33,32 @@ void SI47XX_WriteBuffer(uint8_t *buf, uint8_t size) {
   I2C_Stop();
 }
 
+bool SI47XX_IsSSB() {
+  return si4732mode == SI47XX_USB || si4732mode == SI47XX_LSB;
+}
+
 void waitToSend() {
   uint8_t tmp = 0;
   SI47XX_ReadBuffer((uint8_t *)&tmp, 1);
   while (!(tmp & STATUS_CTS)) {
-    SYSTICK_DelayUs(100);
+    SYSTICK_DelayUs(1);
     SI47XX_ReadBuffer((uint8_t *)&tmp, 1);
   }
 }
 
-#include "../settings.h"
-#include "eeprom.h"
-
 bool SI47XX_downloadPatch() {
-  // Send patch to the SI4735 device
-  uint8_t buf[8];
+  uint8_t buf[248];
   const uint8_t PAGE_SIZE = SETTINGS_GetPageSize();
   const uint32_t EEPROM_SIZE = SETTINGS_GetEEPROMSize();
   const uint32_t PATCH_START = EEPROM_SIZE - PATCH_SIZE;
-  for (uint16_t offset = 0; offset < PATCH_SIZE; offset += 8) {
-    EEPROM_ReadBuffer(PATCH_START + offset, buf, 8);
-    waitToSend();
-    SI47XX_WriteBuffer(buf, 8);
+  for (uint16_t offset = 0; offset < PATCH_SIZE; offset += 248) {
+    uint32_t eepromN = PATCH_SIZE - offset > 248 ? 248 : PATCH_SIZE - offset;
+    EEPROM_ReadBuffer(PATCH_START + offset, buf, eepromN);
+
+    for (uint8_t i = 0; i < eepromN; i += 8) {
+      waitToSend();
+      SI47XX_WriteBuffer(buf + i, 8);
+    }
   }
   // SYSTEM_DelayMs(250);
   return true;
@@ -144,7 +147,6 @@ void SI47XX_SetAutomaticGainControl(uint8_t AGCDIS, uint8_t AGCIDX) {
 
 void SI47XX_PowerUp() {
   RST_HIGH;
-  // SYSTEM_DelayMs(10);
   uint8_t cmd[3] = {CMD_POWER_UP, FLG_XOSCEN | FUNC_FM, OUT_ANALOG};
   if (si4732mode == SI47XX_AM) {
     cmd[1] = FLG_XOSCEN | FUNC_AM;
@@ -152,10 +154,6 @@ void SI47XX_PowerUp() {
   waitToSend();
   SI47XX_WriteBuffer(cmd, 3);
   SYSTEM_DelayMs(500);
-
-  /* waitToSend(); // for stability. gpo... maybe not needed
-  uint8_t cmd2[2] = {CMD_GPIO_CTL, FLG_GPO1OEN | FLG_GPO2OEN};
-  SI47XX_WriteBuffer(cmd2, 2); */
 
   AUDIO_ToggleSpeaker(true);
   setVolume(63);
@@ -173,24 +171,18 @@ void SI47XX_PowerUp() {
   SI47XX_SetFreq(siCurrentFreq);
 }
 
-typedef union {
-  struct {
-    uint8_t AUDIOBW : 4;  //!<  0 = 1.2kHz (default); 1=2.2kHz; 2=3kHz; 3=4kHz;
-                          //!<  4=500Hz; 5=1kHz
-    uint8_t SBCUTFLT : 4; //!<  SSB side band cutoff filter for band passand low
-                          //!<  pass filter
-    uint8_t AVC_DIVIDER : 4; //!<  set 0 for SSB mode; set 3 for SYNC mode;
-    uint8_t AVCEN : 1;       //!<  SSB Automatic Volume Control (AVC) enable;
-                             //!<  0=disable; 1=enable (default);
-    uint8_t SMUTESEL : 1;    //!<  SSB Soft-mute Based on RSSI or SNR
-    uint8_t DUMMY1 : 1;      //!<  Always write 0;
-    uint8_t
-        DSP_AFCDIS : 1; //!<  0=SYNC MODE, AFC enable; 1=SSB MODE, AFC disable.
-  } param;
-  uint8_t raw[2];
-} SsbMode;
-
-SsbMode currentSsbMode;
+void SI47XX_SsbSetup(SI47XX_SsbFilterBW AUDIOBW, uint8_t SBCUTFLT,
+                     uint8_t AVC_DIVIDER, uint8_t AVCEN, uint8_t SMUTESEL,
+                     uint8_t DSP_AFCDIS) {
+  currentSsbMode.param.SBCUTFLT = SBCUTFLT;
+  currentSsbMode.param.AVC_DIVIDER = AVC_DIVIDER;
+  currentSsbMode.param.AVCEN = AVCEN;
+  currentSsbMode.param.SMUTESEL = SMUTESEL;
+  currentSsbMode.param.DSP_AFCDIS = DSP_AFCDIS;
+  currentSsbMode.param.AUDIOBW = AUDIOBW;
+  sendProperty(PROP_SSB_MODE,
+               (currentSsbMode.raw[1] << 8) | currentSsbMode.raw[0]);
+}
 
 void SI47XX_PatchPowerUp() {
   RST_HIGH;
@@ -201,28 +193,16 @@ void SI47XX_PatchPowerUp() {
 
   SI47XX_downloadPatch();
 
-  currentSsbMode.param.SBCUTFLT = 1;
-  currentSsbMode.param.AVC_DIVIDER = 0;
-  currentSsbMode.param.AVCEN = 1;
-  currentSsbMode.param.SMUTESEL = 0;
-  currentSsbMode.param.DSP_AFCDIS = 1;
-  /*
-  { 4, "0.5k" },
-  { 5, "1.0k" },
-  { 0, "1.2k" },
-  { 1, "2.2k" },
-  { 2, "3.0k" },
-  { 3, "4.0k" }
-  */
-  currentSsbMode.param.AUDIOBW = 2;
-  sendProperty(PROP_SSB_MODE,
-               (currentSsbMode.raw[1] << 8) | currentSsbMode.raw[0]);
-  // SYSTEM_DelayMs(550);
+  SI47XX_SsbSetup(2, 1, 0, 1, 0, 1);
 
   AUDIO_ToggleSpeaker(true);
   setVolume(63);
 
   SI47XX_SetFreq(siCurrentFreq);
+}
+
+void SI47XX_SetSsbBandwidth(SI47XX_SsbFilterBW bw) {
+  SI47XX_SsbSetup(bw, 1, 0, 1, 0, 1);
 }
 
 void SI47XX_Seek(bool up, bool wrap) {
@@ -270,10 +250,13 @@ void SI47XX_PowerDown() {
 void SI47XX_SwitchMode(SI47XX_MODE mode) {
   if (si4732mode != mode) {
     SI47XX_PowerDown();
-    si4732mode = mode;
-    if (si4732mode == SI47XX_USB || si4732mode == SI47XX_LSB) {
-      SI47XX_PatchPowerUp();
+    if (mode == SI47XX_USB || mode == SI47XX_LSB) {
+      if (!SI47XX_IsSSB()) {
+        si4732mode = mode;
+        SI47XX_PatchPowerUp();
+      }
     } else {
+      si4732mode = mode;
       SI47XX_PowerUp();
     }
   }
@@ -299,7 +282,7 @@ void SI47XX_SetFreq(uint16_t freq) {
     size = 5;
   }
 
-  if (si4732mode == SI47XX_LSB || si4732mode == SI47XX_USB) {
+  if (SI47XX_IsSSB()) {
     cmd[0] = CMD_AM_TUNE_FREQ; // same as AM 0x40
   }
 
