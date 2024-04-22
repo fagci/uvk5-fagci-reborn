@@ -84,6 +84,7 @@ void CHANNELS_Delete(int32_t i) {
 void CHANNELS_LoadScanlist(uint8_t n) {
   gSettings.currentScanlist = n;
   int32_t max = CHANNELS_GetCountMax();
+  max = 128; // temporary
   uint8_t scanlistMask = 1 << n;
   gScanlistSize = 0;
   for (int32_t i = 0; i < max; ++i) {
