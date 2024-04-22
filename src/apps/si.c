@@ -175,6 +175,18 @@ bool SI_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       }
       SI47XX_SetBFO(bfo);
       return true;
+    case KEY_2:
+      if (att < 37) {
+        att++;
+        SI47XX_SetAutomaticGainControl(1, att);
+      }
+      return true;
+    case KEY_8:
+      if (att > 0) {
+        att--;
+        SI47XX_SetAutomaticGainControl(att > 0, att);
+      }
+      return true;
     default:
       break;
     }
@@ -219,18 +231,6 @@ bool SI_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         } else {
           step /= 5;
         }
-      }
-      return true;
-    case KEY_2:
-      if (att < 37) {
-        att++;
-        SI47XX_SetAutomaticGainControl(1, att);
-      }
-      return true;
-    case KEY_8:
-      if (att > 0) {
-        att--;
-        SI47XX_SetAutomaticGainControl(att > 0, att);
       }
       return true;
     case KEY_6:
@@ -338,11 +338,12 @@ void SI_render() {
     PrintSmallEx(LCD_XCENTER, BASE + 6, POS_C, C_FILL, "STP %u ATT %u", step,
                  att);
   } else if (SI47XX_IsSSB()) {
-    PrintSmallEx(LCD_XCENTER, BASE + 6, POS_C, C_FILL, "STP %u BW %s", step,
+    PrintSmallEx(LCD_XCENTER, BASE + 6, POS_C, C_FILL,
+                 "STP %u ATT %u BW %s", step, att,
                  SI47XX_SSB_BW_NAMES[ssbBw]);
   } else {
-    PrintSmallEx(LCD_XCENTER, BASE + 6, POS_C, C_FILL, "STP %u ATT %u BW %s",
-                 step, att, SI47XX_BW_NAMES[bw]);
+    PrintSmallEx(LCD_XCENTER, BASE + 6, POS_C, C_FILL,
+                 "STP %u ATT %u BW %s", step, att, SI47XX_BW_NAMES[bw]);
   }
 
   if (showSNR) {

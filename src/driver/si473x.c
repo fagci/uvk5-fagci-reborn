@@ -88,7 +88,7 @@ uint16_t getProperty(uint16_t prop, bool *valid) {
 
 void RSQ_GET() {
   uint8_t cmd[2] = {CMD_FM_RSQ_STATUS, 0x01};
-  if (si4732mode == SI47XX_AM) {
+  if (si4732mode != SI47XX_FM) {
     cmd[0] = CMD_AM_RSQ_STATUS;
   }
 
@@ -133,7 +133,7 @@ void SI47XX_SetAutomaticGainControl(uint8_t AGCDIS, uint8_t AGCIDX) {
   if (si4732mode == SI47XX_FM)
     cmd = CMD_FM_AGC_OVERRIDE;
   else
-    cmd = CMD_AM_AGC_OVERRIDE;
+    cmd = CMD_AM_AGC_OVERRIDE; // both for AM and SSB
 
   agc.arg.DUMMY = 0; // ARG1: bits 7:1 Always write to 0;
   agc.arg.AGCDIS = AGCDIS;
@@ -267,15 +267,13 @@ void SI47XX_SetFreq(uint16_t freq) {
   uint8_t hb = (freq >> 8) & 0xFF;
   uint8_t lb = freq & 0xFF;
 
+  bool isSW = freq > 1800;
+
   uint8_t size = 4;
-  uint8_t cmd[6] = {CMD_FM_TUNE_FREQ, 0x00, hb, lb, 0, 1};
+  uint8_t cmd[6] = {CMD_FM_TUNE_FREQ, 0x00, hb, lb, 0, 0};
 
   if (si4732mode == SI47XX_FM || si4732mode == SI47XX_AM) {
     cmd[1] = 0x01; // FAST
-  }
-
-  if (false) { // for SW
-    cmd[4] = 1;
   }
 
   if (si4732mode == SI47XX_AM) {
@@ -291,6 +289,12 @@ void SI47XX_SetFreq(uint16_t freq) {
       cmd[1] = 0b01000000;
     }
     size = 6;
+  }
+
+  if (si4732mode != SI47XX_FM) {
+    if (isSW) {
+      cmd[5] = 1;
+    }
   }
 
   waitToSend();

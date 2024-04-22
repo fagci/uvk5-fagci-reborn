@@ -570,6 +570,7 @@ void SI47XX_SetSeekAmSpacing(uint16_t spacing);
 void SI47XX_SetSeekFmRssiThreshold(uint16_t value);
 void SI47XX_SetSeekAmRssiThreshold(uint16_t value);
 void SI47XX_SetBFO(int16_t bfo);
+void SI47XX_SetSsbCapacitor(uint16_t v);
 
 extern SI47XX_MODE si4732mode;
 extern RSQStatus rsqStatus;
