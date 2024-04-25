@@ -1,46 +1,65 @@
 #include "channels.h"
 #include "../driver/eeprom.h"
 #include "../helper/measurements.h"
+#include "../helper/presetlist.h"
 #include <stddef.h>
 
-int32_t gScanlistSize = 0;
-int32_t gScanlist[350] = {0};
+#define SCANLIST_MAX 128
 
-static uint16_t presetsSizeBytes(void) {
-  return gSettings.presetsCount * PRESET_SIZE;
+int32_t gScanlistSize = 0;
+uint16_t gScanlist[SCANLIST_MAX] = {0};
+
+static const uint8_t CH_NAME_OFFSET = offsetof(CH, name);
+static const uint8_t CH_BANKS_OFFSET = offsetof(CH, memoryBanks);
+
+static uint32_t presetsSizeBytes(void) {
+  return ARRAY_SIZE(defaultPresets) * PRESET_SIZE;
+}
+
+static uint32_t getChannelsStart() {
+  return PRESETS_OFFSET + presetsSizeBytes();
 }
 
 static uint32_t getChannelsEnd() {
   return SETTINGS_GetEEPROMSize() - PATCH_SIZE;
 }
 
-int32_t CHANNELS_GetCountMax(void) {
-  return (getChannelsEnd() - PRESETS_OFFSET - presetsSizeBytes()) / CH_SIZE;
+static uint32_t GetChannelOffset(int32_t num) {
+  return getChannelsEnd() - (num + 1) * CH_SIZE;
+}
+
+uint16_t CHANNELS_GetCountMax(void) {
+  return (getChannelsEnd() - getChannelsStart()) / CH_SIZE;
 }
 
 void CHANNELS_Load(int32_t num, CH *p) {
   if (num >= 0) {
-    EEPROM_ReadBuffer(getChannelsEnd() - (num + 1) * CH_SIZE, p, CH_SIZE);
+    EEPROM_ReadBuffer(GetChannelOffset(num), p, CH_SIZE);
   }
 }
 
 void CHANNELS_Save(int32_t num, CH *p) {
   if (num >= 0) {
-    EEPROM_WriteBuffer(getChannelsEnd() - (num + 1) * CH_SIZE, p, CH_SIZE);
+    EEPROM_WriteBuffer(GetChannelOffset(num), p, CH_SIZE);
   }
 }
 
-bool CHANNELS_Existing(int32_t i) {
+void CHANNELS_Delete(int32_t num) {
   char name[1] = {0};
-  uint32_t addr = getChannelsEnd() - ((i + 1) * CH_SIZE) + offsetof(CH, name);
+  uint32_t addr = GetChannelOffset(num) + CH_NAME_OFFSET;
+  EEPROM_WriteBuffer(addr, name, 1);
+}
+
+bool CHANNELS_Existing(int32_t num) {
+  char name[1] = {0};
+  uint32_t addr = GetChannelOffset(num) + CH_NAME_OFFSET;
   EEPROM_ReadBuffer(addr, name, 1);
   return IsReadable(name);
 }
 
-uint8_t CHANNELS_Scanlists(int32_t i) {
+uint8_t CHANNELS_Scanlists(int32_t num) {
   uint8_t scanlists;
-  uint32_t addr =
-      getChannelsEnd() - ((i + 1) * CH_SIZE) + offsetof(CH, memoryBanks);
+  uint32_t addr = GetChannelOffset(num) + CH_BANKS_OFFSET;
   EEPROM_ReadBuffer(addr, &scanlists, 1);
   return scanlists;
 }
@@ -76,15 +95,10 @@ int32_t CHANNELS_Next(int32_t base, bool next) {
   return -1;
 }
 
-void CHANNELS_Delete(int32_t i) {
-  CH v = {0};
-  CHANNELS_Save(i, &v);
-}
-
 void CHANNELS_LoadScanlist(uint8_t n) {
   gSettings.currentScanlist = n;
   int32_t max = CHANNELS_GetCountMax();
-  max = 128; // temporary
+  max = 1024; // temporary
   uint8_t scanlistMask = 1 << n;
   gScanlistSize = 0;
   for (int32_t i = 0; i < max; ++i) {
@@ -92,6 +106,9 @@ void CHANNELS_LoadScanlist(uint8_t n) {
         (CHANNELS_Scanlists(i) & scanlistMask) == scanlistMask) {
       gScanlist[gScanlistSize] = i;
       gScanlistSize++;
+      if (gScanlistSize >= SCANLIST_MAX) {
+        break;
+      }
     }
   }
   SETTINGS_Save();

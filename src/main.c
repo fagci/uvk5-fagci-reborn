@@ -10,6 +10,7 @@
 #include "driver/uart.h"
 #include "external/CMSIS_5/Device/ARM/ARMCM0/Include/ARMCM0.h"
 #include "helper/battery.h"
+#include "helper/channels.h"
 #include "helper/presetlist.h"
 #include "radio.h"
 #include "scheduler.h"
@@ -62,14 +63,6 @@ static void unreborn(void) {
     continue;
 }
 
-static void reset(void) {
-  SVC_Toggle(SVC_APPS, true, 1);
-  APPS_run(APP_RESET);
-  while (true) {
-    TasksUpdate();
-  }
-}
-
 static void Intro(void) {
   UI_ClearScreen();
   PrintMediumBoldEx(LCD_XCENTER, LCD_YCENTER, POS_C, C_FILL, "r3b0rn");
@@ -108,9 +101,7 @@ void Main(void) {
   SVC_Toggle(SVC_RENDER, true, 25);
 
   KEY_Code_t pressedKey = KEYBOARD_Poll();
-  if (pressedKey == KEY_EXIT) {
-    reset();
-  } else if (pressedKey == KEY_7) {
+  if (pressedKey == KEY_7) {
     unreborn();
   }
 
@@ -124,7 +115,9 @@ void Main(void) {
   BACKLIGHT_On();
   ST7565_Init();
 
-  if (KEYBOARD_Poll() == KEY_5) {
+  if (pressedKey == KEY_EXIT) {
+    Boot(APP_RESET);
+  } else if (KEYBOARD_Poll() == KEY_5) {
     Boot(APP_MEMVIEW);
   } else {
     TaskAdd("Intro", Intro, 1, true, 5);
