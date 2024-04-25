@@ -65,7 +65,11 @@ static void toggleScanlist(uint8_t n) {
 void SCANLISTS_init() {
   gRedrawScreen = true;
   CHANNELS_LoadScanlist(gSettings.currentScanlist);
-  count = gScanlistSize;
+  if (gSettings.currentScanlist == 15) {
+    count = CHANNELS_GetCountMax();
+  } else {
+    count = gScanlistSize;
+  }
 }
 
 void SCANLISTS_update() {}
@@ -102,7 +106,7 @@ bool SCANLISTS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_0:
       CHANNELS_LoadScanlist(15);
-      count = gScanlistSize;
+      count = CHANNELS_GetCountMax();
       currentIndex = 0;
       return true;
     case KEY_UP:
