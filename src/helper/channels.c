@@ -102,8 +102,10 @@ void CHANNELS_LoadScanlist(uint8_t n) {
   uint8_t scanlistMask = 1 << n;
   gScanlistSize = 0;
   for (int32_t i = 0; i < max; ++i) {
-    if ((n == 15 && CHANNELS_Existing(i)) ||
-        (CHANNELS_Scanlists(i) & scanlistMask) == scanlistMask) {
+    if (!CHANNELS_Existing(i)) {
+      continue;
+    }
+    if (n == 15 || (CHANNELS_Scanlists(i) & scanlistMask) == scanlistMask) {
       gScanlist[gScanlistSize] = i;
       gScanlistSize++;
       if (gScanlistSize >= SCANLIST_MAX) {
