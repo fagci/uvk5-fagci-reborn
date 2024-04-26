@@ -13,22 +13,56 @@
 static uint16_t currentChannelIndex = 0;
 static uint16_t chCount = 0;
 static char tempName[9] = {0};
+static uint16_t chNum = 0;
+static CH ch;
 
-static void getChannelName(uint16_t i, char *name) {
-  CH ch;
-  CHANNELS_Load(i, &ch);
-  if (IsReadable(ch.name)) {
-    strncpy(name, ch.name, 9);
-  } else {
-    sprintf(name, "CH-%u", i + 1);
+static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
+  CH _ch;
+  const uint8_t y = MENU_Y + i * MENU_ITEM_H;
+  CHANNELS_Load(index, &_ch);
+  if (isCurrent) {
+    FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
   }
+  if (IsReadable(_ch.name)) {
+    PrintMediumEx(8, y + 8, POS_L, C_INVERT, "%s", _ch.name);
+  } else {
+    PrintMediumEx(8, y + 8, POS_L, C_INVERT, "CH-%u", index + 1);
+    return;
+  }
+  char scanlistsStr[9] = "";
+  for (uint8_t i = 0; i < 8; ++i) {
+    scanlistsStr[i] = _ch.memoryBanks & (1 << i) ? '1' + i : '-';
+  }
+  PrintSmallEx(LCD_WIDTH - 1, y + 8, POS_R, C_INVERT, "%s", scanlistsStr);
+}
+
+static void getScanlistItem(uint16_t i, uint16_t index, bool isCurrent) {
+  uint16_t chNum = gScanlist[index];
+  CH _ch;
+  const uint8_t y = MENU_Y + i * MENU_ITEM_H;
+  CHANNELS_Load(chNum, &_ch);
+  if (isCurrent) {
+    FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
+  }
+  if (IsReadable(_ch.name)) {
+    PrintMediumEx(8, y + 8, POS_L, C_INVERT, "%s", _ch.name);
+  } else {
+    PrintMediumEx(8, y + 8, POS_L, C_INVERT, "CH-%u", index + 1);
+    return;
+  }
+  char scanlistsStr[9] = "";
+  for (uint8_t i = 0; i < 8; ++i) {
+    scanlistsStr[i] = _ch.memoryBanks & (1 << i) ? '1' + i : '-';
+  }
+  PrintSmallEx(LCD_WIDTH - 1 - 3, y + 8, POS_R, C_INVERT, "%s", scanlistsStr);
 }
 
 static void saveNamed(void) {
-  CH ch;
-  VFO2CH(radio, gCurrentPreset, &ch);
-  strncpy(ch.name, tempName, 9);
-  CHANNELS_Save(currentChannelIndex, &ch);
+  CH _ch;
+  VFO2CH(radio, gCurrentPreset, &_ch);
+  _ch.memoryBanks = 1 << gSettings.currentScanlist;
+  strncpy(_ch.name, tempName, 9);
+  CHANNELS_Save(currentChannelIndex, &_ch);
   for (uint8_t i = 0; i < 2; ++i) {
     if (gVFO[i].channel >= 0 && gVFO[i].channel == currentChannelIndex) {
       RADIO_VfoLoadCH(i);
@@ -36,8 +70,18 @@ static void saveNamed(void) {
     }
   }
 }
+static void saveRenamed() { CHANNELS_Save(chNum, &ch); }
 
-void SAVECH_init(void) { chCount = CHANNELS_GetCountMax(); }
+void SAVECH_init(void) {
+  gRedrawScreen = true;
+  CHANNELS_LoadScanlist(gSettings.currentScanlist);
+  if (gSettings.currentScanlist == 15) {
+    chCount = CHANNELS_GetCountMax();
+  } else {
+    chCount = gScanlistSize;
+  }
+}
+
 void SAVECH_update(void) {}
 
 static void save(void) {
@@ -46,6 +90,7 @@ static void save(void) {
            radio->rx.f % 100000);
   gTextInputSize = 9;
   gTextInputCallback = saveNamed;
+  APPS_run(APP_TEXTINPUT);
 }
 
 static void setMenuIndexAndRun(uint16_t v) {
@@ -53,52 +98,114 @@ static void setMenuIndexAndRun(uint16_t v) {
   save();
 }
 
+static void toggleScanlist(uint8_t n) {
+  CH _ch;
+  CHANNELS_Load(gScanlist[currentChannelIndex], &_ch);
+  _ch.memoryBanks ^= 1 << n;
+  CHANNELS_Save(gScanlist[currentChannelIndex], &_ch);
+}
+
 bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  chNum = gScanlist[currentChannelIndex];
   if (!bKeyPressed && !bKeyHeld) {
-    if (!gIsNumNavInput && key >= KEY_0 && key <= KEY_9) {
+    if (!gIsNumNavInput && key == KEY_STAR) {
       NUMNAV_Init(currentChannelIndex + 1, 1, chCount);
       gNumNavCallback = setMenuIndexAndRun;
+      return true;
     }
     if (gIsNumNavInput) {
       currentChannelIndex = NUMNAV_Input(key) - 1;
       return true;
     }
   }
-  CH ch;
-  switch (key) {
-  case KEY_UP:
-    IncDec16(&currentChannelIndex, 0, chCount, -1);
-    return true;
-  case KEY_DOWN:
-    IncDec16(&currentChannelIndex, 0, chCount, 1);
-    return true;
-  case KEY_MENU:
-    save();
-    APPS_run(APP_TEXTINPUT);
-    return true;
-  case KEY_EXIT:
-    APPS_exit();
-    return true;
-  case KEY_0:
-    CHANNELS_Delete(currentChannelIndex);
-    return true;
-  case KEY_PTT:
-    CHANNELS_Load(currentChannelIndex, &ch);
-    RADIO_TuneToSave(ch.rx.f);
-    APPS_run(APP_STILL);
-    return true;
-  default:
-    break;
+  if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
+    switch (key) {
+    case KEY_UP:
+      IncDec16(&currentChannelIndex, 0, chCount, -1);
+      return true;
+    case KEY_DOWN:
+      IncDec16(&currentChannelIndex, 0, chCount, 1);
+      return true;
+    default:
+      break;
+    }
+  }
+  if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
+    switch (key) {
+    case KEY_1:
+    case KEY_2:
+    case KEY_3:
+    case KEY_4:
+    case KEY_5:
+    case KEY_6:
+    case KEY_7:
+    case KEY_8:
+      CHANNELS_LoadScanlist(key - KEY_1);
+      chCount = gScanlistSize;
+      currentChannelIndex = 0;
+      return true;
+    case KEY_0:
+      CHANNELS_LoadScanlist(15);
+      chCount = CHANNELS_GetCountMax();
+      currentChannelIndex = 0;
+      return true;
+    default:
+      break;
+    }
+  }
+  CH _ch;
+  if (!bKeyPressed && !bKeyHeld) {
+    switch (key) {
+    case KEY_1:
+    case KEY_2:
+    case KEY_3:
+    case KEY_4:
+    case KEY_5:
+    case KEY_6:
+    case KEY_7:
+    case KEY_8:
+      toggleScanlist(key - KEY_1);
+      return true;
+    case KEY_MENU:
+      save();
+      return true;
+    case KEY_0:
+      CHANNELS_Delete(currentChannelIndex);
+      return true;
+    case KEY_PTT:
+      CHANNELS_Load(currentChannelIndex, &_ch);
+      RADIO_TuneToSave(_ch.rx.f);
+      APPS_run(APP_STILL);
+      return true;
+    case KEY_F:
+      CHANNELS_Load(chNum, &_ch);
+      gTextinputText = _ch.name;
+      gTextInputSize = 9;
+      gTextInputCallback = saveRenamed;
+      APPS_run(APP_TEXTINPUT);
+      return true;
+    case KEY_EXIT:
+      APPS_exit();
+      return true;
+    default:
+      break;
+    }
   }
   return false;
 }
 
 void SAVECH_render(void) {
   UI_ClearScreen();
+  if (gSettings.currentScanlist == 15) {
+    STATUSLINE_SetText(apps[APP_SAVECH].name);
+    UI_ShowMenuEx(getChItem, chCount, currentChannelIndex,
+                  MENU_LINES_TO_SHOW + 1);
+  } else {
+    STATUSLINE_SetText("Current scanlist: %u", gSettings.currentScanlist + 1);
+    UI_ShowMenuEx(getScanlistItem, chCount, currentChannelIndex,
+                  MENU_LINES_TO_SHOW + 1);
+  }
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
-  } else {
-    STATUSLINE_SetText(apps[APP_SAVECH].name);
   }
-  UI_ShowMenu(getChannelName, chCount, currentChannelIndex);
 }

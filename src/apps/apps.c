@@ -16,7 +16,6 @@
 #include "presetlist.h"
 #include "reset.h"
 #include "savech.h"
-#include "scanlists.h"
 #include "settings.h"
 #include "si.h"
 #include "spectrumreborn.h"
@@ -65,11 +64,11 @@ const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
     APP_VFO2,         //
     APP_SI,           //
     APP_CH_SCANNER,   //
+    APP_SAVECH,       //
     APP_SPECTRUM,     //
     APP_ANALYZER,     //
     APP_FASTSCAN,     //
     APP_LOOT_LIST,    //
-    APP_SCANLISTS,    //
     APP_PRESETS_LIST, //
     APP_ANT,          //
     APP_MEMVIEW,      //
@@ -86,6 +85,7 @@ const App apps[APPS_COUNT] = {
      ANALYZER_key, ANALYZER_deinit},
     {"CH Scan", CHSCANNER_init, CHSCANNER_update, CHSCANNER_render,
      CHSCANNER_key, CHSCANNER_deinit},
+    {"Channels", SAVECH_init, SAVECH_update, SAVECH_render, SAVECH_key, NULL},
     {"Freq catch", FASTSCAN_init, FASTSCAN_update, FASTSCAN_render,
      FASTSCAN_key, FASTSCAN_deinit},
     {"1 VFO pro", STILL_init, STILL_update, STILL_render, STILL_key,
@@ -101,10 +101,6 @@ const App apps[APPS_COUNT] = {
     {"VFO config", VFOCFG_init, VFOCFG_update, VFOCFG_render, VFOCFG_key, NULL},
     {"Preset config", PRESETCFG_init, PRESETCFG_update, PRESETCFG_render,
      PRESETCFG_key, NULL},
-    {"Scanlists", SCANLISTS_init, SCANLISTS_update, SCANLISTS_render,
-     SCANLISTS_key, NULL},
-    {"Save to channel", SAVECH_init, SAVECH_update, SAVECH_render, SAVECH_key,
-     NULL},
     {"Settings", SETTINGS_init, NULL, SETTINGS_render, SETTINGS_key, NULL},
     {"1 VFO", VFO1_init, VFO1_update, VFO1_render, VFO1_key, VFO1_deinit},
     {"2 VFO", VFO2_init, VFO2_update, VFO2_render, VFO2_key, VFO2_deinit},

@@ -16,6 +16,7 @@ typedef struct {
   uint16_t ct;
   uint16_t duration;
   uint16_t rssi;
+  uint8_t noise;
   bool open;
   bool blacklist;
   bool goodKnown;

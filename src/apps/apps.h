@@ -3,7 +3,7 @@
 
 #include "../driver/keyboard.h"
 
-#define APPS_COUNT 23
+#define APPS_COUNT 22
 #define RUN_APPS_COUNT 14
 
 typedef enum {
@@ -12,6 +12,7 @@ typedef enum {
   APP_SPECTRUM,
   APP_ANALYZER,
   APP_CH_SCANNER,
+  APP_SAVECH,
   APP_FASTSCAN,
   APP_STILL,
   APP_FINPUT,
@@ -22,8 +23,6 @@ typedef enum {
   APP_TEXTINPUT,
   APP_VFO_CFG,
   APP_PRESET_CFG,
-  APP_SCANLISTS,
-  APP_SAVECH,
   APP_SETTINGS,
   APP_VFO1,
   APP_VFO2,
