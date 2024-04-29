@@ -171,11 +171,11 @@ void RADIO_ToggleRX(bool on) {
     }
   }
 
-  if (isBK1080) {
+  /* if (isBK1080) {
     toggleBK1080(on);
-  } else {
-    toggleBK4819(on);
-  }
+  } else { */
+  toggleBK4819(on);
+  // }
 }
 
 void RADIO_EnableCxCSS(void) {
@@ -383,7 +383,7 @@ void RADIO_TuneToPure(uint32_t f, bool precise) {
   /* if (isBK1080) {
     // BK1080_SetFrequency(f);
   } else { */
-    BK4819_TuneTo(f, precise);
+  BK4819_TuneTo(f, precise);
   // }
 }
 
@@ -392,16 +392,13 @@ void RADIO_SetupByCurrentVFO(void) {
 
   Preset *p = PRESET_ByFrequency(f);
 
-  if (p != gCurrentPreset) {
-    gVFOPresets[gSettings.activeVFO] = gCurrentPreset = p;
+  if (gCurrentPreset != p) {
+    gCurrentPreset = p;
+    gVFOPresets[gSettings.activeVFO] = gCurrentPreset;
     gSettings.activePreset = PRESET_GetCurrentIndex();
 
     RADIO_SetupBandParams(&gCurrentPreset->band);
-    // NOTE: commented coz we think, that band not contains boundary
-    // BK4819_Squelch(gCurrentPreset->band.squelch, f);
-
-    /* RADIO_ToggleBK1080(gCurrentPreset->band.modulation == MOD_WFM &&
-                       RADIO_IsBK1080Range(f)); */
+    RADIO_ToggleRX(false);
   }
 
   RADIO_TuneToPure(f, true);
@@ -477,7 +474,7 @@ void RADIO_SetGain(uint8_t gainIndex) {
 
 void RADIO_SetupBandParams(Band *b) {
   uint32_t fMid = b->bounds.start + (b->bounds.end - b->bounds.start) / 2;
-  BK4819_SelectFilter(fMid);
+  // BK4819_SelectFilter(fMid); // not needeed as evety BK4819_TuneTo() it works
   BK4819_SquelchType(b->squelchType);
   BK4819_Squelch(b->squelch, fMid, gSettings.sqlOpenTime,
                  gSettings.sqlCloseTime);
@@ -677,16 +674,17 @@ void RADIO_NextFreq(bool next) {
   }
 
   Preset *nextPreset = PRESET_ByFrequency(radio->rx.f + dir);
+  Band *nextBand = &nextPreset->band;
+  uint32_t nextBandStep = StepFrequencyTable[nextBand->step];
+
   if (nextPreset != gCurrentPreset && nextPreset != &defaultPreset) {
     if (next) {
-      RADIO_TuneTo(nextPreset->band.bounds.start);
+      RADIO_TuneTo(nextBand->bounds.start);
     } else {
-      RADIO_TuneTo(nextPreset->band.bounds.end -
-                   nextPreset->band.bounds.end %
-                       StepFrequencyTable[nextPreset->band.step]);
+      RADIO_TuneTo(nextBand->bounds.end - nextBand->bounds.end % nextBandStep);
     }
   } else {
-    RADIO_TuneTo(radio->rx.f + StepFrequencyTable[nextPreset->band.step] * dir);
+    RADIO_TuneTo(radio->rx.f + nextBandStep * dir);
   }
   onVfoUpdate();
 }
