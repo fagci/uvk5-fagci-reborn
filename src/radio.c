@@ -398,7 +398,7 @@ void RADIO_SetupByCurrentVFO(void) {
     gSettings.activePreset = PRESET_GetCurrentIndex();
 
     RADIO_SetupBandParams(&gCurrentPreset->band);
-    RADIO_ToggleRX(false);
+    RADIO_ToggleRX(false); // to prevent muting when tune to new band
   }
 
   RADIO_TuneToPure(f, true);
