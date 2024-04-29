@@ -215,9 +215,7 @@ static void render2VFOPart(uint8_t i) {
     PrintSmallEx(LCD_WIDTH, bl - 9, POS_R, C_FILL, mod);
   }
 
-  uint32_t est = loot->lastTimeOpen
-                     ? (Now() - loot->lastTimeOpen) / 1000
-                     : 0;
+  uint32_t est = loot->lastTimeOpen ? (Now() - loot->lastTimeOpen) / 1000 : 0;
   if (loot->ct != 0xFF) {
     PrintSmallEx(0, bl + 6, POS_L, C_FILL, "CT:%u.%uHz",
                  CTCSS_Options[loot->ct] / 10, CTCSS_Options[loot->ct] % 10);

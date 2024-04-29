@@ -6,6 +6,7 @@
 #include "driver/gpio.h"
 #include "driver/st7565.h"
 #include "driver/system.h"
+#include "driver/uart.h"
 #include "helper/adapter.h"
 #include "helper/battery.h"
 #include "helper/channels.h"
@@ -454,6 +455,7 @@ void RADIO_LoadCurrentVFO(void) {
   radio = &gVFO[gSettings.activeVFO];
   gCurrentLoot = &gLoot[gSettings.activeVFO];
   RADIO_SetupByCurrentVFO();
+  RADIO_SetupBandParams(&gCurrentPreset->band);
 }
 
 void RADIO_SetSquelch(uint8_t sq) {
