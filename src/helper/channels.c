@@ -21,7 +21,12 @@ static uint32_t getChannelsStart() {
 }
 
 static uint32_t getChannelsEnd() {
-  return SETTINGS_GetEEPROMSize() - PATCH_SIZE;
+  uint32_t eepromSize = SETTINGS_GetEEPROMSize();
+  uint32_t minSizeWithPatch = getChannelsStart() + CH_SIZE + PATCH_SIZE;
+  if (eepromSize < minSizeWithPatch) {
+    return eepromSize;
+  }
+  return eepromSize - PATCH_SIZE;
 }
 
 static uint32_t GetChannelOffset(int32_t num) {

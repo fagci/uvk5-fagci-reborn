@@ -55,7 +55,7 @@ void RESET_Update(void) {
         .backlight = BL_TIME_VALUES[3],
         .txTime = 0,
         .micGain = 15,
-        .currentScanlist = 1,
+        .currentScanlist = 15,
         .upconverter = UPCONVERTER_OFF,
         .roger = 0,
         .scanmode = 0,
