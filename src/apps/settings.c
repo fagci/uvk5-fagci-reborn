@@ -47,10 +47,10 @@ static bool isSubMenu = false;
 
 static char Output[16];
 
-const char *fltBound[] = {"240MHz", "280MHz"};
+static const char *fltBound[] = {"240MHz", "280MHz"};
 
-const uint16_t BAT_CAL_MIN = 1900;
-const uint16_t BAT_CAL_MAX = 2155;
+static const uint16_t BAT_CAL_MIN = 1900;
+// static const uint16_t BAT_CAL_MAX = 2155;
 
 static const MenuItem menu[] = {
     {"Upconverter", M_UPCONVERTER, ARRAY_SIZE(upConverterFreqNames)},
@@ -381,8 +381,6 @@ static void setInitialSubmenuIndex(void) {
 }
 
 void SETTINGS_init(void) { gRedrawScreen = true; }
-
-void SETTINGS_update(void) {}
 
 static void setMenuIndexAndRun(uint16_t v) {
   menuIndex = v - 1;

@@ -11,17 +11,15 @@
 #include "fastscan.h"
 #include "finput.h"
 #include "lootlist.h"
-#include "messenger.h"
+#include "memview.h"
 #include "presetcfg.h"
 #include "presetlist.h"
 #include "reset.h"
 #include "savech.h"
-#include "scanlists.h"
 #include "settings.h"
+#include "si.h"
 #include "spectrumreborn.h"
 #include "still.h"
-#include "taskman.h"
-#include "test.h"
 #include "textinput.h"
 #include "vfo1.h"
 #include "vfo2.h"
@@ -64,53 +62,52 @@ const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
     APP_VFO1,         //
     APP_STILL,        //
     APP_VFO2,         //
+    APP_SI,           //
     APP_CH_SCANNER,   //
+    APP_SAVECH,       //
     APP_SPECTRUM,     //
     APP_ANALYZER,     //
     APP_FASTSCAN,     //
     APP_LOOT_LIST,    //
-    APP_SCANLISTS,    //
     APP_PRESETS_LIST, //
     APP_ANT,          //
-    APP_TASKMAN,      //
-    APP_TEST,         //
+    APP_MEMVIEW,      //
     APP_ABOUT,        //
 };
 
 const App apps[APPS_COUNT] = {
     {"None"},
-    {"Test", TEST_Init, TEST_Update, TEST_Render, TEST_key},
+    {"EEPROM view", MEMVIEW_Init, MEMVIEW_Update, MEMVIEW_Render, MEMVIEW_key,
+     NULL},
     {"Spectrum band", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render,
      SPECTRUM_key, SPECTRUM_deinit},
     {"Spectrum analyzer", ANALYZER_init, ANALYZER_update, ANALYZER_render,
      ANALYZER_key, ANALYZER_deinit},
     {"CH Scan", CHSCANNER_init, CHSCANNER_update, CHSCANNER_render,
      CHSCANNER_key, CHSCANNER_deinit},
+    {"Channels", SAVECH_init, SAVECH_update, SAVECH_render, SAVECH_key, NULL},
     {"Freq catch", FASTSCAN_init, FASTSCAN_update, FASTSCAN_render,
      FASTSCAN_key, FASTSCAN_deinit},
     {"1 VFO pro", STILL_init, STILL_update, STILL_render, STILL_key,
      STILL_deinit},
     {"Frequency input", FINPUT_init, NULL, FINPUT_render, FINPUT_key,
      FINPUT_deinit},
-    {"Run app", APPSLIST_init, NULL, APPSLIST_render, APPSLIST_key},
-    {"Loot", LOOTLIST_init, NULL, LOOTLIST_render, LOOTLIST_key},
-    {"Presets", PRESETLIST_init, NULL, PRESETLIST_render, PRESETLIST_key},
-    {"Reset", RESET_Init, RESET_Update, RESET_Render, RESET_key},
-    {"Text input", TEXTINPUT_init, TEXTINPUT_update, TEXTINPUT_render,
-     TEXTINPUT_key, TEXTINPUT_deinit},
-    {"VFO config", VFOCFG_init, VFOCFG_update, VFOCFG_render, VFOCFG_key},
+    {"Run app", APPSLIST_init, NULL, APPSLIST_render, APPSLIST_key, NULL},
+    {"Loot", LOOTLIST_init, NULL, LOOTLIST_render, LOOTLIST_key, NULL},
+    {"Presets", PRESETLIST_init, NULL, PRESETLIST_render, PRESETLIST_key, NULL},
+    {"Reset", RESET_Init, RESET_Update, RESET_Render, RESET_key, NULL},
+    {"Text input", TEXTINPUT_init, NULL, TEXTINPUT_render, TEXTINPUT_key,
+     TEXTINPUT_deinit},
+    {"VFO config", VFOCFG_init, VFOCFG_update, VFOCFG_render, VFOCFG_key, NULL},
     {"Preset config", PRESETCFG_init, PRESETCFG_update, PRESETCFG_render,
-     PRESETCFG_key},
-    {"Scanlists", SCANLISTS_init, SCANLISTS_update, SCANLISTS_render,
-     SCANLISTS_key},
-    {"Save to channel", SAVECH_init, SAVECH_update, SAVECH_render, SAVECH_key},
-    {"Settings", SETTINGS_init, SETTINGS_update, SETTINGS_render, SETTINGS_key},
+     PRESETCFG_key, NULL},
+    {"Settings", SETTINGS_init, NULL, SETTINGS_render, SETTINGS_key, NULL},
     {"1 VFO", VFO1_init, VFO1_update, VFO1_render, VFO1_key, VFO1_deinit},
     {"2 VFO", VFO2_init, VFO2_update, VFO2_render, VFO2_key, VFO2_deinit},
-    {"ABOUT", ABOUT_Init, ABOUT_Update, ABOUT_Render, ABOUT_key, ABOUT_Deinit},
-    {"Antenna len", ANTENNA_init, ANTENNA_update, ANTENNA_render, ANTENNA_key,
+    {"SI47XX", SI_init, SI_update, SI_render, SI_key, SI_deinit},
+    {"ABOUT", NULL, NULL, ABOUT_Render, ABOUT_key, NULL},
+    {"Antenna len", ANTENNA_init, NULL, ANTENNA_render, ANTENNA_key,
      ANTENNA_deinit},
-    {"Task manager", TASKMAN_Init, NULL, TASKMAN_Render, TASKMAN_Key},
 };
 
 bool APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
@@ -148,7 +145,9 @@ void APPS_run(AppType_t app) {
   if (appsStack[stackIndex] == app) {
     return;
   }
-  APPS_deinit();
+  if (app != APP_FINPUT && app != APP_TEXTINPUT) {
+    APPS_deinit();
+  }
   pushApp(app);
   APPS_init(app);
 }
@@ -166,7 +165,14 @@ bool APPS_exit(void) {
     return false;
   }
   APPS_deinit();
-  popApp();
-  APPS_init(APPS_Peek());
+  AppType_t app = popApp();
+  if (app != APP_FINPUT && app != APP_TEXTINPUT) {
+    APPS_init(APPS_Peek());
+  } else {
+    gCurrentApp = APPS_Peek();
+
+    STATUSLINE_SetText("%s", apps[gCurrentApp].name);
+    gRedrawScreen = true;
+  }
   return true;
 }

@@ -1,5 +1,4 @@
 #include "still.h"
-#include "../driver/audio.h"
 #include "../driver/bk4819.h"
 #include "../driver/st7565.h"
 #include "../helper/lootlist.h"
@@ -15,7 +14,7 @@
 #include "finput.h"
 
 static uint8_t menuState = 0;
-uint32_t lastUpdate = 0;
+static uint32_t lastUpdate = 0;
 
 static char String[16];
 
@@ -76,9 +75,9 @@ void STILL_deinit(void) { RADIO_ToggleRX(false); }
 void STILL_update(void) {
   RADIO_UpdateMeasurementsEx(gCurrentLoot);
 
-  if (elapsedMilliseconds - lastUpdate >= 500) {
+  if (Now() - lastUpdate >= 500) {
     gRedrawScreen = true;
-    lastUpdate = elapsedMilliseconds;
+    lastUpdate = Now();
   }
 }
 
@@ -199,9 +198,9 @@ static void DrawRegs(void) {
     const uint8_t textX = offsetX + (CELL_WIDTH - 2) / 2;
 
     if (menuState == idx) {
-      FillRoundRect(offsetX, offsetY, CELL_WIDTH - 2, CELL_HEIGHT - 1, 3, true);
+      FillRect(offsetX, offsetY, CELL_WIDTH - 2, CELL_HEIGHT - 1, C_FILL);
     } else {
-      DrawRoundRect(offsetX, offsetY, CELL_WIDTH - 2, CELL_HEIGHT - 1, 3, true);
+      DrawRect(offsetX, offsetY, CELL_WIDTH - 2, CELL_HEIGHT - 1, C_FILL);
     }
 
     if (rs.num == BK4819_REG_13) {

@@ -30,7 +30,7 @@ SIZE = arm-none-eabi-size
 GIT_HASH := $(shell git rev-parse --short HEAD)
 
 ASFLAGS = -c -mcpu=cortex-m0
-# CFLAGS = -Os  -Wall -Werror -mcpu=cortex-m0 -fno-delete-null-pointer-checks -std=c11 -MMD -ffunction-sections -fdata-sections
+# CFLAGS = -Os  -Wall -Wno-error -mcpu=cortex-m0 -fno-delete-null-pointer-checks -std=c11 -MMD -ffunction-sections -fdata-sections
 CFLAGS = -Os -Wall -Wno-error -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c2x -MMD -flto=auto -Wextra
 # CFLAGS = -Os -Wall -Wno-error -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c2x -MMD -ffunction-sections -fdata-sections -Wextra
 CFLAGS += -DPRINTF_INCLUDE_CONFIG_H
@@ -76,4 +76,4 @@ $(BIN_DIR) $(OBJ_DIR) $(BIN_DIR):
 -include $(DEPS)
 
 clean:
-	rm -f $(TARGET).bin $(TARGET).packed.bin $(TARGET) $(OBJS) $(DEPS)
+	rm -f $(TARGET).bin $(TARGET).packed.bin $(TARGET) $(OBJ_DIR)/*.o $(OBJ_DIR)/*.d $(OBJ_DIR)/**/*.o $(OBJ_DIR)/**/*.d

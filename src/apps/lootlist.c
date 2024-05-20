@@ -5,16 +5,12 @@
 #include "../helper/channels.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
-#include "../helper/presetlist.h"
-#include "../misc.h"
 #include "../radio.h"
 #include "../scheduler.h"
-#include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
 #include "../ui/statusline.h"
 #include "apps.h"
-#include <string.h>
 
 static uint8_t menuIndex = 0;
 static const uint8_t MENU_ITEM_H_LARGER = 15;
@@ -56,7 +52,6 @@ static void exportLootList(void) {
     }
   }
   UART_printf("--- >8 ---\n");
-  UART_flush();
 }
 
 static void getLootItem(uint16_t i, uint16_t index, bool isCurrent) {
@@ -92,7 +87,7 @@ static void getLootItemShort(uint16_t i, uint16_t index, bool isCurrent) {
   uint32_t f = item->f;
   const uint8_t x = LCD_WIDTH - 6;
   const uint8_t y = MENU_Y + i * MENU_ITEM_H;
-  const uint32_t ago = (elapsedMilliseconds - item->lastTimeOpen) / 1000;
+  const uint32_t ago = (Now() - item->lastTimeOpen) / 1000;
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
   }
@@ -163,8 +158,6 @@ static void saveAllToFreeChannels(void) {
     }
   }
 }
-
-void LOOTLIST_update(void) {}
 
 bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   Loot *item = LOOT_Item(menuIndex);

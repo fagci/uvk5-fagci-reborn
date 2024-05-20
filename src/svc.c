@@ -1,5 +1,4 @@
 #include "svc.h"
-#include "driver/uart.h"
 #include "scheduler.h"
 #include "svc_apps.h"
 #include "svc_bat_save.h"

@@ -1,5 +1,4 @@
 #include "svc_listening.h"
-// #include "apps/messenger.h"
 #include "driver/bk4819-regs.h"
 #include "driver/bk4819.h"
 #include "radio.h"
@@ -31,4 +30,5 @@ void SVC_LISTEN_Update(void) {
 void SVC_LISTEN_Deinit(void) {
   gListenFn = NULL;
   BK4819_WriteRegister(BK4819_REG_3F, 0);
+  RADIO_ToggleRX(false);
 }

@@ -38,11 +38,12 @@ enum BK4819_AF_Type_t {
   BK4819_AF_FM,
   BK4819_AF_ALAM, // tone
   BK4819_AF_BEEP, // for tx
-  BK4819_AF_RAW, // (ssb without if filter = raw in sdr sharp)
-  BK4819_AF_USB, // (or ssb = lsb and usb at the same time)
+  BK4819_AF_RAW,  // (ssb without if filter = raw in sdr sharp)
+  BK4819_AF_USB,  // (or ssb = lsb and usb at the same time)
   BK4819_AF_CTCO, // ctcss/dcs (fm with narrow filters for ctcss/dcs)
   BK4819_AF_AM,
-  BK4819_AF_FSKO, // fsk out test with special fsk filters (need reg58 fsk on to give sound on speaker )
+  BK4819_AF_FSKO, // fsk out test with special fsk filters (need reg58 fsk on to
+                  // give sound on speaker )
   BK4819_AF_BYPASS, // (fm without filter = discriminator output)
 };
 
@@ -112,7 +113,7 @@ void BK4819_SetCTCSSFrequency(uint32_t BaudRate);
 void BK4819_SetTailDetection(const uint32_t freq_10Hz);
 void BK4819_EnableVox(uint16_t Vox1Threshold, uint16_t Vox0Threshold);
 void BK4819_SetFilterBandwidth(BK4819_FilterBandwidth_t Bandwidth);
-void BK4819_SetupPowerAmplifier(uint16_t Bias, uint32_t Frequency);
+void BK4819_SetupPowerAmplifier(uint8_t Bias, uint32_t Frequency);
 void BK4819_SetFrequency(uint32_t Frequency);
 uint32_t BK4819_GetFrequency(void);
 void BK4819_SetupSquelch(uint8_t SquelchOpenRSSIThresh,
@@ -210,6 +211,5 @@ void BK4819_SetModulation(ModulationType type);
 bool BK4819_IsSquelchOpen();
 void BK4819_ResetRSSI();
 void BK4819_SetGain(uint8_t gainIndex);
-void BK4819_HandleInterrupts(void (*handler)(uint16_t intStatus));
 
 #endif

@@ -92,7 +92,7 @@ void ANALYZER_init(void) {
   SVC_Toggle(SVC_LISTEN, false, 0);
   RADIO_ToggleRX(false);
   RADIO_LoadCurrentVFO();
-  RADIO_ToggleBK1080(false);
+  // RADIO_ToggleBK1080(false);
 
   gMonitorMode = false;
 
@@ -244,5 +244,5 @@ void ANALYZER_render(void) {
   PrintSmallEx(spectrumWidth / 2, LCD_HEIGHT - 1, POS_C, C_FILL, "%u.%05u",
                centerF / 100000, centerF % 100000);
 
-  lastRender = elapsedMilliseconds;
+  lastRender = Now();
 }

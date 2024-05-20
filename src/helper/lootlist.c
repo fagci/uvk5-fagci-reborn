@@ -1,7 +1,6 @@
 #include "lootlist.h"
 #include "../dcs.h"
 #include "../driver/bk4819.h"
-#include "../driver/uart.h"
 #include "../scheduler.h"
 
 static Loot loot[LOOT_SIZE_MAX] = {0};
@@ -53,9 +52,9 @@ Loot *LOOT_AddEx(uint32_t f, bool reuse) {
     lootIndex++;
     loot[lootIndex] = (Loot){
         .f = f,
-        .firstTime = elapsedMilliseconds,
-        .lastTimeCheck = elapsedMilliseconds,
-        .lastTimeOpen = elapsedMilliseconds,
+        .firstTime = Now(),
+        .lastTimeCheck = Now(),
+        .lastTimeOpen = Now(),
         .duration = 0,
         .rssi = 0,
         .open = true, // as we add it when open
@@ -86,7 +85,7 @@ void LOOT_Standby(void) {
   for (uint8_t i = 0; i < LOOT_Size(); ++i) {
     Loot *p = &loot[i];
     p->open = false;
-    p->lastTimeCheck = elapsedMilliseconds;
+    p->lastTimeCheck = Now();
   }
 }
 
@@ -133,8 +132,8 @@ Loot *LOOT_Item(uint8_t i) { return &loot[i]; }
 void LOOT_Replace(Loot *item, uint32_t f) {
   item->f = f;
   item->open = false;
-  item->firstTime = elapsedMilliseconds;
-  item->lastTimeCheck = elapsedMilliseconds;
+  item->firstTime = Now();
+  item->lastTimeCheck = Now();
   item->lastTimeOpen = 0;
   item->duration = 0;
   item->rssi = 0;
@@ -159,7 +158,7 @@ void LOOT_UpdateEx(Loot *item, Loot *msm) {
   item->rssi = msm->rssi;
 
   if (item->open) {
-    item->duration += elapsedMilliseconds - item->lastTimeCheck;
+    item->duration += Now() - item->lastTimeCheck;
     gLastActiveLoot = item;
     gLastActiveLootIndex = LOOT_IndexOf(item);
   }
@@ -184,9 +183,9 @@ void LOOT_UpdateEx(Loot *item, Loot *msm) {
     default:
       break;
     }
-    item->lastTimeOpen = elapsedMilliseconds;
+    item->lastTimeOpen = Now();
   }
-  item->lastTimeCheck = elapsedMilliseconds;
+  item->lastTimeCheck = Now();
   item->open = msm->open;
 
   if (msm->blacklist) {
@@ -199,7 +198,6 @@ void LOOT_Update(Loot *msm) {
 
   if (item == NULL && msm->open) {
     item = LOOT_Add(msm->f);
-    UART_logf(1, "[LOOT] %u", msm->f);
   }
 
   LOOT_UpdateEx(item, msm);

@@ -106,14 +106,14 @@ static void setTXOffset(uint32_t f) {
 
 void VFOCFG_init(void) {
   gRedrawScreen = true;
-  for (uint8_t i = 0; i < MENU_SIZE; ++i) {
+  /* for (uint8_t i = 0; i < MENU_SIZE; ++i) {
     if (menu[i].type == M_MODULATION) {
       menu[i].size = RADIO_IsBK1080Range(radio->rx.f)
                          ? ARRAY_SIZE(modulationTypeOptions)
                          : ARRAY_SIZE(modulationTypeOptions) - 1;
       break;
     }
-  }
+  } */
 }
 
 void VFOCFG_update(void) {}

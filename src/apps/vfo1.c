@@ -19,9 +19,9 @@ void VFO1_init(void) {
 void VFO1_deinit(void) {}
 
 void VFO1_update(void) {
-  if (elapsedMilliseconds - lastUpdate >= 500) {
+  if (Now() - lastUpdate >= 500) {
     gRedrawScreen = true;
-    lastUpdate = elapsedMilliseconds;
+    lastUpdate = Now();
   }
 }
 

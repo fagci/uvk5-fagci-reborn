@@ -12,14 +12,14 @@ const char *BL_SQL_MODE_NAMES[3] = {"Off", "On", "Open"};
 const char *TX_POWER_NAMES[3] = {"Low", "Mid", "High"};
 const char *TX_OFFSET_NAMES[3] = {"Unset", "+", "-"};
 const char *EEPROM_TYPE_NAMES[8] = {
-    "Undefined 1",       // 000
-    "Undefined 2",       // 001
-    "BL24C64 (default)", // 010
-    "BL24C128",          // 011
-    "BL24C256",          // 100
-    "BL24C512",          // 101
-    "BL24C1024",         // 110
-    "M24M02 (x1)",       // 111
+    "none 1",          // 000
+    "none 2",          // 001
+    "BL24C64 (stock)", // 010
+    "BL24C128",        // 011
+    "BL24C256",        // 100
+    "BL24C512",        // 101
+    "BL24C1024",       // 110
+    "M24M02 (x1)",     // 111
 };
 
 const uint32_t EEPROM_SIZES[8] = {
@@ -33,14 +33,14 @@ const uint32_t EEPROM_SIZES[8] = {
     262144, // 111
 };
 
-const uint8_t PAGE_SIZES[8] = {
+const uint16_t PAGE_SIZES[8] = {
     32,  // 000
     32,  // 001
     32,  // 010
-    32,  // 011
-    32,  // 100
-    32,  // 101
-    32,  // 110
+    64,  // 011
+    64,  // 100
+    128, // 101
+    128, // 110
     128, // 111
 };
 
@@ -65,4 +65,4 @@ uint32_t SETTINGS_GetEEPROMSize(void) {
   return EEPROM_SIZES[gSettings.eepromType];
 }
 
-uint8_t SETTINGS_GetPageSize(void) { return PAGE_SIZES[gSettings.eepromType]; }
+uint16_t SETTINGS_GetPageSize(void) { return PAGE_SIZES[gSettings.eepromType]; }

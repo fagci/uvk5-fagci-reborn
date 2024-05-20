@@ -148,7 +148,7 @@ typedef struct {
   F rx;
   F tx;
   char name[10];
-  uint8_t memoryBanks : 8;
+  uint8_t memoryBanks;
   ModulationType modulation : 4;
   BK4819_FilterBandwidth_t bw : 2;
   TXOutputPower power : 2;
@@ -190,11 +190,11 @@ typedef struct {
   PowerCalibration powCalib;
   uint32_t lastUsedFreq : 27;
   uint32_t offset : 26;
+  Band band;
   uint8_t memoryBanks : 8;
   TXOutputPower power : 2;
   OffsetDirection offsetDir : 2;
   bool allowTx : 1;
-  Band band;
 } __attribute__((packed)) Preset;
 // getsize(Preset)
 
@@ -210,6 +210,8 @@ typedef struct {
 
 #define VFOS_OFFSET (SETTINGS_OFFSET + SETTINGS_SIZE)
 #define PRESETS_OFFSET (VFOS_OFFSET + VFO_SIZE * 2)
+
+#define PATCH_SIZE 15832
 
 // settings
 // VFOs
@@ -230,6 +232,6 @@ void SETTINGS_Load();
 void SETTINGS_DelayedSave();
 uint32_t SETTINGS_GetFilterBound();
 uint32_t SETTINGS_GetEEPROMSize();
-uint8_t SETTINGS_GetPageSize();
+uint16_t SETTINGS_GetPageSize();
 
 #endif /* end of include guard: SETTINGS_H */

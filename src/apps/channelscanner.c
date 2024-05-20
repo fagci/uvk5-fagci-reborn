@@ -24,18 +24,20 @@ static void showItem(uint16_t i, uint16_t index, bool isCurrent) {
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
   }
+  if (item->blacklist) {
+    PrintMediumEx(2, y + 8, POS_L, C_INVERT, "X");
+  }
+  if (gIsListening && item->f == currentChannel.rx.f) {
+    PrintSymbolsEx(LCD_WIDTH - 24, y + 8, POS_R, C_INVERT, "%c", SYM_BEEP);
+  }
   PrintMediumEx(8, y + 8, POS_L, C_INVERT, "%s", ch.name);
   PrintSmallEx(LCD_WIDTH - 5, y + 8, POS_R, C_INVERT, "R%u",
                item->rssi); // TODO: antenna
 }
 
 static void scanFn(bool forward) {
-  if (gIsListening) {
-    currentIndex = scanIndex;
-  } else {
-    IncDecI32(&scanIndex, 0, gScanlistSize, forward ? 1 : -1);
-    RADIO_TuneToPure(LOOT_Item(scanIndex)->f, true);
-  }
+  IncDecI32(&scanIndex, 0, gScanlistSize, forward ? 1 : -1);
+  RADIO_TuneToPure(LOOT_Item(scanIndex)->f, true);
 }
 
 void CHSCANNER_init(void) {
@@ -52,9 +54,9 @@ void CHSCANNER_init(void) {
     loot->lastTimeOpen = 0;
   }
 
-  if (gScanlistSize) {
+  /* if (gScanlistSize) {
     RADIO_TuneToPure(LOOT_Item(scanIndex)->f, true);
-  }
+  } */
 
   gScanFn = scanFn;
   SVC_Toggle(SVC_SCAN, true, 10);
@@ -70,6 +72,29 @@ bool CHSCANNER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_DOWN:
       IncDecI32(&currentIndex, 0, gScanlistSize, 1);
+      return true;
+    default:
+      break;
+    }
+  }
+  if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
+    switch (Key) {
+    case KEY_1:
+    case KEY_2:
+    case KEY_3:
+    case KEY_4:
+    case KEY_5:
+    case KEY_6:
+    case KEY_7:
+    case KEY_8:
+      gSettings.currentScanlist = Key - KEY_1;
+      CHSCANNER_init();
+      currentIndex = 0;
+      return true;
+    case KEY_0:
+      gSettings.currentScanlist = 15;
+      CHSCANNER_init();
+      currentIndex = 0;
       return true;
     default:
       break;
@@ -91,6 +116,9 @@ bool CHSCANNER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       RADIO_SaveCurrentVFO();
       APPS_run(APP_ANALYZER);
       return true;
+    case KEY_SIDE1:
+      LOOT_Item(currentIndex)->blacklist = !LOOT_Item(currentIndex)->blacklist;
+      return true;
 
     default:
       break;
@@ -99,7 +127,11 @@ bool CHSCANNER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void CHSCANNER_update(void) {}
+void CHSCANNER_update(void) {
+  if (gIsListening && LOOT_Item(scanIndex)->f != currentChannel.rx.f) {
+    CHANNELS_Load(gScanlist[scanIndex], &currentChannel);
+  }
+}
 
 void CHSCANNER_render(void) {
   UI_ClearScreen();
@@ -111,10 +143,6 @@ void CHSCANNER_render(void) {
   }
 
   if (gIsListening) {
-    currentIndex = scanIndex; // HACK
-    if (LOOT_Item(scanIndex)->f != currentChannel.rx.f) {
-      CHANNELS_Load(gScanlist[scanIndex], &currentChannel);
-    }
     PrintMediumBoldEx(LCD_XCENTER, MENU_Y + 7, POS_C, C_FILL, "%s",
                       currentChannel.name);
   } else {

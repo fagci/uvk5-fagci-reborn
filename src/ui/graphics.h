@@ -44,8 +44,6 @@ typedef struct {
   uint8_t y;
 } Cursor;
 
-extern Cursor cursor;
-
 void UI_ClearStatus();
 void UI_ClearScreen();
 
@@ -75,10 +73,5 @@ void PrintBiggestDigitsEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,
                           const char *pattern, ...);
 void PrintSymbolsEx(uint8_t x, uint8_t y, TextPos posLCR, Color color,
                     const char *pattern, ...);
-
-void DrawRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r,
-                   Color color);
-void FillRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r,
-                   Color color);
 
 #endif /* end of include guard: GRAPHICS_H */

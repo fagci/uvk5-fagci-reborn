@@ -1,6 +1,4 @@
 #include "numnav.h"
-#include "../driver/st7565.h"
-#include "../driver/uart.h"
 #include <stddef.h>
 #include <string.h>
 
@@ -46,7 +44,6 @@ uint16_t NUMNAV_GetCurrentValue(void) {
 }
 
 uint16_t NUMNAV_Input(KEY_Code_t key) {
-  Log("numnav key=%u", key);
   if (pos == 0 && key == KEY_0) {
     NUMNAV_Deinit();
     return initV;
@@ -77,13 +74,10 @@ uint16_t NUMNAV_Input(KEY_Code_t key) {
 
   uint16_t v = NUMNAV_GetCurrentValue();
   if ((pos == maxDigits || v * 10 > maxV) && gNumNavCallback) {
-    Log("Bound, check value...");
     if (v >= minV && v <= maxV) {
-      Log("Accept! %u < %u < %u", minV, v, maxV);
       NUMNAV_Accept();
       return v;
     } else {
-      Log("Decline.");
       return NUMNAV_Deinit();
     }
   }
@@ -91,7 +85,6 @@ uint16_t NUMNAV_Input(KEY_Code_t key) {
 }
 
 uint16_t NUMNAV_Deinit(void) {
-  Log("NUMNAV_Deinit %u", initV);
   pos = 0;
   gNumNavCallback = NULL;
   gIsNumNavInput = false;
@@ -99,7 +92,6 @@ uint16_t NUMNAV_Deinit(void) {
 }
 
 void NUMNAV_Accept(void) {
-  Log("NUMNAV_Accept %u", NUMNAV_GetCurrentValue());
   gNumNavCallback(NUMNAV_GetCurrentValue());
   NUMNAV_Deinit();
 }

@@ -18,20 +18,15 @@
 #include "board.h"
 #include "driver/adc.h"
 #include "driver/backlight.h"
-#include "driver/bk1080.h"
+// #include "driver/bk1080.h"
 #include "driver/bk4819.h"
 #include "driver/crc.h"
-#include "driver/eeprom.h"
 #include "driver/gpio.h"
 #include "driver/st7565.h"
-#include "driver/system.h"
-#include "helper/battery.h"
 #include "inc/dp32g030/gpio.h"
 #include "inc/dp32g030/portcon.h"
 #include "inc/dp32g030/saradc.h"
 #include "inc/dp32g030/syscon.h"
-#include "misc.h"
-#include <string.h>
 
 void BOARD_GPIO_Init(void) {
   GPIOA->DIR |= 0
@@ -433,7 +428,8 @@ void BOARD_Init(void) {
   BOARD_GPIO_Init();
   BOARD_ADC_Init();
   ST7565_Init();
-  BK1080_Init(0, false);
+  // BK1080_Init(0, false);
   BK4819_Init();
   BACKLIGHT_Init();
+  CRC_Init();
 }

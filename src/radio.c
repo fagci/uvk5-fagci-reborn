@@ -2,7 +2,6 @@
 #include "apps/apps.h"
 #include "driver/audio.h"
 #include "driver/backlight.h"
-#include "driver/bk1080.h"
 #include "driver/bk4819.h"
 #include "driver/gpio.h"
 #include "driver/st7565.h"
@@ -13,7 +12,6 @@
 #include "helper/channels.h"
 #include "helper/lootlist.h"
 #include "helper/measurements.h"
-#include "helper/msghelper.h"
 #include "helper/presetlist.h"
 #include "helper/vfos.h"
 #include "inc/dp32g030/gpio.h"
@@ -56,9 +54,9 @@ const char *upConverterFreqNames[3] = {"None", "50M", "125M"};
 const char *modulationTypeOptions[6] = {"FM", "AM", "SSB", "BYP", "RAW", "WFM"};
 const char *powerNames[] = {"LOW", "MID", "HIGH"};
 const char *bwNames[3] = {"25k", "12.5k", "6.25k"};
-const char *TX_STATE_NAMES[7] = {"TX Off",         "TX On",    "VOL HIGH",
-                                 "BAT LOW",        "DISABLED", "UPCONVERTER",
-                                 "POWER OVERDRIVE"};
+const char *TX_STATE_NAMES[7] = {"TX Off",    "TX On",    "VOL HIGH",
+                                 "BAT LOW",   "DISABLED", "UPCONVERTER",
+                                 "HIGH POWER"};
 
 const SquelchType sqTypeValues[4] = {
     SQUELCH_RSSI_NOISE_GLITCH,
@@ -146,15 +144,11 @@ void toggleBK4819(bool on) {
 
 void toggleBK1080(bool on) {
   if (on) {
-    BK1080_Init(radio->rx.f, true);
-    BK1080_Mute(false);
     SYSTEM_DelayMs(10);
     AUDIO_ToggleSpeaker(true);
   } else {
     AUDIO_ToggleSpeaker(false);
     SYSTEM_DelayMs(10);
-    BK1080_Mute(true);
-    BK1080_Init(0, false);
   }
 }
 
@@ -178,11 +172,11 @@ void RADIO_ToggleRX(bool on) {
     }
   }
 
-  if (isBK1080) {
+  /* if (isBK1080) {
     toggleBK1080(on);
-  } else {
-    toggleBK4819(on);
-  }
+  } else { */
+  toggleBK4819(on);
+  // }
 }
 
 void RADIO_EnableCxCSS(void) {
@@ -270,8 +264,8 @@ void RADIO_ToggleTX(bool on) {
       gTxState = TX_VOL_HIGH;
       return;
     }
-    power = calculateOutputPower(gCurrentPreset, radio->tx.f);
-    if (power > 0xAA) {
+    power = calculateOutputPower(txPreset, txF);
+    if (power > 0x91) {
       power = 0;
       gTxState = TX_POW_OVERDRIVE;
       return;
@@ -293,7 +287,7 @@ void RADIO_ToggleTX(bool on) {
     SYSTEM_DelayMs(10);
     BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, true);
     SYSTEM_DelayMs(5);
-    BK4819_SetupPowerAmplifier(power, radio->tx.f);
+    BK4819_SetupPowerAmplifier(power, txF);
     SYSTEM_DelayMs(10);
     BK4819_ExitSubAu();
   } else if (gTxState == TX_ON) {
@@ -314,7 +308,7 @@ void RADIO_ToggleTX(bool on) {
   gTxState = on;
 }
 
-void RADIO_ToggleBK1080(bool on) {
+/* void RADIO_ToggleBK1080(bool on) {
   if (on == isBK1080) {
     return;
   }
@@ -327,10 +321,10 @@ void RADIO_ToggleBK1080(bool on) {
     toggleBK1080(false);
     BK4819_RX_TurnOn();
   }
-}
+} */
 
 void RADIO_SetModulationByPreset(void) {
-  ModulationType mod = gCurrentPreset->band.modulation;
+  /* ModulationType mod = gCurrentPreset->band.modulation;
   if (mod == MOD_WFM) {
     if (RADIO_IsBK1080Range(radio->rx.f)) {
       RADIO_ToggleBK1080(true);
@@ -338,7 +332,7 @@ void RADIO_SetModulationByPreset(void) {
     }
     gCurrentPreset->band.modulation = MOD_FM;
   }
-  RADIO_ToggleBK1080(false);
+  RADIO_ToggleBK1080(false); */
   BK4819_SetModulation(gCurrentPreset->band.modulation);
   onPresetUpdate();
 }
@@ -387,11 +381,11 @@ void RADIO_SetSquelchPure(uint32_t f, uint8_t sql) {
 
 void RADIO_TuneToPure(uint32_t f, bool precise) {
   LOOT_Replace(&gLoot[gSettings.activeVFO], f);
-  if (isBK1080) {
-    BK1080_SetFrequency(f);
-  } else {
-    BK4819_TuneTo(f, precise);
-  }
+  /* if (isBK1080) {
+    // BK1080_SetFrequency(f);
+  } else { */
+  BK4819_TuneTo(f, precise);
+  // }
 }
 
 void RADIO_SetupByCurrentVFO(void) {
@@ -399,16 +393,13 @@ void RADIO_SetupByCurrentVFO(void) {
 
   Preset *p = PRESET_ByFrequency(f);
 
-  if (p != gCurrentPreset) {
-    gVFOPresets[gSettings.activeVFO] = gCurrentPreset = p;
+  if (gCurrentPreset != p) {
+    gCurrentPreset = p;
+    gVFOPresets[gSettings.activeVFO] = gCurrentPreset;
     gSettings.activePreset = PRESET_GetCurrentIndex();
 
     RADIO_SetupBandParams(&gCurrentPreset->band);
-    // NOTE: commented coz we think, that band not contains boundary
-    // BK4819_Squelch(gCurrentPreset->band.squelch, f);
-
-    RADIO_ToggleBK1080(gCurrentPreset->band.modulation == MOD_WFM &&
-                       RADIO_IsBK1080Range(f));
+    RADIO_ToggleRX(false); // to prevent muting when tune to new band
   }
 
   RADIO_TuneToPure(f, true);
@@ -464,6 +455,7 @@ void RADIO_LoadCurrentVFO(void) {
   radio = &gVFO[gSettings.activeVFO];
   gCurrentLoot = &gLoot[gSettings.activeVFO];
   RADIO_SetupByCurrentVFO();
+  RADIO_SetupBandParams(&gCurrentPreset->band);
 }
 
 void RADIO_SetSquelch(uint8_t sq) {
@@ -484,7 +476,7 @@ void RADIO_SetGain(uint8_t gainIndex) {
 
 void RADIO_SetupBandParams(Band *b) {
   uint32_t fMid = b->bounds.start + (b->bounds.end - b->bounds.start) / 2;
-  BK4819_SelectFilter(fMid);
+  // BK4819_SelectFilter(fMid); // not needeed as evety BK4819_TuneTo() it works
   BK4819_SquelchType(b->squelchType);
   BK4819_Squelch(b->squelch, fMid, gSettings.sqlOpenTime,
                  gSettings.sqlCloseTime);
@@ -684,16 +676,17 @@ void RADIO_NextFreq(bool next) {
   }
 
   Preset *nextPreset = PRESET_ByFrequency(radio->rx.f + dir);
+  Band *nextBand = &nextPreset->band;
+  uint32_t nextBandStep = StepFrequencyTable[nextBand->step];
+
   if (nextPreset != gCurrentPreset && nextPreset != &defaultPreset) {
     if (next) {
-      RADIO_TuneTo(nextPreset->band.bounds.start);
+      RADIO_TuneTo(nextBand->bounds.start);
     } else {
-      RADIO_TuneTo(nextPreset->band.bounds.end -
-                   nextPreset->band.bounds.end %
-                       StepFrequencyTable[nextPreset->band.step]);
+      RADIO_TuneTo(nextBand->bounds.end - nextBand->bounds.end % nextBandStep);
     }
   } else {
-    RADIO_TuneTo(radio->rx.f + StepFrequencyTable[nextPreset->band.step] * dir);
+    RADIO_TuneTo(radio->rx.f + nextBandStep * dir);
   }
   onVfoUpdate();
 }

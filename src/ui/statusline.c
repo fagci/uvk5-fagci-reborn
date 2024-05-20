@@ -1,7 +1,6 @@
 #include "statusline.h"
 #include "../driver/eeprom.h"
 #include "../driver/st7565.h"
-#include "../driver/uart.h"
 #include "../helper/battery.h"
 #include "../scheduler.h"
 #include "../svc.h"
@@ -12,13 +11,12 @@
 static uint8_t previousBatteryLevel = 255;
 static bool showBattery = true;
 
-static bool lastEepromRead = false;
 static bool lastEepromWrite = false;
 
 static char statuslineText[32] = {0};
 
 static void eepromRWReset(void) {
-  lastEepromRead = lastEepromWrite = gEepromRead = gEepromWrite = false;
+  lastEepromWrite = gEepromWrite = false;
   gRedrawScreen = true;
 }
 
@@ -48,8 +46,7 @@ void STATUSLINE_update(void) {
     gRedrawScreen = true;
   }
 
-  if (lastEepromRead != gEepromRead || lastEepromWrite != gEepromWrite) {
-    lastEepromRead = gEepromRead;
+  if (lastEepromWrite != gEepromWrite) {
     lastEepromWrite = gEepromWrite;
     gRedrawScreen = true;
     TaskAdd("EEPROM RW-", eepromRWReset, 500, false, 0);
@@ -83,8 +80,6 @@ void STATUSLINE_render(void) {
 
   if (gEepromWrite) {
     icons[idx++] = SYM_EEPROM_W;
-    /* } else if (gEepromRead) {
-      icons[idx++] = SYM_EEPROM_R; */
   }
 
   if (SVC_Running(SVC_SCAN)) {
@@ -112,11 +107,7 @@ void STATUSLINE_render(void) {
                      (gSettings.batteryStyle == BAT_VOLTAGE ? 38 : 18),
                  BASE_Y, POS_R, C_FILL, "%s", icons);
 
-  if (UART_IsLogEnabled) {
-    PrintSmall(0, BASE_Y, statuslineText, "D:%u", UART_IsLogEnabled);
-  } else if (statuslineText[0] >= 32) {
-    PrintSmall(0, BASE_Y, statuslineText);
-  }
+  PrintSmall(0, BASE_Y, statuslineText);
 
   // FillRect(0, 0, LCD_WIDTH, 7, C_INVERT);
 }
