@@ -64,7 +64,7 @@ const uint16_t Voltage2PercentageTable[][11][2] = {
 uint8_t BATTERY_VoltsToPercent(const unsigned int voltage_10mV) {
   const uint16_t(*crv)[2] = Voltage2PercentageTable[gSettings.batteryType];
   const int mulipl = 1000;
-  for (uint8_t i = 1; i < ARRAY_SIZE(Voltage2PercentageTable[BAT_2200]); i++) {
+  for (uint8_t i = 1; i < ARRAY_SIZE(Voltage2PercentageTable[gSettings.batteryType]); i++) {
     if (voltage_10mV > crv[i][0]) {
       const int a =
           (crv[i - 1][1] - crv[i][1]) * mulipl / (crv[i - 1][0] - crv[i][0]);

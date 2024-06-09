@@ -56,6 +56,9 @@ void CHANNELS_Delete(int32_t num) {
 }
 
 bool CHANNELS_Existing(int32_t num) {
+  if (num < 0) {
+    return false;
+  }
   char name[1] = {0};
   uint32_t addr = GetChannelOffset(num) + CH_NAME_OFFSET;
   EEPROM_ReadBuffer(addr, name, 1);

@@ -194,9 +194,9 @@ void RADIO_EnableCxCSS(void) {
 }
 
 static uint8_t calculateOutputPower(Preset *p, uint32_t Frequency) {
-  uint8_t TxpLow = 0xAA; //p->powCalib.s;
-  uint8_t TxpMid = 0xAA; //p->powCalib.m;
-  uint8_t TxpHigh = 0xAA; //p->powCalib.e;
+  uint8_t TxpLow = 0xAA;  // p->powCalib.s;
+  uint8_t TxpMid = 0xAA;  // p->powCalib.m;
+  uint8_t TxpHigh = 0xAA; // p->powCalib.e;
   uint32_t LowerLimit = p->band.bounds.start;
   uint32_t UpperLimit = p->band.bounds.start;
   uint32_t Middle = LowerLimit + (UpperLimit - LowerLimit) / 2;
