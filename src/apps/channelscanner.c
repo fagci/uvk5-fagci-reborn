@@ -136,7 +136,7 @@ void CHSCANNER_update(void) {
 void CHSCANNER_render(void) {
   UI_ClearScreen();
 
-    PrintSmallEx(LCD_WIDTH - 5, 12, POS_R, C_FILL, "%d", gScanlistSize);
+    // PrintSmallEx(LCD_WIDTH - 5, 12, POS_R, C_FILL, "%d", gScanlistSize);
 
   if (gScanlistSize == 0) {
     PrintMediumBoldEx(LCD_XCENTER, LCD_YCENTER, POS_C, C_FILL,
