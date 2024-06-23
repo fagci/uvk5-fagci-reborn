@@ -21,6 +21,12 @@ static uint32_t centerF = 0;
 static uint8_t initialScanInterval = 0;
 static uint8_t scanInterval = 2;
 
+static bool isListening = false;
+
+static uint32_t peakF = 0;
+static uint32_t _peakF = 0;
+static uint16_t peakRssi = 0;
+
 static Preset opt = {
     .band =
         {
@@ -30,12 +36,11 @@ static Preset opt = {
 
 static uint8_t spectrumWidth = LCD_WIDTH;
 
-static bool newScan = false;
 static bool bandFilled = false;
 
-static uint32_t lastRender = 0;
-
 static void startNewScan(bool reset) {
+  _peakF = 0;
+  peakRssi = 0;
   if (reset) {
     LOOT_Standby();
     RADIO_TuneToPure(msm.f = opt.band.bounds.start, true);
@@ -47,43 +52,43 @@ static void startNewScan(bool reset) {
   }
 }
 
-static void nextF(void) {
+static void scanFn(bool forward) {
+  msm.rssi = RADIO_GetRSSI();
+  SP_AddPoint(&msm);
+
+  if (msm.rssi > peakRssi) {
+    peakRssi = msm.rssi;
+    _peakF = msm.f;
+  }
+
   uint16_t step = StepFrequencyTable[opt.band.step];
 
   if (msm.f + step > opt.band.bounds.end) {
     msm.f = opt.band.bounds.start;
+    peakF = _peakF;
+    gRedrawScreen = true;
   } else {
     msm.f += step;
   }
 
   RADIO_TuneToPure(msm.f, false);
-}
-
-static void scanFn(bool forward) {
-  msm.rssi = RADIO_GetRSSI();
-
-  SP_AddPoint(&msm);
-
-  if (newScan) {
-    newScan = false;
-    startNewScan(false);
-  }
-
-  nextF();
 
   if (msm.f == opt.band.bounds.start) {
     startNewScan(false);
     return;
-  } else if (msm.f + StepFrequencyTable[opt.band.step] > opt.band.bounds.end) {
-    gRedrawScreen = true;
   }
   SP_Next();
 }
 
-static void setup(void) {
+static void setCenterF(uint32_t f) {
   const uint32_t halfBW = StepFrequencyTable[opt.band.step] * 64;
+  centerF = f;
   opt.band.bounds.start = centerF - halfBW;
   opt.band.bounds.end = centerF + halfBW;
+}
+
+static void setup(void) {
+  setCenterF(radio->rx.f);
   gSettings.scanTimeout = scanInterval;
   startNewScan(true);
 }
@@ -96,7 +101,6 @@ void ANALYZER_init(void) {
 
   gMonitorMode = false;
 
-  centerF = radio->rx.f;
   initialScanInterval = gSettings.scanTimeout;
   opt.band.step = gCurrentPreset->band.step;
   opt.band.squelch = 0;
@@ -139,9 +143,11 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     switch (Key) {
     case KEY_SIDE1:
-      gSettings.noListen = !gSettings.noListen;
-      SETTINGS_Save();
-      RADIO_ToggleRX(false);
+      isListening = !isListening;
+      if (isListening) {
+        RADIO_TuneToPure(centerF, true);
+      }
+      RADIO_ToggleRX(isListening);
       return true;
     case KEY_0:
       LOOT_Clear();
@@ -171,6 +177,11 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_DOWN:
       centerF -= StepFrequencyTable[opt.band.step];
       setup();
+      return true;
+    case KEY_SIDE2:
+      if (peakF) {
+        setCenterF(peakF);
+      }
       return true;
     case KEY_2:
       if (opt.band.step < STEP_200_0kHz) {
@@ -226,6 +237,8 @@ void ANALYZER_render(void) {
 
   SP_Render(&opt, 0, ANALYZER_Y, ANALYZER_HEIGHT);
 
+  SP_RenderArrow(&opt, peakF, 0, ANALYZER_Y, ANALYZER_HEIGHT);
+
   if (opt.band.squelch) {
     uint8_t band = centerF > SETTINGS_GetFilterBound() ? 1 : 0;
     SP_RenderRssi(SQ[band][0][opt.band.squelch], "SQLo", true, 0, ANALYZER_Y,
@@ -243,6 +256,4 @@ void ANALYZER_render(void) {
 
   PrintSmallEx(spectrumWidth / 2, LCD_HEIGHT - 1, POS_C, C_FILL, "%u.%05u",
                centerF / 100000, centerF % 100000);
-
-  lastRender = Now();
 }

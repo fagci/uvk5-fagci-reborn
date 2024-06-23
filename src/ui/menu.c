@@ -113,12 +113,10 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
     strncpy(Output, yesNo[gCurrentPreset->allowTx], 31);
     break;
   case M_F_RX:
-    sprintf(Output, "%u.%05u", radio->rx.f / 100000,
-            radio->rx.f % 100000);
+    sprintf(Output, "%u.%05u", radio->rx.f / 100000, radio->rx.f % 100000);
     break;
   case M_F_TX:
-    sprintf(Output, "%u.%05u", radio->tx.f / 100000,
-            radio->tx.f % 100000);
+    sprintf(Output, "%u.%05u", radio->tx.f / 100000, radio->tx.f % 100000);
     break;
   case M_TX_OFFSET:
     sprintf(Output, "%u.%05u", gCurrentPreset->offset / 100000,

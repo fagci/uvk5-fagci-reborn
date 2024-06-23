@@ -93,6 +93,25 @@ void SP_Render(Preset *p, uint8_t sx, uint8_t sy, uint8_t sh) {
   }
 }
 
+uint32_t ClampF(uint32_t v, uint32_t min, uint32_t max) {
+  return v <= min ? min : (v >= max ? max : v);
+}
+
+static uint32_t ConvertDomainF(uint32_t aValue, uint32_t aMin, uint32_t aMax,
+                               uint32_t bMin, uint32_t bMax) {
+  const uint32_t aRange = aMax - aMin;
+  const uint32_t bRange = bMax - bMin;
+  aValue = ClampF(aValue, aMin, aMax);
+  return ((aValue - aMin) * bRange + aRange / 2) / aRange + bMin;
+}
+
+void SP_RenderArrow(Preset *p, uint32_t f, uint8_t sx, uint8_t sy, uint8_t sh) {
+  uint8_t cx = ConvertDomain(f, p->band.bounds.start, p->band.bounds.end, sx,
+                             sx + historySize - 1);
+  DrawVLine(cx, sy, 4, C_FILL);
+  FillRect(cx - 2, sy, 5, 2, C_FILL);
+}
+
 void SP_RenderRssi(uint16_t rssi, char *text, bool top, uint8_t sx, uint8_t sy,
                    uint8_t sh) {
   const uint8_t S_BOTTOM = sy + sh;
@@ -101,7 +120,7 @@ void SP_RenderRssi(uint16_t rssi, char *text, bool top, uint8_t sx, uint8_t sy,
   const uint16_t vMin = rssiMin - 2;
   const uint16_t vMax = rssiMax + 20 + (rssiMax - rssiMin) / 2;
 
-  uint8_t yVal = ConvertDomain(rssi, vMin, vMax, 0, sh);
+  uint8_t yVal = ConvertDomainF(rssi, vMin, vMax, 0, sh);
   DrawHLine(sx, S_BOTTOM - yVal, sx + filledPoints, C_FILL);
   PrintSmallEx(sx, S_BOTTOM - yVal + (top ? -2 : 6), POS_L, C_FILL, "%s %u %d",
                text, rssi, Rssi2DBm(rssi));
