@@ -56,7 +56,7 @@ void CHANNELS_Delete(int32_t num) {
 }
 
 bool CHANNELS_Existing(int32_t num) {
-  if (num < 0 || num >= CHANNELS_GetCountMax()) {
+  if (num < 0 || num >= CHANNELS_GetCountMax()) { // TODO: check, somewhere (CH scan, CH list) getting larger than max CH
     return false;
   }
   char name[1] = {0};
