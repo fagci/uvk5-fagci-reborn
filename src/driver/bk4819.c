@@ -59,7 +59,8 @@ const uint8_t SQ[2][6][11] = {
     },
 };
 
-const uint16_t BWRegValues[3] = {0x3028, 0x4048, 0x0018};
+// const uint16_t BWRegValues[3] = {0x3028, 0x4048, 0x0018};
+const uint16_t BWRegValues[3] = {0x45A8, 0x4408, 0x3658};
 
 const Gain gainTable[19] = {
     {0x000, -43}, //
@@ -96,7 +97,7 @@ void BK4819_Init(void) {
   BK4819_WriteRegister(BK4819_REG_36, 0x0022);
   BK4819_SetAGC(true);
   BK4819_WriteRegister(BK4819_REG_19, 0x1041);
-  BK4819_WriteRegister(BK4819_REG_7D, 0xE94F);
+  BK4819_WriteRegister(BK4819_REG_7D, 0xE940);
   BK4819_WriteRegister(BK4819_REG_48, 0xB3A8);
 
   for (uint8_t i = 0; i < ARRAY_SIZE(DTMF_COEFFS); ++i) {
@@ -207,6 +208,16 @@ void BK4819_WriteRegister(BK4819_REGISTER_t Register, uint16_t Data) {
 }
 
 void BK4819_SetAGC(bool useDefault) {
+  bool enable = true;
+  uint16_t regVal = BK4819_ReadRegister(BK4819_REG_7E);
+  if (!(regVal & (1 << 15)) == enable)
+    return;
+
+  BK4819_WriteRegister(BK4819_REG_7E, (regVal & ~(1 << 15) & ~(0b111 << 12)) |
+                                          (!enable << 15) // 0  AGC fix mode
+                                          | (3u << 12)    // 3  AGC fix index
+  );
+
   BK4819_WriteRegister(BK4819_REG_13, 0x03BE);
   BK4819_WriteRegister(BK4819_REG_12, 0x037B);
   BK4819_WriteRegister(BK4819_REG_11, 0x027B);
@@ -222,7 +233,7 @@ void BK4819_SetAGC(bool useDefault) {
     BK4819_WriteRegister(BK4819_REG_14, 0x0000);
     // slow 25 45
     // fast 15 50
-    low = 15;
+    low = 32;
     high = 50;
   }
   BK4819_WriteRegister(BK4819_REG_49, (Lo << 14) | (high << 7) | (low << 0));
@@ -394,12 +405,13 @@ void BK4819_SetRegValue(RegisterSpec s, uint16_t v) {
   reg &= ~(s.mask << s.offset);
   BK4819_WriteRegister(s.num, reg | (v << s.offset));
 }
-
+#include "../driver/uart.h"
 void BK4819_SetModulation(ModulationType type) {
-  if (modTypeCurrent == type) {
+  Log("Setup mod: %d was %d", type, modTypeCurrent);
+  /* if (modTypeCurrent == type) {
     return;
-  }
-  modTypeCurrent = type;
+  } */
+  // modTypeCurrent = type;
   const uint16_t modTypeReg47Values[] = {
       BK4819_AF_FM,  BK4819_AF_AM, BK4819_AF_USB, BK4819_AF_BYPASS,
       BK4819_AF_RAW, BK4819_AF_FM, BK4819_AF_BEEP};

@@ -142,13 +142,6 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     switch (Key) {
-    case KEY_SIDE1:
-      isListening = !isListening;
-      if (isListening) {
-        RADIO_TuneToPure(centerF, true);
-      }
-      RADIO_ToggleRX(isListening);
-      return true;
     case KEY_0:
       LOOT_Clear();
       return true;
@@ -171,12 +164,19 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       APPS_exit();
       return true;
     case KEY_UP:
-      centerF += StepFrequencyTable[opt.band.step];
-      setup();
+      setCenterF(centerF + StepFrequencyTable[opt.band.step]);
+      startNewScan(true);
       return true;
     case KEY_DOWN:
-      centerF -= StepFrequencyTable[opt.band.step];
-      setup();
+      setCenterF(centerF - StepFrequencyTable[opt.band.step]);
+      startNewScan(true);
+      return true;
+    case KEY_SIDE1:
+      isListening = !isListening;
+      if (isListening) {
+        RADIO_TuneToPure(centerF, true);
+      }
+      RADIO_ToggleRX(isListening);
       return true;
     case KEY_SIDE2:
       if (peakF) {
