@@ -392,17 +392,13 @@ void RADIO_SetupByCurrentVFO(void) {
   uint32_t f = radio->rx.f;
   Preset *p = PRESET_ByFrequency(f);
 
-  Log("Setup by current cfo");
   if (gCurrentPreset != p) {
-    Log("New preset");
     gCurrentPreset = p;
     gVFOPresets[gSettings.activeVFO] = gCurrentPreset;
     gSettings.activePreset = PRESET_GetCurrentIndex();
 
     RADIO_SetupBandParams(&gCurrentPreset->band);
     RADIO_ToggleRX(false); // to prevent muting when tune to new band
-  } else {
-    Log("New preset");
   }
 
   RADIO_TuneToPure(f, true);

@@ -97,10 +97,11 @@ static void setMenuIndexAndRun(uint16_t v) {
   currentChannelIndex = v - 1;
   save();
 }
-
+#include "../driver/uart.h"
 static void toggleScanlist(uint8_t n) {
   CH _ch;
   CHANNELS_Load(gScanlist[currentChannelIndex], &_ch);
+    Log("i:%d, ch:%d, name: %s", currentChannelIndex, gScanlist[currentChannelIndex], _ch.name);
   _ch.memoryBanks ^= 1 << n;
   CHANNELS_Save(gScanlist[currentChannelIndex], &_ch);
 }

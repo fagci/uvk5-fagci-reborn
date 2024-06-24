@@ -33,7 +33,6 @@ static const uint16_t FSK_RogerTable[7] = {
 
 static uint16_t gBK4819_GpioOutState;
 static Filter selectedFilter = FILTER_OFF;
-static uint8_t modTypeCurrent = 255;
 
 bool gRxIdleMode;
 
@@ -224,8 +223,8 @@ void BK4819_SetAGC(bool useDefault) {
   BK4819_WriteRegister(BK4819_REG_10, 0x007A);
 
   uint8_t Lo = 0;    // 0-1 - auto, 2 - low, 3 high
-  uint8_t low = 48;  // 1dB / LSB 56
-  uint8_t high = 80; // 1dB / LSB 84
+  uint8_t low = 56;  // 1dB / LSB 56
+  uint8_t high = 84; // 1dB / LSB 84
 
   if (useDefault) {
     BK4819_WriteRegister(BK4819_REG_14, 0x0019);
@@ -233,11 +232,9 @@ void BK4819_SetAGC(bool useDefault) {
     BK4819_WriteRegister(BK4819_REG_14, 0x0000);
     // slow 25 45
     // fast 15 50
-    low = 32;
-    high = 50;
+    low = 15;
+    high = 42;
   }
-  BK4819_WriteRegister(BK4819_REG_49, (Lo << 14) | (high << 7) | (low << 0));
-  BK4819_WriteRegister(BK4819_REG_7B, 0x8420);
 }
 
 void BK4819_ToggleGpioOut(BK4819_GPIO_PIN_t Pin, bool bSet) {
@@ -373,9 +370,6 @@ void BK4819_SetupSquelch(uint8_t SquelchOpenRSSIThresh,
                        (SquelchOpenRSSIThresh << 8) | SquelchCloseRSSIThresh);
   BK4819_SetAF(BK4819_AF_MUTE);
   BK4819_RX_TurnOn();
-
-  // NOTE: check if it works to prevent muting output
-  // BK4819_SetAF(modTypeCurrent);
 }
 
 void BK4819_Squelch(uint8_t sql, uint32_t f, uint8_t OpenDelay,
@@ -405,13 +399,7 @@ void BK4819_SetRegValue(RegisterSpec s, uint16_t v) {
   reg &= ~(s.mask << s.offset);
   BK4819_WriteRegister(s.num, reg | (v << s.offset));
 }
-#include "../driver/uart.h"
 void BK4819_SetModulation(ModulationType type) {
-  Log("Setup mod: %d was %d", type, modTypeCurrent);
-  /* if (modTypeCurrent == type) {
-    return;
-  } */
-  // modTypeCurrent = type;
   const uint16_t modTypeReg47Values[] = {
       BK4819_AF_FM,  BK4819_AF_AM, BK4819_AF_USB, BK4819_AF_BYPASS,
       BK4819_AF_RAW, BK4819_AF_FM, BK4819_AF_BEEP};
