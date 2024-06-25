@@ -562,9 +562,9 @@ Loot *RADIO_UpdateMeasurements(void) {
     msm->open = false;
   }
 
-  if (!gMonitorMode && gCurrentPreset->band.squelch != 0) {
+  // if (!gMonitorMode && gCurrentPreset->band.squelch != 0) {
     LOOT_Update(msm);
-  }
+  // }
 
   bool rx = msm->open;
   if (gTxState != TX_ON) {

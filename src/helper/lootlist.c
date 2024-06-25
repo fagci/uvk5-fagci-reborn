@@ -187,6 +187,8 @@ void LOOT_UpdateEx(Loot *item, Loot *msm) {
   }
   item->lastTimeCheck = Now();
   item->open = msm->open;
+  msm->ct = item->ct;
+  msm->cd = item->cd;
 
   if (msm->blacklist) {
     item->blacklist = true;
