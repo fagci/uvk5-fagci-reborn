@@ -58,8 +58,8 @@ const uint8_t SQ[2][6][11] = {
     },
 };
 
-// const uint16_t BWRegValues[3] = {0x3028, 0x4048, 0x0018};
-const uint16_t BWRegValues[3] = {0x45A8, 0x4408, 0x3658};
+const uint16_t BWRegValues[3] = {0x3028, 0x4048, 0x0018};
+// const uint16_t BWRegValues[3] = {0x45A8, 0x4408, 0x3658};
 
 const Gain gainTable[19] = {
     {0x000, -43}, //

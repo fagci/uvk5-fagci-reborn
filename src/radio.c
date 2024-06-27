@@ -1,5 +1,6 @@
 #include "radio.h"
 #include "apps/apps.h"
+#include "dcs.h"
 #include "driver/audio.h"
 #include "driver/backlight.h"
 #include "driver/bk4819.h"
@@ -181,12 +182,16 @@ void RADIO_ToggleRX(bool on) {
 
 void RADIO_EnableCxCSS(void) {
   switch (radio->tx.codeType) {
-  /* case CODE_TYPE_DIGITAL:
+  case CODE_TYPE_CONTINUOUS_TONE:
+    BK4819_SetCTCSSFrequency(CTCSS_Options[radio->tx.code]);
+    break;
+  case CODE_TYPE_DIGITAL:
   case CODE_TYPE_REVERSE_DIGITAL:
-          BK4819_EnableCDCSS();
-          break; */
+    BK4819_SetCDCSSCodeWord(
+        DCS_GetGolayCodeWord(radio->tx.codeType, radio->tx.code));
+    break;
   default:
-    BK4819_EnableCTCSS();
+    BK4819_ExitSubAu();
     break;
   }
 
@@ -289,7 +294,9 @@ void RADIO_ToggleTX(bool on) {
     SYSTEM_DelayMs(5);
     BK4819_SetupPowerAmplifier(power, txF);
     SYSTEM_DelayMs(10);
-    BK4819_ExitSubAu();
+
+    RADIO_EnableCxCSS();
+
   } else if (gTxState == TX_ON) {
     BK4819_ExitDTMF_TX(true);
     RADIO_EnableCxCSS();
@@ -563,7 +570,7 @@ Loot *RADIO_UpdateMeasurements(void) {
   }
 
   // if (!gMonitorMode && gCurrentPreset->band.squelch != 0) {
-    LOOT_Update(msm);
+  LOOT_Update(msm);
   // }
 
   bool rx = msm->open;

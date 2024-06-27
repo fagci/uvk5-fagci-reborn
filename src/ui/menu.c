@@ -1,4 +1,5 @@
 #include "menu.h"
+#include "../dcs.h"
 #include "../driver/st7565.h"
 #include "../helper/measurements.h"
 #include "graphics.h"
@@ -118,6 +119,23 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
   case M_F_TX:
     sprintf(Output, "%u.%05u", radio->tx.f / 100000, radio->tx.f % 100000);
     break;
+  case M_TX_CODE_TYPE:
+    strncpy(Output, TX_CODE_TYPES[radio->tx.codeType], 31);
+    break;
+  case M_TX_CODE:
+    if (radio->tx.codeType) {
+      if (radio->tx.codeType == CODE_TYPE_CONTINUOUS_TONE) {
+        sprintf(Output, "CT:%u.%uHz", CTCSS_Options[radio->tx.code] / 10,
+                CTCSS_Options[radio->tx.code] % 10);
+      } else if (radio->tx.codeType == CODE_TYPE_DIGITAL) {
+        sprintf(Output, "DCS:D%03oN", DCS_Options[radio->tx.code]);
+      } else if (radio->tx.codeType == CODE_TYPE_REVERSE_DIGITAL) {
+        sprintf(Output, "DCS:D%03oI", DCS_Options[radio->tx.code]);
+      } else {
+        sprintf(Output, "No code");
+      }
+    }
+    break;
   case M_TX_OFFSET:
     sprintf(Output, "%u.%05u", gCurrentPreset->offset / 100000,
             gCurrentPreset->offset % 100000);
@@ -177,6 +195,14 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
   case M_TX:
     gCurrentPreset->allowTx = subMenuIndex;
     PRESETS_SaveCurrent();
+    break;
+  case M_TX_CODE_TYPE:
+    radio->tx.codeType = subMenuIndex;
+    RADIO_SaveCurrentVFO();
+    break;
+  case M_TX_CODE:
+    radio->tx.code = subMenuIndex;
+    RADIO_SaveCurrentVFO();
     break;
 
   default:

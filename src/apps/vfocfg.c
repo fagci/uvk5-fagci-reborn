@@ -1,4 +1,5 @@
 #include "vfocfg.h"
+#include "../dcs.h"
 #include "../driver/st7565.h"
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"
@@ -18,6 +19,8 @@ static bool isSubMenu = false;
 static MenuItem menu[] = {
     {"RX freq", M_F_RX, 0},
     {"TX freq", M_F_TX, 0},
+    {"TX code type", M_TX_CODE_TYPE, ARRAY_SIZE(TX_CODE_TYPES)},
+    {"TX code", M_TX_CODE, 0},
     {"TX offset", M_TX_OFFSET, 0},
     {"TX offset dir", M_TX_OFFSET_DIR, ARRAY_SIZE(TX_OFFSET_NAMES)},
     {"TX power", M_F_TXP, ARRAY_SIZE(TX_POWER_NAMES)},
@@ -35,6 +38,12 @@ static void setInitialSubmenuIndex(void) {
   switch (item->type) {
   case M_BW:
     subMenuIndex = gCurrentPreset->band.bw;
+    break;
+  case M_TX_CODE_TYPE:
+    subMenuIndex = radio->tx.codeType;
+    break;
+  case M_TX_CODE:
+    subMenuIndex = radio->tx.code;
     break;
   case M_F_TXP:
     subMenuIndex = gCurrentPreset->power;
@@ -64,6 +73,22 @@ static void getMenuItemText(uint16_t index, char *name) {
   strncpy(name, menu[index].name, 31);
 }
 
+static void updateTxCodeListSize() {
+  for (uint8_t i = 0; i < ARRAY_SIZE(menu); ++i) {
+    MenuItem *item = &menu[i];
+    if (item->type == M_TX_CODE) {
+      if (radio->tx.codeType == CODE_TYPE_CONTINUOUS_TONE) {
+        item->size = ARRAY_SIZE(CTCSS_Options);
+      } else if (radio->tx.codeType != CODE_TYPE_OFF) {
+        item->size = ARRAY_SIZE(DCS_Options);
+      } else {
+        item->size = 0;
+      }
+      return;
+    }
+  }
+}
+
 static void getSubmenuItemText(uint16_t index, char *name) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
@@ -72,6 +97,23 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     return;
   case M_BW:
     strncpy(name, bwNames[index], 15);
+    return;
+  case M_TX_CODE_TYPE:
+    strncpy(name, TX_CODE_TYPES[index], 15);
+    return;
+  case M_TX_CODE:
+    if (radio->tx.codeType) {
+      if (radio->tx.codeType == CODE_TYPE_CONTINUOUS_TONE) {
+        sprintf(name, "CT:%u.%uHz", CTCSS_Options[index] / 10,
+                CTCSS_Options[index] % 10);
+      } else if (radio->tx.codeType == CODE_TYPE_DIGITAL) {
+        sprintf(name, "DCS:D%03oN", DCS_Options[index]);
+      } else if (radio->tx.codeType == CODE_TYPE_REVERSE_DIGITAL) {
+        sprintf(name, "DCS:D%03oI", DCS_Options[index]);
+      } else {
+        sprintf(name, "No code");
+      }
+    }
     return;
   case M_F_TXP:
     strncpy(name, TX_POWER_NAMES[index], 15);
@@ -106,6 +148,7 @@ static void setTXOffset(uint32_t f) {
 
 void VFOCFG_init(void) {
   gRedrawScreen = true;
+  updateTxCodeListSize();
   /* for (uint8_t i = 0; i < MENU_SIZE; ++i) {
     if (menu[i].type == M_MODULATION) {
       menu[i].size = RADIO_IsBK1080Range(radio->rx.f)
@@ -143,6 +186,7 @@ static bool accept(void) {
   default:
     break;
   }
+  updateTxCodeListSize();
   if (isSubMenu) {
     AcceptRadioConfig(item, subMenuIndex);
     isSubMenu = false;
