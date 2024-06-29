@@ -39,14 +39,14 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         gScanForward = true;
         return true;
       }
-      RADIO_NextFreq(true);
+      RADIO_NextFreqNoClicks(true);
       return true;
     case KEY_DOWN:
       if (SVC_Running(SVC_SCAN)) {
         gScanForward = false;
         return true;
       }
-      RADIO_NextFreq(false);
+      RADIO_NextFreqNoClicks(false);
       return true;
     default:
       break;

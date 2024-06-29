@@ -690,6 +690,45 @@ void RADIO_NextFreq(bool next) {
   onVfoUpdate();
 }
 
+void RADIO_NextFreqNoClicks(bool next) {
+  int8_t dir = next ? 1 : -1;
+
+  if (radio->channel >= 0) {
+    RADIO_NextCH(next);
+    return;
+  }
+
+  Preset *nextPreset = PRESET_ByFrequency(radio->rx.f + dir);
+  Band *nextBand = &nextPreset->band;
+  uint32_t nextBandStep = StepFrequencyTable[nextBand->step];
+
+  if (nextPreset != gCurrentPreset && nextPreset != &defaultPreset) {
+    if (next) {
+      RADIO_TuneTo(nextBand->bounds.start);
+    } else {
+      RADIO_TuneTo(nextBand->bounds.end - nextBand->bounds.end % nextBandStep);
+    }
+  } else {
+    uint32_t f = radio->rx.f + nextBandStep * dir;
+    radio->channel = -1;
+    radio->tx.f = 0;
+    radio->rx.f = f;
+    Preset *p = PRESET_ByFrequency(f);
+
+    if (gCurrentPreset != p) {
+      gCurrentPreset = p;
+      gVFOPresets[gSettings.activeVFO] = gCurrentPreset;
+      gSettings.activePreset = PRESET_GetCurrentIndex();
+
+      RADIO_SetupBandParams(&gCurrentPreset->band);
+      RADIO_ToggleRX(false); // to prevent muting when tune to new band
+    }
+
+    RADIO_TuneToPure(f, !gMonitorMode);
+  }
+  onVfoUpdate();
+}
+
 void RADIO_NextPresetFreq(bool next) {
   uint32_t steps = PRESETS_GetSteps(gCurrentPreset);
   uint32_t step = PRESETS_GetChannel(gCurrentPreset, radio->rx.f);

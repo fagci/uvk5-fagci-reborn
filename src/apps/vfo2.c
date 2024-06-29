@@ -59,13 +59,13 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       if (SVC_Running(SVC_SCAN)) {
         gScanForward = true;
       }
-      RADIO_NextFreq(true);
+      RADIO_NextFreqNoClicks(true);
       return true;
     case KEY_DOWN:
       if (SVC_Running(SVC_SCAN)) {
         gScanForward = false;
       }
-      RADIO_NextFreq(false);
+      RADIO_NextFreqNoClicks(false);
       return true;
     default:
       break;
@@ -229,8 +229,7 @@ static void render2VFOPart(uint8_t i) {
                RADIO_GetTXFEx(vfo, p) != vfo->rx.f
                    ? (p->offsetDir ? TX_OFFSET_NAMES[p->offsetDir][0] : '*')
                    : ' ',
-               vfo->tx.codeType ? TX_CODE_TYPES[vfo->tx.codeType] : ""
-               );
+               vfo->tx.codeType ? TX_CODE_TYPES[vfo->tx.codeType] : "");
 
   if (loot->lastTimeOpen) {
     PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,
