@@ -87,6 +87,7 @@ bool CHSCANNER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_6:
     case KEY_7:
     case KEY_8:
+      CHSCANNER_deinit();
       gSettings.currentScanlist = Key - KEY_1;
       CHSCANNER_init();
       currentIndex = 0;
@@ -136,7 +137,7 @@ void CHSCANNER_update(void) {
 void CHSCANNER_render(void) {
   UI_ClearScreen();
 
-    // PrintSmallEx(LCD_WIDTH - 5, 12, POS_R, C_FILL, "%d", gScanlistSize);
+  // PrintSmallEx(LCD_WIDTH - 5, 12, POS_R, C_FILL, "%d", gScanlistSize);
 
   if (gScanlistSize == 0) {
     PrintMediumBoldEx(LCD_XCENTER, LCD_YCENTER, POS_C, C_FILL,

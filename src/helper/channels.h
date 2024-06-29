@@ -1,6 +1,8 @@
 #ifndef CHANNELS_H
 #define CHANNELS_H
 
+#define SCANLIST_MAX 1024
+
 #include "../settings.h"
 #include <stdint.h>
 
@@ -16,6 +18,6 @@ uint8_t CHANNELS_Scanlists(int32_t i);
 void CHANNELS_LoadScanlist(uint8_t n);
 
 extern int32_t gScanlistSize;
-extern uint16_t gScanlist[128];
+extern uint16_t gScanlist[SCANLIST_MAX];
 
 #endif /* end of include guard: CHANNELS_H */

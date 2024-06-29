@@ -4,7 +4,6 @@
 #include "../helper/presetlist.h"
 #include <stddef.h>
 
-#define SCANLIST_MAX 128
 
 int32_t gScanlistSize = 0;
 uint16_t gScanlist[SCANLIST_MAX] = {0};

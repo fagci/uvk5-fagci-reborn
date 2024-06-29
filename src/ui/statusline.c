@@ -103,6 +103,15 @@ void STATUSLINE_render(void) {
     icons[idx++] = SYM_NO_LISTEN;
   }
 
+  if ((gCurrentApp == APP_CH_SCANNER || gCurrentApp == APP_SAVECH)) {
+    if (gSettings.currentScanlist == 15) {
+      PrintSmallEx(LCD_XCENTER, BASE_Y, POS_C, C_FILL, "SL all");
+    } else {
+      PrintSmallEx(LCD_XCENTER, BASE_Y, POS_C, C_FILL, "SL %d",
+                   gSettings.currentScanlist + 1);
+    }
+  }
+
   PrintSymbolsEx(LCD_WIDTH - 1 -
                      (gSettings.batteryStyle == BAT_VOLTAGE ? 38 : 18),
                  BASE_Y, POS_R, C_FILL, "%s", icons);
