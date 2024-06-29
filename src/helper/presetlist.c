@@ -14,7 +14,7 @@ Preset defaultPreset = {
             .name = "default",
             .step = STEP_25_0kHz,
             .bw = BK4819_FILTER_BW_WIDE,
-            .gainIndex = 16,
+            .gainIndex = 18,
             .squelch = 3,
             .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
         },
