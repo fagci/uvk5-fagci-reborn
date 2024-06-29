@@ -112,13 +112,13 @@ static void toggleScanlist(uint8_t n) {
 
 static void exportScanList() {
   UART_printf("--- 8< ---\n");
-  UART_printf("Name,F,mod\n");
+  UART_printf("CH#,Name,fRX,fTX,mod,bw\n");
   for (uint8_t i = 0; i < gScanlistSize; ++i) {
     CH _ch;
     uint16_t chNum = gScanlist[i];
     CHANNELS_Load(chNum, &_ch);
-    UART_printf("%s,%u.%05u,%s\n", _ch.name, _ch.rx.f / 100000,
-                _ch.rx.f % 100000, modulationTypeOptions[_ch.modulation]);
+    UART_printf("CH%u,%s,%u,%u,%u,%u\n", chNum, _ch.name, _ch.rx.f, _ch.tx.f,
+                _ch.modulation, _ch.bw);
   }
   UART_printf("--- >8 ---\n");
 }

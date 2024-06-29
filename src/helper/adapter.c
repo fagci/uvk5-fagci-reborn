@@ -8,6 +8,7 @@ void VFO2CH(VFO *src, Preset *p, CH *dst) {
   dst->tx.code = src->tx.code;
   dst->rx.codeType = src->rx.codeType;
   dst->tx.codeType = src->tx.codeType;
+  dst->bw = p->band.bw;
   dst->power = src->power;
 }
 
