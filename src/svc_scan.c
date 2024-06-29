@@ -58,6 +58,9 @@ void SVC_SCAN_Init(void) {
 
 void SVC_SCAN_Update(void) {
   if (lastListenState != gIsListening) {
+    if (gIsListening) {
+      RADIO_SaveCurrentVFO();
+    }
     lastListenState = gIsListening;
     SetTimeout(&timeout, gIsListening
                              ? SCAN_TIMEOUTS[gSettings.sqOpenedTimeout]

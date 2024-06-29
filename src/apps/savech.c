@@ -100,10 +100,14 @@ static void setMenuIndexAndRun(uint16_t v) {
 #include "../driver/uart.h"
 static void toggleScanlist(uint8_t n) {
   CH _ch;
-  CHANNELS_Load(gScanlist[currentChannelIndex], &_ch);
-    Log("i:%d, ch:%d, name: %s", currentChannelIndex, gScanlist[currentChannelIndex], _ch.name);
+  uint16_t chNum = gScanlist[currentChannelIndex];
+  if (gSettings.currentScanlist == 15) {
+    chNum = currentChannelIndex;
+  }
+  CHANNELS_Load(chNum, &_ch);
+  Log("i:%d, ch:%d, name: %s", currentChannelIndex, chNum, _ch.name);
   _ch.memoryBanks ^= 1 << n;
-  CHANNELS_Save(gScanlist[currentChannelIndex], &_ch);
+  CHANNELS_Save(chNum, &_ch);
 }
 
 bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
