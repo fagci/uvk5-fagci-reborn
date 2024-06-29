@@ -794,7 +794,8 @@ uint8_t BK4819_GetGlitch(void) {
   return BK4819_ReadRegister(BK4819_REG_63) & 0xFF;
 }
 
-uint8_t BK4819_GetSNR(void) { return (BK4819_ReadRegister(0x61) >> 8) & 0xFF; }
+// uint8_t BK4819_GetSNR(void) { return (BK4819_ReadRegister(0x61) >> 8) & 0xFF; }
+uint8_t BK4819_GetSNR(void) { return (BK4819_ReadRegister(0x61)) & 0xFF; }
 
 bool BK4819_GetFrequencyScanResult(uint32_t *pFrequency) {
   uint16_t High = BK4819_ReadRegister(BK4819_REG_0D);
