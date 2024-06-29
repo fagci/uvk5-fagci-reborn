@@ -110,6 +110,19 @@ static void toggleScanlist(uint8_t n) {
   CHANNELS_Save(chNum, &_ch);
 }
 
+static void exportScanList() {
+  UART_printf("--- 8< ---\n");
+  UART_printf("Name,F,mod\n");
+  for (uint8_t i = 0; i < gScanlistSize; ++i) {
+    CH _ch;
+    uint16_t chNum = gScanlist[i];
+    CHANNELS_Load(chNum, &_ch);
+    UART_printf("%s,%u.%05u,%s\n", _ch.name, _ch.rx.f / 100000,
+                _ch.rx.f % 100000, modulationTypeOptions[_ch.modulation]);
+  }
+  UART_printf("--- >8 ---\n");
+}
+
 bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   chNum = gScanlist[currentChannelIndex];
   if (!bKeyPressed && !bKeyHeld) {
@@ -148,6 +161,9 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       CHANNELS_LoadScanlist(key - KEY_1);
       chCount = gScanlistSize;
       currentChannelIndex = 0;
+      return true;
+    case KEY_9:
+      exportScanList();
       return true;
     case KEY_0:
       CHANNELS_LoadScanlist(15);
