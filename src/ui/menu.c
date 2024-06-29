@@ -168,7 +168,11 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
     break;
   case M_MODULATION:
     gCurrentPreset->band.modulation = subMenuIndex;
+    // NOTE: for right BW after switching from WFM to another
+    BK4819_SetFilterBandwidth(gCurrentPreset->band.bw);
     BK4819_SetModulation(subMenuIndex);
+    BK4819_SetAGC(gCurrentPreset->band.modulation != MOD_AM,
+                  gCurrentPreset->band.gainIndex);
     PRESETS_SaveCurrent();
     break;
   case M_STEP:
@@ -189,7 +193,8 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
 
   case M_GAIN:
     gCurrentPreset->band.gainIndex = subMenuIndex;
-    BK4819_SetGain(subMenuIndex);
+    BK4819_SetAGC(gCurrentPreset->band.modulation != MOD_AM,
+                  gCurrentPreset->band.gainIndex);
     PRESETS_SaveCurrent();
     break;
   case M_TX:

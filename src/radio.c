@@ -330,27 +330,18 @@ void RADIO_ToggleTX(bool on) {
   }
 } */
 
-void RADIO_SetModulationByPreset(void) {
-  /* ModulationType mod = gCurrentPreset->band.modulation;
-  if (mod == MOD_WFM) {
-    if (RADIO_IsBK1080Range(radio->rx.f)) {
-      RADIO_ToggleBK1080(true);
-      return;
-    }
-    gCurrentPreset->band.modulation = MOD_FM;
-  }
-  RADIO_ToggleBK1080(false); */
-  BK4819_SetModulation(gCurrentPreset->band.modulation);
-  onPresetUpdate();
-}
-
 void RADIO_ToggleModulation(void) {
   if (gCurrentPreset->band.modulation == MOD_WFM) {
     gCurrentPreset->band.modulation = MOD_FM;
   } else {
     ++gCurrentPreset->band.modulation;
   }
-  RADIO_SetModulationByPreset();
+  // NOTE: for right BW after switching from WFM to another
+  BK4819_SetFilterBandwidth(gCurrentPreset->band.bw);
+  BK4819_SetModulation(gCurrentPreset->band.modulation);
+  BK4819_SetAGC(gCurrentPreset->band.modulation != MOD_AM,
+                gCurrentPreset->band.gainIndex);
+  onPresetUpdate();
 }
 
 void RADIO_UpdateStep(bool inc) {
@@ -476,7 +467,9 @@ void RADIO_SetSquelchType(SquelchType t) {
 }
 
 void RADIO_SetGain(uint8_t gainIndex) {
-  BK4819_SetGain(gCurrentPreset->band.gainIndex = gainIndex);
+  gCurrentPreset->band.gainIndex = gainIndex;
+  BK4819_SetAGC(gCurrentPreset->band.modulation != MOD_AM,
+                gCurrentPreset->band.gainIndex);
   onPresetUpdate();
 }
 
@@ -488,7 +481,7 @@ void RADIO_SetupBandParams(Band *b) {
                  gSettings.sqlCloseTime);
   BK4819_SetFilterBandwidth(b->bw);
   BK4819_SetModulation(b->modulation);
-  BK4819_SetGain(b->gainIndex);
+  BK4819_SetAGC(b->modulation != MOD_AM, b->gainIndex);
   // BK4819_RX_TurnOn(); // TODO: needeed?
 }
 

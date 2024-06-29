@@ -104,7 +104,7 @@ void BK4819_WriteRegister(BK4819_REGISTER_t Register, uint16_t Data);
 void BK4819_WriteU8(uint8_t Data);
 void BK4819_WriteU16(uint16_t Data);
 
-void BK4819_SetAGC(bool useDefault);
+void BK4819_SetAGC(bool useDefault, uint8_t gainIndex);
 
 void BK4819_ToggleGpioOut(BK4819_GPIO_PIN_t Pin, bool bSet);
 
@@ -210,6 +210,5 @@ void BK4819_SetToneFrequency(uint16_t f);
 void BK4819_SetModulation(ModulationType type);
 bool BK4819_IsSquelchOpen();
 void BK4819_ResetRSSI();
-void BK4819_SetGain(uint8_t gainIndex);
 
 #endif

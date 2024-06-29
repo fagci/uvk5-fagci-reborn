@@ -204,7 +204,12 @@ static void DrawRegs(void) {
     }
 
     if (rs.num == BK4819_REG_13) {
-      sprintf(String, "%ddB", gainTable[gCurrentPreset->band.gainIndex].gainDb);
+      if (gCurrentPreset->band.gainIndex == 18) {
+        sprintf(String, "auto");
+      } else {
+        sprintf(String, "%ddB",
+                gainTable[gCurrentPreset->band.gainIndex].gainDb);
+      }
     } else {
       sprintf(String, "%u", BK4819_GetRegValue(rs));
     }

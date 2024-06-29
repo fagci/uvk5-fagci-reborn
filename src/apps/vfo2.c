@@ -28,7 +28,7 @@ void VFO2_init(void) {
 void VFO2_deinit(void) {}
 
 void VFO2_update(void) {
-  if (Now() - lastRender >= 500) {
+  if (gIsListening && Now() - lastRender >= 1000) {
     gRedrawScreen = true;
     lastRender = Now();
   }

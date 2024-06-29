@@ -19,7 +19,7 @@ void VFO1_init(void) {
 void VFO1_deinit(void) {}
 
 void VFO1_update(void) {
-  if (Now() - lastUpdate >= 500) {
+  if (gIsListening && Now() - lastUpdate >= 1000) {
     gRedrawScreen = true;
     lastUpdate = Now();
   }

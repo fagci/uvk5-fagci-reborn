@@ -58,8 +58,8 @@ const uint8_t SQ[2][6][11] = {
     },
 };
 
-const uint16_t BWRegValues[3] = {0x3028, 0x4048, 0x0018};
-// const uint16_t BWRegValues[3] = {0x45A8, 0x4408, 0x3658};
+// const uint16_t BWRegValues[3] = {0x3028, 0x4048, 0x0018};
+const uint16_t BWRegValues[3] = {0x45A8, 0x4408, 0x3658};
 
 const Gain gainTable[19] = {
     {0x000, -43}, //
@@ -94,9 +94,9 @@ void BK4819_Init(void) {
   BK4819_WriteRegister(BK4819_REG_00, 0x0000);
   BK4819_WriteRegister(BK4819_REG_37, 0x1D0F);
   BK4819_WriteRegister(BK4819_REG_36, 0x0022);
-  BK4819_SetAGC(true);
+  BK4819_SetAGC(true, 0);
   BK4819_WriteRegister(BK4819_REG_19, 0x1041);
-  BK4819_WriteRegister(BK4819_REG_7D, 0xE940);
+  BK4819_WriteRegister(BK4819_REG_7D, 0xE94F);
   BK4819_WriteRegister(BK4819_REG_48, 0xB3A8);
 
   for (uint8_t i = 0; i < ARRAY_SIZE(DTMF_COEFFS); ++i) {
@@ -206,18 +206,22 @@ void BK4819_WriteRegister(BK4819_REGISTER_t Register, uint16_t Data) {
   GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
 }
 
-void BK4819_SetAGC(bool useDefault) {
-  bool enable = true;
+void BK4819_SetAGC(bool useDefault, uint8_t gainIndex) {
+  const uint8_t GAIN_AUTO = 18;
+  bool enableAgc = gainIndex == GAIN_AUTO;
   uint16_t regVal = BK4819_ReadRegister(BK4819_REG_7E);
-  if (!(regVal & (1 << 15)) == enable)
-    return;
 
   BK4819_WriteRegister(BK4819_REG_7E, (regVal & ~(1 << 15) & ~(0b111 << 12)) |
-                                          (!enable << 15) // 0  AGC fix mode
-                                          | (3u << 12)    // 3  AGC fix index
+                                          (!enableAgc << 15) // 0  AGC fix mode
+                                          | (3u << 12)       // 3  AGC fix index
   );
 
-  BK4819_WriteRegister(BK4819_REG_13, 0x03BE);
+  if (gainIndex != GAIN_AUTO) {
+    BK4819_WriteRegister(BK4819_REG_13,
+                         gainTable[gainIndex].regValue | 6 | (3 << 3));
+  } else {
+    BK4819_WriteRegister(BK4819_REG_13, 0x03BE);
+  }
   BK4819_WriteRegister(BK4819_REG_12, 0x037B);
   BK4819_WriteRegister(BK4819_REG_11, 0x027B);
   BK4819_WriteRegister(BK4819_REG_10, 0x007A);
@@ -232,9 +236,11 @@ void BK4819_SetAGC(bool useDefault) {
     BK4819_WriteRegister(BK4819_REG_14, 0x0000);
     // slow 25 45
     // fast 15 50
-    low = 15;
-    high = 42;
+    low = 32;
+    high = 50;
   }
+  BK4819_WriteRegister(BK4819_REG_49, (Lo << 14) | (high << 7) | (low << 0));
+  BK4819_WriteRegister(BK4819_REG_7B, 0x8420);
 }
 
 void BK4819_ToggleGpioOut(BK4819_GPIO_PIN_t Pin, bool bSet) {
@@ -368,8 +374,11 @@ void BK4819_SetupSquelch(uint8_t SquelchOpenRSSIThresh,
                        (SquelchCloseNoiseThresh << 8) | SquelchOpenNoiseThresh);
   BK4819_WriteRegister(BK4819_REG_78,
                        (SquelchOpenRSSIThresh << 8) | SquelchCloseRSSIThresh);
+
+  uint16_t r47 = BK4819_ReadRegister(BK4819_REG_47);
   BK4819_SetAF(BK4819_AF_MUTE);
   BK4819_RX_TurnOn();
+  BK4819_WriteRegister(BK4819_REG_47, r47); // revert AF
 }
 
 void BK4819_Squelch(uint8_t sql, uint32_t f, uint8_t OpenDelay,
@@ -404,11 +413,9 @@ void BK4819_SetModulation(ModulationType type) {
       BK4819_AF_FM,  BK4819_AF_AM, BK4819_AF_USB, BK4819_AF_BYPASS,
       BK4819_AF_RAW, BK4819_AF_FM, BK4819_AF_BEEP};
   BK4819_SetAF(modTypeReg47Values[type]);
-  BK4819_SetRegValue(afDacGainRegSpec, 0xF);
-  BK4819_SetAGC(type != MOD_AM);
+  BK4819_SetRegValue(afDacGainRegSpec, 0x8);
   BK4819_WriteRegister(0x3D, type == MOD_USB ? 0 : 0x2AAB);
-  BK4819_SetRegValue(afcDisableRegSpec,
-                     type == MOD_AM || type == MOD_USB || type == MOD_BYP);
+  BK4819_SetRegValue(afcDisableRegSpec, type != MOD_FM && type != MOD_WFM);
   RegisterSpec xtalMode = {"XTAL F Mode Select", 0x3C, 6, 0b11, 1};
   RegisterSpec rfFltBW = {"RF filt BW", 0x43, 12, 0b111, 1};
   RegisterSpec rfFltBWw = {"RFfiltBWweak", 0x43, 9, 0b111, 1};
@@ -416,16 +423,12 @@ void BK4819_SetModulation(ModulationType type) {
   RegisterSpec ifF = {"IF step1x", 0x3D, 0, 0xFFFF, 1};
   if (type == MOD_WFM) {
     BK4819_SetRegValue(xtalMode, 0);
-    BK4819_SetRegValue(afDacGainRegSpec, 0x8);
     BK4819_SetRegValue(rfFltBW, 7);
     BK4819_SetRegValue(rfFltBWw, 7);
     BK4819_SetRegValue(bwMode, 3);
     BK4819_SetRegValue(ifF, 14223);
   } else {
     BK4819_SetRegValue(xtalMode, 2);
-    BK4819_SetRegValue(rfFltBW, 7);
-    BK4819_SetRegValue(rfFltBWw, 7);
-    BK4819_SetRegValue(bwMode, 3);
     BK4819_SetRegValue(ifF, 10923);
   }
 }
@@ -1035,9 +1038,4 @@ void BK4819_ResetRSSI(void) {
   BK4819_WriteRegister(BK4819_REG_30, Reg);
   Reg |= 1;
   BK4819_WriteRegister(BK4819_REG_30, Reg);
-}
-
-void BK4819_SetGain(uint8_t gainIndex) {
-  BK4819_WriteRegister(BK4819_REG_13,
-                       gainTable[gainIndex].regValue | 6 | (3 << 3));
 }
