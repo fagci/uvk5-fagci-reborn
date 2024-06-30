@@ -111,16 +111,16 @@ static void toggleScanlist(uint8_t n) {
 }
 
 static void exportScanList() {
-  UART_printf("--- 8< ---\n");
-  UART_printf("CH#,Name,fRX,fTX,mod,bw\n");
+  UART_printf("--- 8< ---\r\n");
+  UART_printf("CH#,Name,fRX,fTX,mod,bw\r\n");
   for (uint8_t i = 0; i < gScanlistSize; ++i) {
     CH _ch;
     uint16_t chNum = gScanlist[i];
     CHANNELS_Load(chNum, &_ch);
-    UART_printf("CH%u,%s,%u,%u,%u,%u\n", chNum, _ch.name, _ch.rx.f, _ch.tx.f,
+    UART_printf("CH%u,%s,%u,%u,%u,%u\r\n", chNum, _ch.name, _ch.rx.f, _ch.tx.f,
                 _ch.modulation, _ch.bw);
   }
-  UART_printf("--- >8 ---\n");
+  UART_printf("--- >8 ---\r\n");
 }
 
 bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
