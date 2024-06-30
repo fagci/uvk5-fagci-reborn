@@ -1,4 +1,5 @@
 #include "svc_scan.h"
+#include "apps/apps.h"
 #include "driver/st7565.h"
 #include "driver/system.h"
 #include "radio.h"
@@ -56,9 +57,14 @@ void SVC_SCAN_Init(void) {
   next();
 }
 
+uint32_t lastSavedF = 0;
+
 void SVC_SCAN_Update(void) {
   if (lastListenState != gIsListening) {
-    if (gIsListening) {
+    if (gIsListening &&
+        (gCurrentApp != APP_SPECTRUM && gCurrentApp != APP_ANALYZER && gCurrentApp != APP_CH_SCANNER) &&
+        lastSavedF != radio->rx.f) {
+      lastSavedF = radio->rx.f;
       RADIO_SaveCurrentVFO();
     }
     lastListenState = gIsListening;

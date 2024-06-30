@@ -697,7 +697,7 @@ bool UART_IsCommandAvailable(void) {
         }
       }
       if (fieldIndex == 5) {
-        CHANNELS_Save(chNum, &ch);
+        CHANNELS_Save(chNum - 1, &ch);
         UART_printf("CH%d,%s,%lu,%lu,%d,%d\r\n", chNum, ch.name, ch.rx.f,
                     ch.tx.f, ch.modulation, ch.bw);
       } else {
