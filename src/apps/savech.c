@@ -33,7 +33,7 @@ static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
   for (uint8_t i = 0; i < 8; ++i) {
     scanlistsStr[i] = _ch.memoryBanks & (1 << i) ? '1' + i : '-';
   }
-  PrintSmallEx(LCD_WIDTH - 1, y + 8, POS_R, C_INVERT, "%s", scanlistsStr);
+  PrintSmallEx(LCD_WIDTH - 5, y + 8, POS_R, C_INVERT, "%s", scanlistsStr);
 }
 
 static void getScanlistItem(uint16_t i, uint16_t index, bool isCurrent) {

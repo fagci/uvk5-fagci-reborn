@@ -41,7 +41,7 @@ static void startNewScan(bool reset) {
 
     gScanRedraw = stepsCount * gSettings.scanTimeout >= 500;
     gScanFn = scanFn;
-    uint16_t t = gSettings.scanTimeout < 10 ? gSettings.scanTimeout : 10;
+    uint16_t t = gSettings.scanTimeout; // < 10 ? gSettings.scanTimeout : 10;
     lastReady = Now();
     SVC_Toggle(SVC_SCAN, true, t);
     SVC_Toggle(SVC_LISTEN, true, t);

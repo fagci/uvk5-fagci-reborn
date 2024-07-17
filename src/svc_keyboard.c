@@ -20,14 +20,20 @@ static void onKey(KEY_Code_t key, bool pressed, bool hold) {
     BACKLIGHT_On();
     TaskTouch(BACKLIGHT_Update);
   }
+  if (hold && pressed && !gRepeatHeld && key == KEY_F) {
+    gSettings.keylock = !gSettings.keylock;
+    gRedrawScreen = true;
+    return;
+  }
+  if (gSettings.keylock && key != KEY_F) {
+    return;
+  }
 
   // apps needed this events:
   // - keyup (!pressed)
   // - keyhold pressed (hold && pressed)
   // - keyup hold (hold && !pressed)
   if ((hold || !pressed) && APPS_key(key, pressed, hold)) {
-    if (gSettings.beep)
-      AUDIO_PlayTone(1000, 20);
     gRedrawScreen = true;
     return;
   }
