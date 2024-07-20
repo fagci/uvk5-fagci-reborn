@@ -25,7 +25,8 @@ static void onKey(KEY_Code_t key, bool pressed, bool hold) {
     gRedrawScreen = true;
     return;
   }
-  if (gSettings.keylock && key != KEY_F) {
+  if (gSettings.keylock && key != KEY_PTT &&
+      !(hold && pressed && !gRepeatHeld && key == KEY_F)) {
     return;
   }
 

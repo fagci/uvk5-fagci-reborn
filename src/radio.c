@@ -549,8 +549,6 @@ Loot *RADIO_UpdateMeasurements(void) {
 
     uint16_t intBits = BK4819_ReadRegister(BK4819_REG_02);
 
-    // MSG_StorePacket(intBits);
-
     if (intBits & BK4819_REG_02_CxCSS_TAIL) {
       msm->open = false;
       lastTailTone = Now();

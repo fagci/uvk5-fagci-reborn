@@ -43,19 +43,18 @@ void SP_Init(uint16_t steps, uint8_t width) {
 }
 
 void SP_AddPoint(Loot *msm) {
-  if (exLen) {
-    for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
-      x = historySize * currentStep / stepsCount + exIndex;
-      rssiHistory[x] = msm->rssi;
-      markers[x] = msm->open;
+  uint8_t ox = 255;
+  for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
+    x = historySize * currentStep / stepsCount + exIndex;
+    if (ox != x) {
+      rssiHistory[x] = markers[x] = 0;
+      ox = x;
     }
-  } else {
-    x = historySize * currentStep / stepsCount;
     if (msm->rssi > rssiHistory[x]) {
       rssiHistory[x] = msm->rssi;
     }
     if (markers[x] == false && msm->open) {
-      markers[x] = true;
+      markers[x] = msm->open;
     }
   }
   if (x > filledPoints && x < historySize) {

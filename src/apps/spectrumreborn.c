@@ -32,7 +32,7 @@ static void scanFn(bool forward);
 static void startNewScan(bool reset) {
   if (reset) {
     SVC_Toggle(SVC_SCAN, false, 0);
-    SVC_Toggle(SVC_LISTEN, false, 10);
+    SVC_Toggle(SVC_LISTEN, false, 0);
     LOOT_Standby();
     RADIO_TuneTo(gCurrentPreset->band.bounds.start);
     stepsCount = PRESETS_GetSteps(gCurrentPreset);
@@ -41,20 +41,26 @@ static void startNewScan(bool reset) {
 
     gScanRedraw = stepsCount * gSettings.scanTimeout >= 500;
     gScanFn = scanFn;
-    uint16_t t = gSettings.scanTimeout; // < 10 ? gSettings.scanTimeout : 10;
     lastReady = Now();
-    SVC_Toggle(SVC_SCAN, true, t);
-    SVC_Toggle(SVC_LISTEN, true, t);
-
+    SVC_Toggle(SVC_SCAN, true, gSettings.scanTimeout);
+    SVC_Toggle(SVC_LISTEN, true, gSettings.scanTimeout);
   } else {
     SP_Begin();
     bandFilled = true;
   }
 }
 
-static void scanFn(bool forward) {
-  SP_AddPoint(RADIO_UpdateMeasurements());
+// scan
+// listen
+// getLastMsm
+// render
 
+/* void getLastMsm() {
+  gRedrawScreen = true;
+} */
+
+static void scanFn(bool forward) {
+  SP_AddPoint(&gLoot[gSettings.activeVFO]);
   if (newScan) {
     newScan = false;
     startNewScan(false);
@@ -82,7 +88,11 @@ void SPECTRUM_init(void) {
   gRedrawScreen = true;
   gMonitorMode = false;
   gScanFn = scanFn;
-  SVC_Toggle(SVC_SCAN, true, 1);
+  SVC_Toggle(SVC_LISTEN, false, 0);
+  SVC_Toggle(SVC_LISTEN, true, gSettings.scanTimeout);
+  SVC_Toggle(SVC_SCAN, true, gSettings.scanTimeout);
+
+  // TaskAdd("Add msm", getLastMsm, gSettings.scanTimeout, true, 52);
 }
 
 void SPECTRUM_update(void) {
@@ -93,11 +103,26 @@ void SPECTRUM_update(void) {
 
 void SPECTRUM_deinit(void) {
   SVC_Toggle(SVC_SCAN, false, 0);
-  SVC_Toggle(SVC_LISTEN, false, 0);
-  SVC_Toggle(SVC_LISTEN, true, 10);
+  // TaskRemove(getLastMsm);
 }
 
 bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
+  if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
+    switch (Key) {
+    case KEY_1:
+      if (gSettings.scanTimeout < 255) {
+        gSettings.scanTimeout++;
+      }
+      return true;
+    case KEY_7:
+      if (gSettings.scanTimeout > 1) {
+        gSettings.scanTimeout--;
+      }
+      return true;
+    default:
+      break;
+    }
+  }
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     if (Key == KEY_SIDE1) {
       gSettings.noListen = !gSettings.noListen;
@@ -149,16 +174,6 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       }
       startNewScan(true);
       return true;
-    case KEY_1:
-      if (gSettings.scanTimeout < 255) {
-        gSettings.scanTimeout++;
-      }
-      return true;
-    case KEY_7:
-      if (gSettings.scanTimeout > 1) {
-        gSettings.scanTimeout--;
-      }
-      return true;
     case KEY_3:
       RADIO_UpdateSquelchLevel(true);
       startNewScan(true);
@@ -191,7 +206,6 @@ void SPECTRUM_render(void) {
   PrintSmallEx(spectrumWidth - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "SQ%u %s",
                band->squelch, sqTypeNames[band->squelchType]);
   PrintSmallEx(0, SPECTRUM_Y - 3, POS_L, C_FILL, "%ums", gSettings.scanTimeout);
-  PrintSmallEx(0, SPECTRUM_Y - 3 + 6, POS_L, C_FILL, "%ums", scanTime);
   PrintSmallEx(0, SPECTRUM_Y - 3 + 12, POS_L, C_FILL, "%uCHps", chPerSec);
 
   uint32_t fs = band->bounds.start;
