@@ -31,94 +31,7 @@ static const char SI47XX_MODE_NAMES[5][4] = {
 
 static SI47XX_FilterBW bw = SI47XX_BW_6_kHz;
 static SI47XX_SsbFilterBW ssbBw = SI47XX_SSB_BW_3_kHz;
-static int8_t currentBandIndex = -1;
 
-typedef struct // Band data
-{
-  const char *bandName; // Bandname
-  BandType bandType;    // Band type (FM, MW or SW)
-  SI47XX_MODE prefmod;  // Pref. modulation
-  uint16_t minimumFreq; // Minimum frequency of the band
-  uint16_t maximumFreq; // maximum frequency of the band
-  uint16_t currentFreq; // Default frequency or current frequency
-  uint8_t currentStep;  // Default step (increment and decrement)
-  int lastBFO;          // Last BFO per band
-  int lastmanuBFO;      // Last Manual BFO per band using X-Tal
-
-} SIBand;
-
-SIBand bands[] = {
-    {"LW", LW_BT, SI47XX_AM, 148, 283, 198, 9, 0, 0},         //  LW          1
-    {"LW", LW_BT, SI47XX_AM, 100, 514, 198, 9, 0, 0},         //  LW          1
-    {"MW Bcast", MW_BT, SI47XX_AM, 526, 1606, 1395, 9, 0, 0}, //  MW          2
-    {"MW", MW_BT, SI47XX_AM, 514, 1800, 1395, 9, 0, 0},       //  MW          2
-    {"BACON Ham", LW_BT, SI47XX_AM, 280, 470, 284, 1, 0, 0},  // Ham  800M 3
-    {"630M Ham", SW_BT, SI47XX_LSB, 470, 480, 475, 1, 0, 0},  // Ham  630M 4
-    {"160M Ham", SW_BT, SI47XX_LSB, 1800, 2000, 1850, 1, 0, 0},  // Ham  160M 5
-    {"120M Bcast", SW_BT, SI47XX_AM, 2300, 2495, 2400, 5, 0, 0}, //      120M 6
-    {"120M", SW_BT, SI47XX_AM, 2000, 3200, 2400, 5, 0, 0},       //      120M 6
-    {"90M Bcast", SW_BT, SI47XX_AM, 3200, 3400, 3300, 5, 0, 0},  //       90M 7
-    {"90M", SW_BT, SI47XX_AM, 3200, 3500, 3300, 5, 0, 0},        //       90M 7
-    {"80M Ham", SW_BT, SI47XX_LSB, 3500, 3900, 3630, 1, 0, 0},   // Ham   80M 8
-    {"75M Bcast", SW_BT, SI47XX_AM, 3900, 4000, 3950, 5, 0, 0},  //       75M 9
-    {"75M Bacst", SW_BT, SI47XX_AM, 4750, 5100, 3950, 5, 0, 0},  //       75M 9
-    {"75M", SW_BT, SI47XX_AM, 3900, 5300, 3950, 5, 0, 0},        //       75M 9
-    {"60M", SW_BT, SI47XX_USB, 5300, 5900, 5375, 1, 0, 0}, // Ham   60M   10
-    {"49M Bcast", SW_BT, SI47XX_AM, 5850, 6350, 6000, 5, 0, 0}, //       49M 11
-    {"49M", SW_BT, SI47XX_AM, 5900, 7000, 6000, 5, 0, 0},       //       49M 11
-    {"41M Bcast", SW_BT, SI47XX_AM, 7200, 7500, 7210, 5, 0, 0}, //       41M 13
-    {"40M Ham", SW_BT, SI47XX_LSB, 7000, 7500, 7074, 1, 0, 0}, // Ham   40M   12
-    {"41M", SW_BT, SI47XX_AM, 7500, 9000, 7210, 5, 0, 0},      //       41M 13
-    {"31M Bcast", SW_BT, SI47XX_AM, 9400, 9990, 9600, 5, 0, 0}, //       31M 14
-    {"31M", SW_BT, SI47XX_AM, 9000, 10000, 9600, 5, 0, 0}, //       31M   14
-    {"30M Ham", SW_BT, SI47XX_USB, 10000, 10200, 10099, 1, 0,
-     0}, // Ham   30M   15
-    {"25M Bcast", SW_BT, SI47XX_AM, 11600, 12100, 11700, 5, 0,
-     0},                                                     //       25M   16
-    {"25M", SW_BT, SI47XX_AM, 10200, 13500, 11700, 5, 0, 0}, //       25M   16
-    {"22M  Bcast", SW_BT, SI47XX_AM, 13500, 13870, 13700, 5, 0,
-     0},                                                     //       22M   17
-    {"22M", SW_BT, SI47XX_AM, 13500, 14000, 13700, 5, 0, 0}, //       22M   17
-    {"20M Ham", SW_BT, SI47XX_USB, 14000, 14500, 14074, 1, 0,
-     0}, // Ham   20M   18
-    {"19M Bcast", SW_BT, SI47XX_AM, 15100, 15800, 15700, 5, 0,
-     0}, //       19M   19
-    {"17M Bcast", SW_BT, SI47XX_AM, 17480, 18050, 17600, 5, 0,
-     0},                                                     //       17M   20
-    {"19M", SW_BT, SI47XX_AM, 14500, 17500, 15700, 5, 0, 0}, //       19M   19
-    {"17M", SW_BT, SI47XX_AM, 17500, 18000, 17600, 5, 0, 0}, //       17M   20
-    {"16M Ham", SW_BT, SI47XX_USB, 18000, 18500, 18100, 1, 0,
-     0}, // Ham   16M   21
-    {"15M Bcast", SW_BT, SI47XX_AM, 18900, 19020, 18950, 5, 0,
-     0},                                                     //       15M   22
-    {"15M", SW_BT, SI47XX_AM, 18500, 21000, 18950, 5, 0, 0}, //       15M   22
-    {"14M Ham", SW_BT, SI47XX_USB, 21000, 21450, 21074, 1, 0,
-     0}, // Ham   14M   23
-    {"14M Bcast", SW_BT, SI47XX_USB, 21450, 21850, 21074, 1, 0,
-     0},                                                     // Ham   14M   23
-    {"13M", SW_BT, SI47XX_AM, 21500, 24000, 21500, 5, 0, 0}, //       13M   24
-    {"12M Ham", SW_BT, SI47XX_USB, 24000, 25500, 24940, 1, 0,
-     0}, // Ham   12M   25
-    {"11M Bcast", SW_BT, SI47XX_AM, 25600, 26100, 25800, 5, 0,
-     0},                                                     //       11M   26
-    {"11M", SW_BT, SI47XX_AM, 25500, 26100, 25800, 5, 0, 0}, //       11M   26
-    {"CB", SW_BT, SI47XX_AM, 26100, 28000, 27200, 1, 0, 0},  // CB band 27
-    {"10M Ham", SW_BT, SI47XX_USB, 28000, 29750, 28500, 1, 0,
-     0},                                                      // Ham   10M   28
-    {"10M", SW_BT, SI47XX_USB, 28000, 30000, 28500, 1, 0, 0}, // Ham   10M   28
-    {"SW", SW_BT, SI47XX_AM, 100, 30000, 15500, 5, 0, 0}      // Whole SW 29
-};
-static const uint8_t BANDS_COUNT = ARRAY_SIZE(bands);
-
-static int8_t getCurrentBandIndex() {
-  for (int8_t i = 0; i < BANDS_COUNT; ++i) {
-    if (siCurrentFreq >= bands[i].minimumFreq &&
-        siCurrentFreq <= bands[i].maximumFreq) {
-      return i;
-    }
-  }
-  return -1;
-}
 
 static uint8_t att = 0;
 static uint16_t divider = 1000;
@@ -137,7 +50,6 @@ static void tune(uint32_t f) {
   }
   SI47XX_ClearRDS();
   SI47XX_SetFreq(f);
-  currentBandIndex = getCurrentBandIndex();
 }
 
 void SI_init() {
@@ -335,18 +247,6 @@ bool SI_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_EXIT:
       APPS_exit();
       return true;
-    case KEY_SIDE1:
-      if (currentBandIndex > 0) {
-        currentBandIndex--;
-        tune(bands[currentBandIndex].currentFreq * divider);
-      }
-      return true;
-    case KEY_SIDE2:
-      if (currentBandIndex < BANDS_COUNT - 1) {
-        currentBandIndex++;
-        tune(bands[currentBandIndex].currentFreq * divider);
-      }
-      return true;
     default:
       break;
     }
@@ -400,15 +300,6 @@ void SI_render() {
   } else {
     PrintSmallEx(LCD_XCENTER, BASE + 6, POS_C, C_FILL, "STP %u ATT %u BW %s",
                  step, att, SI47XX_BW_NAMES[bw]);
-  }
-
-  if (si4732mode != SI47XX_FM) {
-    if (currentBandIndex >= 0) {
-      PrintSmallEx(LCD_XCENTER, LCD_HEIGHT - 2, POS_C, C_FILL, "%s %d - %dkHz",
-                   bands[currentBandIndex].bandName,
-                   bands[currentBandIndex].minimumFreq,
-                   bands[currentBandIndex].maximumFreq);
-    }
   }
 
   if (showSNR) {

@@ -1,236 +1,333 @@
 #include "spectrumreborn.h"
-#include "../dcs.h"
+#include "../driver/bk4819.h"
 #include "../driver/st7565.h"
+#include "../driver/system.h"
 #include "../helper/lootlist.h"
+#include "../helper/measurements.h"
 #include "../helper/presetlist.h"
 #include "../scheduler.h"
 #include "../settings.h"
 #include "../svc.h"
-#include "../svc_scan.h"
+#include "../ui/components.h"
 #include "../ui/graphics.h"
-#include "../ui/spectrum.h"
 #include "../ui/statusline.h"
 #include "apps.h"
 
+#define DATA_LEN 128
+
+static const uint16_t U16_MAX = 65535;
+
+// TODO: use as variable
+static uint8_t noiseOpenDiff = 14;
+
+static const uint8_t S_HEIGHT = 40;
+
 static const uint8_t SPECTRUM_Y = 16;
-static const uint8_t SPECTRUM_HEIGHT = 40;
+static const uint8_t S_BOTTOM = SPECTRUM_Y + S_HEIGHT;
 
-static uint8_t spectrumWidth = LCD_WIDTH;
+static uint16_t rssiHistory[DATA_LEN] = {0};
+static uint16_t noiseHistory[DATA_LEN] = {0};
+static bool markers[DATA_LEN] = {0};
 
-static bool newScan = false;
+static uint8_t x;
+
+static Band *currentBand;
+
+static uint32_t currentStepSize;
+static uint8_t exLen;
+static uint16_t stepsCount;
+static uint16_t currentStep;
+static uint32_t bandwidth;
+
+static bool newScan = true;
+
+static uint16_t rssiO = U16_MAX;
+static uint16_t noiseO = 0;
+
+static uint8_t msmDelay = 5;
+
+static uint16_t oldPresetIndex = 255;
+
 static bool bandFilled = false;
 
-static uint32_t lastRender = 0;
-static uint32_t stepsCount = 0;
+static uint16_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 
-static uint32_t lastReady = 0;
-static uint32_t chPerSec = 0;
-static uint32_t scanTime = 0;
+static void resetRssiHistory() {
+  rssiO = U16_MAX;
+  noiseO = 0;
+  for (uint8_t x = 0; x < DATA_LEN; ++x) {
+    rssiHistory[x] = 0;
+    noiseHistory[x] = 0;
+    markers[x] = false;
+  }
+}
 
-static void scanFn(bool forward);
+static Loot msm = {0};
 
-static void startNewScan(bool reset) {
-  if (reset) {
-    SVC_Toggle(SVC_SCAN, false, 0);
-    SVC_Toggle(SVC_LISTEN, false, 0);
-    LOOT_Standby();
-    RADIO_TuneTo(gCurrentPreset->band.bounds.start);
-    stepsCount = PRESETS_GetSteps(gCurrentPreset);
-    SP_Init(stepsCount, spectrumWidth);
-    bandFilled = false;
+static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
 
-    gScanRedraw = stepsCount * gSettings.scanTimeout >= 500;
-    gScanFn = scanFn;
-    lastReady = Now();
-    SVC_Toggle(SVC_SCAN, true, gSettings.scanTimeout);
-    SVC_Toggle(SVC_LISTEN, true, gSettings.scanTimeout);
+/* static void handleInt(uint16_t intStatus) {
+  if (intStatus & BK4819_REG_02_CxCSS_TAIL) {
+    msm.open = false;
+  }
+} */
+
+static void updateMeasurements() {
+  msm.rssi = BK4819_GetRSSI();
+  msm.noise = BK4819_GetNoise();
+  // UART_printf("%u: Got rssi\n", elapsedMilliseconds);
+
+  if (gIsListening) {
+    noiseO -= noiseOpenDiff;
+    msm.open = isSquelchOpen();
+    noiseO += noiseOpenDiff;
   } else {
-    SP_Begin();
+    msm.open = isSquelchOpen();
+  }
+  /*
+    if (elapsedMilliseconds - msm.lastTimeCheck < 500) {
+      msm.open = false;
+    } else {
+      BK4819_HandleInterrupts(handleInt);
+    } */
+
+  LOOT_Update(&msm);
+
+  if (exLen) {
+    for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
+      x = DATA_LEN * currentStep / stepsCount + exIndex;
+      rssiHistory[x] = msm.rssi;
+      noiseHistory[x] = msm.noise;
+      markers[x] = msm.open;
+    }
+  } else {
+    x = DATA_LEN * currentStep / stepsCount;
+    if (msm.rssi > rssiHistory[x]) {
+      rssiHistory[x] = msm.rssi;
+    }
+    if (msm.noise < noiseHistory[x]) {
+      noiseHistory[x] = msm.noise;
+    }
+    if (markers[x] == false && msm.open) {
+      markers[x] = true;
+    }
+  }
+}
+
+uint32_t lastRender = 0;
+
+static void writeRssi() {
+  updateMeasurements();
+
+  RADIO_ToggleRX(msm.open);
+  if (msm.open || Now() - lastRender >= 1000) {
+    lastRender = Now();
+    gRedrawScreen = true;
+    return;
+  }
+
+  msm.f += currentStepSize;
+  currentStep++;
+}
+
+static void setF() {
+  msm.rssi = 0;
+  msm.blacklist = false;
+  msm.noise = U16_MAX;
+  for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
+    uint8_t lx = DATA_LEN * currentStep / stepsCount + exIndex;
+    noiseHistory[lx] = U16_MAX;
+    rssiHistory[lx] = 0;
+    markers[lx] = false;
+  }
+  // need to run when task activated, coz of another tasks exists between
+  BK4819_SetFrequency(msm.f);
+  BK4819_WriteRegister(BK4819_REG_30, 0x200);
+  BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
+  SYSTEM_DelayMs(msmDelay); // (X_X)
+  writeRssi();
+
+  /* TaskRemove(writeRssi);
+  Task *t = TaskAdd("Get RSSI", writeRssi, msmDelay, false);
+  t->priority = 0;
+  t->active = 1; */
+}
+
+static void step() {
+  /* TaskRemove(setF);
+  TaskAdd("Set F", setF, 0, false)->priority = 0; */
+  setF();
+}
+
+static void updateStats() {
+  const uint16_t noiseFloor = Std(rssiHistory, x);
+  const uint16_t noiseMax = Max(noiseHistory, x);
+  rssiO = noiseFloor;
+  noiseO = noiseMax - noiseOpenDiff;
+}
+
+static void startNewScan() {
+  currentStep = 0;
+  currentBand = &PRESETS_Item(gSettings.activePreset)->band;
+  currentStepSize = StepFrequencyTable[currentBand->step];
+
+  bandwidth = currentBand->bounds.end - currentBand->bounds.start;
+
+  stepsCount = bandwidth / currentStepSize;
+  exLen = ceilDiv(DATA_LEN, stepsCount);
+
+  msm.f = currentBand->bounds.start;
+
+  if (gSettings.activePreset != oldPresetIndex) {
+    resetRssiHistory();
+    LOOT_Clear();
+    LOOT_Standby();
+    rssiO = U16_MAX;
+    noiseO = 0;
+    RADIO_SetupBandParams(currentBand);
+    oldPresetIndex = gSettings.activePreset;
+    gRedrawScreen = true;
+    bandFilled = false;
+  } else {
     bandFilled = true;
   }
 }
 
-// scan
-// listen
-// getLastMsm
-// render
-
-/* void getLastMsm() {
-  gRedrawScreen = true;
-} */
-
-static void scanFn(bool forward) {
-  SP_AddPoint(&gLoot[gSettings.activeVFO]);
-  if (newScan) {
-    newScan = false;
-    startNewScan(false);
-  }
-
-  RADIO_NextPresetFreqEx(forward, gSettings.scanTimeout >= 10);
-
-  if (PRESETS_GetChannel(gCurrentPreset, radio->rx.f) == stepsCount - 1) {
-    scanTime = Now() - lastReady;
-    chPerSec = stepsCount * 1000 / scanTime;
-    lastReady = Now();
-    gRedrawScreen = true;
-  }
-
-  if (radio->rx.f == gCurrentPreset->band.bounds.start) {
-    startNewScan(false);
-    return;
-  }
-  SP_Next();
-}
-
 void SPECTRUM_init(void) {
-  RADIO_LoadCurrentVFO();
-  startNewScan(true);
-  gRedrawScreen = true;
-  gMonitorMode = false;
-  gScanFn = scanFn;
+  newScan = true;
   SVC_Toggle(SVC_LISTEN, false, 0);
+  RADIO_EnableToneDetection();
+
+  // resetRssiHistory();
+  step();
+}
+
+void SPECTRUM_deinit() {
+  BK4819_WriteRegister(BK4819_REG_3F, 0); // disable interrupts
+  RADIO_ToggleRX(false);
   SVC_Toggle(SVC_LISTEN, true, gSettings.scanTimeout);
-  SVC_Toggle(SVC_SCAN, true, gSettings.scanTimeout);
-
-  // TaskAdd("Add msm", getLastMsm, gSettings.scanTimeout, true, 52);
-}
-
-void SPECTRUM_update(void) {
-  if (gIsListening) {
-    SP_AddPoint(&gLoot[gSettings.activeVFO]);
-  }
-}
-
-void SPECTRUM_deinit(void) {
-  SVC_Toggle(SVC_SCAN, false, 0);
-  // TaskRemove(getLastMsm);
 }
 
 bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
-  if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
-    switch (Key) {
-    case KEY_1:
-      if (gSettings.scanTimeout < 255) {
-        gSettings.scanTimeout++;
-      }
-      return true;
-    case KEY_7:
-      if (gSettings.scanTimeout > 1) {
-        gSettings.scanTimeout--;
-      }
-      return true;
-    default:
-      break;
-    }
-  }
-  if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
-    if (Key == KEY_SIDE1) {
-      gSettings.noListen = !gSettings.noListen;
-      SETTINGS_Save();
-      RADIO_ToggleRX(false);
-      return true;
-    }
-    if (Key == KEY_0) {
-      LOOT_Clear();
-      return true;
-    }
-  }
-
-  if (!bKeyPressed && !bKeyHeld) {
-    switch (Key) {
-    case KEY_EXIT:
-      APPS_exit();
-      return true;
-    case KEY_UP:
-      PRESETS_SelectPresetRelative(true);
-      RADIO_SelectPresetSave(gSettings.activePreset);
-      startNewScan(true);
-      return true;
-    case KEY_DOWN:
-      PRESETS_SelectPresetRelative(false);
-      RADIO_SelectPresetSave(gSettings.activePreset);
-      startNewScan(true);
-      return true;
-    case KEY_SIDE1:
-      LOOT_BlacklistLast();
-      return true;
-    case KEY_SIDE2:
-      LOOT_GoodKnownLast();
-      return true;
-    case KEY_F:
-      APPS_run(APP_PRESET_CFG);
-      return true;
-    case KEY_0:
-      APPS_run(APP_PRESETS_LIST);
-      return true;
-    case KEY_STAR:
-      APPS_run(APP_LOOT_LIST);
-      return true;
-    case KEY_5:
-      if (gCurrentPreset->band.squelchType == SQUELCH_RSSI) {
-        gCurrentPreset->band.squelchType = SQUELCH_RSSI_NOISE_GLITCH;
-      } else {
-        gCurrentPreset->band.squelchType++;
-      }
-      startNewScan(true);
-      return true;
-    case KEY_3:
-      RADIO_UpdateSquelchLevel(true);
-      startNewScan(true);
-      return true;
-    case KEY_9:
-      if (gCurrentPreset->band.squelch > 1) {
-        RADIO_UpdateSquelchLevel(false);
-      }
-      startNewScan(true);
-      return true;
-    case KEY_PTT:
-      RADIO_TuneToSave(gLastActiveLoot->f);
-      APPS_run(APP_STILL);
-      return true;
-    default:
-      break;
-    }
+  switch (Key) {
+  case KEY_EXIT:
+    APPS_exit();
+    return true;
+  case KEY_UP:
+    PRESETS_SelectPresetRelative(true);
+    newScan = true;
+    return true;
+  case KEY_DOWN:
+    PRESETS_SelectPresetRelative(false);
+    newScan = true;
+    return true;
+  case KEY_SIDE1:
+    LOOT_BlacklistLast();
+    return true;
+  case KEY_SIDE2:
+    LOOT_GoodKnownLast();
+    return true;
+  case KEY_F:
+    APPS_run(APP_PRESET_CFG);
+    return true;
+  case KEY_0:
+    APPS_run(APP_PRESETS_LIST);
+    return true;
+  case KEY_STAR:
+    APPS_run(APP_LOOT_LIST);
+    return true;
+  case KEY_5:
+    return true;
+  case KEY_3:
+    IncDec8(&msmDelay, 0, 20, 1);
+    resetRssiHistory();
+    newScan = true;
+    return true;
+  case KEY_9:
+    IncDec8(&msmDelay, 0, 20, -1);
+    resetRssiHistory();
+    newScan = true;
+    return true;
+  case KEY_2:
+    IncDec8(&noiseOpenDiff, 2, 40, 1);
+    resetRssiHistory();
+    newScan = true;
+    return true;
+  case KEY_8:
+    IncDec8(&noiseOpenDiff, 2, 40, -1);
+    resetRssiHistory();
+    newScan = true;
+    return true;
+  case KEY_PTT:
+    RADIO_TuneToSave(gLastActiveLoot->f);
+    APPS_run(APP_STILL);
+    return true;
+  default:
+    break;
   }
   return false;
 }
 
+void SPECTRUM_update(void) {
+  if (msm.rssi == 0) {
+    return;
+  }
+  if (newScan || gSettings.activePreset != oldPresetIndex) {
+    newScan = false;
+    startNewScan();
+  }
+  if (gIsListening) {
+    updateMeasurements();
+    gRedrawScreen = true;
+    if (!msm.open) {
+      RADIO_ToggleRX(false);
+    }
+    return;
+  }
+  if (msm.f >= currentBand->bounds.end) {
+    updateStats();
+    gRedrawScreen = true;
+    newScan = true;
+    return;
+  }
+
+  step();
+}
+
+static int RssiMin(uint16_t *array, uint8_t n) {
+  uint8_t min = array[0];
+  for (uint8_t i = 1; i < n; ++i) {
+    if (array[i] == 0) {
+      continue;
+    }
+    if (array[i] < min) {
+      min = array[i];
+    }
+  }
+  return min;
+}
+
 void SPECTRUM_render(void) {
-  Band *band = &gCurrentPreset->band;
-
   UI_ClearScreen();
-  STATUSLINE_SetText(band->name);
+  STATUSLINE_SetText(currentBand->name);
 
-  SP_Render(gCurrentPreset, 0, SPECTRUM_Y, SPECTRUM_HEIGHT);
+  UI_DrawTicks(0, DATA_LEN - 1, 56, currentBand);
 
-  PrintSmallEx(spectrumWidth - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "SQ%u %s",
-               band->squelch, sqTypeNames[band->squelchType]);
-  PrintSmallEx(0, SPECTRUM_Y - 3, POS_L, C_FILL, "%ums", gSettings.scanTimeout);
-  PrintSmallEx(0, SPECTRUM_Y - 3 + 12, POS_L, C_FILL, "%uCHps", chPerSec);
+  const uint8_t xMax = bandFilled ? DATA_LEN - 1 : x;
 
-  uint32_t fs = band->bounds.start;
-  uint32_t fe = band->bounds.end;
+  const uint16_t rssiMin = RssiMin(rssiHistory, xMax);
+  const uint16_t rssiMax = Max(rssiHistory, xMax);
+  const uint16_t vMin = rssiMin - 2;
+  const uint16_t vMax = rssiMax + 20 + (rssiMax - rssiMin) / 2;
 
-  PrintSmallEx(0, LCD_HEIGHT - 1, POS_L, C_FILL, "%u.%05u", fs / 100000,
-               fs % 100000);
-  PrintSmallEx(LCD_WIDTH, LCD_HEIGHT - 1, POS_R, C_FILL, "%u.%05u", fe / 100000,
-               fe % 100000);
-
-  if (gLastActiveLoot) {
-    PrintMediumBoldEx(LCD_XCENTER, 16, POS_C, C_FILL, "%u.%05u",
-                      gLastActiveLoot->f / 100000, gLastActiveLoot->f % 100000);
-    if (gLastActiveLoot->ct != 0xFF) {
-      PrintSmallEx(LCD_XCENTER, 16 + 6, POS_C, C_FILL, "CT:%u.%uHz",
-                   CTCSS_Options[gLastActiveLoot->ct] / 10,
-                   CTCSS_Options[gLastActiveLoot->ct] % 10);
+  for (uint8_t xx = 0; xx < xMax; ++xx) {
+    uint8_t yVal = ConvertDomain(rssiHistory[xx], vMin, vMax, 0, S_HEIGHT);
+    DrawVLine(xx, S_BOTTOM - yVal, yVal, C_FILL);
+    if (markers[xx]) {
+      DrawVLine(xx, S_BOTTOM + 6, 2, C_FILL);
     }
   }
 
-  if (band->squelchType == SQUELCH_RSSI) {
-    uint8_t b = band->bounds.start > SETTINGS_GetFilterBound() ? 1 : 0;
-    SP_RenderRssi(SQ[b][0][band->squelch], "", true, 0, SPECTRUM_Y,
-                  SPECTRUM_HEIGHT);
-  }
-
-  lastRender = Now();
+  PrintSmallEx(0, SPECTRUM_Y - 3, POS_L, C_FILL, "%u", noiseOpenDiff);
+  PrintSmallEx(DATA_LEN - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "%ums", msmDelay);
 }
