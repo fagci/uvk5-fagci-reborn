@@ -16,6 +16,8 @@ static char tempName[9] = {0};
 static uint16_t chNum = 0;
 static CH ch;
 
+static int16_t from = -1;
+
 static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
   CH _ch;
   const uint8_t y = MENU_Y + i * MENU_ITEM_H;
@@ -98,14 +100,14 @@ static void setMenuIndexAndRun(uint16_t v) {
   save();
 }
 #include "../driver/uart.h"
-static void toggleScanlist(uint8_t n) {
+static void toggleScanlist(uint16_t idx, uint8_t n) {
   CH _ch;
-  uint16_t chNum = gScanlist[currentChannelIndex];
+  uint16_t chNum = gScanlist[idx];
   if (gSettings.currentScanlist == 15) {
-    chNum = currentChannelIndex;
+    chNum = idx;
   }
   CHANNELS_Load(chNum, &_ch);
-  Log("i:%d, ch:%d, name: %s", currentChannelIndex, chNum, _ch.name);
+  Log("i:%d, ch:%d, name: %s", idx, chNum, _ch.name);
   _ch.memoryBanks ^= 1 << n;
   CHANNELS_Save(chNum, &_ch);
 }
@@ -117,8 +119,8 @@ static void exportScanList() {
     CH _ch;
     uint16_t chNum = gScanlist[i];
     CHANNELS_Load(chNum, &_ch);
-    UART_printf("CH%u,%s,%u,%u,%u,%u\r\n", chNum + 1, _ch.name, _ch.rx.f, _ch.tx.f,
-                _ch.modulation, _ch.bw);
+    UART_printf("CH%u,%s,%u,%u,%u,%u\r\n", chNum + 1, _ch.name, _ch.rx.f,
+                _ch.tx.f, _ch.modulation, _ch.bw);
   }
   UART_printf("--- >8 ---\r\n");
 }
@@ -161,14 +163,17 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       CHANNELS_LoadScanlist(key - KEY_1);
       chCount = gScanlistSize;
       currentChannelIndex = 0;
+      from = -1;
       return true;
     case KEY_9:
       exportScanList();
+      from = -1;
       return true;
     case KEY_0:
       CHANNELS_LoadScanlist(15);
       chCount = CHANNELS_GetCountMax();
       currentChannelIndex = 0;
+      from = -1;
       return true;
     default:
       break;
@@ -185,18 +190,41 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_6:
     case KEY_7:
     case KEY_8:
-      toggleScanlist(key - KEY_1);
+      if (from != -1) {
+        if (from < currentChannelIndex) {
+          for (uint16_t i = from; i <= currentChannelIndex; i++) {
+            toggleScanlist(i, key - KEY_1);
+          }
+        }
+        from = -1;
+        return true;
+      }
+      toggleScanlist(currentChannelIndex, key - KEY_1);
       return true;
     case KEY_MENU:
       save();
+      from = -1;
       return true;
     case KEY_0:
+      if (from != -1) {
+        if (from < currentChannelIndex) {
+          for (uint16_t i = from; i <= currentChannelIndex; i++) {
+            CHANNELS_Delete(i);
+          }
+        }
+        from = -1;
+        return true;
+      }
       CHANNELS_Delete(currentChannelIndex);
+      return true;
+    case KEY_9:
+      from = currentChannelIndex;
       return true;
     case KEY_PTT:
       CHANNELS_Load(currentChannelIndex, &_ch);
       RADIO_TuneToSave(_ch.rx.f);
       APPS_run(APP_STILL);
+      from = -1;
       return true;
     case KEY_F:
       CHANNELS_Load(chNum, &_ch);
@@ -204,9 +232,11 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       gTextInputSize = 9;
       gTextInputCallback = saveRenamed;
       APPS_run(APP_TEXTINPUT);
+      from = -1;
       return true;
     case KEY_EXIT:
       APPS_exit();
+      from = -1;
       return true;
     default:
       break;
@@ -228,5 +258,7 @@ void SAVECH_render(void) {
   }
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
+  } else if (from != -1) {
+    STATUSLINE_SetText("%d-%d", from + 1, currentChannelIndex + 1);
   }
 }
