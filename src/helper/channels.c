@@ -4,7 +4,6 @@
 #include "../helper/presetlist.h"
 #include <stddef.h>
 
-
 int32_t gScanlistSize = 0;
 uint16_t gScanlist[SCANLIST_MAX] = {0};
 
@@ -33,7 +32,8 @@ static uint32_t GetChannelOffset(int32_t num) {
 }
 
 uint16_t CHANNELS_GetCountMax(void) {
-  return (getChannelsEnd() - getChannelsStart()) / CH_SIZE;
+  uint16_t n = (getChannelsEnd() - getChannelsStart()) / CH_SIZE;
+  return n < SCANLIST_MAX ? n : SCANLIST_MAX;
 }
 
 void CHANNELS_Load(int32_t num, CH *p) {
@@ -55,7 +55,9 @@ void CHANNELS_Delete(int32_t num) {
 }
 
 bool CHANNELS_Existing(int32_t num) {
-  if (num < 0 || num >= CHANNELS_GetCountMax()) { // TODO: check, somewhere (CH scan, CH list) getting larger than max CH
+  if (num < 0 ||
+      num >= CHANNELS_GetCountMax()) { // TODO: check, somewhere (CH scan, CH
+                                       // list) getting larger than max CH
     return false;
   }
   char name[1] = {0};

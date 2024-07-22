@@ -65,7 +65,7 @@ void CHSCANNER_init(void) {
 void CHSCANNER_deinit(void) { SVC_Toggle(SVC_SCAN, false, 0); }
 
 bool CHSCANNER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
-  if (!bKeyPressed || (bKeyPressed && !bKeyHeld)) {
+  if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (Key) {
     case KEY_UP:
       IncDecI32(&currentIndex, 0, gScanlistSize, -1);

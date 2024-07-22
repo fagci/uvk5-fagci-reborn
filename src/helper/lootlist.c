@@ -151,7 +151,7 @@ void LOOT_UpdateEx(Loot *item, Loot *msm) {
     return;
   }
 
-  if (item->blacklist || item->goodKnown) {
+  if (item->blacklist) {
     msm->open = false;
   }
 

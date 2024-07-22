@@ -1,4 +1,5 @@
 #include "spectrumreborn.h"
+#include "../dcs.h"
 #include "../driver/bk4819.h"
 #include "../driver/st7565.h"
 #include "../driver/system.h"
@@ -57,7 +58,7 @@ static void resetRssiHistory() {
   noiseO = 0;
   for (uint8_t x = 0; x < DATA_LEN; ++x) {
     rssiHistory[x] = 0;
-    noiseHistory[x] = 0;
+    noiseHistory[x] = 255;
     markers[x] = false;
   }
 }
@@ -65,12 +66,6 @@ static void resetRssiHistory() {
 static Loot msm = {0};
 
 static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
-
-/* static void handleInt(uint16_t intStatus) {
-  if (intStatus & BK4819_REG_02_CxCSS_TAIL) {
-    msm.open = false;
-  }
-} */
 
 static void updateMeasurements() {
   msm.rssi = BK4819_GetRSSI();
@@ -84,24 +79,18 @@ static void updateMeasurements() {
   } else {
     msm.open = isSquelchOpen();
   }
-  /*
-    if (elapsedMilliseconds - msm.lastTimeCheck < 500) {
-      msm.open = false;
-    } else {
-      BK4819_HandleInterrupts(handleInt);
-    } */
 
   LOOT_Update(&msm);
 
-  if (exLen) {
-    for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
-      x = DATA_LEN * currentStep / stepsCount + exIndex;
-      rssiHistory[x] = msm.rssi;
-      noiseHistory[x] = msm.noise;
-      markers[x] = msm.open;
+  uint8_t ox = x;
+  for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
+    x = DATA_LEN * currentStep / stepsCount + exIndex;
+    if (ox != x) {
+      rssiHistory[x] = 0;
+      noiseHistory[x] = 255;
+      markers[x] = false;
+      ox = x;
     }
-  } else {
-    x = DATA_LEN * currentStep / stepsCount;
     if (msm.rssi > rssiHistory[x]) {
       rssiHistory[x] = msm.rssi;
     }
@@ -133,31 +122,22 @@ static void writeRssi() {
 static void setF() {
   msm.rssi = 0;
   msm.blacklist = false;
-  msm.noise = U16_MAX;
+  msm.noise = 255;
   for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
     uint8_t lx = DATA_LEN * currentStep / stepsCount + exIndex;
-    noiseHistory[lx] = U16_MAX;
+    noiseHistory[lx] = 255;
     rssiHistory[lx] = 0;
     markers[lx] = false;
   }
   // need to run when task activated, coz of another tasks exists between
-  BK4819_SetFrequency(msm.f);
-  BK4819_WriteRegister(BK4819_REG_30, 0x200);
-  BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
+  BK4819_TuneTo(msm.f, false);
+  /* BK4819_WriteRegister(BK4819_REG_30, 0x200);
+  BK4819_WriteRegister(BK4819_REG_30, 0xBFF1); */
   SYSTEM_DelayMs(msmDelay); // (X_X)
   writeRssi();
-
-  /* TaskRemove(writeRssi);
-  Task *t = TaskAdd("Get RSSI", writeRssi, msmDelay, false);
-  t->priority = 0;
-  t->active = 1; */
 }
 
-static void step() {
-  /* TaskRemove(setF);
-  TaskAdd("Set F", setF, 0, false)->priority = 0; */
-  setF();
-}
+static void step() { setF(); }
 
 static void updateStats() {
   const uint16_t noiseFloor = Std(rssiHistory, x);
@@ -168,7 +148,7 @@ static void updateStats() {
 
 static void startNewScan() {
   currentStep = 0;
-  currentBand = &PRESETS_Item(gSettings.activePreset)->band;
+  currentBand = &gCurrentPreset->band;
   currentStepSize = StepFrequencyTable[currentBand->step];
 
   bandwidth = currentBand->bounds.end - currentBand->bounds.start;
@@ -180,7 +160,6 @@ static void startNewScan() {
 
   if (gSettings.activePreset != oldPresetIndex) {
     resetRssiHistory();
-    LOOT_Clear();
     LOOT_Standby();
     rssiO = U16_MAX;
     noiseO = 0;
@@ -194,16 +173,17 @@ static void startNewScan() {
 }
 
 void SPECTRUM_init(void) {
-  newScan = true;
   SVC_Toggle(SVC_LISTEN, false, 0);
-  RADIO_EnableToneDetection();
+  RADIO_ToggleRX(false);
+  RADIO_LoadCurrentVFO();
+  resetRssiHistory();
+  bandFilled = false;
+  newScan = true;
 
-  // resetRssiHistory();
   step();
 }
 
 void SPECTRUM_deinit() {
-  BK4819_WriteRegister(BK4819_REG_3F, 0); // disable interrupts
   RADIO_ToggleRX(false);
   SVC_Toggle(SVC_LISTEN, true, gSettings.scanTimeout);
 }
@@ -215,10 +195,12 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_UP:
     PRESETS_SelectPresetRelative(true);
+    RADIO_SelectPresetSave(gSettings.activePreset);
     newScan = true;
     return true;
   case KEY_DOWN:
     PRESETS_SelectPresetRelative(false);
+    RADIO_SelectPresetSave(gSettings.activePreset);
     newScan = true;
     return true;
   case KEY_SIDE1:
@@ -238,29 +220,31 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_5:
     return true;
-  case KEY_3:
+  case KEY_1:
     IncDec8(&msmDelay, 0, 20, 1);
     resetRssiHistory();
     newScan = true;
     return true;
-  case KEY_9:
+  case KEY_7:
     IncDec8(&msmDelay, 0, 20, -1);
     resetRssiHistory();
     newScan = true;
     return true;
-  case KEY_2:
+  case KEY_3:
     IncDec8(&noiseOpenDiff, 2, 40, 1);
     resetRssiHistory();
     newScan = true;
     return true;
-  case KEY_8:
+  case KEY_9:
     IncDec8(&noiseOpenDiff, 2, 40, -1);
     resetRssiHistory();
     newScan = true;
     return true;
   case KEY_PTT:
-    RADIO_TuneToSave(gLastActiveLoot->f);
-    APPS_run(APP_STILL);
+    if (gLastActiveLoot) {
+      RADIO_TuneToSave(gLastActiveLoot->f);
+      APPS_run(APP_STILL);
+    }
     return true;
   default:
     break;
@@ -327,7 +311,29 @@ void SPECTRUM_render(void) {
       DrawVLine(xx, S_BOTTOM + 6, 2, C_FILL);
     }
   }
+  DrawHLine(0, S_BOTTOM, DATA_LEN, C_FILL);
 
-  PrintSmallEx(0, SPECTRUM_Y - 3, POS_L, C_FILL, "%u", noiseOpenDiff);
-  PrintSmallEx(DATA_LEN - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "%ums", msmDelay);
+  PrintSmallEx(0, SPECTRUM_Y - 3, POS_L, C_FILL, "%ums", msmDelay);
+  PrintSmallEx(DATA_LEN - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "SQ %u",
+               noiseOpenDiff);
+  PrintSmallEx(DATA_LEN - 2, SPECTRUM_Y - 3 + 8, POS_R, C_FILL, "%s",
+               modulationTypeOptions[currentBand->modulation]);
+
+  if (gLastActiveLoot) {
+    PrintMediumBoldEx(LCD_XCENTER, 16, POS_C, C_FILL, "%u.%05u",
+                      gLastActiveLoot->f / 100000, gLastActiveLoot->f % 100000);
+    if (gLastActiveLoot->ct != 0xFF) {
+      PrintSmallEx(LCD_XCENTER, 16 + 6, POS_C, C_FILL, "CT:%u.%uHz",
+                   CTCSS_Options[gLastActiveLoot->ct] / 10,
+                   CTCSS_Options[gLastActiveLoot->ct] % 10);
+    }
+  }
+
+  uint32_t fs = currentBand->bounds.start;
+  uint32_t fe = currentBand->bounds.end;
+
+  PrintSmallEx(0, LCD_HEIGHT - 1, POS_L, C_FILL, "%u.%05u", fs / 100000,
+               fs % 100000);
+  PrintSmallEx(LCD_WIDTH, LCD_HEIGHT - 1, POS_R, C_FILL, "%u.%05u", fe / 100000,
+               fe % 100000);
 }
