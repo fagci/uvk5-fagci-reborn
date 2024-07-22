@@ -70,7 +70,6 @@ static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
 static void updateMeasurements() {
   msm.rssi = BK4819_GetRSSI();
   msm.noise = BK4819_GetNoise();
-  // UART_printf("%u: Got rssi\n", elapsedMilliseconds);
 
   if (gIsListening) {
     noiseO -= noiseOpenDiff;
@@ -90,6 +89,9 @@ static void updateMeasurements() {
       noiseHistory[x] = 255;
       markers[x] = false;
       ox = x;
+    }
+    if (msm.blacklist) {
+      continue;
     }
     if (msm.rssi > rssiHistory[x]) {
       rssiHistory[x] = msm.rssi;
@@ -131,8 +133,6 @@ static void setF() {
   }
   // need to run when task activated, coz of another tasks exists between
   BK4819_TuneTo(msm.f, false);
-  /* BK4819_WriteRegister(BK4819_REG_30, 0x200);
-  BK4819_WriteRegister(BK4819_REG_30, 0xBFF1); */
   SYSTEM_DelayMs(msmDelay); // (X_X)
   writeRssi();
 }
@@ -278,19 +278,6 @@ void SPECTRUM_update(void) {
   step();
 }
 
-static int RssiMin(uint16_t *array, uint8_t n) {
-  uint8_t min = array[0];
-  for (uint8_t i = 1; i < n; ++i) {
-    if (array[i] == 0) {
-      continue;
-    }
-    if (array[i] < min) {
-      min = array[i];
-    }
-  }
-  return min;
-}
-
 void SPECTRUM_render(void) {
   UI_ClearScreen();
   STATUSLINE_SetText(currentBand->name);
@@ -299,7 +286,7 @@ void SPECTRUM_render(void) {
 
   const uint8_t xMax = bandFilled ? DATA_LEN - 1 : x;
 
-  const uint16_t rssiMin = RssiMin(rssiHistory, xMax);
+  const uint16_t rssiMin = Min(rssiHistory, xMax);
   const uint16_t rssiMax = Max(rssiHistory, xMax);
   const uint16_t vMin = rssiMin - 2;
   const uint16_t vMax = rssiMax + 20 + (rssiMax - rssiMin) / 2;
