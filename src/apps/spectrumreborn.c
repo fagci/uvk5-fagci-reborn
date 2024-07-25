@@ -9,6 +9,7 @@
 #include "../scheduler.h"
 #include "../settings.h"
 #include "../svc.h"
+#include "../svc_scan.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/statusline.h"
@@ -46,10 +47,16 @@ static uint16_t rssiO = U16_MAX;
 static uint16_t noiseO = 0;
 
 static uint8_t msmDelay = 5;
+static Loot msm = {0};
 
 static uint16_t oldPresetIndex = 255;
 
 static bool bandFilled = false;
+
+uint32_t timeout = 0;
+bool lastListenState = false;
+
+static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
 
 static uint16_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 
@@ -63,11 +70,13 @@ static void resetRssiHistory() {
   }
 }
 
-static Loot msm = {0};
-
-static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
-
 static void updateMeasurements() {
+  if (!gIsListening) {
+    BK4819_SetFrequency(msm.f);
+    BK4819_WriteRegister(BK4819_REG_30, 0x200);
+    BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
+    SYSTEM_DelayMs(msmDelay); // (X_X)
+  }
   msm.rssi = BK4819_GetRSSI();
   msm.noise = BK4819_GetNoise();
 
@@ -79,7 +88,17 @@ static void updateMeasurements() {
     msm.open = isSquelchOpen();
   }
 
+  if (lastListenState != msm.open) {
+    lastListenState = msm.open;
+    SetTimeout(&timeout, msm.open ? SCAN_TIMEOUTS[gSettings.sqOpenedTimeout]
+                                  : SCAN_TIMEOUTS[gSettings.sqClosedTimeout]);
+  }
+
+  if (timeout && CheckTimeout(&timeout)) {
+    msm.open = false;
+  }
   LOOT_Update(&msm);
+  RADIO_ToggleRX(msm.open);
 
   uint8_t ox = x;
   for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
@@ -107,21 +126,7 @@ static void updateMeasurements() {
 
 uint32_t lastRender = 0;
 
-static void writeRssi() {
-  updateMeasurements();
-
-  RADIO_ToggleRX(msm.open);
-  if (msm.open || Now() - lastRender >= 1000) {
-    lastRender = Now();
-    gRedrawScreen = true;
-    return;
-  }
-
-  msm.f += currentStepSize;
-  currentStep++;
-}
-
-static void setF() {
+static void step() {
   msm.rssi = 0;
   msm.blacklist = false;
   msm.noise = 255;
@@ -131,13 +136,9 @@ static void setF() {
     rssiHistory[lx] = 0;
     markers[lx] = false;
   }
-  // need to run when task activated, coz of another tasks exists between
-  BK4819_TuneTo(msm.f, false);
-  SYSTEM_DelayMs(msmDelay); // (X_X)
-  writeRssi();
-}
 
-static void step() { setF(); }
+  updateMeasurements();
+}
 
 static void updateStats() {
   const uint16_t noiseFloor = Std(rssiHistory, x);
@@ -176,9 +177,11 @@ void SPECTRUM_init(void) {
   SVC_Toggle(SVC_LISTEN, false, 0);
   RADIO_ToggleRX(false);
   RADIO_LoadCurrentVFO();
-  resetRssiHistory();
-  bandFilled = false;
+  // resetRssiHistory();
+  // bandFilled = false;
   newScan = true;
+  timeout = 0;
+  oldPresetIndex = 0;
 
   step();
 }
@@ -232,13 +235,9 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_3:
     IncDec8(&noiseOpenDiff, 2, 40, 1);
-    resetRssiHistory();
-    newScan = true;
     return true;
   case KEY_9:
     IncDec8(&noiseOpenDiff, 2, 40, -1);
-    resetRssiHistory();
-    newScan = true;
     return true;
   case KEY_PTT:
     if (gLastActiveLoot) {
@@ -253,6 +252,10 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void SPECTRUM_update(void) {
+  if (Now() - lastRender >= 150) {
+    lastRender = Now();
+    gRedrawScreen = true;
+  }
   if (msm.rssi == 0) {
     return;
   }
@@ -263,9 +266,8 @@ void SPECTRUM_update(void) {
   if (gIsListening) {
     updateMeasurements();
     gRedrawScreen = true;
-    if (!msm.open) {
-      RADIO_ToggleRX(false);
-    }
+  }
+  if (gIsListening) {
     return;
   }
   if (msm.f >= currentBand->bounds.end) {
@@ -275,6 +277,8 @@ void SPECTRUM_update(void) {
     return;
   }
 
+  msm.f += currentStepSize;
+  currentStep++;
   step();
 }
 

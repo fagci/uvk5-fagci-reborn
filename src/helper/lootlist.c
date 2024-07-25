@@ -2,6 +2,7 @@
 #include "../dcs.h"
 #include "../driver/bk4819.h"
 #include "../scheduler.h"
+#include "../radio.h"
 
 static Loot loot[LOOT_SIZE_MAX] = {0};
 static int16_t lootIndex = -1;
@@ -151,7 +152,7 @@ void LOOT_UpdateEx(Loot *item, Loot *msm) {
     return;
   }
 
-  if (item->blacklist) {
+  if (item->blacklist || (item->goodKnown && !gMonitorMode)) {
     msm->open = false;
   }
 
