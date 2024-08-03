@@ -60,16 +60,6 @@ static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
 
 static uint16_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 
-static void resetRssiHistory() {
-  rssiO = U16_MAX;
-  noiseO = 0;
-  for (uint8_t x = 0; x < DATA_LEN; ++x) {
-    rssiHistory[x] = 0;
-    noiseHistory[x] = 255;
-    markers[x] = false;
-  }
-}
-
 static void updateMeasurements() {
   if (!gIsListening) {
     BK4819_SetFrequency(msm.f);
@@ -109,7 +99,7 @@ static void updateMeasurements() {
       markers[x] = false;
       ox = x;
     }
-    if (msm.blacklist) {
+    if (msm.blacklist || msm.goodKnown) {
       continue;
     }
     if (msm.rssi > rssiHistory[x]) {
@@ -121,6 +111,16 @@ static void updateMeasurements() {
     if (markers[x] == false && msm.open) {
       markers[x] = true;
     }
+  }
+}
+
+static void resetRssiHistory() {
+  rssiO = U16_MAX;
+  noiseO = 0;
+  for (uint8_t x = 0; x < DATA_LEN; ++x) {
+    rssiHistory[x] = 0;
+    noiseHistory[x] = 255;
+    markers[x] = false;
   }
 }
 
@@ -278,6 +278,9 @@ void SPECTRUM_update(void) {
   }
 
   msm.f += currentStepSize;
+  if (gSettings.skipGarbageFrequencies && (msm.f % 1300000 == 0)) {
+    msm.f += currentStepSize;
+  }
   currentStep++;
   step();
 }

@@ -41,19 +41,6 @@ Sort sortType = SORT_LOT;
 static bool shortList = true;
 static bool sortRev = false;
 
-static void exportLootList(void) {
-  UART_printf("--- 8< ---\n");
-  UART_printf("F,duration,ct,cd,rssi,noise\n");
-  for (uint8_t i = 0; i < LOOT_Size(); ++i) {
-    Loot *v = LOOT_Item(i);
-    if (!v->blacklist) {
-      UART_printf("%u.%05u,%u,%u,%u,%u\n", v->f / 100000, v->f % 100000,
-                  v->duration, v->ct, v->cd, v->rssi);
-    }
-  }
-  UART_printf("--- >8 ---\n");
-}
-
 static void getLootItem(uint16_t i, uint16_t index, bool isCurrent) {
   Loot *item = LOOT_Item(index);
   uint32_t f = item->f;
@@ -138,23 +125,30 @@ void LOOTLIST_init(void) {
 }
 
 static void saveAllToFreeChannels(void) {
-  uint16_t chnum = 0;
+  uint16_t chnum = CHANNELS_GetCountMax() - 1;
   for (uint8_t i = 0; i < LOOT_Size(); ++i) {
     Loot *loot = LOOT_Item(i);
-    if (!loot->blacklist) {
+    if (loot->goodKnown) {
       while (CHANNELS_Existing(chnum)) {
-        chnum++;
-        if (chnum >= CHANNELS_GetCountMax()) {
+        chnum--;
+        if (chnum == 0) {
           return;
         }
       }
       CH ch;
       ch.rx.f = loot->f;
+      if (loot->ct != 255) {
+        ch.tx.codeType = CODE_TYPE_CONTINUOUS_TONE;
+        ch.tx.code = loot->ct;
+      } else if (loot->cd != 255) {
+        ch.tx.codeType = CODE_TYPE_DIGITAL;
+        ch.tx.code = loot->cd;
+      }
+      ch.memoryBanks = 1 << 7;
       snprintf(ch.name, 9, "%lu.%05lu", ch.rx.f / 100000, ch.rx.f % 100000);
 
       CHANNELS_Save(chnum, &ch);
-      loot->blacklist = true;
-      chnum++;
+      chnum--;
     }
   }
 }
@@ -173,7 +167,6 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_5:
       saveAllToFreeChannels();
-      LOOT_RemoveBlacklisted();
       return true;
     default:
       break;
@@ -228,7 +221,6 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       shortList = !shortList;
       return true;
     case KEY_9:
-      exportLootList();
       return true;
     case KEY_5:
       radio->rx.f = item->f;

@@ -3,8 +3,10 @@
 #include "dcs.h"
 #include "driver/audio.h"
 #include "driver/backlight.h"
+#include "driver/bk1080.h"
 #include "driver/bk4819.h"
 #include "driver/gpio.h"
+#include "driver/si473x.h"
 #include "driver/st7565.h"
 #include "driver/system.h"
 #include "driver/uart.h"
@@ -14,6 +16,7 @@
 #include "helper/lootlist.h"
 #include "helper/measurements.h"
 #include "helper/presetlist.h"
+#include "helper/rds.h"
 #include "helper/vfos.h"
 #include "inc/dp32g030/gpio.h"
 #include "scheduler.h"
@@ -52,9 +55,11 @@ const uint16_t StepFrequencyTable[14] = {
 const uint32_t upConverterValues[3] = {0, 5000000, 12500000};
 const char *upConverterFreqNames[3] = {"None", "50M", "125M"};
 
-const char *modulationTypeOptions[6] = {"FM", "AM", "SSB", "BYP", "RAW", "WFM"};
+const char *modulationTypeOptions[8] = {"FM",  "AM",  "LSB", "USB",
+                                        "BYP", "RAW", "WFM", "PRST"};
 const char *powerNames[] = {"LOW", "MID", "HIGH"};
 const char *bwNames[3] = {"25k", "12.5k", "6.25k"};
+const char *radioNames[4] = {"BK4819", "BK1080", "SI4732", "None"};
 const char *TX_STATE_NAMES[7] = {"TX Off",    "TX On",    "VOL HIGH",
                                  "BAT LOW",   "DISABLED", "UPCONVERTER",
                                  "HIGH POWER"};
@@ -379,16 +384,63 @@ void RADIO_SetSquelchPure(uint32_t f, uint8_t sql) {
 
 void RADIO_TuneToPure(uint32_t f, bool precise) {
   LOOT_Replace(&gLoot[gSettings.activeVFO], f);
-  /* if (isBK1080) {
-    // BK1080_SetFrequency(f);
-  } else { */
-  BK4819_TuneTo(f, precise);
-  // }
+  switch (radio->radio) {
+  case RADIO_BK4819:
+    BK4819_TuneTo(f, precise);
+    break;
+  case RADIO_BK1080:
+    BK1080_SetFrequency(f);
+    break;
+  case RADIO_SI4732:
+    SI47XX_TuneTo(f);
+    SI47XX_ClearRDS();
+    break;
+  }
+}
+
+Radio oldRadio = RADIO_UNKNOWN;
+
+void RADIO_SwitchRadio() {
+  Radio r =
+      radio->radio == RADIO_UNKNOWN ? gCurrentPreset->radio : radio->radio;
+  if (oldRadio == r) {
+    return;
+  }
+  switch (oldRadio) {
+  case RADIO_BK4819:
+    BK4819_Idle();
+    break;
+  case RADIO_BK1080:
+    BK1080_Mute(true);
+    break;
+  case RADIO_SI4732:
+    SI47XX_PowerDown();
+    break;
+  default:
+    break;
+  }
+  switch (r) {
+  case RADIO_BK4819:
+    BK4819_RX_TurnOn();
+    break;
+  case RADIO_BK1080:
+    BK1080_Mute(false);
+    BK1080_Init(radio->rx.f, true);
+    break;
+  case RADIO_SI4732:
+    SI47XX_PowerUp();
+    break;
+  default:
+    break;
+  }
+  oldRadio = r;
 }
 
 void RADIO_SetupByCurrentVFO(void) {
   uint32_t f = radio->rx.f;
   Preset *p = PRESET_ByFrequency(f);
+
+  RADIO_SwitchRadio();
 
   if (gCurrentPreset != p) {
     gCurrentPreset = p;
@@ -475,14 +527,40 @@ void RADIO_SetGain(uint8_t gainIndex) {
 
 void RADIO_SetupBandParams(Band *b) {
   uint32_t fMid = b->bounds.start + (b->bounds.end - b->bounds.start) / 2;
-  // BK4819_SelectFilter(fMid); // not needeed as evety BK4819_TuneTo() it works
-  BK4819_SquelchType(b->squelchType);
-  BK4819_Squelch(b->squelch, fMid, gSettings.sqlOpenTime,
-                 gSettings.sqlCloseTime);
-  BK4819_SetFilterBandwidth(b->bw);
-  BK4819_SetModulation(b->modulation);
-  BK4819_SetAGC(b->modulation != MOD_AM, b->gainIndex);
-  // BK4819_RX_TurnOn(); // TODO: needeed?
+  ModulationType mod =
+      radio->modulation == MOD_PRST ? b->modulation : radio->modulation;
+  switch (radio->radio) {
+  case RADIO_BK4819:
+    BK4819_SquelchType(b->squelchType);
+    BK4819_Squelch(b->squelch, fMid, gSettings.sqlOpenTime,
+                   gSettings.sqlCloseTime);
+    BK4819_SetFilterBandwidth(b->bw);
+    BK4819_SetModulation(mod);
+    BK4819_SetAGC(mod != MOD_AM, b->gainIndex);
+    break;
+  case RADIO_BK1080:
+    break;
+  case RADIO_SI4732:
+    if (mod == MOD_FM) {
+      SI47XX_SetSeekFmLimits(b->bounds.start, b->bounds.end);
+      SI47XX_SetSeekFmSpacing(StepFrequencyTable[b->step]);
+    } else {
+      SI47XX_SetSeekAmLimits(b->bounds.start, b->bounds.end);
+      SI47XX_SetSeekAmSpacing(StepFrequencyTable[b->step]);
+    }
+    if (mod == MOD_AM) {
+      SI47XX_SwitchMode(SI47XX_AM);
+    } else if (mod == MOD_LSB) {
+      SI47XX_SwitchMode(SI47XX_LSB);
+    } else if (mod == MOD_USB) {
+      SI47XX_SwitchMode(SI47XX_USB);
+    } else {
+      SI47XX_SwitchMode(SI47XX_FM);
+    }
+    break;
+  default:
+    break;
+  }
 }
 
 uint16_t RADIO_GetRSSI(void) { return isBK1080 ? 128 : BK4819_GetRSSI(); }

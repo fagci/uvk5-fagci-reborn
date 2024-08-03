@@ -591,7 +591,7 @@ uint64_t xtou64(const char *str) {
   return res;
 }
 
-static const uint8_t CSV_LEN = 35;
+static const uint8_t CSV_LEN = 48;
 static const uint8_t PRE_LEN = 2;
 
 enum {
@@ -601,6 +601,9 @@ enum {
   FIELD_FTX,
   FIELD_MOD,
   FIELD_BW,
+  FIELD_SCANLIST,
+  FIELD_TONE_TYPE,
+  FIELD_TONE,
 } FieldIndex;
 
 uint32_t pow10[] = {1,      10,      100,      1000,      10000,
@@ -635,10 +638,11 @@ bool UART_IsCommandAvailable(void) {
 
       CH ch = {
           .rx = {0, 0, 0},
-          .tx = {0},
+          .tx = {0, 0, 0},
           .name = {0},
           .modulation = 0,
           .bw = 0,
+          .memoryBanks = 0,
       };
       uint16_t chNum = 0;
       for (int i = 0; csvLine[i] != '\0'; i++) {
@@ -694,15 +698,24 @@ bool UART_IsCommandAvailable(void) {
         case FIELD_BW:
           ch.bw += (c - '0') * pow10[razr];
           break;
+        case FIELD_SCANLIST:
+          ch.memoryBanks += (c - '0') * pow10[razr];
+          break;
+        case FIELD_TONE_TYPE:
+          ch.tx.codeType += (c - '0') * pow10[razr];
+          break;
+        case FIELD_TONE:
+          ch.tx.code += (c - '0') * pow10[razr];
+          break;
         }
       }
-      if (fieldIndex == 5) {
+      if (fieldIndex == 8) {
         CHANNELS_Save(chNum - 1, &ch);
-        UART_printf("CH%d,%s,%lu,%lu,%d,%d\r\n", chNum, ch.name, ch.rx.f,
-                    ch.tx.f, ch.modulation, ch.bw);
+        UART_printf("CH%d,%s,%lu,%lu,%d,%d,%d,%d,%d\r\n", chNum, ch.name, ch.rx.f,
+                    ch.tx.f, ch.modulation, ch.bw, ch.memoryBanks, ch.tx.codeType, ch.tx.code);
       } else {
-        UART_printf("ERROR CH%d,%s,%lu,%lu,%d,%d\r\n", chNum, ch.name, ch.rx.f,
-                    ch.tx.f, ch.modulation, ch.bw);
+        UART_printf("ERROR CH%d,%s,%lu,%lu,%d,%d,%d,%d,%d\r\n", chNum, ch.name, ch.rx.f,
+                    ch.tx.f, ch.modulation, ch.bw, ch.memoryBanks, ch.tx.codeType, ch.tx.code);
       }
     }
     // --- >8 ---

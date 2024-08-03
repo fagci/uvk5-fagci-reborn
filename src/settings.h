@@ -64,6 +64,13 @@ typedef enum {
 } TXOutputPower;
 
 typedef enum {
+  RADIO_BK4819,
+  RADIO_BK1080,
+  RADIO_SI4732,
+  RADIO_UNKNOWN,
+} Radio;
+
+typedef enum {
   SCAN_TO_0,
   SCAN_TO_500ms,
   SCAN_TO_1s,
@@ -152,6 +159,7 @@ typedef struct {
   ModulationType modulation : 4;
   BK4819_FilterBandwidth_t bw : 2;
   TXOutputPower power : 2;
+  Radio radio : 2;
 } __attribute__((packed)) CH; // 22 B
 // getsize(CH)
 
@@ -159,7 +167,9 @@ typedef struct {
   F rx;
   F tx;
   int16_t channel;
+  ModulationType modulation : 4;
   TXOutputPower power : 2;
+  Radio radio : 2;
 } __attribute__((packed)) VFO;
 // getsize(VFO)
 
@@ -194,6 +204,7 @@ typedef struct {
   uint8_t memoryBanks : 8;
   TXOutputPower power : 2;
   OffsetDirection offsetDir : 2;
+  Radio radio : 2;
   bool allowTx : 1;
 } __attribute__((packed)) Preset;
 // getsize(Preset)
