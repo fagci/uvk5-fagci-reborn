@@ -164,7 +164,6 @@ void SI47XX_PowerUp() {
     SI47XX_SetAutomaticGainControl(1, 0);
     sendProperty(PROP_AM_SOFT_MUTE_MAX_ATTENUATION, 0);
     sendProperty(PROP_AM_AUTOMATIC_VOLUME_CONTROL_MAX_GAIN, 0x7800);
-    SI47XX_SetSeekAmLimits(1800, 30000);
   }
   SI47XX_SetFreq(siCurrentFreq);
 }
@@ -323,21 +322,31 @@ void SI47XX_ReadRDS(uint8_t buf[13]) {
   SI47XX_ReadBuffer(buf, 13);
 }
 
-void SI47XX_SetSeekFmLimits(uint16_t bottom, uint16_t top) {
+void SI47XX_SetSeekFmLimits(uint32_t bottom, uint32_t top) {
+  uint16_t divider = si4732mode == SI47XX_FM ? 1000 : 100;
+  bottom /= divider;
+  top /= divider;
   sendProperty(PROP_FM_SEEK_BAND_BOTTOM, bottom);
   sendProperty(PROP_FM_SEEK_BAND_TOP, top);
 }
 
-void SI47XX_SetSeekAmLimits(uint16_t bottom, uint16_t top) {
+void SI47XX_SetSeekAmLimits(uint32_t bottom, uint32_t top) {
+  uint16_t divider = si4732mode == SI47XX_FM ? 1000 : 100;
+  bottom /= divider;
+  top /= divider;
   sendProperty(PROP_AM_SEEK_BAND_BOTTOM, bottom);
   sendProperty(PROP_AM_SEEK_BAND_TOP, top);
 }
 
-void SI47XX_SetSeekFmSpacing(uint16_t spacing) {
+void SI47XX_SetSeekFmSpacing(uint32_t spacing) {
+  uint16_t divider = si4732mode == SI47XX_FM ? 1000 : 100;
+  spacing /= divider;
   sendProperty(PROP_FM_SEEK_FREQ_SPACING, spacing);
 }
 
-void SI47XX_SetSeekAmSpacing(uint16_t spacing) {
+void SI47XX_SetSeekAmSpacing(uint32_t spacing) {
+  uint16_t divider = si4732mode == SI47XX_FM ? 1000 : 100;
+  spacing /= divider;
   sendProperty(PROP_AM_SEEK_FREQ_SPACING, spacing);
 }
 
@@ -350,3 +359,12 @@ void SI47XX_SetSeekAmRssiThreshold(uint16_t value) {
 }
 
 void SI47XX_SetBFO(int16_t bfo) { sendProperty(PROP_SSB_BFO, bfo); }
+
+void SI47XX_TuneTo(uint32_t f) {
+  uint16_t divider = si4732mode == SI47XX_FM ? 1000 : 100;
+  f /= divider;
+  if (si4732mode == SI47XX_FM) {
+    f -= f % 5;
+  }
+  SI47XX_SetFreq(f);
+}

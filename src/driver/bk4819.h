@@ -50,10 +50,12 @@ enum BK4819_AF_Type_t {
 typedef enum {
   MOD_FM,
   MOD_AM,
+  MOD_LSB,
   MOD_USB,
   MOD_BYP,
   MOD_RAW,
   MOD_WFM,
+  MOD_PRST,
 } ModulationType;
 
 typedef enum {

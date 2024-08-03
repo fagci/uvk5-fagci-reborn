@@ -34,7 +34,6 @@ static SI47XX_SsbFilterBW ssbBw = SI47XX_SSB_BW_3_kHz;
 
 
 static uint8_t att = 0;
-static uint16_t divider = 1000;
 static uint16_t step = 10;
 static uint32_t lastUpdate = 0;
 static uint32_t lastRdsUpdate = 0;
@@ -42,15 +41,6 @@ static uint32_t lastSeekUpdate = 0;
 static DateTime dt;
 static int16_t bfo = 0;
 static bool showSNR = false;
-
-static void tune(uint32_t f) {
-  f /= divider;
-  if (si4732mode == SI47XX_FM) {
-    f -= f % 5;
-  }
-  SI47XX_ClearRDS();
-  SI47XX_SetFreq(f);
-}
 
 void SI_init() {
   SVC_Toggle(SVC_LISTEN, false, 0);

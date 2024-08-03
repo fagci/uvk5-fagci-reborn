@@ -14,6 +14,7 @@ static uint8_t subMenuIndex = 0;
 static bool isSubMenu = false;
 
 static MenuItem menu[] = {
+    {"Radio", M_RADIO, ARRAY_SIZE(radioNames) - 1},
     {"Start freq", M_START},
     {"End freq", M_END},
     {"Name", M_NAME},
@@ -29,6 +30,9 @@ static MenuItem menu[] = {
 static void setInitialSubmenuIndex(void) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
+  case M_RADIO:
+    subMenuIndex = gCurrentPreset->radio;
+    break;
   case M_BW:
     subMenuIndex = gCurrentPreset->band.bw;
     break;
@@ -63,6 +67,9 @@ static void getMenuItemText(uint16_t index, char *name) {
 static void getSubmenuItemText(uint16_t index, char *name) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
+  case M_RADIO:
+    strncpy(name, radioNames[index], 31);
+    return;
   case M_MODULATION:
     strncpy(name, modulationTypeOptions[index], 31);
     return;

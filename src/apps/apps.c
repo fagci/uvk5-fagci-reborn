@@ -17,7 +17,6 @@
 #include "reset.h"
 #include "savech.h"
 #include "settings.h"
-#include "si.h"
 #include "spectrumreborn.h"
 #include "still.h"
 #include "textinput.h"
@@ -62,7 +61,6 @@ const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
     APP_VFO1,         //
     APP_STILL,        //
     APP_VFO2,         //
-    APP_SI,           //
     APP_CH_SCANNER,   //
     APP_SAVECH,       //
     APP_SPECTRUM,     //
@@ -104,7 +102,6 @@ const App apps[APPS_COUNT] = {
     {"Settings", SETTINGS_init, NULL, SETTINGS_render, SETTINGS_key, NULL},
     {"1 VFO", VFO1_init, VFO1_update, VFO1_render, VFO1_key, VFO1_deinit},
     {"2 VFO", VFO2_init, VFO2_update, VFO2_render, VFO2_key, VFO2_deinit},
-    {"SI47XX", SI_init, SI_update, SI_render, SI_key, SI_deinit},
     {"ABOUT", NULL, NULL, ABOUT_Render, ABOUT_key, NULL},
     {"Antenna len", ANTENNA_init, NULL, ANTENNA_render, ANTENNA_key,
      ANTENNA_deinit},

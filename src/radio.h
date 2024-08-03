@@ -32,12 +32,13 @@ extern bool isBK1080;
 extern TXState gTxState;
 
 extern const uint16_t StepFrequencyTable[14];
-extern const char *modulationTypeOptions[6];
+extern const char *modulationTypeOptions[8];
 extern const SquelchType sqTypeValues[4];
 
 extern const char *upConverterFreqNames[3];
 extern const char *vfoStateNames[];
 extern const char *powerNames[];
+extern const char *radioNames[4];
 extern const char *bwNames[3];
 extern const char *deviationNames[];
 extern const char *sqTypeNames[4];
