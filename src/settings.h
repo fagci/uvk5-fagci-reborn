@@ -136,8 +136,8 @@ typedef struct {
   uint8_t reserved2 : 4;
   BacklightOnSquelchMode backlightOnSquelch : 2;
   uint8_t scanTimeout : 8;
-  uint8_t sqlOpenTime : 2;
-  uint8_t sqlCloseTime : 3;
+  uint8_t sqlOpenTime : 3;
+  uint8_t sqlCloseTime : 2;
   bool skipGarbageFrequencies : 1;
   uint8_t activeVFO : 2;
   char nickName[10];
