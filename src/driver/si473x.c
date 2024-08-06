@@ -19,6 +19,8 @@ SsbMode currentSsbMode;
 SI47XX_MODE si4732mode = SI47XX_FM;
 uint16_t siCurrentFreq = 10320;
 
+static uint16_t fDiv() { return si4732mode == SI47XX_FM ? 1000 : 100; }
+
 void SI47XX_ReadBuffer(uint8_t *buf, uint8_t size) {
   I2C_Start();
   I2C_Write(SI47XX_I2C_ADDR + 1);
@@ -323,7 +325,7 @@ void SI47XX_ReadRDS(uint8_t buf[13]) {
 }
 
 void SI47XX_SetSeekFmLimits(uint32_t bottom, uint32_t top) {
-  uint16_t divider = si4732mode == SI47XX_FM ? 1000 : 100;
+  uint16_t divider = fDiv();
   bottom /= divider;
   top /= divider;
   sendProperty(PROP_FM_SEEK_BAND_BOTTOM, bottom);
@@ -331,7 +333,7 @@ void SI47XX_SetSeekFmLimits(uint32_t bottom, uint32_t top) {
 }
 
 void SI47XX_SetSeekAmLimits(uint32_t bottom, uint32_t top) {
-  uint16_t divider = si4732mode == SI47XX_FM ? 1000 : 100;
+  uint16_t divider = fDiv();
   bottom /= divider;
   top /= divider;
   sendProperty(PROP_AM_SEEK_BAND_BOTTOM, bottom);
@@ -339,14 +341,12 @@ void SI47XX_SetSeekAmLimits(uint32_t bottom, uint32_t top) {
 }
 
 void SI47XX_SetSeekFmSpacing(uint32_t spacing) {
-  uint16_t divider = si4732mode == SI47XX_FM ? 1000 : 100;
-  spacing /= divider;
+  spacing /= fDiv();
   sendProperty(PROP_FM_SEEK_FREQ_SPACING, spacing);
 }
 
 void SI47XX_SetSeekAmSpacing(uint32_t spacing) {
-  uint16_t divider = si4732mode == SI47XX_FM ? 1000 : 100;
-  spacing /= divider;
+  spacing /= fDiv();
   sendProperty(PROP_AM_SEEK_FREQ_SPACING, spacing);
 }
 
@@ -361,8 +361,7 @@ void SI47XX_SetSeekAmRssiThreshold(uint16_t value) {
 void SI47XX_SetBFO(int16_t bfo) { sendProperty(PROP_SSB_BFO, bfo); }
 
 void SI47XX_TuneTo(uint32_t f) {
-  uint16_t divider = si4732mode == SI47XX_FM ? 1000 : 100;
-  f /= divider;
+  f /= fDiv();
   if (si4732mode == SI47XX_FM) {
     f -= f % 5;
   }
