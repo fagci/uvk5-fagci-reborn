@@ -152,7 +152,7 @@ void VFO1_render(void) {
   uint8_t fp3 = f % 100;
   const char *mod = modulationTypeOptions[p->band.modulation];
   if (gIsListening) {
-    if (!isBK1080) {
+    if (RADIO_GetRadio() == RADIO_BK4819) {
       UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, vfo->rx.f, BASE + 2);
     }
   }
