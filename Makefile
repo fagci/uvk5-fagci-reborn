@@ -70,7 +70,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(BSP_HEADERS) $(OBJ_DIR)
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.S | $(OBJ_DIR)
 	$(AS) $(ASFLAGS) $< -o $@
 
-$(BIN_DIR) $(OBJ_DIR) $(BIN_DIR):
+$(BIN_DIR) $(OBJ_DIR):
 	mkdir -p $@
 
 .FORCE:
