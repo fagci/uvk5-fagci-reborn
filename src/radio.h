@@ -28,7 +28,6 @@ extern char gVFONames[2][10];
 
 extern bool gIsListening;
 extern bool gMonitorMode;
-extern bool isBK1080;
 extern TXState gTxState;
 
 extern const uint16_t StepFrequencyTable[14];
@@ -44,6 +43,8 @@ extern const char *deviationNames[];
 extern const char *sqTypeNames[4];
 extern const char *TX_STATE_NAMES[7];
 
+Radio RADIO_GetRadio();
+ModulationType RADIO_GetModulation();
 void RADIO_SetupRegisters();
 
 void RADIO_SaveCurrentVFO();
