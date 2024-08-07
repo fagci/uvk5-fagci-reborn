@@ -183,7 +183,9 @@ static void render2VFOPart(uint8_t i) {
   const uint16_t fp1 = f / 100000;
   const uint16_t fp2 = f / 100 % 1000;
   const uint8_t fp3 = f % 100;
-  const char *mod = modulationTypeOptions[p->band.modulation];
+  const char *mod =
+      modulationTypeOptions[vfo->modulation == MOD_PRST ? p->band.modulation
+                                                        : vfo->modulation];
 
   if (isActive && gTxState <= TX_ON) {
     FillRect(0, bl - 14, 28, 7, C_FILL);
@@ -192,7 +194,7 @@ static void render2VFOPart(uint8_t i) {
     }
     if (gIsListening) {
       PrintMediumEx(0, bl, POS_L, C_INVERT, "RX");
-      if (!isBK1080) {
+      if (RADIO_GetRadio() == RADIO_BK4819) {
         UI_RSSIBar(gLoot[i].rssi, vfo->rx.f, 31);
       }
     }
@@ -213,6 +215,9 @@ static void render2VFOPart(uint8_t i) {
       PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "VFO");
     }
     PrintSmallEx(LCD_WIDTH, bl - 9, POS_R, C_FILL, mod);
+    if (vfo->modulation != MOD_PRST) {
+      FillRect(LCD_WIDTH - 16, bl - 9 - 6, 16, 8, C_INVERT);
+    }
   }
 
   uint32_t est = loot->lastTimeOpen ? (Now() - loot->lastTimeOpen) / 1000 : 0;
@@ -223,13 +228,14 @@ static void render2VFOPart(uint8_t i) {
     PrintSmallEx(0, bl + 6, POS_L, C_FILL, "D%03oN(fake)",
                  DCS_Options[loot->cd]);
   }
-  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %c SQ%u %c %s",
+  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %c SQ%u %c %s %4s",
                p->allowTx ? TX_POWER_NAMES[p->power][0] : ' ',
                "WNn"[p->band.bw], p -> band.squelch,
                RADIO_GetTXFEx(vfo, p) != vfo->rx.f
                    ? (p->offsetDir ? TX_OFFSET_NAMES[p->offsetDir][0] : '*')
                    : ' ',
-               vfo->tx.codeType ? TX_CODE_TYPES[vfo->tx.codeType] : "");
+               vfo->tx.codeType ? TX_CODE_TYPES[vfo->tx.codeType] : "",
+               radioNames[vfo->radio == RADIO_UNKNOWN ? p->radio : vfo->radio]);
 
   if (loot->lastTimeOpen) {
     PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,

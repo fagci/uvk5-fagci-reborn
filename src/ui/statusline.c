@@ -90,7 +90,7 @@ void STATUSLINE_render(void) {
     icons[idx++] = SYM_MONITOR;
   }
 
-  if (isBK1080) {
+  if (RADIO_GetRadio() != RADIO_BK4819) {
     icons[idx++] = SYM_BROADCAST;
   }
 

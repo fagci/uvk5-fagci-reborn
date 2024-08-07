@@ -56,7 +56,7 @@ static void setInitialSubmenuIndex(void) {
     subMenuIndex = gCurrentPreset->offsetDir;
     break;
   case M_MODULATION:
-    subMenuIndex = gCurrentPreset->band.modulation;
+    subMenuIndex = radio->modulation;
     break;
   case M_STEP:
     subMenuIndex = gCurrentPreset->band.step;

@@ -107,7 +107,7 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
     sprintf(Output, "%ddB", gainTable[band->gainIndex].gainDb);
     break;
   case M_MODULATION:
-    strncpy(Output, modulationTypeOptions[band->modulation], 31);
+    strncpy(Output, modulationTypeOptions[radio->modulation], 31);
     break;
   case M_STEP:
     sprintf(Output, "%u.%02uKHz", StepFrequencyTable[band->step] / 100,
@@ -170,13 +170,13 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
     PRESETS_SaveCurrent();
     break;
   case M_MODULATION:
-    gCurrentPreset->band.modulation = subMenuIndex;
+    radio->modulation = subMenuIndex;
     // NOTE: for right BW after switching from WFM to another
     BK4819_SetFilterBandwidth(gCurrentPreset->band.bw);
     BK4819_SetModulation(subMenuIndex);
-    BK4819_SetAGC(gCurrentPreset->band.modulation != MOD_AM,
+    BK4819_SetAGC(RADIO_GetModulation() != MOD_AM,
                   gCurrentPreset->band.gainIndex);
-    PRESETS_SaveCurrent();
+    RADIO_SaveCurrentVFO();
     break;
   case M_STEP:
     gCurrentPreset->band.step = subMenuIndex;
@@ -196,7 +196,7 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
 
   case M_GAIN:
     gCurrentPreset->band.gainIndex = subMenuIndex;
-    BK4819_SetAGC(gCurrentPreset->band.modulation != MOD_AM,
+    BK4819_SetAGC(RADIO_GetModulation() != MOD_AM,
                   gCurrentPreset->band.gainIndex);
     PRESETS_SaveCurrent();
     break;
