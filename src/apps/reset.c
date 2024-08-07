@@ -24,10 +24,14 @@ static VFO defaultVFOs[2] = {
     (VFO){
         .rx.f = 14550000,
         .channel = -1,
+        .modulation = MOD_PRST,
+        .radio = RADIO_UNKNOWN,
     },
     (VFO){
         .rx.f = 43307500,
         .channel = -1,
+        .modulation = MOD_PRST,
+        .radio = RADIO_UNKNOWN,
     },
 };
 
