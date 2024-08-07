@@ -19,7 +19,7 @@ static MenuItem menu[] = {
     {"End freq", M_END},
     {"Name", M_NAME},
     {"Step", M_STEP, ARRAY_SIZE(StepFrequencyTable)},
-    {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions)},
+    {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions) - 1},
     {"BW", M_BW, ARRAY_SIZE(bwNames)},
     {"SQ level", M_SQ, 10},
     {"SQ type", M_SQ_TYPE, ARRAY_SIZE(sqTypeNames)},

@@ -164,7 +164,7 @@ static void startNewScan() {
     LOOT_Standby();
     rssiO = U16_MAX;
     noiseO = 0;
-    RADIO_SetupBandParams(currentBand);
+    RADIO_SetupBandParams();
     oldPresetIndex = gSettings.activePreset;
     gRedrawScreen = true;
     bandFilled = false;

@@ -150,7 +150,7 @@ void VFO1_render(void) {
   uint16_t fp1 = f / 100000;
   uint16_t fp2 = f / 100 % 1000;
   uint8_t fp3 = f % 100;
-  const char *mod = modulationTypeOptions[p->band.modulation];
+  const char *mod = modulationTypeOptions[vfo->modulation == MOD_PRST ? p->band.modulation : vfo->modulation];
   if (gIsListening) {
     if (RADIO_GetRadio() == RADIO_BK4819) {
       UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, vfo->rx.f, BASE + 2);

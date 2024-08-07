@@ -56,10 +56,10 @@ const uint32_t upConverterValues[3] = {0, 5000000, 12500000};
 const char *upConverterFreqNames[3] = {"None", "50M", "125M"};
 
 const char *modulationTypeOptions[8] = {"FM",  "AM",  "LSB", "USB",
-                                        "BYP", "RAW", "WFM", "PRST"};
+                                        "BYP", "RAW", "WFM", "Preset"};
 const char *powerNames[] = {"LOW", "MID", "HIGH"};
 const char *bwNames[3] = {"25k", "12.5k", "6.25k"};
-const char *radioNames[4] = {"BK4819", "BK1080", "SI4732", "None"};
+const char *radioNames[4] = {"BK4819", "BK1080", "SI4732", "Preset"};
 const char *TX_STATE_NAMES[7] = {"TX Off",    "TX On",    "VOL HIGH",
                                  "BAT LOW",   "DISABLED", "UPCONVERTER",
                                  "HIGH POWER"};
@@ -101,8 +101,8 @@ void RADIO_SetupRegisters(void) {
   }
   BK4819_WriteRegister(BK4819_REG_3F, 0);
   BK4819_WriteRegister(BK4819_REG_7D, 0xE94F);
-  BK4819_SetFrequency(Frequency);
-  BK4819_SelectFilter(Frequency);
+  /* BK4819_SetFrequency(Frequency);
+  BK4819_SelectFilter(Frequency); */
   BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, true);
   // BK4819_WriteRegister(BK4819_REG_48, 0xB3A8);
   BK4819_WriteRegister(
@@ -345,10 +345,9 @@ void RADIO_ToggleTX(bool on) {
     RADIO_ToggleRX(false);
 
     BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, false);
-    RADIO_SetupBandParams(&gCurrentPreset->band);
+    RADIO_SetupBandParams();
 
-    BK4819_SetFrequency(txF);
-    BK4819_SelectFilter(txF);
+    BK4819_TuneTo(txF, true);
 
     BK4819_PrepareTransmit();
 
@@ -368,8 +367,7 @@ void RADIO_ToggleTX(bool on) {
     BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, false);
     BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, true);
 
-    BK4819_SetFrequency(radio->rx.f);
-    BK4819_SelectFilter(radio->rx.f);
+    BK4819_TuneTo(radio->rx.f, true);
     BK4819_RX_TurnOn();
   }
 
@@ -379,17 +377,13 @@ void RADIO_ToggleTX(bool on) {
 }
 
 void RADIO_ToggleModulation(void) {
-  if (gCurrentPreset->band.modulation == MOD_WFM) {
-    gCurrentPreset->band.modulation = MOD_FM;
+  if (radio->modulation == MOD_WFM) {
+    radio->modulation = MOD_FM;
   } else {
-    ++gCurrentPreset->band.modulation;
+    ++radio->modulation;
   }
   // NOTE: for right BW after switching from WFM to another
-  BK4819_SetFilterBandwidth(gCurrentPreset->band.bw);
-  BK4819_SetModulation(gCurrentPreset->band.modulation);
-  BK4819_SetAGC(gCurrentPreset->band.modulation != MOD_AM,
-                gCurrentPreset->band.gainIndex);
-  onPresetUpdate();
+  onVfoUpdate();
 }
 
 void RADIO_UpdateStep(bool inc) {
@@ -485,7 +479,7 @@ void RADIO_SetupByCurrentVFO(void) {
   gVFOPresets[gSettings.activeVFO] = gCurrentPreset;
   gSettings.activePreset = PRESET_GetCurrentIndex();
 
-  RADIO_SetupBandParams(&gCurrentPreset->band);
+  RADIO_SetupBandParams();
   RADIO_ToggleRX(false); // to prevent muting when tune to new band
   // }
 
@@ -542,7 +536,7 @@ void RADIO_LoadCurrentVFO(void) {
   radio = &gVFO[gSettings.activeVFO];
   gCurrentLoot = &gLoot[gSettings.activeVFO];
   RADIO_SetupByCurrentVFO();
-  RADIO_SetupBandParams(&gCurrentPreset->band);
+  RADIO_SetupBandParams();
 }
 
 void RADIO_SetSquelch(uint8_t sq) {
@@ -563,7 +557,8 @@ void RADIO_SetGain(uint8_t gainIndex) {
   onPresetUpdate();
 }
 
-void RADIO_SetupBandParams(Band *b) {
+void RADIO_SetupBandParams() {
+  Band *b = &gCurrentPreset->band;
   uint32_t fMid = b->bounds.start + (b->bounds.end - b->bounds.start) / 2;
   ModulationType mod = RADIO_GetModulation();
   Log("Current mod is %s", modulationTypeOptions[mod]);
@@ -591,10 +586,6 @@ void RADIO_SetupBandParams(Band *b) {
   default:
     break;
   }
-}
-
-uint16_t RADIO_GetRSSI(void) {
-  return RADIO_GetRadio() == RADIO_BK4819 ? BK4819_GetRSSI() : 128;
 }
 
 static bool isSqOpenSimple(uint16_t r) {
@@ -645,35 +636,50 @@ static bool isSqOpenSimple(uint16_t r) {
   return open;
 }
 
+uint16_t RADIO_GetRSSI(void) {
+  return RADIO_GetRadio() == RADIO_BK4819 ? BK4819_GetRSSI() : 128;
+}
+
+static bool isSimpleSql() {
+  return gSettings.sqlOpenTime == 0 && gSettings.sqlCloseTime == 0;
+}
+
+bool RADIO_IsSquelchOpen(Loot *msm) {
+  if (RADIO_GetRadio() == RADIO_BK4819) {
+    if (isSimpleSql()) {
+      return isSqOpenSimple(msm->rssi);
+    } else {
+      return BK4819_IsSquelchOpen();
+    }
+  }
+  return true;
+}
+
 static uint32_t lastTailTone = 0;
 Loot *RADIO_UpdateMeasurements(void) {
   Loot *msm = &gLoot[gSettings.activeVFO];
   msm->rssi = RADIO_GetRSSI();
-  msm->open = RADIO_GetRadio() == RADIO_BK4819
-                  ? (gSettings.sqlOpenTime || gSettings.sqlCloseTime
-                         ? BK4819_IsSquelchOpen()
-                         : isSqOpenSimple(msm->rssi))
-                  : true;
+  msm->open = RADIO_IsSquelchOpen(msm);
 
-  while (BK4819_ReadRegister(BK4819_REG_0C) & 1u) {
-    BK4819_WriteRegister(BK4819_REG_02, 0);
+  if (RADIO_GetRadio() == RADIO_BK4819) {
+    while (BK4819_ReadRegister(BK4819_REG_0C) & 1u) {
+      BK4819_WriteRegister(BK4819_REG_02, 0);
 
-    uint16_t intBits = BK4819_ReadRegister(BK4819_REG_02);
+      uint16_t intBits = BK4819_ReadRegister(BK4819_REG_02);
 
-    if (intBits & BK4819_REG_02_CxCSS_TAIL) {
+      if (intBits & BK4819_REG_02_CxCSS_TAIL) {
+        msm->open = false;
+        lastTailTone = Now();
+      }
+    }
+
+    // else sql reopens
+    if ((Now() - lastTailTone) < 250) {
       msm->open = false;
-      lastTailTone = Now();
     }
   }
 
-  // else sql reopens
-  if ((Now() - lastTailTone) < 250) {
-    msm->open = false;
-  }
-
-  // if (!gMonitorMode && gCurrentPreset->band.squelch != 0) {
   LOOT_Update(msm);
-  // }
 
   bool rx = msm->open;
   if (gTxState != TX_ON) {
@@ -829,7 +835,7 @@ void RADIO_NextFreqNoClicks(bool next) {
       gVFOPresets[gSettings.activeVFO] = gCurrentPreset;
       gSettings.activePreset = PRESET_GetCurrentIndex();
 
-      RADIO_SetupBandParams(&gCurrentPreset->band);
+      RADIO_SetupBandParams();
       RADIO_ToggleRX(false); // to prevent muting when tune to new band
     }
 
