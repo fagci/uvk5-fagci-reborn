@@ -135,8 +135,9 @@ static void saveAllToFreeChannels(void) {
           return;
         }
       }
-      CH ch;
+      CH ch = {0};
       ch.rx.f = loot->f;
+      ch.tx.f = 0;
       if (loot->ct != 255) {
         ch.tx.codeType = CODE_TYPE_CONTINUOUS_TONE;
         ch.tx.code = loot->ct;

@@ -214,9 +214,9 @@ static void render2VFOPart(uint8_t i) {
       PrintMediumBoldEx(LCD_WIDTH, bl, POS_R, C_FILL, "%02u", fp3);
       PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "VFO");
     }
-    PrintSmallEx(LCD_WIDTH, bl - 9, POS_R, C_FILL, mod);
+    PrintSmallEx(LCD_WIDTH - 1, bl - 9, POS_R, C_FILL, mod);
     if (vfo->modulation != MOD_PRST) {
-      FillRect(LCD_WIDTH - 16, bl - 9 - 6, 16, 8, C_INVERT);
+      FillRect(LCD_WIDTH - 17, bl - 9 - 6, 17, 8, C_INVERT);
     }
   }
 
