@@ -128,12 +128,15 @@ void RADIO_SetupRegisters(void) {
 void RADIO_RxTurnOff() {
   switch (oldRadio) {
   case RADIO_BK4819:
+    Log("BK48 rx turn off");
     BK4819_Idle();
     break;
   case RADIO_BK1080:
+    Log("BK10 rx turn off");
     BK1080_Mute(true);
     break;
   case RADIO_SI4732:
+    Log("SI rx turn off");
     SI47XX_PowerDown();
     break;
   default:
@@ -144,14 +147,17 @@ void RADIO_RxTurnOn() {
   Radio r = RADIO_GetRadio();
   switch (r) {
   case RADIO_BK4819:
+    Log("BK48 rx turn on");
     BK4819_RX_TurnOn();
     break;
   case RADIO_BK1080:
+    Log("BK10 rx turn on");
     BK4819_Idle();
     BK1080_Mute(false);
     BK1080_Init(radio->rx.f, true);
     break;
   case RADIO_SI4732:
+    Log("SI rx turn on");
     BK4819_Idle();
     SI47XX_PowerUp();
     break;
@@ -180,6 +186,7 @@ static void onPresetUpdate(void) {
 bool RADIO_IsBK1080Range(uint32_t f) { return f >= 6400000 && f <= 10800000; }
 
 void toggleBK4819(bool on) {
+  Log("Toggle bk4819 %u", on);
   if (on) {
     BK4819_ToggleAFDAC(true);
     BK4819_ToggleAFBit(true);
@@ -194,6 +201,7 @@ void toggleBK4819(bool on) {
 }
 
 void toggleBK1080SI4732(bool on) {
+  Log("Toggle bk1080si %u", on);
   if (on) {
     SYSTEM_DelayMs(10);
     AUDIO_ToggleSpeaker(true);
@@ -223,18 +231,8 @@ void RADIO_ToggleRX(bool on) {
     }
   }
 
-  if (on) {
-    if (oldRadio == RADIO_BK4819) {
-      toggleBK4819(false);
-    } else {
-      toggleBK1080SI4732(false);
-    }
-  }
-  if (on) {
-    RADIO_RxTurnOn();
-  } else {
-    RADIO_RxTurnOff();
-  }
+  Log("toggle RX %u", on);
+
   Radio r = RADIO_GetRadio();
   if (r == RADIO_BK4819) {
     toggleBK4819(on);
@@ -377,12 +375,13 @@ void RADIO_ToggleTX(bool on) {
 }
 
 void RADIO_ToggleModulation(void) {
-  if (radio->modulation == MOD_WFM) {
+  if (radio->modulation == MOD_PRST) {
     radio->modulation = MOD_FM;
   } else {
     ++radio->modulation;
   }
   // NOTE: for right BW after switching from WFM to another
+  RADIO_SetupBandParams();
   onVfoUpdate();
 }
 
@@ -472,6 +471,8 @@ void RADIO_SetupByCurrentVFO(void) {
   uint32_t f = radio->rx.f;
   Preset *p = PRESET_ByFrequency(f);
 
+  Log("RADIO_SetupByCurrentVFO");
+
   RADIO_SwitchRadio();
 
   // if (gCurrentPreset != p) {
@@ -552,8 +553,19 @@ void RADIO_SetSquelchType(SquelchType t) {
 
 void RADIO_SetGain(uint8_t gainIndex) {
   gCurrentPreset->band.gainIndex = gainIndex;
-  BK4819_SetAGC(gCurrentPreset->band.modulation != MOD_AM,
-                gCurrentPreset->band.gainIndex);
+  switch (RADIO_GetRadio()) {
+  case RADIO_BK4819:
+    BK4819_SetAGC(gCurrentPreset->band.modulation != MOD_AM,
+                  gCurrentPreset->band.gainIndex);
+    break;
+  case RADIO_SI4732:
+    SI47XX_SetAutomaticGainControl(gainIndex > 0, gainIndex);
+    break;
+  case RADIO_BK1080:
+    break;
+  default:
+    break;
+  }
   onPresetUpdate();
 }
 
@@ -569,7 +581,6 @@ void RADIO_SetupBandParams() {
                    gSettings.sqlCloseTime);
     BK4819_SetFilterBandwidth(b->bw);
     BK4819_SetModulation(mod);
-    BK4819_SetAGC(mod != MOD_AM, b->gainIndex);
     break;
   case RADIO_BK1080:
     break;
@@ -586,6 +597,7 @@ void RADIO_SetupBandParams() {
   default:
     break;
   }
+  RADIO_SetGain(b->gainIndex);
 }
 
 static bool isSqOpenSimple(uint16_t r) {

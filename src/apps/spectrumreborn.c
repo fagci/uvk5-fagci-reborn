@@ -177,8 +177,6 @@ void SPECTRUM_init(void) {
   SVC_Toggle(SVC_LISTEN, false, 0);
   RADIO_ToggleRX(false);
   RADIO_LoadCurrentVFO();
-  // resetRssiHistory();
-  // bandFilled = false;
   newScan = true;
   timeout = 0;
   oldPresetIndex = 0;
