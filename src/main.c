@@ -94,7 +94,7 @@ void Main(void) {
   BOARD_Init();
 
   UART_Init();
-  UART_Send("fagci r3b0rn", 13);
+  UART_printf("fagci R3b0rn " TIME_STAMP "\n");
 
   BACKLIGHT_SetBrightness(7);
 
