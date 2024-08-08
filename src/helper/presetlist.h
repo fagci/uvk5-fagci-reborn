@@ -165,8 +165,8 @@ static Preset
             (Preset){
                 .band =
                     {
-                        .bounds = {17400000, 22999999},
-                        .name = "174-230",
+                        .bounds = {17400000, 24499999},
+                        .name = "174-245",
                         .step = STEP_25_0kHz,
                         .modulation = MOD_FM,
                         .bw = BK4819_FILTER_BW_WIDE,
@@ -182,8 +182,8 @@ static Preset
             (Preset){
                 .band =
                     {
-                        .bounds = {23000000, 31999999},
-                        .name = "230-320",
+                        .bounds = {24500000, 26999999},
+                        .name = "Satcom",
                         .step = STEP_25_0kHz,
                         .modulation = MOD_FM,
                         .bw = BK4819_FILTER_BW_WIDE,
@@ -199,8 +199,8 @@ static Preset
             (Preset){
                 .band =
                     {
-                        .bounds = {32000000, 39999999},
-                        .name = "320-400",
+                        .bounds = {27000000, 39999999},
+                        .name = "270-400",
                         .step = STEP_25_0kHz,
                         .modulation = MOD_FM,
                         .bw = BK4819_FILTER_BW_WIDE,
