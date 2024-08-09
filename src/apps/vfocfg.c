@@ -20,6 +20,8 @@ static MenuItem menu[] = {
     {"Radio", M_RADIO, ARRAY_SIZE(radioNames)},
     {"RX freq", M_F_RX, 0},
     {"TX freq", M_F_TX, 0},
+    {"RX code type", M_RX_CODE_TYPE, ARRAY_SIZE(TX_CODE_TYPES)},
+    {"RX code", M_RX_CODE, 0},
     {"TX code type", M_TX_CODE_TYPE, ARRAY_SIZE(TX_CODE_TYPES)},
     {"TX code", M_TX_CODE, 0},
     {"TX offset", M_TX_OFFSET, 0},
@@ -42,6 +44,12 @@ static void setInitialSubmenuIndex(void) {
     break;
   case M_BW:
     subMenuIndex = gCurrentPreset->band.bw;
+    break;
+  case M_RX_CODE_TYPE:
+    subMenuIndex = radio->rx.codeType;
+    break;
+  case M_RX_CODE:
+    subMenuIndex = radio->rx.code;
     break;
   case M_TX_CODE_TYPE:
     subMenuIndex = radio->tx.codeType;
@@ -88,7 +96,14 @@ static void updateTxCodeListSize() {
       } else {
         item->size = 0;
       }
-      return;
+    } else if (item->type == M_RX_CODE) {
+      if (radio->rx.codeType == CODE_TYPE_CONTINUOUS_TONE) {
+        item->size = ARRAY_SIZE(CTCSS_Options);
+      } else if (radio->rx.codeType != CODE_TYPE_OFF) {
+        item->size = ARRAY_SIZE(DCS_Options);
+      } else {
+        item->size = 0;
+      }
     }
   }
 }
@@ -104,6 +119,23 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     return;
   case M_BW:
     strncpy(name, bwNames[index], 15);
+    return;
+  case M_RX_CODE_TYPE:
+    strncpy(name, TX_CODE_TYPES[index], 15);
+    return;
+  case M_RX_CODE:
+    if (radio->rx.codeType) {
+      if (radio->rx.codeType == CODE_TYPE_CONTINUOUS_TONE) {
+        sprintf(name, "CT:%u.%uHz", CTCSS_Options[index] / 10,
+                CTCSS_Options[index] % 10);
+      } else if (radio->rx.codeType == CODE_TYPE_DIGITAL) {
+        sprintf(name, "DCS:D%03oN", DCS_Options[index]);
+      } else if (radio->rx.codeType == CODE_TYPE_REVERSE_DIGITAL) {
+        sprintf(name, "DCS:D%03oI", DCS_Options[index]);
+      } else {
+        sprintf(name, "No code");
+      }
+    }
     return;
   case M_TX_CODE_TYPE:
     strncpy(name, TX_CODE_TYPES[index], 15);

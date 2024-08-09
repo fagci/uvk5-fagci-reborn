@@ -109,6 +109,7 @@ void Main(void) {
 
   BATTERY_UpdateBatteryInfo();
   RADIO_SetupRegisters();
+  RADIO_LoadCurrentVFO();
 
   BACKLIGHT_SetDuration(BL_TIME_VALUES[gSettings.backlight]);
   BACKLIGHT_SetBrightness(gSettings.brightness);

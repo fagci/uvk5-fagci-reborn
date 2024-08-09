@@ -5,6 +5,7 @@
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"
 #include "../helper/presetlist.h"
+#include "../helper/rds.h"
 #include "../scheduler.h"
 #include "../settings.h"
 #include "../svc.h"
@@ -192,11 +193,11 @@ static void render2VFOPart(uint8_t i) {
     if (gTxState == TX_ON) {
       PrintMediumEx(0, bl, POS_L, C_INVERT, "TX");
     }
-    if (gIsListening) {
+    if (RADIO_GetRadio() == RADIO_SI4732 && rds.RDSSignal) {
+        PrintSmallEx(LCD_WIDTH - 1, 31, POS_R, C_FILL, "RDS");
+    } else if (gIsListening) {
       PrintMediumEx(0, bl, POS_L, C_INVERT, "RX");
-      if (RADIO_GetRadio() == RADIO_BK4819) {
-        UI_RSSIBar(gLoot[i].rssi, vfo->rx.f, 31);
-      }
+      UI_RSSIBar(gLoot[i].rssi, vfo->rx.f, 31);
     }
   }
 
