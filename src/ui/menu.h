@@ -24,6 +24,8 @@ typedef enum {
   M_TX,
   M_F_RX,
   M_F_TX,
+  M_RX_CODE_TYPE,
+  M_RX_CODE,
   M_TX_CODE_TYPE,
   M_TX_CODE,
   M_TX_OFFSET,

@@ -609,6 +609,12 @@ enum {
 uint32_t pow10[] = {1,      10,      100,      1000,      10000,
                     100000, 1000000, 10000000, 100000000, 1000000000};
 
+static void printCh(uint16_t chNum, CH ch) {
+  UART_printf("CH%d,%s,%lu,%lu,%d,%d,%d,%d,%d\r\n", chNum, ch.name, ch.rx.f,
+              ch.tx.f, ch.modulation, ch.bw, ch.memoryBanks, ch.tx.codeType,
+              ch.tx.code);
+}
+
 bool UART_IsCommandAvailable(void) {
   uint16_t DmaLength;
   uint16_t CommandLength;
@@ -625,9 +631,58 @@ bool UART_IsCommandAvailable(void) {
     }
 
     // --- 8< ---
+    char csvLine[CSV_LEN + PRE_LEN];
+    if (strncmp(((char *)UART_DMA_Buffer) + gUART_WriteIndex, "RCH", 3) == 0) {
+      memset(csvLine, 0, sizeof(csvLine));
+      snprintf(csvLine, (CSV_LEN + 3), "%s",
+               &UART_DMA_Buffer[gUART_WriteIndex + 3]);
+      for (int i = 0; csvLine[i] != '\0'; i++) {
+        if (csvLine[i] == '\r' || csvLine[i] == '\n') {
+          csvLine[i] = '\0';
+        }
+      }
+      if (csvLine[0] == '\0') {
+        for (uint16_t chNum = 0; chNum < CHANNELS_GetCountMax(); chNum++) {
+          CH ch = {0};
+          CHANNELS_Load(chNum, &ch);
+          printCh(chNum, ch);
+        }
+      } else {
+        uint8_t razr = strlen(csvLine) - 1;
+        uint16_t chNum = 0;
+        for (uint8_t i = 0; csvLine[i] != '\0'; i++) {
+          chNum += (csvLine[i] - '0') * pow10[razr--];
+        }
+        CH ch = {0};
+        CHANNELS_Load(chNum, &ch);
+        printCh(chNum, ch);
+      }
+    }
+
+    // monkey mode on
+    if (strncmp(((char *)UART_DMA_Buffer) + gUART_WriteIndex, "DCH", 3) == 0) {
+      memset(csvLine, 0, sizeof(csvLine));
+      snprintf(csvLine, (CSV_LEN + 3), "%s",
+               &UART_DMA_Buffer[gUART_WriteIndex + 3]);
+      for (int i = 0; csvLine[i] != '\0'; i++) {
+        if (csvLine[i] == '\r' || csvLine[i] == '\n') {
+          csvLine[i] = '\0';
+        }
+      }
+      if (csvLine[0] == '\0') {
+      } else {
+        uint8_t razr = strlen(csvLine) - 1;
+        uint16_t chNum = 0;
+        for (uint8_t i = 0; csvLine[i] != '\0'; i++) {
+          chNum += (csvLine[i] - '0') * pow10[razr--];
+        }
+        CHANNELS_Delete(chNum);
+        UART_printf("OK\r\n");
+      }
+    }
+
     if (strncmp(((char *)UART_DMA_Buffer) + gUART_WriteIndex, "CH", PRE_LEN) ==
         0) {
-      char csvLine[CSV_LEN + PRE_LEN];
       memset(csvLine, 0, sizeof(csvLine));
       snprintf(csvLine, (CSV_LEN + PRE_LEN), "%s",
                &UART_DMA_Buffer[gUART_WriteIndex + PRE_LEN]);
@@ -711,11 +766,11 @@ bool UART_IsCommandAvailable(void) {
       }
       if (fieldIndex == 8) {
         CHANNELS_Save(chNum - 1, &ch);
-        UART_printf("CH%d,%s,%lu,%lu,%d,%d,%d,%d,%d\r\n", chNum, ch.name, ch.rx.f,
-                    ch.tx.f, ch.modulation, ch.bw, ch.memoryBanks, ch.tx.codeType, ch.tx.code);
+        printCh(chNum, ch);
       } else {
-        UART_printf("ERROR CH%d,%s,%lu,%lu,%d,%d,%d,%d,%d\r\n", chNum, ch.name, ch.rx.f,
-                    ch.tx.f, ch.modulation, ch.bw, ch.memoryBanks, ch.tx.codeType, ch.tx.code);
+        UART_printf("ERROR CH%d,%s,%lu,%lu,%d,%d,%d,%d,%d\r\n", chNum, ch.name,
+                    ch.rx.f, ch.tx.f, ch.modulation, ch.bw, ch.memoryBanks,
+                    ch.tx.codeType, ch.tx.code);
       }
     }
     // --- >8 ---
