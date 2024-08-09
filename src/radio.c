@@ -4,6 +4,7 @@
 #include "driver/audio.h"
 #include "driver/backlight.h"
 #include "driver/bk1080.h"
+#include "driver/bk4819-regs.h"
 #include "driver/bk4819.h"
 #include "driver/gpio.h"
 #include "driver/si473x.h"
@@ -559,7 +560,7 @@ void RADIO_SetGain(uint8_t gainIndex) {
                   gCurrentPreset->band.gainIndex);
     break;
   case RADIO_SI4732:
-    SI47XX_SetAutomaticGainControl(gainIndex > 0, gainIndex);
+    SI47XX_SetAutomaticGainControl(1, 0);
     break;
   case RADIO_BK1080:
     break;
@@ -649,7 +650,17 @@ static bool isSqOpenSimple(uint16_t r) {
 }
 
 uint16_t RADIO_GetRSSI(void) {
-  return RADIO_GetRadio() == RADIO_BK4819 ? BK4819_GetRSSI() : 128;
+  switch (RADIO_GetRadio()) {
+  case RADIO_BK4819:
+    return BK4819_GetRSSI();
+  case RADIO_BK1080:
+    return BK1080_GetRSSI() << 1;
+  case RADIO_SI4732:
+    RSQ_GET();
+    return (160 + (rsqStatus.resp.RSSI - 107)) << 1;
+  default:
+    return 128;
+  }
 }
 
 static bool isSimpleSql() {
@@ -668,6 +679,7 @@ bool RADIO_IsSquelchOpen(Loot *msm) {
 }
 
 static uint32_t lastTailTone = 0;
+static bool toneFound = false;
 Loot *RADIO_UpdateMeasurements(void) {
   Loot *msm = &gLoot[gSettings.activeVFO];
   msm->rssi = RADIO_GetRSSI();
@@ -679,16 +691,33 @@ Loot *RADIO_UpdateMeasurements(void) {
 
       uint16_t intBits = BK4819_ReadRegister(BK4819_REG_02);
 
-      if (intBits & BK4819_REG_02_CxCSS_TAIL) {
+      if (intBits & BK4819_REG_02_CxCSS_TAIL ||
+          intBits & BK4819_REG_02_CTCSS_FOUND ||
+          intBits & BK4819_REG_02_CDCSS_FOUND) {
+        Log("Tone lost");
         msm->open = false;
+        toneFound = false;
         lastTailTone = Now();
       }
+      if (intBits & BK4819_REG_02_CTCSS_LOST ||
+          intBits & BK4819_REG_02_CDCSS_LOST) {
+        Log("Tone found");
+        msm->open = true;
+        toneFound = true;
+      }
     }
-
     // else sql reopens
     if ((Now() - lastTailTone) < 250) {
       msm->open = false;
     }
+
+    if (radio->rx.codeType != CODE_TYPE_OFF && !toneFound) {
+      msm->open = false;
+    }
+  }
+  if (RADIO_GetRadio() == RADIO_SI4732 &&
+      (RADIO_GetModulation() == MOD_FM || RADIO_GetModulation() == MOD_FM)) {
+    SI47XX_GetRDS();
   }
 
   LOOT_Update(msm);
@@ -701,7 +730,8 @@ Loot *RADIO_UpdateMeasurements(void) {
                (gCurrentApp == APP_SPECTRUM || gCurrentApp == APP_ANALYZER)) {
       rx = false;
     } else if (gSettings.skipGarbageFrequencies &&
-               (radio->rx.f % 1300000 == 0)) {
+               (radio->rx.f % 1300000 == 0) &&
+               RADIO_GetRadio() == RADIO_BK4819) {
       rx = false;
     }
     RADIO_ToggleRX(rx);
