@@ -17,6 +17,8 @@ void UI_Battery(uint8_t Level) {
 }
 
 void UI_RSSIBar(uint16_t rssi, uint32_t f, uint8_t y) {
+  if (rssi == 0)
+    return;
   const uint8_t BAR_LEFT_MARGIN = 32;
   const uint8_t BAR_BASE = y + 7;
 

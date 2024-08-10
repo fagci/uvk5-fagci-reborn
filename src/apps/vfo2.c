@@ -191,12 +191,10 @@ static void render2VFOPart(uint8_t i) {
   if (isActive && gTxState <= TX_ON) {
     FillRect(0, bl - 14, 28, 7, C_FILL);
     if (gTxState == TX_ON) {
-      PrintMediumEx(0, bl, POS_L, C_INVERT, "TX");
+      PrintMedium(0, bl, "TX");
     }
-    if (RADIO_GetRadio() == RADIO_SI4732 && rds.RDSSignal) {
-        PrintSmallEx(LCD_WIDTH - 1, 31, POS_R, C_FILL, "RDS");
-    } else if (gIsListening) {
-      PrintMediumEx(0, bl, POS_L, C_INVERT, "RX");
+    if (gIsListening) {
+      PrintMedium(0, bl, RADIO_GetRadio() == RADIO_SI4732 && rds.RDSSignal ? "RDS" : "RX");
       UI_RSSIBar(gLoot[i].rssi, vfo->rx.f, 31);
     }
   }
@@ -217,7 +215,7 @@ static void render2VFOPart(uint8_t i) {
     }
     PrintSmallEx(LCD_WIDTH - 1, bl - 9, POS_R, C_FILL, mod);
     if (vfo->modulation != MOD_PRST) {
-      FillRect(LCD_WIDTH - 17, bl - 9 - 6, 17, 8, C_INVERT);
+      FillRect(LCD_WIDTH - 17, bl - 14, 17, 7, C_INVERT);
     }
   }
 

@@ -22,6 +22,9 @@
 #include <string.h>
 
 static void Boot(AppType_t appToRun) {
+  RADIO_SetupRegisters();
+  RADIO_LoadCurrentVFO();
+
   SVC_Toggle(SVC_KEYBOARD, true, 10);
   SVC_Toggle(SVC_LISTEN, true, 10);
   SVC_Toggle(SVC_APPS, true, 1);
@@ -94,7 +97,7 @@ void Main(void) {
   BOARD_Init();
 
   UART_Init();
-  UART_printf("fagci R3b0rn " TIME_STAMP "\n");
+  UART_printf("fagci R3b0rn\n");
 
   BACKLIGHT_SetBrightness(7);
 
@@ -108,8 +111,6 @@ void Main(void) {
   SETTINGS_Load();
 
   BATTERY_UpdateBatteryInfo();
-  RADIO_SetupRegisters();
-  RADIO_LoadCurrentVFO();
 
   BACKLIGHT_SetDuration(BL_TIME_VALUES[gSettings.backlight]);
   BACKLIGHT_SetBrightness(gSettings.brightness);

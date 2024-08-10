@@ -18,8 +18,7 @@
 #include <string.h>
 
 static const char Version[] = "OSFW-fffffff";
-static const char UART_Version[45] =
-    "UV-K5 Firmware, Open Edition, OSFW-fffffff\r\n";
+static const char UART_Version[45] = "OSFW-fffffff\r\n";
 
 static bool UART_IsLogEnabled;
 uint8_t UART_DMA_Buffer[256];
@@ -632,7 +631,14 @@ bool UART_IsCommandAvailable(void) {
 
     // --- 8< ---
     char csvLine[CSV_LEN + PRE_LEN];
+    uint8_t rcdc = 0;
     if (strncmp(((char *)UART_DMA_Buffer) + gUART_WriteIndex, "RCH", 3) == 0) {
+      rcdc = 1;
+    } else if (strncmp(((char *)UART_DMA_Buffer) + gUART_WriteIndex, "DCH",
+                       3) == 0) {
+      rcdc = 1;
+    }
+    if (rcdc) {
       memset(csvLine, 0, sizeof(csvLine));
       snprintf(csvLine, (CSV_LEN + 3), "%s",
                &UART_DMA_Buffer[gUART_WriteIndex + 3]);
@@ -653,31 +659,13 @@ bool UART_IsCommandAvailable(void) {
         for (uint8_t i = 0; csvLine[i] != '\0'; i++) {
           chNum += (csvLine[i] - '0') * pow10[razr--];
         }
-        CH ch = {0};
-        CHANNELS_Load(chNum, &ch);
-        printCh(chNum, ch);
-      }
-    }
-
-    // monkey mode on
-    if (strncmp(((char *)UART_DMA_Buffer) + gUART_WriteIndex, "DCH", 3) == 0) {
-      memset(csvLine, 0, sizeof(csvLine));
-      snprintf(csvLine, (CSV_LEN + 3), "%s",
-               &UART_DMA_Buffer[gUART_WriteIndex + 3]);
-      for (int i = 0; csvLine[i] != '\0'; i++) {
-        if (csvLine[i] == '\r' || csvLine[i] == '\n') {
-          csvLine[i] = '\0';
+        if (rcdc == 1) {
+          CH ch = {0};
+          CHANNELS_Load(chNum, &ch);
+          printCh(chNum, ch);
+        } else {
+          CHANNELS_Delete(chNum);
         }
-      }
-      if (csvLine[0] == '\0') {
-      } else {
-        uint8_t razr = strlen(csvLine) - 1;
-        uint16_t chNum = 0;
-        for (uint8_t i = 0; csvLine[i] != '\0'; i++) {
-          chNum += (csvLine[i] - '0') * pow10[razr--];
-        }
-        CHANNELS_Delete(chNum);
-        UART_printf("OK\r\n");
       }
     }
 

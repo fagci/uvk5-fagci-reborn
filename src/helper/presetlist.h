@@ -12,7 +12,7 @@ static Preset
             (Preset){
                 .band =
                     {
-                        .bounds = {1500000, 2999999},
+                        .bounds = {10000, 2999999},
                         .name = "15-30",
                         .step = STEP_5_0kHz,
                         .modulation = MOD_AM,

@@ -560,7 +560,7 @@ bool SI47XX_IsSSB();
 void RSQ_GET();
 void SI47XX_SetAutomaticGainControl(uint8_t AGCDIS, uint8_t AGCIDX);
 void SI47XX_Seek(bool up, bool wrap);
-uint16_t SI47XX_getFrequency(bool *valid);
+uint32_t SI47XX_getFrequency(bool *valid);
 void SI47XX_SetBandwidth(SI47XX_FilterBW AMCHFLT, bool AMPLFLT);
 void SI47XX_SetSsbBandwidth(SI47XX_SsbFilterBW bw);
 void SI47XX_SetSeekFmLimits(uint32_t bottom, uint32_t top);

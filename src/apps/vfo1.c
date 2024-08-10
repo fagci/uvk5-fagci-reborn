@@ -8,8 +8,10 @@
 #include "../ui/graphics.h"
 #include "apps.h"
 #include "finput.h"
+#include "../helper/rds.h"
 
 static uint32_t lastUpdate = 0;
+static DateTime dt;
 
 void VFO1_init(void) {
   RADIO_LoadCurrentVFO();
@@ -139,6 +141,24 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
+static void drawRDS() {
+  if (rds.RDSSignal) {
+    PrintSmallEx(LCD_WIDTH - 1, 12, POS_R, C_FILL, "RDS");
+  }
+
+  char genre[17];
+  const char wd[8][3] = {"SU", "MO", "TU", "WE", "TH", "FR", "SA", "SU"};
+  SI47XX_GetProgramType(genre);
+  PrintSmallEx(LCD_XCENTER, 14, POS_C, C_FILL, "%s", genre);
+
+  if (SI47XX_GetLocalDateTime(&dt)) {
+    PrintSmallEx(LCD_XCENTER, 22, POS_C, C_FILL, "%02u.%02u.%04u, %s %02u:%02u",
+                 dt.day, dt.month, dt.year, wd[dt.wday], dt.hour, dt.minute);
+  }
+
+  PrintSmall(0, LCD_HEIGHT - 8, "%s", rds.radioText);
+}
+
 void VFO1_render(void) {
   UI_ClearScreen();
   const uint8_t BASE = 38;
@@ -150,11 +170,16 @@ void VFO1_render(void) {
   uint16_t fp1 = f / 100000;
   uint16_t fp2 = f / 100 % 1000;
   uint8_t fp3 = f % 100;
-  const char *mod = modulationTypeOptions[vfo->modulation == MOD_PRST ? p->band.modulation : vfo->modulation];
+  const char *mod =
+      modulationTypeOptions[vfo->modulation == MOD_PRST ? p->band.modulation
+                                                        : vfo->modulation];
   if (gIsListening) {
-    if (RADIO_GetRadio() == RADIO_BK4819) {
-      UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, vfo->rx.f, BASE + 2);
-    }
+    UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, vfo->rx.f, BASE + 2);
+  }
+
+  if (radio->channel >= 0) {
+    PrintMediumEx(LCD_XCENTER, BASE - 16, POS_C, C_FILL,
+                  gVFONames[gSettings.activeVFO]);
   }
 
   if (gTxState && gTxState != TX_ON) {
@@ -166,4 +191,6 @@ void VFO1_render(void) {
     PrintBigDigitsEx(LCD_WIDTH - 1, BASE, POS_R, C_FILL, "%02u", fp3);
     PrintMediumEx(LCD_WIDTH - 1, BASE - 12, POS_R, C_FILL, mod);
   }
+
+  drawRDS();
 }
