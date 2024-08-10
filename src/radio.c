@@ -184,6 +184,29 @@ static void onPresetUpdate(void) {
   TaskAdd("Preset save", PRESETS_SaveCurrent, 2000, false, 0);
 }
 
+static void setupToneDetection() {
+  uint16_t InterruptMask = BK4819_REG_3F_CxCSS_TAIL;
+  switch (radio->rx.codeType) {
+  case CODE_TYPE_DIGITAL:
+  case CODE_TYPE_REVERSE_DIGITAL:
+    Log("RX dc enabled");
+    BK4819_SetCDCSSCodeWord(
+        DCS_GetGolayCodeWord(radio->rx.codeType, radio->rx.code));
+    InterruptMask |= BK4819_REG_3F_CDCSS_FOUND | BK4819_REG_3F_CDCSS_LOST;
+    break;
+  case CODE_TYPE_CONTINUOUS_TONE:
+    Log("RX ct enabled");
+    BK4819_SetCTCSSFrequency(CTCSS_Options[radio->rx.code]);
+    InterruptMask |= BK4819_REG_3F_CTCSS_FOUND | BK4819_REG_3F_CTCSS_LOST;
+    break;
+  default:
+    Log("RX dc/ct disabled");
+    BK4819_SetCTCSSFrequency(670); // ?
+    break;
+  }
+  BK4819_WriteRegister(BK4819_REG_3F, InterruptMask);
+}
+
 bool RADIO_IsBK1080Range(uint32_t f) { return f >= 6400000 && f <= 10800000; }
 
 void toggleBK4819(bool on) {
@@ -482,6 +505,7 @@ void RADIO_SetupByCurrentVFO(void) {
   gSettings.activePreset = PRESET_GetCurrentIndex();
 
   RADIO_SetupBandParams();
+  setupToneDetection();
   RADIO_ToggleRX(false); // to prevent muting when tune to new band
   // }
 
@@ -679,9 +703,14 @@ bool RADIO_IsSquelchOpen(Loot *msm) {
 }
 
 static uint32_t lastTailTone = 0;
+static uint32_t lastMsmUpdate = 0;
 static bool toneFound = false;
 Loot *RADIO_UpdateMeasurements(void) {
   Loot *msm = &gLoot[gSettings.activeVFO];
+  if (RADIO_GetRadio() != RADIO_BK4819 && Now() - lastMsmUpdate <= 1000) {
+    return msm;
+  }
+  lastMsmUpdate = Now();
   msm->rssi = RADIO_GetRSSI();
   msm->open = RADIO_IsSquelchOpen(msm);
 
