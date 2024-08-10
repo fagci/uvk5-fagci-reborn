@@ -20,8 +20,10 @@
 #include "helper/rds.h"
 #include "helper/vfos.h"
 #include "inc/dp32g030/gpio.h"
+#include "misc.h"
 #include "scheduler.h"
 #include "settings.h"
+#include "svc.h"
 #include <string.h>
 
 VFO *radio;
@@ -85,16 +87,13 @@ ModulationType RADIO_GetModulation() {
 }
 
 void RADIO_SetupRegisters(void) {
-  uint32_t Frequency = 0;
-
-  GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+  /* GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
   BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN, false);
-  BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
+  BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false); */
   BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, false);
-
-  BK4819_SetFilterBandwidth(BK4819_FILTER_BW_WIDE);
-
   BK4819_SetupPowerAmplifier(0, 0);
+
+  // BK4819_SetFilterBandwidth(BK4819_FILTER_BW_WIDE);
 
   while (BK4819_ReadRegister(BK4819_REG_0C) & 1U) {
     BK4819_WriteRegister(BK4819_REG_02, 0);
@@ -189,18 +188,15 @@ static void setupToneDetection() {
   switch (radio->rx.codeType) {
   case CODE_TYPE_DIGITAL:
   case CODE_TYPE_REVERSE_DIGITAL:
-    Log("RX dc enabled");
     BK4819_SetCDCSSCodeWord(
         DCS_GetGolayCodeWord(radio->rx.codeType, radio->rx.code));
     InterruptMask |= BK4819_REG_3F_CDCSS_FOUND | BK4819_REG_3F_CDCSS_LOST;
     break;
   case CODE_TYPE_CONTINUOUS_TONE:
-    Log("RX ct enabled");
     BK4819_SetCTCSSFrequency(CTCSS_Options[radio->rx.code]);
     InterruptMask |= BK4819_REG_3F_CTCSS_FOUND | BK4819_REG_3F_CTCSS_LOST;
     break;
   default:
-    Log("RX dc/ct disabled");
     BK4819_SetCTCSSFrequency(670); // ?
     break;
   }
@@ -341,7 +337,7 @@ void RADIO_ToggleTX(bool on) {
 
     Preset *txPreset = PRESET_ByFrequency(txF);
 
-    if (!txPreset->allowTx) {
+    if (!txPreset->allowTx || RADIO_GetRadio() != RADIO_BK4819) {
       gTxState = TX_DISABLED;
       return;
     }
@@ -445,17 +441,15 @@ void RADIO_SetSquelchPure(uint32_t f, uint8_t sql) {
 void RADIO_TuneToPure(uint32_t f, bool precise) {
   LOOT_Replace(&gLoot[gSettings.activeVFO], f);
   Radio r = RADIO_GetRadio();
+  Log("Tune %s to %u", radioNames[r], f);
   switch (r) {
   case RADIO_BK4819:
-    Log("Tune bk4819 to %ul", f);
     BK4819_TuneTo(f, precise);
     break;
   case RADIO_BK1080:
-    Log("Tune bk1080 to %ul", f);
     BK1080_SetFrequency(f);
     break;
   case RADIO_SI4732:
-    Log("Tune si473x to %ul", f);
     SI47XX_TuneTo(f);
     SI47XX_ClearRDS();
     break;
@@ -494,13 +488,14 @@ void setSI4732Modulation(ModulationType mod) {
 void RADIO_SetupByCurrentVFO(void) {
   uint32_t f = radio->rx.f;
   Preset *p = PRESET_ByFrequency(f);
+  gCurrentPreset = p;
 
-  Log("RADIO_SetupByCurrentVFO");
+  Log("SetupByCurrentVFO, p=%s, r=%s, f=%u", gCurrentPreset->band.name,
+      radioNames[RADIO_GetRadio()], f);
 
   RADIO_SwitchRadio();
 
   // if (gCurrentPreset != p) {
-  gCurrentPreset = p;
   gVFOPresets[gSettings.activeVFO] = gCurrentPreset;
   gSettings.activePreset = PRESET_GetCurrentIndex();
 
@@ -562,7 +557,6 @@ void RADIO_LoadCurrentVFO(void) {
   radio = &gVFO[gSettings.activeVFO];
   gCurrentLoot = &gLoot[gSettings.activeVFO];
   RADIO_SetupByCurrentVFO();
-  RADIO_SetupBandParams();
 }
 
 void RADIO_SetSquelch(uint8_t sq) {
@@ -584,7 +578,8 @@ void RADIO_SetGain(uint8_t gainIndex) {
                   gCurrentPreset->band.gainIndex);
     break;
   case RADIO_SI4732:
-    SI47XX_SetAutomaticGainControl(1, 0);
+    gainIndex = ARRAY_SIZE(gainTable) - 1 - gainIndex;
+    SI47XX_SetAutomaticGainControl(gainIndex > 0, gainIndex);
     break;
   case RADIO_BK1080:
     break;
@@ -598,7 +593,6 @@ void RADIO_SetupBandParams() {
   Band *b = &gCurrentPreset->band;
   uint32_t fMid = b->bounds.start + (b->bounds.end - b->bounds.start) / 2;
   ModulationType mod = RADIO_GetModulation();
-  Log("Current mod is %s", modulationTypeOptions[mod]);
   switch (RADIO_GetRadio()) {
   case RADIO_BK4819:
     BK4819_SquelchType(b->squelchType);
@@ -618,6 +612,19 @@ void RADIO_SetupBandParams() {
       SI47XX_SetSeekAmSpacing(StepFrequencyTable[b->step]);
     }
     setSI4732Modulation(mod);
+
+    uint32_t f = radio->rx.f;
+    if (mod == MOD_FM && (f < 6400000 || f > 10800000)) {
+      BK4819_SetFrequency(10000000);
+    } else if (f < 10000 || f > 3000000) {
+      if (mod == MOD_AM) {
+        BK4819_SetFrequency(1750000);
+      } else if (mod == MOD_LSB) {
+        BK4819_SetFrequency(711300);
+      } else {
+        BK4819_SetFrequency(1411300);
+      }
+    }
     break;
   default:
     break;
@@ -680,6 +687,7 @@ uint16_t RADIO_GetRSSI(void) {
   case RADIO_BK1080:
     return BK1080_GetRSSI() << 1;
   case RADIO_SI4732:
+    return 0;
     RSQ_GET();
     return (160 + (rsqStatus.resp.RSSI - 107)) << 1;
   default:
@@ -710,6 +718,15 @@ Loot *RADIO_UpdateMeasurements(void) {
   if (RADIO_GetRadio() != RADIO_BK4819 && Now() - lastMsmUpdate <= 1000) {
     return msm;
   }
+  if (RADIO_GetRadio() == RADIO_SI4732 && SVC_Running(SVC_SCAN)) {
+    bool valid = false;
+    uint32_t f = SI47XX_getFrequency(&valid);
+    radio->rx.f = f;
+    gRedrawScreen = true;
+    if (valid) {
+      SVC_Toggle(SVC_SCAN, false, 0);
+    }
+  }
   lastMsmUpdate = Now();
   msm->rssi = RADIO_GetRSSI();
   msm->open = RADIO_IsSquelchOpen(msm);
@@ -723,14 +740,12 @@ Loot *RADIO_UpdateMeasurements(void) {
       if (intBits & BK4819_REG_02_CxCSS_TAIL ||
           intBits & BK4819_REG_02_CTCSS_FOUND ||
           intBits & BK4819_REG_02_CDCSS_FOUND) {
-        Log("Tone lost");
         msm->open = false;
         toneFound = false;
         lastTailTone = Now();
       }
       if (intBits & BK4819_REG_02_CTCSS_LOST ||
           intBits & BK4819_REG_02_CDCSS_LOST) {
-        Log("Tone found");
         msm->open = true;
         toneFound = true;
       }
@@ -744,11 +759,13 @@ Loot *RADIO_UpdateMeasurements(void) {
       msm->open = false;
     }
   }
-  if (RADIO_GetRadio() == RADIO_SI4732 &&
-      (RADIO_GetModulation() == MOD_FM || RADIO_GetModulation() == MOD_FM)) {
-    SI47XX_GetRDS();
+  if (RADIO_GetRadio() == RADIO_SI4732) {
+    if (RADIO_GetModulation() == MOD_FM || RADIO_GetModulation() == MOD_WFM) {
+      if (SI47XX_GetRDS()) {
+        gRedrawScreen = true;
+      }
+    }
   }
-
   LOOT_Update(msm);
 
   bool rx = msm->open;
@@ -849,31 +866,6 @@ void RADIO_UpdateSquelchLevel(bool next) {
     sq++;
   }
   RADIO_SetSquelch(sq);
-}
-
-// TODO: бесшовное
-void RADIO_NextFreq(bool next) {
-  int8_t dir = next ? 1 : -1;
-
-  if (radio->channel >= 0) {
-    RADIO_NextCH(next);
-    return;
-  }
-
-  Preset *nextPreset = PRESET_ByFrequency(radio->rx.f + dir);
-  Band *nextBand = &nextPreset->band;
-  uint32_t nextBandStep = StepFrequencyTable[nextBand->step];
-
-  if (nextPreset != gCurrentPreset && nextPreset != &defaultPreset) {
-    if (next) {
-      RADIO_TuneTo(nextBand->bounds.start);
-    } else {
-      RADIO_TuneTo(nextBand->bounds.end - nextBand->bounds.end % nextBandStep);
-    }
-  } else {
-    RADIO_TuneTo(radio->rx.f + nextBandStep * dir);
-  }
-  onVfoUpdate();
 }
 
 void RADIO_NextFreqNoClicks(bool next) {

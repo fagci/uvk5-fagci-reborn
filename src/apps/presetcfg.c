@@ -12,47 +12,49 @@
 static uint8_t menuIndex = 0;
 static uint8_t subMenuIndex = 0;
 static bool isSubMenu = false;
+uint8_t presetCfgIndex = 0;
 
 static MenuItem menu[] = {
-    {"Radio", M_RADIO, ARRAY_SIZE(radioNames) - 1},
+    {"Name", M_NAME},
     {"Start freq", M_START},
     {"End freq", M_END},
-    {"Name", M_NAME},
     {"Step", M_STEP, ARRAY_SIZE(StepFrequencyTable)},
     {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions) - 1},
     {"BW", M_BW, ARRAY_SIZE(bwNames)},
+    {"Gain", M_GAIN, ARRAY_SIZE(gainTable)},
     {"SQ level", M_SQ, 10},
     {"SQ type", M_SQ_TYPE, ARRAY_SIZE(sqTypeNames)},
-    {"Gain", M_GAIN, ARRAY_SIZE(gainTable)},
+    {"Radio", M_RADIO, ARRAY_SIZE(radioNames) - 1},
     {"Enable TX", M_TX, 2},
 };
 
 static void setInitialSubmenuIndex(void) {
+  Preset *preset = PRESETS_Item(presetCfgIndex);
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_RADIO:
-    subMenuIndex = gCurrentPreset->radio;
+    subMenuIndex = preset->radio;
     break;
   case M_BW:
-    subMenuIndex = gCurrentPreset->band.bw;
+    subMenuIndex = preset->band.bw;
     break;
   case M_MODULATION:
-    subMenuIndex = gCurrentPreset->band.modulation;
+    subMenuIndex = preset->band.modulation;
     break;
   case M_STEP:
-    subMenuIndex = gCurrentPreset->band.step;
+    subMenuIndex = preset->band.step;
     break;
   case M_SQ_TYPE:
-    subMenuIndex = gCurrentPreset->band.squelchType;
+    subMenuIndex = preset->band.squelchType;
     break;
   case M_SQ:
-    subMenuIndex = gCurrentPreset->band.squelch;
+    subMenuIndex = preset->band.squelch;
     break;
   case M_GAIN:
-    subMenuIndex = gCurrentPreset->band.gainIndex;
+    subMenuIndex = preset->band.gainIndex;
     break;
   case M_TX:
-    subMenuIndex = gCurrentPreset->allowTx;
+    subMenuIndex = preset->allowTx;
     break;
   default:
     subMenuIndex = 0;
@@ -163,7 +165,7 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       break;
     }
     if (isSubMenu) {
-      AcceptRadioConfig(item, subMenuIndex);
+      AcceptRadioConfig(item, subMenuIndex, presetCfgIndex);
       isSubMenu = false;
     } else {
       isSubMenu = true;
@@ -182,7 +184,6 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   }
   return false;
 }
-
 void PRESETCFG_render(void) {
   UI_ClearScreen();
   const MenuItem *item = &menu[menuIndex];
@@ -192,7 +193,7 @@ void PRESETCFG_render(void) {
   } else {
     UI_ShowMenu(getMenuItemText, ARRAY_SIZE(menu), menuIndex);
     char Output[32] = "";
-    GetMenuItemValue(item->type, Output);
+    GetMenuItemValue(item->type, Output, presetCfgIndex);
     PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 4, POS_C, C_FILL, Output);
   }
 }

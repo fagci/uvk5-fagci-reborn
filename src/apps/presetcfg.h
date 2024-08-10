@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+extern uint8_t presetCfgIndex;
+
 void PRESETCFG_init();
 void PRESETCFG_update();
 bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);

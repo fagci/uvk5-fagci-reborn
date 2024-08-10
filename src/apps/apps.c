@@ -68,7 +68,6 @@ const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
     APP_FASTSCAN,     //
     APP_LOOT_LIST,    //
     APP_PRESETS_LIST, //
-    APP_ANT,          //
     APP_MEMVIEW,      //
     APP_ABOUT,        //
 };
@@ -103,8 +102,6 @@ const App apps[APPS_COUNT] = {
     {"1 VFO", VFO1_init, VFO1_update, VFO1_render, VFO1_key, VFO1_deinit},
     {"2 VFO", VFO2_init, VFO2_update, VFO2_render, VFO2_key, VFO2_deinit},
     {"ABOUT", NULL, NULL, ABOUT_Render, ABOUT_key, NULL},
-    {"Antenna len", ANTENNA_init, NULL, ANTENNA_render, ANTENNA_key,
-     ANTENNA_deinit},
 };
 
 bool APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
