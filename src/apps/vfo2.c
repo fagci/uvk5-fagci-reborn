@@ -17,7 +17,6 @@
 #include "finput.h"
 
 static uint32_t lastRender = 0;
-static DateTime dt;
 
 static void tuneTo(uint32_t f) { RADIO_TuneToSave(GetTuneF(f)); }
 
@@ -170,21 +169,6 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-static void drawRDS() {
-  PrintSmallEx(LCD_WIDTH - 1, 37, POS_R, C_FILL, "RDS");
-  char genre[17];
-  const char wd[8][3] = {"SU", "MO", "TU", "WE", "TH", "FR", "SA", "SU"};
-  SI47XX_GetProgramType(genre);
-  PrintSmallEx(LCD_XCENTER, 37, POS_C, C_FILL, "%s", genre);
-
-  if (SI47XX_GetLocalDateTime(&dt)) {
-    PrintSmallEx(0, 37, POS_C, C_FILL, "%02u.%02u.%04u, %s %02u:%02u", dt.day,
-                 dt.month, dt.year, wd[dt.wday], dt.hour, dt.minute);
-  }
-
-  PrintSmall(0, 37 + 6, "%s", rds.radioText);
-}
-
 static void render2VFOPart(uint8_t i) {
   const uint8_t BASE = 22;
   const uint8_t bl = BASE + 34 * i;
@@ -207,12 +191,10 @@ static void render2VFOPart(uint8_t i) {
   if (isActive && gTxState <= TX_ON) {
     FillRect(0, bl - 14, 28, 7, C_FILL);
     if (gTxState == TX_ON) {
-      PrintMediumEx(0, bl, POS_L, C_INVERT, "TX");
+      PrintMedium(0, bl, "TX");
     }
-    if (RADIO_GetRadio() == RADIO_SI4732 && rds.RDSSignal) {
-      drawRDS();
-    } else if (gIsListening) {
-      PrintMediumEx(0, bl, POS_L, C_INVERT, "RX");
+    if (gIsListening) {
+      PrintMedium(0, bl, RADIO_GetRadio() == RADIO_SI4732 && rds.RDSSignal ? "RDS" : "RX");
       UI_RSSIBar(gLoot[i].rssi, vfo->rx.f, 31);
     }
   }
@@ -233,7 +215,7 @@ static void render2VFOPart(uint8_t i) {
     }
     PrintSmallEx(LCD_WIDTH - 1, bl - 9, POS_R, C_FILL, mod);
     if (vfo->modulation != MOD_PRST) {
-      FillRect(LCD_WIDTH - 17, bl - 9 - 6, 17, 8, C_INVERT);
+      FillRect(LCD_WIDTH - 17, bl - 14, 17, 7, C_INVERT);
     }
   }
 

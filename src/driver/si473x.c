@@ -2,6 +2,7 @@
 #include "../inc/dp32g030/gpio.h"
 #include "../settings.h"
 #include "audio.h"
+#include "bk4819.h"
 #include "eeprom.h"
 #include "gpio.h"
 #include "i2c.h"
@@ -100,8 +101,6 @@ void RSQ_GET() {
 }
 
 void setVolume(uint8_t volume) {
-  if (volume < 0)
-    volume = 0;
   if (volume > 63)
     volume = 63;
   sendProperty(PROP_RX_VOLUME, volume);
@@ -219,7 +218,7 @@ void SI47XX_Seek(bool up, bool wrap) {
   SI47XX_WriteBuffer(cmd, si4732mode == SI47XX_FM ? 2 : 6);
 }
 
-uint16_t SI47XX_getFrequency(bool *valid) {
+uint32_t SI47XX_getFrequency(bool *valid) {
   uint8_t response[4] = {0};
   uint8_t cmd[1] = {CMD_FM_TUNE_STATUS};
 
@@ -235,7 +234,7 @@ uint16_t SI47XX_getFrequency(bool *valid) {
     *valid = (response[1] & STATUS_VALID);
   }
 
-  return (response[2] << 8) | response[3];
+  return ((response[2] << 8) | response[3]) * fDiv();
 }
 
 void SI47XX_PowerDown() {
@@ -303,7 +302,7 @@ void SI47XX_SetFreq(uint16_t freq) {
   siCurrentFreq = freq;
 
   SYSTEM_DelayMs(30);
-  // RSQ_GET();
+  RSQ_GET();
 }
 
 void SI47XX_SetAMFrontendAGC(uint8_t minGainIdx, uint8_t attnBackup) {

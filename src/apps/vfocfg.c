@@ -17,7 +17,11 @@ static uint8_t subMenuIndex = 0;
 static bool isSubMenu = false;
 
 static MenuItem menu[] = {
-    {"Radio", M_RADIO, ARRAY_SIZE(radioNames)},
+    {"Step", M_STEP, ARRAY_SIZE(StepFrequencyTable)},
+    {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions)},
+    {"BW", M_BW, ARRAY_SIZE(bwNames)},
+    {"SQ type", M_SQ_TYPE, ARRAY_SIZE(sqTypeNames)},
+    {"SQ level", M_SQ, 10},
     {"RX freq", M_F_RX, 0},
     {"TX freq", M_F_TX, 0},
     {"RX code type", M_RX_CODE_TYPE, ARRAY_SIZE(TX_CODE_TYPES)},
@@ -27,11 +31,7 @@ static MenuItem menu[] = {
     {"TX offset", M_TX_OFFSET, 0},
     {"TX offset dir", M_TX_OFFSET_DIR, ARRAY_SIZE(TX_OFFSET_NAMES)},
     {"TX power", M_F_TXP, ARRAY_SIZE(TX_POWER_NAMES)},
-    {"Step", M_STEP, ARRAY_SIZE(StepFrequencyTable)},
-    {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions)},
-    {"BW", M_BW, ARRAY_SIZE(bwNames)},
-    {"SQ type", M_SQ_TYPE, ARRAY_SIZE(sqTypeNames)},
-    {"SQ level", M_SQ, 10},
+    {"Radio", M_RADIO, ARRAY_SIZE(radioNames)},
     {"Save", M_SAVE, 0},
 };
 static const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
@@ -227,7 +227,7 @@ static bool accept(void) {
   }
   updateTxCodeListSize();
   if (isSubMenu) {
-    AcceptRadioConfig(item, subMenuIndex);
+    AcceptRadioConfig(item, subMenuIndex, -1);
     isSubMenu = false;
   } else {
     isSubMenu = true;
@@ -307,7 +307,7 @@ void VFOCFG_render(void) {
   } else {
     UI_ShowMenu(getMenuItemText, ARRAY_SIZE(menu), menuIndex);
     char Output[32] = "";
-    GetMenuItemValue(item->type, Output);
+    GetMenuItemValue(item->type, Output, -1);
     PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 4, POS_C, C_FILL, Output);
   }
 }
