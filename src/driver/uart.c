@@ -18,8 +18,7 @@
 #include <string.h>
 
 static const char Version[] = "OSFW-fffffff";
-static const char UART_Version[45] =
-    "UV-K5 Firmware, Open Edition, OSFW-fffffff\r\n";
+static const char UART_Version[45] = "OSFW-fffffff\r\n";
 
 static bool UART_IsLogEnabled;
 uint8_t UART_DMA_Buffer[256];

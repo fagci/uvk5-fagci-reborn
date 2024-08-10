@@ -99,7 +99,6 @@ static void setMenuIndexAndRun(uint16_t v) {
   currentChannelIndex = v - 1;
   save();
 }
-#include "../driver/uart.h"
 static void toggleScanlist(uint16_t idx, uint8_t n) {
   CH _ch;
   uint16_t chNum = gScanlist[idx];
@@ -107,7 +106,6 @@ static void toggleScanlist(uint16_t idx, uint8_t n) {
     chNum = idx;
   }
   CHANNELS_Load(chNum, &_ch);
-  Log("i:%d, ch:%d, name: %s", idx, chNum, _ch.name);
   _ch.memoryBanks ^= 1 << n;
   CHANNELS_Save(chNum, &_ch);
 }
@@ -115,12 +113,12 @@ static void toggleScanlist(uint16_t idx, uint8_t n) {
 static void exportScanList() {
   UART_printf("--- 8< ---\r\n");
   UART_printf("CH#,Name,fRX,fTX,mod,bw\r\n");
-  for (uint16_t i = 0; i < gScanlistSize; ++i) {
+  for (uint8_t i = 0; i < gScanlistSize; ++i) {
     CH _ch;
     uint16_t chNum = gScanlist[i];
     CHANNELS_Load(chNum, &_ch);
-    UART_printf("CH%u,%s,%u,%u,%u,%u,%u,%u,%u\r\n", chNum + 1, _ch.name, _ch.rx.f,
-                _ch.tx.f, _ch.modulation, _ch.bw, _ch.memoryBanks, _ch.tx.codeType, _ch.tx.code);
+    UART_printf("CH%u,%s,%u,%u,%u,%u\r\n", chNum + 1, _ch.name, _ch.rx.f,
+                _ch.tx.f, _ch.modulation, _ch.bw);
   }
   UART_printf("--- >8 ---\r\n");
 }
