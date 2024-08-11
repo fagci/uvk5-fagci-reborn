@@ -12,7 +12,6 @@
 static uint8_t menuIndex = 0;
 static uint8_t subMenuIndex = 0;
 static bool isSubMenu = false;
-uint8_t presetCfgIndex = 0;
 
 static MenuItem menu[] = {
     {"Name", M_NAME},
@@ -29,32 +28,31 @@ static MenuItem menu[] = {
 };
 
 static void setInitialSubmenuIndex(void) {
-  Preset *preset = PRESETS_Item(presetCfgIndex);
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_RADIO:
-    subMenuIndex = preset->radio;
+    subMenuIndex = gCurrentPreset->radio;
     break;
   case M_BW:
-    subMenuIndex = preset->band.bw;
+    subMenuIndex = gCurrentPreset->band.bw;
     break;
   case M_MODULATION:
-    subMenuIndex = preset->band.modulation;
+    subMenuIndex = gCurrentPreset->band.modulation;
     break;
   case M_STEP:
-    subMenuIndex = preset->band.step;
+    subMenuIndex = gCurrentPreset->band.step;
     break;
   case M_SQ_TYPE:
-    subMenuIndex = preset->band.squelchType;
+    subMenuIndex = gCurrentPreset->band.squelchType;
     break;
   case M_SQ:
-    subMenuIndex = preset->band.squelch;
+    subMenuIndex = gCurrentPreset->band.squelch;
     break;
   case M_GAIN:
-    subMenuIndex = preset->band.gainIndex;
+    subMenuIndex = gCurrentPreset->band.gainIndex;
     break;
   case M_TX:
-    subMenuIndex = preset->allowTx;
+    subMenuIndex = gCurrentPreset->allowTx;
     break;
   default:
     subMenuIndex = 0;
@@ -165,7 +163,7 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       break;
     }
     if (isSubMenu) {
-      AcceptRadioConfig(item, subMenuIndex, presetCfgIndex);
+      AcceptRadioConfig(item, subMenuIndex);
       isSubMenu = false;
     } else {
       isSubMenu = true;
@@ -184,6 +182,7 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   }
   return false;
 }
+
 void PRESETCFG_render(void) {
   UI_ClearScreen();
   const MenuItem *item = &menu[menuIndex];
@@ -193,7 +192,7 @@ void PRESETCFG_render(void) {
   } else {
     UI_ShowMenu(getMenuItemText, ARRAY_SIZE(menu), menuIndex);
     char Output[32] = "";
-    GetMenuItemValue(item->type, Output, presetCfgIndex);
+    GetMenuItemValue(item->type, Output);
     PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 4, POS_C, C_FILL, Output);
   }
 }
