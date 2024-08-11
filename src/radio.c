@@ -487,24 +487,19 @@ void setSI4732Modulation(ModulationType mod) {
 
 void RADIO_SetupByCurrentVFO(void) {
   uint32_t f = radio->rx.f;
-  Preset *p = PRESET_ByFrequency(f);
-  gCurrentPreset = p;
+  PRESET_SelectByFrequency(f);
+  gVFOPresets[gSettings.activeVFO] = gCurrentPreset;
 
   Log("SetupByCurrentVFO, p=%s, r=%s, f=%u", gCurrentPreset->band.name,
       radioNames[RADIO_GetRadio()], f);
 
   RADIO_SwitchRadio();
 
-  // if (gCurrentPreset != p) {
-  gVFOPresets[gSettings.activeVFO] = gCurrentPreset;
-  gSettings.activePreset = PRESET_GetCurrentIndex();
-
   RADIO_SetupBandParams();
   setupToneDetection();
   RADIO_ToggleRX(false); // to prevent muting when tune to new band
-  // }
 
-  RADIO_TuneToPure(f, true);
+  RADIO_TuneToPure(f, !gMonitorMode); // todo: precise when old preset !=new?
 }
 
 // USE CASE: set vfo temporary for current app
@@ -891,18 +886,7 @@ void RADIO_NextFreqNoClicks(bool next) {
     radio->channel = -1;
     radio->tx.f = 0;
     radio->rx.f = f;
-    Preset *p = PRESET_ByFrequency(f);
-
-    if (gCurrentPreset != p) {
-      gCurrentPreset = p;
-      gVFOPresets[gSettings.activeVFO] = gCurrentPreset;
-      gSettings.activePreset = PRESET_GetCurrentIndex();
-
-      RADIO_SetupBandParams();
-      RADIO_ToggleRX(false); // to prevent muting when tune to new band
-    }
-
-    RADIO_TuneToPure(f, !gMonitorMode);
+    RADIO_SetupByCurrentVFO();
   }
   onVfoUpdate();
 }

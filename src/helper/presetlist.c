@@ -56,9 +56,11 @@ int8_t PRESET_GetCurrentIndex(void) {
   return PRESET_IndexOf(gCurrentPreset);
 }
 
+#include "../driver/uart.h"
 void PRESET_Select(int8_t i) {
   gCurrentPreset = &presets[i];
   gSettings.activePreset = i;
+  Log("Preset select %s", gCurrentPreset->band.name);
 }
 
 bool PRESET_InRange(const uint32_t f, const Preset *p) {
