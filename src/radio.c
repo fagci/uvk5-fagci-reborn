@@ -125,18 +125,32 @@ void RADIO_SetupRegisters(void) {
   // BK4819_WriteRegister(0x40, (1 << 12) | (1450));
 }
 
+static void setSI4732Modulation(ModulationType mod) {
+  if (mod == MOD_AM) {
+    Log("set si mod am");
+    SI47XX_SwitchMode(SI47XX_AM);
+  } else if (mod == MOD_LSB) {
+    Log("set si mod lsb");
+    SI47XX_SwitchMode(SI47XX_LSB);
+  } else if (mod == MOD_USB) {
+    Log("set si mod usb");
+    SI47XX_SwitchMode(SI47XX_USB);
+  } else {
+    Log("set si mod fm");
+    SI47XX_SwitchMode(SI47XX_FM);
+  }
+}
+
 void RADIO_RxTurnOff() {
+  Log("%s turn off", radioNames[oldRadio]);
   switch (oldRadio) {
   case RADIO_BK4819:
-    Log("BK48 rx turn off");
     BK4819_Idle();
     break;
   case RADIO_BK1080:
-    Log("BK10 rx turn off");
     BK1080_Mute(true);
     break;
   case RADIO_SI4732:
-    Log("SI rx turn off");
     SI47XX_PowerDown();
     break;
   default:
@@ -145,21 +159,25 @@ void RADIO_RxTurnOff() {
 }
 void RADIO_RxTurnOn() {
   Radio r = RADIO_GetRadio();
+  ModulationType mod = RADIO_GetModulation();
+
+  Log("%s turn on", radioNames[r]);
   switch (r) {
   case RADIO_BK4819:
-    Log("BK48 rx turn on");
     BK4819_RX_TurnOn();
     break;
   case RADIO_BK1080:
-    Log("BK10 rx turn on");
     BK4819_Idle();
     BK1080_Mute(false);
     BK1080_Init(radio->rx.f, true);
     break;
   case RADIO_SI4732:
-    Log("SI rx turn on");
     BK4819_Idle();
-    SI47XX_PowerUp();
+    if (mod == MOD_LSB || mod == MOD_USB) {
+      SI47XX_PatchPowerUp();
+    } else {
+      SI47XX_PowerUp();
+    }
     break;
   default:
     break;
@@ -469,22 +487,6 @@ void RADIO_SwitchRadio() {
   oldRadio = r;
 }
 
-void setSI4732Modulation(ModulationType mod) {
-  if (mod == MOD_AM) {
-    Log("set si mod am");
-    SI47XX_SwitchMode(SI47XX_AM);
-  } else if (mod == MOD_LSB) {
-    Log("set si mod lsb");
-    SI47XX_SwitchMode(SI47XX_LSB);
-  } else if (mod == MOD_USB) {
-    Log("set si mod usb");
-    SI47XX_SwitchMode(SI47XX_USB);
-  } else {
-    Log("set si mod fm");
-    SI47XX_SwitchMode(SI47XX_FM);
-  }
-}
-
 void RADIO_SetupByCurrentVFO(void) {
   uint32_t f = radio->rx.f;
   PRESET_SelectByFrequency(f);
@@ -497,7 +499,7 @@ void RADIO_SetupByCurrentVFO(void) {
 
   RADIO_SetupBandParams();
   setupToneDetection();
-  RADIO_ToggleRX(false); // to prevent muting when tune to new band
+  // RADIO_ToggleRX(false); // to prevent muting when tune to new band
 
   RADIO_TuneToPure(f, !gMonitorMode); // todo: precise when old preset !=new?
 }
@@ -605,6 +607,11 @@ void RADIO_SetupBandParams() {
     } else {
       SI47XX_SetSeekAmLimits(b->bounds.start, b->bounds.end);
       SI47XX_SetSeekAmSpacing(StepFrequencyTable[b->step]);
+      if (mod == MOD_USB || mod == MOD_LSB) {
+        SI47XX_SetSsbBandwidth(SI47XX_SSB_BW_3_kHz);
+      } else {
+        SI47XX_SetBandwidth(SI47XX_BW_6_kHz, true);
+      }
     }
     setSI4732Modulation(mod);
 
@@ -680,6 +687,7 @@ uint16_t RADIO_GetRSSI(void) {
   case RADIO_BK4819:
     return BK4819_GetRSSI();
   case RADIO_BK1080:
+    return 0;
     return BK1080_GetRSSI() << 1;
   case RADIO_SI4732:
     return 0;
@@ -710,9 +718,6 @@ static uint32_t lastMsmUpdate = 0;
 static bool toneFound = false;
 Loot *RADIO_UpdateMeasurements(void) {
   Loot *msm = &gLoot[gSettings.activeVFO];
-  if (RADIO_GetRadio() != RADIO_BK4819 && Now() - lastMsmUpdate <= 1000) {
-    return msm;
-  }
   if (RADIO_GetRadio() == RADIO_SI4732 && SVC_Running(SVC_SCAN)) {
     bool valid = false;
     uint32_t f = SI47XX_getFrequency(&valid);
@@ -721,6 +726,9 @@ Loot *RADIO_UpdateMeasurements(void) {
     if (valid) {
       SVC_Toggle(SVC_SCAN, false, 0);
     }
+  }
+  if (RADIO_GetRadio() != RADIO_BK4819 && Now() - lastMsmUpdate <= 1000) {
+    return msm;
   }
   lastMsmUpdate = Now();
   msm->rssi = RADIO_GetRSSI();
