@@ -55,7 +55,7 @@ void UI_ShowMenu(void (*getItemText)(uint16_t index, char *name), uint16_t size,
 void UI_ShowMenuEx(void (*showItem)(uint16_t i, uint16_t index, bool isCurrent),
                    uint16_t size, uint16_t currentIndex, uint16_t linesMax);
 
-void GetMenuItemValue(PresetCfgMenu type, char *Output, int8_t presetIndex);
-void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex, int8_t presetIndex);
+void GetMenuItemValue(PresetCfgMenu type, char *Output);
+void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex);
 
 #endif /* end of include guard: MENU_H */

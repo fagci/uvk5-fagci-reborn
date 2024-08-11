@@ -76,7 +76,6 @@ void UI_ShowMenuEx(void (*showItem)(uint16_t i, uint16_t index, bool isCurrent),
 }
 
 #include "../helper/presetlist.h"
-
 void printRTXCode(char *Output, F *rtx) {
   if (rtx->codeType) {
     if (rtx->codeType == CODE_TYPE_CONTINUOUS_TONE) {
@@ -92,18 +91,15 @@ void printRTXCode(char *Output, F *rtx) {
   }
 }
 
-void GetMenuItemValue(PresetCfgMenu type, char *Output, int8_t presetIndex) {
-  bool useVfo = presetIndex < 0;
-  Preset *preset;
-  if (!useVfo) {
-    preset = PRESETS_Item(presetIndex);
-  }
-  Band *band = &preset->band;
+void GetMenuItemValue(PresetCfgMenu type, char *Output) {
+  Band *band = &gCurrentPreset->band;
   uint32_t fs = band->bounds.start;
   uint32_t fe = band->bounds.end;
+  bool isVfo = gCurrentApp == APP_VFO_CFG;
   switch (type) {
   case M_RADIO:
-    strncpy(Output, radioNames[useVfo ? radio->radio : preset->radio], 31);
+    strncpy(Output, radioNames[isVfo ? radio->radio : gCurrentPreset->radio],
+            31);
     break;
   case M_START:
     sprintf(Output, "%lu.%03lu", fs / 100000, fs / 100 % 1000);
@@ -127,17 +123,17 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output, int8_t presetIndex) {
     sprintf(Output, "%ddB", gainTable[band->gainIndex].gainDb);
     break;
   case M_MODULATION:
-    strncpy(
-        Output,
-        modulationTypeOptions[useVfo ? radio->modulation : band->modulation],
-        31);
+    strncpy(Output,
+            modulationTypeOptions[isVfo ? radio->modulation
+                                        : gCurrentPreset->band.modulation],
+            31);
     break;
   case M_STEP:
     sprintf(Output, "%u.%02uKHz", StepFrequencyTable[band->step] / 100,
             StepFrequencyTable[band->step] % 100);
     break;
   case M_TX:
-    strncpy(Output, yesNo[preset->allowTx], 31);
+    strncpy(Output, yesNo[gCurrentPreset->allowTx], 31);
     break;
   case M_F_RX:
     sprintf(Output, "%u.%05u", radio->rx.f / 100000, radio->rx.f % 100000);
@@ -158,76 +154,71 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output, int8_t presetIndex) {
     printRTXCode(Output, &radio->tx);
     break;
   case M_TX_OFFSET:
-    sprintf(Output, "%u.%05u", preset->offset / 100000,
-            preset->offset % 100000);
+    sprintf(Output, "%u.%05u", gCurrentPreset->offset / 100000,
+            gCurrentPreset->offset % 100000);
     break;
   case M_TX_OFFSET_DIR:
-    snprintf(Output, 15, TX_OFFSET_NAMES[preset->offsetDir]);
+    snprintf(Output, 15, TX_OFFSET_NAMES[gCurrentPreset->offsetDir]);
     break;
   case M_F_TXP:
-    snprintf(Output, 15, TX_POWER_NAMES[preset->power]);
+    snprintf(Output, 15, TX_POWER_NAMES[gCurrentPreset->power]);
     break;
   default:
     break;
   }
 }
-#include "../driver/uart.h"
-void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex,
-                       int8_t presetIndex) {
-  bool useVfo = presetIndex < 0;
-  Preset *preset;
-  if (!useVfo) {
-    preset = PRESETS_Item(presetIndex);
-    Log("P#%d, %s", presetIndex, preset->band.name);
-  }
+
+void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
+  bool isVfo = gCurrentApp == APP_VFO_CFG;
   switch (item->type) {
   case M_BW:
-    preset->band.bw = subMenuIndex;
-    PRESETS_SavePreset(presetIndex, preset);
-    RADIO_SetupByCurrentVFO();
+    gCurrentPreset->band.bw = subMenuIndex;
+    BK4819_SetFilterBandwidth(subMenuIndex);
+    PRESETS_SaveCurrent();
     break;
   case M_F_TXP:
-    preset->power = subMenuIndex;
-    PRESETS_SavePreset(presetIndex, preset);
+    gCurrentPreset->power = subMenuIndex;
+    PRESETS_SaveCurrent();
     break;
   case M_TX_OFFSET_DIR:
-    preset->offsetDir = subMenuIndex;
-    PRESETS_SavePreset(presetIndex, preset);
+    gCurrentPreset->offsetDir = subMenuIndex;
+    PRESETS_SaveCurrent();
     break;
   case M_MODULATION:
-    if (useVfo) {
+    if (isVfo) {
       radio->modulation = subMenuIndex;
       RADIO_SaveCurrentVFO();
+      RADIO_SetupByCurrentVFO();
     } else {
-      preset->band.modulation = subMenuIndex;
-      PRESETS_SavePreset(presetIndex, preset);
+      gCurrentPreset->band.modulation = subMenuIndex;
+      PRESETS_SaveCurrent();
     }
-    RADIO_SetupByCurrentVFO();
     break;
   case M_STEP:
-    preset->band.step = subMenuIndex;
-    PRESETS_SavePreset(presetIndex, preset);
+    gCurrentPreset->band.step = subMenuIndex;
+    PRESETS_SaveCurrent();
     break;
   case M_SQ_TYPE:
-    preset->band.squelchType = subMenuIndex;
+    gCurrentPreset->band.squelchType = subMenuIndex;
     BK4819_SquelchType(subMenuIndex);
-    PRESETS_SavePreset(presetIndex, preset);
+    PRESETS_SaveCurrent();
     break;
   case M_SQ:
-    preset->band.squelch = subMenuIndex;
+    gCurrentPreset->band.squelch = subMenuIndex;
     BK4819_Squelch(subMenuIndex, radio->rx.f, gSettings.sqlOpenTime,
                    gSettings.sqlCloseTime);
-    PRESETS_SavePreset(presetIndex, preset);
+    PRESETS_SaveCurrent();
     break;
 
   case M_GAIN:
-    preset->band.gainIndex = subMenuIndex;
-    BK4819_SetAGC(RADIO_GetModulation() != MOD_AM, preset->band.gainIndex);
-    PRESETS_SavePreset(presetIndex, preset);
+    gCurrentPreset->band.gainIndex = subMenuIndex;
+    BK4819_SetAGC(RADIO_GetModulation() != MOD_AM,
+                  gCurrentPreset->band.gainIndex);
+    PRESETS_SaveCurrent();
     break;
   case M_TX:
-    preset->allowTx = subMenuIndex;
-    PRESETS_SavePreset(presetIndex, preset);
+    gCurrentPreset->allowTx = subMenuIndex;
+    PRESETS_SaveCurrent();
     break;
   case M_RX_CODE_TYPE:
     radio->rx.codeType = subMenuIndex;
@@ -246,14 +237,12 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex,
     RADIO_SaveCurrentVFO();
     break;
   case M_RADIO:
-    Log("Save radio#%d", presetIndex);
-    if (useVfo) {
+    if (isVfo) {
       radio->radio = subMenuIndex;
       RADIO_SaveCurrentVFO();
     } else {
-      preset->radio = subMenuIndex;
-      Log("Save preset#%d, %s", presetIndex, preset->band.name);
-      PRESETS_SavePreset(presetIndex, preset);
+      gCurrentPreset->radio = subMenuIndex;
+      PRESETS_SaveCurrent();
     }
     break;
 
