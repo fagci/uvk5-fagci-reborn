@@ -227,7 +227,7 @@ static bool accept(void) {
   }
   updateTxCodeListSize();
   if (isSubMenu) {
-    AcceptRadioConfig(item, subMenuIndex, -1);
+    AcceptRadioConfig(item, subMenuIndex);
     isSubMenu = false;
   } else {
     isSubMenu = true;
@@ -307,7 +307,7 @@ void VFOCFG_render(void) {
   } else {
     UI_ShowMenu(getMenuItemText, ARRAY_SIZE(menu), menuIndex);
     char Output[32] = "";
-    GetMenuItemValue(item->type, Output, -1);
+    GetMenuItemValue(item->type, Output);
     PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 4, POS_C, C_FILL, Output);
   }
 }

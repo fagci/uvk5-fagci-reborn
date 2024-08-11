@@ -6,7 +6,6 @@
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
 #include "apps.h"
-#include "presetcfg.h"
 
 static uint8_t menuIndex = 0;
 
@@ -65,7 +64,7 @@ bool PRESETLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     APPS_exit();
     return true;
   case KEY_F:
-    presetCfgIndex = menuIndex;
+    PRESET_Select(menuIndex);
     APPS_run(APP_PRESET_CFG);
     return true;
   default:
