@@ -144,26 +144,27 @@ typedef struct {
 
 typedef struct {
   Header_t Header;
-  uint16_t Offset;
+  uint32_t Offset;
   uint8_t Size;
-  uint8_t Padding;
+  uint8_t Padding[3];
   uint32_t Timestamp;
 } CMD_051B_t;
 
 typedef struct {
   Header_t Header;
   struct {
-    uint16_t Offset;
+    uint32_t Offset;
     uint8_t Size;
-    uint8_t Padding;
+    uint8_t Padding[3];
     uint8_t Data[128];
   } Data;
 } REPLY_051B_t;
 
 typedef struct {
   Header_t Header;
-  uint16_t Offset;
+  uint32_t Offset;
   uint8_t Size;
+  uint8_t Padding[2];
   bool bAllowPassword;
   uint32_t Timestamp;
   uint8_t Data[0];
@@ -172,7 +173,8 @@ typedef struct {
 typedef struct {
   Header_t Header;
   struct {
-    uint16_t Offset;
+    uint32_t Offset;
+    uint8_t Padding[2];
   } Data;
 } REPLY_051D_t;
 
@@ -342,10 +344,20 @@ static void CMD_0514(const uint8_t *pBuffer) {
   SendVersion();
 }
 
+// static void log_hex(const uint8_t *buffer, uint32_t size, char *output) {
+//   for (uint32_t i = 0; i < size; i++) {
+//     sprintf(output + (i * 3), "%02X ", buffer[i]);
+//   }
+// }
+
 static void CMD_051B(const uint8_t *pBuffer) {
   const CMD_051B_t *pCmd = (const CMD_051B_t *)pBuffer;
   REPLY_051B_t Reply;
   bool bLocked = false;
+  // char hex_output[sizeof(CMD_051B_t) * 3 + 1] = {0};
+  // log_hex(pBuffer, sizeof(CMD_051B_t), hex_output);
+  // Log("%s", hex_output);
+  // Log("CMD_051B: %d %d %d %d %d %d", pCmd->Header.ID, pCmd->Header.Size, pCmd->Offset, pCmd->Size, pCmd->Timestamp, Timestamp);
 
   if (pCmd->Timestamp != Timestamp) {
     return;
@@ -353,7 +365,7 @@ static void CMD_051B(const uint8_t *pBuffer) {
 
   memset(&Reply, 0, sizeof(Reply));
   Reply.Header.ID = 0x051C;
-  Reply.Header.Size = pCmd->Size + 4;
+  Reply.Header.Size = pCmd->Size + 8 + 4;
   Reply.Data.Offset = pCmd->Offset;
   Reply.Data.Size = pCmd->Size;
 
@@ -365,7 +377,7 @@ static void CMD_051B(const uint8_t *pBuffer) {
     EEPROM_ReadBuffer(pCmd->Offset, Reply.Data.Data, pCmd->Size);
   }
 
-  SendReply(&Reply, pCmd->Size + 8);
+  SendReply(&Reply, pCmd->Size + 8 + 4);
 }
 
 static void CMD_051D(const uint8_t *pBuffer) {
@@ -393,7 +405,7 @@ static void CMD_051D(const uint8_t *pBuffer) {
     uint16_t i;
 
     for (i = 0; i < (pCmd->Size / 8U); i++) {
-      uint16_t Offset = pCmd->Offset + (i * 8U);
+      uint32_t Offset = pCmd->Offset + (i * 8U);
 
       if (Offset >= 0x0F30 && Offset < 0x0F40) {
         if (!gIsLocked) {
