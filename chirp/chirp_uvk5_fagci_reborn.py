@@ -1843,7 +1843,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         rs = RadioSetting("squelch", "Squelch", RadioSettingValueInteger(0, 15, tmpval))
         sql.append(rs)
 
-        tmpval = _mem.Settings.squelch
+        tmpval = _mem.Settings.vox
         rs = RadioSetting("vox", "Vox", RadioSettingValueInteger(0, 15, tmpval))
         basic.append(rs)
 
@@ -1991,9 +1991,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         basic.append(rs)
 
         tmpval = _mem.Settings.scanTimeout
-        if tmpval >= len(SCAN_TIMEOUT):
-            tmpval = 0
-        rs = RadioSetting("scanTimeout", "Scan Timeout", RadioSettingValueList(SCAN_TIMEOUT, SCAN_TIMEOUT[tmpval]))
+        rs = RadioSetting("scanTimeout", "Scan Listen Time", RadioSettingValueInteger(0, 255, tmpval))
         basic.append(rs)
 
         tmpval = _mem.Settings.activeVFO
@@ -2007,13 +2005,13 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         tmpval = _mem.Settings.sqlOpenTime
         if tmpval >= len(SQL_OPEN_NAMES):
             tmpval = 0
-        rs = RadioSetting("sqlOpenTime", "Sql Open Time", RadioSettingValueList(SQL_OPEN_NAMES, SQL_OPEN_NAMES[tmpval]))
+        rs = RadioSetting("sqlOpenTime", "SCAN listen time", RadioSettingValueList(SQL_OPEN_NAMES, SQL_OPEN_NAMES[tmpval]))
         sql.append(rs)
 
         tmpval = _mem.Settings.sqlCloseTime
         if tmpval >= len(SQL_CLOSE_NAMES):
             tmpval = 0
-        rs = RadioSetting("sqlCloseTime", "Sql Close Time",
+        rs = RadioSetting("sqlCloseTime", "SCAN after close time",
                           RadioSettingValueList(SQL_CLOSE_NAMES, SQL_CLOSE_NAMES[tmpval]))
         sql.append(rs)
 
@@ -2137,7 +2135,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 _mem.Settings.bound_240_280 = BOUND_240_280_NAMES.index(element.value)
 
             if element.get_name() == "scanTimeout":
-                _mem.Settings.scanTimeout = SCAN_TIMEOUT.index(element.value)
+                _mem.Settings.scanTimeout = int(element.value)
 
             if element.get_name() == "activeVFO":
                 _mem.Settings.activeVFO = VFOs.index(element.value)
