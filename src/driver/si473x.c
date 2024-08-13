@@ -18,7 +18,7 @@ RSQStatus rsqStatus;
 SsbMode currentSsbMode;
 
 SI47XX_MODE si4732mode = SI47XX_FM;
-uint16_t siCurrentFreq = 10320;
+uint16_t siCurrentFreq = 0;
 
 static uint16_t fDiv() { return si4732mode == SI47XX_FM ? 1000 : 100; }
 
@@ -264,6 +264,9 @@ void SI47XX_SwitchMode(SI47XX_MODE mode) {
 }
 
 void SI47XX_SetFreq(uint16_t freq) {
+    if(siCurrentFreq == freq) {
+        return;
+    }
   uint8_t hb = (freq >> 8) & 0xFF;
   uint8_t lb = freq & 0xFF;
 
@@ -360,6 +363,10 @@ void SI47XX_SetSeekAmRssiThreshold(uint16_t value) {
 void SI47XX_SetBFO(int16_t bfo) { sendProperty(PROP_SSB_BFO, bfo); }
 
 void SI47XX_TuneTo(uint32_t f) {
+  uint16_t bfo = (f % 100) * 10;
+  if (SI47XX_IsSSB()) {
+    SI47XX_SetBFO(-bfo);
+  }
   f /= fDiv();
   if (si4732mode == SI47XX_FM) {
     f -= f % 5;
