@@ -605,11 +605,11 @@ void RADIO_SetupBandParams() {
       SI47XX_SetSeekFmLimits(b->bounds.start, b->bounds.end);
       SI47XX_SetSeekFmSpacing(StepFrequencyTable[b->step]);
     } else {
-      SI47XX_SetSeekAmLimits(b->bounds.start, b->bounds.end);
-      SI47XX_SetSeekAmSpacing(StepFrequencyTable[b->step]);
       if (mod == MOD_USB || mod == MOD_LSB) {
         SI47XX_SetSsbBandwidth(SI47XX_SSB_BW_3_kHz);
       } else {
+        SI47XX_SetSeekAmLimits(b->bounds.start, b->bounds.end);
+        SI47XX_SetSeekAmSpacing(StepFrequencyTable[b->step]);
         SI47XX_SetBandwidth(SI47XX_BW_6_kHz, true);
       }
     }
