@@ -19,6 +19,7 @@ SsbMode currentSsbMode;
 
 SI47XX_MODE si4732mode = SI47XX_FM;
 uint16_t siCurrentFreq = 0;
+bool isSi4732On = false;
 
 static uint16_t fDiv() { return si4732mode == SI47XX_FM ? 1000 : 100; }
 
@@ -100,7 +101,7 @@ void RSQ_GET() {
   SI47XX_ReadBuffer(rsqStatus.raw, si4732mode == SI47XX_FM ? 8 : 6);
 }
 
-void setVolume(uint8_t volume) {
+void SI47XX_SetVolume(uint8_t volume) {
   if (volume > 63)
     volume = 63;
   sendProperty(PROP_RX_VOLUME, volume);
@@ -156,8 +157,10 @@ void SI47XX_PowerUp() {
   SI47XX_WriteBuffer(cmd, 3);
   SYSTEM_DelayMs(500);
 
+  isSi4732On = true;
+
   AUDIO_ToggleSpeaker(true);
-  setVolume(63);
+  SI47XX_SetVolume(63);
 
   if (si4732mode == SI47XX_FM) {
     enableRDS();
@@ -189,12 +192,14 @@ void SI47XX_PatchPowerUp() {
   SI47XX_WriteBuffer(cmd, 3);
   SYSTEM_DelayMs(550);
 
+  isSi4732On = true;
+
   SI47XX_downloadPatch();
 
   SI47XX_SsbSetup(2, 1, 0, 1, 0, 1);
 
   AUDIO_ToggleSpeaker(true);
-  setVolume(63);
+  SI47XX_SetVolume(63);
 
   SI47XX_SetFreq(siCurrentFreq);
   sendProperty(PROP_SSB_SOFT_MUTE_MAX_ATTENUATION, 0);
@@ -245,6 +250,7 @@ void SI47XX_PowerDown() {
   SI47XX_WriteBuffer(cmd, 1);
   SYSTICK_Delay250ns(10);
   RST_LOW;
+  isSi4732On = false;
 }
 
 void SI47XX_SwitchMode(SI47XX_MODE mode) {
@@ -264,9 +270,9 @@ void SI47XX_SwitchMode(SI47XX_MODE mode) {
 }
 
 void SI47XX_SetFreq(uint16_t freq) {
-    if(siCurrentFreq == freq) {
-        return;
-    }
+  if (siCurrentFreq == freq) {
+    return;
+  }
   uint8_t hb = (freq >> 8) & 0xFF;
   uint8_t lb = freq & 0xFF;
 

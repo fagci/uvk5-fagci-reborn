@@ -1,5 +1,6 @@
 #include "statusline.h"
 #include "../driver/eeprom.h"
+#include "../driver/si473x.h"
 #include "../driver/st7565.h"
 #include "../helper/battery.h"
 #include "../scheduler.h"
@@ -90,7 +91,7 @@ void STATUSLINE_render(void) {
     icons[idx++] = SYM_MONITOR;
   }
 
-  if (RADIO_GetRadio() != RADIO_BK4819) {
+  if (RADIO_GetRadio() != RADIO_BK1080 || isSi4732On) {
     icons[idx++] = SYM_BROADCAST;
   }
 

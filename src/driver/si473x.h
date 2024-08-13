@@ -573,9 +573,11 @@ void SI47XX_SetSeekAmRssiThreshold(uint16_t value);
 void SI47XX_SetBFO(int16_t bfo);
 void SI47XX_SetSsbCapacitor(uint16_t v);
 void SI47XX_TuneTo(uint32_t f);
+void SI47XX_SetVolume(uint8_t volume);
 
 extern SI47XX_MODE si4732mode;
 extern RSQStatus rsqStatus;
 extern uint16_t siCurrentFreq;
+extern bool isSi4732On;
 
 #endif /* end of include guard: SI473X_H */
