@@ -151,7 +151,11 @@ void RADIO_RxTurnOff() {
     BK1080_Mute(true);
     break;
   case RADIO_SI4732:
-    SI47XX_PowerDown();
+    if (gSettings.si4732PowerOff) {
+      SI47XX_PowerDown();
+    } else {
+      SI47XX_SetVolume(0);
+    }
     break;
   default:
     break;
@@ -173,10 +177,14 @@ void RADIO_RxTurnOn() {
     break;
   case RADIO_SI4732:
     BK4819_Idle();
-    if (mod == MOD_LSB || mod == MOD_USB) {
-      SI47XX_PatchPowerUp();
+    if (gSettings.si4732PowerOff || !isSi4732On) {
+      if (mod == MOD_LSB || mod == MOD_USB) {
+        SI47XX_PatchPowerUp();
+      } else {
+        SI47XX_PowerUp();
+      }
     } else {
-      SI47XX_PowerUp();
+      SI47XX_SetVolume(63);
     }
     break;
   default:
