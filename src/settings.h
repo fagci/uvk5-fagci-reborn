@@ -133,7 +133,8 @@ typedef struct {
   ScanTimeout sqClosedTimeout : 4;
   bool bound_240_280 : 1;
   bool noListen : 1;
-  uint8_t reserved2 : 4;
+  bool si4732PowerOff : 1;
+  uint8_t reserved2 : 3;
   BacklightOnSquelchMode backlightOnSquelch : 2;
   uint8_t scanTimeout : 8;
   uint8_t sqlOpenTime : 3;
