@@ -34,9 +34,6 @@
 
 
 # Known Bugs (Fixes Needed - Help is Appreciated)
-# - Unable to delete rows in the channel list
-# - Unable to set Power per channel
-# - Unable to set Bandwidth (BW) per channel
 # - Custom mode names differ from those on the radio (might require a pull request to CHIRP)
 
 import math
