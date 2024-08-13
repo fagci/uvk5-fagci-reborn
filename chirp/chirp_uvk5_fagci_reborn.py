@@ -1,6 +1,7 @@
-# Quansheng UV-K5 driver (c) 2023 Jacek Lipkowski <sq5bpf@lipkowski.org>
+# Quansheng UV-K5 driver (c) 2024 Giorgio (IU0QWJ) for the Fagci R3b0rn firmware
 #
 # based on template.py Copyright 2012 Dan Smith <dsmith@danplanet.com>
+# based on Copyright 2023 Jacek Lipkowski <sq5bpf@lipkowski.org>
 #
 # This is a preliminary version of a driver for the UV-K5
 # It is based on my reverse engineering effort described here:
@@ -31,6 +32,7 @@
 # - Julian Lilov (LZ1JDL)
 # - Francesco IK8JHL,
 # for their work :)
+# and...THANKS FAGCI FOR THE FIRMWARE!
 
 
 # Known Bugs (Fixes Needed - Help is Appreciated)
