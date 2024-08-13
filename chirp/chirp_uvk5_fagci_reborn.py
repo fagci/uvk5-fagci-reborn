@@ -521,24 +521,6 @@ ERROR_TIP = ("\n\nPlease ensure that the radio is **NOT** tuned to a frequency t
           " as this can interrupt the upload / download process.\n\nCheck the cable is connected to the radio and"
           " try again. If everything is ok, just try again, sometimes it requires a few tries")
 
-# SPECIALS = {
-#     # "VFO A1(15-108)": 200,
-#     # "VFO B1(15-108)": 201,
-#     # "VFO A2(108-137)": 202,
-#     # "VFO B2(108-137)": 203,
-#     # "VFO A3(137-174)": 204,
-#     # "VFO B3(137-174)": 205,
-#     # "VFO A4(174-350)": 206,
-#     # "VFO B4(174-350)": 207,
-#     # "VFO A5(350-400)": 208,
-#     # "VFO B5(350-400)": 209,
-#     # "VFO A6(400-470)": 210,
-#     # "VFO B6(400-470)": 211,
-#     # "VFO A7(470-1300)": 212,
-#     # "VFO B7(470-1300)": 213
-# }
-
-
 def sanitize_str(val):
     """)
     Sanitize the nickname to ensure it contains only allowed characters.
@@ -1271,7 +1253,6 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         rf.valid_dtcs_codes = DTCS_CODES
         rf.valid_name_length = 10
         rf.valid_power_levels = UVK5_POWER_LEVELS
-        # rf.valid_special_chans = list(SPECIALS.keys())
         #rf.valid_duplexes = ["", "off", "-", "+"]
         #rf.valid_tuning_steps = STEPS
         rf.valid_tmodes = ["", "Tone", "TSQL", "DTCS", "Cross"]
@@ -1450,10 +1431,6 @@ class UVK5Radio(chirp_common.CloneModeRadio):
 
         mem = chirp_common.Memory()
 
-        # if isinstance(number2, str):
-        #     number = SPECIALS[number2]
-        #     mem.extd_number = number2
-        # else:
         number = self.max_channels - (number2)
 
         mem.number = self.max_channels - number
