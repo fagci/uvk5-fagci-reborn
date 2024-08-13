@@ -368,10 +368,18 @@ void SI47XX_SetSeekAmRssiThreshold(uint16_t value) {
 
 void SI47XX_SetBFO(int16_t bfo) { sendProperty(PROP_SSB_BFO, bfo); }
 
+#include "uart.h"
 void SI47XX_TuneTo(uint32_t f) {
-  uint16_t bfo = (f % 100) * 10;
   if (SI47XX_IsSSB()) {
-    SI47XX_SetBFO(-bfo);
+    int64_t bfo = ((int64_t)(siCurrentFreq * fDiv()) - (int64_t)f) * 10;
+    if (bfo > -16000 && bfo < 16000) {
+      SI47XX_SetBFO(bfo);
+      f = siCurrentFreq * fDiv();
+      Log("f=%u, bfo=%d", f, bfo);
+    } else {
+      SI47XX_SetBFO(0);
+      Log("f=%u, bfo=%d", f, 0);
+    }
   }
   f /= fDiv();
   if (si4732mode == SI47XX_FM) {
