@@ -2,3 +2,4 @@ obj/
 bin/
 src/external/
 .vsconfig/
+.idea/
