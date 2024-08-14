@@ -361,6 +361,9 @@ void sendEOT() {
   case 2:
     BK4819_PlayRogerTiny();
     break;
+  case 3:
+    BK4819_PlayRogerUgly();
+    break;
   default:
     break;
   }
@@ -368,6 +371,7 @@ void sendEOT() {
   BK4819_WriteRegister(BK4819_REG_51, 0x9033);
   SYSTEM_DelayMs(200);
   BK4819_ExitSubAu();
+  setupToneDetection();
 }
 
 void RADIO_ToggleTX(bool on) {
@@ -428,8 +432,8 @@ void RADIO_ToggleTX(bool on) {
 
   } else if (gTxState == TX_ON) {
     BK4819_ExitDTMF_TX(true);
-    RADIO_EnableCxCSS();
 
+    // RADIO_EnableCxCSS();
     sendEOT();
 
     BK4819_SetupPowerAmplifier(0, 0);
