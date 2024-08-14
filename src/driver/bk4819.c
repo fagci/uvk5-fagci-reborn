@@ -794,7 +794,8 @@ uint8_t BK4819_GetGlitch(void) {
   return BK4819_ReadRegister(BK4819_REG_63) & 0xFF;
 }
 
-// uint8_t BK4819_GetSNR(void) { return (BK4819_ReadRegister(0x61) >> 8) & 0xFF; }
+// uint8_t BK4819_GetSNR(void) { return (BK4819_ReadRegister(0x61) >> 8) & 0xFF;
+// }
 uint8_t BK4819_GetSNR(void) { return (BK4819_ReadRegister(0x61)) & 0xFF; }
 
 bool BK4819_GetFrequencyScanResult(uint32_t *pFrequency) {
@@ -923,19 +924,52 @@ void BK4819_PrepareFSKReceive(void) {
 #endif
 
 void BK4819_PlayRoger(void) {
+  const uint32_t TONE1 = 1540;
+  const uint32_t TONE2 = 1310;
+
   BK4819_EnterTxMute();
   BK4819_SetAF(BK4819_AF_MUTE);
-  BK4819_WriteRegister(BK4819_REG_70, 0xE000);
+
+  BK4819_WriteRegister(BK4819_REG_70,
+                       BK4819_REG_70_ENABLE_TONE1 |
+                           (66u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+
   BK4819_EnableTXLink();
   SYSTEM_DelayMs(50);
-  BK4819_WriteRegister(BK4819_REG_71, 0x142A);
+
+  BK4819_SetToneFrequency(TONE1);
+
   BK4819_ExitTxMute();
   SYSTEM_DelayMs(80);
   BK4819_EnterTxMute();
-  BK4819_WriteRegister(BK4819_REG_71, 0x1C3B);
+
+  BK4819_SetToneFrequency(TONE2);
+
   BK4819_ExitTxMute();
   SYSTEM_DelayMs(80);
   BK4819_EnterTxMute();
+
+  BK4819_WriteRegister(BK4819_REG_70, 0x0000);
+  BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);
+}
+
+void BK4819_PlayRogerTiny(void) {
+  BK4819_EnterTxMute();
+  BK4819_SetAF(BK4819_AF_MUTE);
+
+  BK4819_WriteRegister(BK4819_REG_70,
+                       BK4819_REG_70_ENABLE_TONE1 |
+                           (66u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+
+  BK4819_EnableTXLink();
+  SYSTEM_DelayMs(50);
+
+  BK4819_SetToneFrequency(1250), BK4819_ExitTxMute(), SYSTEM_DelayMs(25), BK4819_EnterTxMute();
+    SYSTEM_DelayMs(50);
+  BK4819_SetToneFrequency(1500), BK4819_ExitTxMute(), SYSTEM_DelayMs(25), BK4819_EnterTxMute();
+  BK4819_SetToneFrequency(750), BK4819_ExitTxMute(), SYSTEM_DelayMs(25), BK4819_EnterTxMute();
+
+
   BK4819_WriteRegister(BK4819_REG_70, 0x0000);
   BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);
 }

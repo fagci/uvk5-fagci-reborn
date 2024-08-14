@@ -117,7 +117,7 @@ void RADIO_SetupRegisters(void) {
   BK4819_DisableVox();
   BK4819_DisableDTMF();
 
-  BK4819_WriteRegister(BK4819_REG_3F, 0);
+  // BK4819_WriteRegister(BK4819_REG_3F, 0);
   /* BK4819_WriteRegister(BK4819_REG_3F, BK4819_REG_3F_SQUELCH_FOUND |
                                           BK4819_REG_3F_SQUELCH_LOST); */
   BK4819_WriteRegister(0x40, (BK4819_ReadRegister(0x40) & ~(0b11111111111)) |
@@ -214,16 +214,20 @@ static void setupToneDetection() {
   switch (radio->rx.codeType) {
   case CODE_TYPE_DIGITAL:
   case CODE_TYPE_REVERSE_DIGITAL:
+    Log("DCS on");
     BK4819_SetCDCSSCodeWord(
         DCS_GetGolayCodeWord(radio->rx.codeType, radio->rx.code));
     InterruptMask |= BK4819_REG_3F_CDCSS_FOUND | BK4819_REG_3F_CDCSS_LOST;
     break;
   case CODE_TYPE_CONTINUOUS_TONE:
+    Log("CTCSS on");
     BK4819_SetCTCSSFrequency(CTCSS_Options[radio->rx.code]);
     InterruptMask |= BK4819_REG_3F_CTCSS_FOUND | BK4819_REG_3F_CTCSS_LOST;
     break;
   default:
-    BK4819_SetCTCSSFrequency(670); // ?
+    Log("STE on");
+    BK4819_SetCTCSSFrequency(670);
+    BK4819_SetTailDetection(550);
     break;
   }
   BK4819_WriteRegister(BK4819_REG_3F, InterruptMask);
@@ -347,6 +351,25 @@ uint32_t RADIO_GetTXF(void) { return RADIO_GetTXFEx(radio, gCurrentPreset); }
 
 TXState gTxState = TX_UNKNOWN;
 
+void sendEOT() {
+  switch (gSettings.roger) {
+  case 0:
+    break;
+  case 1:
+    BK4819_PlayRoger();
+    break;
+  case 2:
+    BK4819_PlayRogerTiny();
+    break;
+  default:
+    break;
+  }
+  BK4819_GenTail(4);
+  BK4819_WriteRegister(BK4819_REG_51, 0x9033);
+  SYSTEM_DelayMs(200);
+  BK4819_ExitSubAu();
+}
+
 void RADIO_ToggleTX(bool on) {
   if (gTxState == on) {
     return;
@@ -406,6 +429,8 @@ void RADIO_ToggleTX(bool on) {
   } else if (gTxState == TX_ON) {
     BK4819_ExitDTMF_TX(true);
     RADIO_EnableCxCSS();
+
+    sendEOT();
 
     BK4819_SetupPowerAmplifier(0, 0);
     BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, false);
@@ -543,6 +568,8 @@ void RADIO_SelectPreset(int8_t num) {
 }
 
 void RADIO_SelectPresetSave(int8_t num) {
+  radio->radio = RADIO_UNKNOWN;
+  radio->modulation = MOD_PRST;
   PRESET_Select(num);
   PRESETS_SaveCurrent();
   RADIO_TuneToSave(gCurrentPreset->lastUsedFreq);
@@ -741,6 +768,9 @@ Loot *RADIO_UpdateMeasurements(void) {
   lastMsmUpdate = Now();
   msm->rssi = RADIO_GetRSSI();
   msm->open = RADIO_IsSquelchOpen(msm);
+  if (radio->rx.codeType == CODE_TYPE_OFF) {
+    toneFound = true;
+  }
 
   if (RADIO_GetRadio() == RADIO_BK4819) {
     while (BK4819_ReadRegister(BK4819_REG_0C) & 1u) {
@@ -748,15 +778,17 @@ Loot *RADIO_UpdateMeasurements(void) {
 
       uint16_t intBits = BK4819_ReadRegister(BK4819_REG_02);
 
-      if (intBits & BK4819_REG_02_CxCSS_TAIL ||
-          intBits & BK4819_REG_02_CTCSS_FOUND ||
-          intBits & BK4819_REG_02_CDCSS_FOUND) {
+      if ((intBits & BK4819_REG_02_CxCSS_TAIL) ||
+          (intBits & BK4819_REG_02_CTCSS_FOUND) ||
+          (intBits & BK4819_REG_02_CDCSS_FOUND)) {
+        Log("Tail tone or ctcss/dcs found");
         msm->open = false;
         toneFound = false;
         lastTailTone = Now();
       }
-      if (intBits & BK4819_REG_02_CTCSS_LOST ||
-          intBits & BK4819_REG_02_CDCSS_LOST) {
+      if ((intBits & BK4819_REG_02_CTCSS_LOST) ||
+          (intBits & BK4819_REG_02_CDCSS_LOST)) {
+        Log("ctcss/dcs lost");
         msm->open = true;
         toneFound = true;
       }
@@ -766,7 +798,7 @@ Loot *RADIO_UpdateMeasurements(void) {
       msm->open = false;
     }
 
-    if (radio->rx.codeType != CODE_TYPE_OFF && !toneFound) {
+    if (!toneFound) {
       msm->open = false;
     }
   }
@@ -801,14 +833,6 @@ bool RADIO_UpdateMeasurementsEx(Loot *dest) {
   RADIO_UpdateMeasurements();
   LOOT_UpdateEx(dest, msm);
   return msm->open;
-}
-
-void RADIO_EnableToneDetection(void) {
-  BK4819_SetCTCSSFrequency(670);
-  BK4819_SetTailDetection(550);
-  BK4819_WriteRegister(BK4819_REG_3F, BK4819_REG_3F_CxCSS_TAIL/*  |
-                                          BK4819_REG_3F_SQUELCH_LOST |
-                                          BK4819_REG_3F_SQUELCH_FOUND */);
 }
 
 bool RADIO_TuneToCH(int32_t num) {

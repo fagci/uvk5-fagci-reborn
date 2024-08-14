@@ -1,5 +1,6 @@
 #include "vfo1.h"
 #include "../helper/lootlist.h"
+#include "../helper/rds.h"
 #include "../radio.h"
 #include "../scheduler.h"
 #include "../svc.h"
@@ -8,7 +9,6 @@
 #include "../ui/graphics.h"
 #include "apps.h"
 #include "finput.h"
-#include "../helper/rds.h"
 
 static uint32_t lastUpdate = 0;
 static DateTime dt;
@@ -144,19 +144,20 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 static void drawRDS() {
   if (rds.RDSSignal) {
     PrintSmallEx(LCD_WIDTH - 1, 12, POS_R, C_FILL, "RDS");
+
+    char genre[17];
+    const char wd[8][3] = {"SU", "MO", "TU", "WE", "TH", "FR", "SA", "SU"};
+    SI47XX_GetProgramType(genre);
+    PrintSmallEx(LCD_XCENTER, 14, POS_C, C_FILL, "%s", genre);
+
+    if (SI47XX_GetLocalDateTime(&dt)) {
+      PrintSmallEx(LCD_XCENTER, 22, POS_C, C_FILL,
+                   "%02u.%02u.%04u, %s %02u:%02u", dt.day, dt.month, dt.year,
+                   wd[dt.wday], dt.hour, dt.minute);
+    }
+
+    PrintSmall(0, LCD_HEIGHT - 8, "%s", rds.radioText);
   }
-
-  char genre[17];
-  const char wd[8][3] = {"SU", "MO", "TU", "WE", "TH", "FR", "SA", "SU"};
-  SI47XX_GetProgramType(genre);
-  PrintSmallEx(LCD_XCENTER, 14, POS_C, C_FILL, "%s", genre);
-
-  if (SI47XX_GetLocalDateTime(&dt)) {
-    PrintSmallEx(LCD_XCENTER, 22, POS_C, C_FILL, "%02u.%02u.%04u, %s %02u:%02u",
-                 dt.day, dt.month, dt.year, wd[dt.wday], dt.hour, dt.minute);
-  }
-
-  PrintSmall(0, LCD_HEIGHT - 8, "%s", rds.radioText);
 }
 
 void VFO1_render(void) {

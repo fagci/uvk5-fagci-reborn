@@ -180,6 +180,23 @@ typedef struct {
 
 typedef struct {
   Header_t Header;
+  uint16_t Offset;
+  uint8_t Size;
+  bool bAllowPassword;
+  uint32_t Timestamp;
+  uint8_t Data[0];
+} CMD_061D_t;
+
+typedef struct {
+  Header_t Header;
+  struct {
+    uint16_t Offset;
+  } Data;
+} REPLY_061D_t;
+
+
+typedef struct {
+  Header_t Header;
   struct {
     uint16_t RSSI;
     uint8_t ExNoiseIndicator;
@@ -428,8 +445,8 @@ static void CMD_051D(const uint8_t *pBuffer) {
 }
 
 static void CMD_061D(const uint8_t *pBuffer) {
-  const CMD_051D_t *pCmd = (const CMD_051D_t *)pBuffer;
-  REPLY_051D_t Reply;
+  const CMD_061D_t *pCmd = (const CMD_051D_t *)pBuffer;
+  REPLY_061D_t Reply;
   bool bReloadEeprom;
   bool bIsLocked;
 

@@ -61,8 +61,6 @@ void RADIO_SelectPreset(int8_t num);
 void RADIO_SelectPresetSave(int8_t num);
 void RADIO_SetupBandParams();
 
-void RADIO_EnableToneDetection();
-
 void RADIO_VfoLoadCH(uint8_t i);
 void RADIO_SetupByCurrentVFO();
 void RADIO_NextVFO(void);
