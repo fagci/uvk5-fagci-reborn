@@ -10,8 +10,9 @@ void VFO2CH(VFO *src, Preset *p, CH *dst) {
   dst->tx.codeType = src->tx.codeType;
   dst->bw = p->band.bw;
   dst->power = src->power;
-  dst->radio = src->radio;
-  dst->modulation = src->modulation;
+  dst->radio = src->radio == RADIO_UNKNOWN ? p->radio : src->radio;
+  dst->modulation =
+      src->modulation == MOD_PRST ? p->band.modulation : src->modulation;
 }
 
 void CH2VFO(CH *src, VFO *dst) {

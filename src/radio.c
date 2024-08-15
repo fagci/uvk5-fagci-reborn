@@ -47,7 +47,10 @@ char gVFONames[2][10] = {0};
 bool gIsListening = false;
 bool gMonitorMode = false;
 
-Radio oldRadio = RADIO_UNKNOWN;
+static Radio oldRadio = RADIO_UNKNOWN;
+static uint32_t lastTailTone = 0;
+static uint32_t lastMsmUpdate = 0;
+static bool toneFound = false;
 
 const uint16_t StepFrequencyTable[14] = {
     1,   10,  50,  100,
@@ -152,8 +155,10 @@ void RADIO_RxTurnOff() {
     break;
   case RADIO_SI4732:
     if (gSettings.si4732PowerOff) {
+      Log("Power down si");
       SI47XX_PowerDown();
     } else {
+      Log("Mute si, not power down");
       SI47XX_SetVolume(0);
     }
     break;
@@ -178,12 +183,14 @@ void RADIO_RxTurnOn() {
   case RADIO_SI4732:
     BK4819_Idle();
     if (gSettings.si4732PowerOff || !isSi4732On) {
+      Log("Power up si");
       if (mod == MOD_LSB || mod == MOD_USB) {
         SI47XX_PatchPowerUp();
       } else {
         SI47XX_PowerUp();
       }
     } else {
+      Log("NOT Power up si");
       SI47XX_SetVolume(63);
     }
     break;
@@ -236,7 +243,7 @@ static void setupToneDetection() {
 bool RADIO_IsBK1080Range(uint32_t f) { return f >= 6400000 && f <= 10800000; }
 
 void toggleBK4819(bool on) {
-  Log("Toggle bk4819 %u", on);
+  Log("Toggle bk4819 audio %u", on);
   if (on) {
     BK4819_ToggleAFDAC(true);
     BK4819_ToggleAFBit(true);
@@ -251,7 +258,7 @@ void toggleBK4819(bool on) {
 }
 
 void toggleBK1080SI4732(bool on) {
-  Log("Toggle bk1080si %u", on);
+  Log("Toggle bk1080si audio %u", on);
   if (on) {
     SYSTEM_DelayMs(10);
     AUDIO_ToggleSpeaker(true);
@@ -280,8 +287,6 @@ void RADIO_ToggleRX(bool on) {
       BACKLIGHT_Toggle(false);
     }
   }
-
-  Log("toggle RX %u", on);
 
   Radio r = RADIO_GetRadio();
   if (r == RADIO_BK4819) {
@@ -526,6 +531,7 @@ void RADIO_SwitchRadio() {
 
 void RADIO_SetupByCurrentVFO(void) {
   uint32_t f = radio->rx.f;
+  lastMsmUpdate = 0;
   PRESET_SelectByFrequency(f);
   gVFOPresets[gSettings.activeVFO] = gCurrentPreset;
 
@@ -752,9 +758,6 @@ bool RADIO_IsSquelchOpen(Loot *msm) {
   return true;
 }
 
-static uint32_t lastTailTone = 0;
-static uint32_t lastMsmUpdate = 0;
-static bool toneFound = false;
 Loot *RADIO_UpdateMeasurements(void) {
   Loot *msm = &gLoot[gSettings.activeVFO];
   if (RADIO_GetRadio() == RADIO_SI4732 && SVC_Running(SVC_SCAN)) {
@@ -883,7 +886,7 @@ void RADIO_NextVFO(void) {
   radio = &gVFO[gSettings.activeVFO];
   gCurrentLoot = &gLoot[gSettings.activeVFO];
   RADIO_SetupByCurrentVFO();
-  RADIO_ToggleRX(false);
+  // RADIO_ToggleRX(false);
   SETTINGS_Save();
 }
 

@@ -268,11 +268,12 @@ void SI47XX_SwitchMode(SI47XX_MODE mode) {
     }
   }
 }
-
+#include "uart.h"
 void SI47XX_SetFreq(uint16_t freq) {
   if (siCurrentFreq == freq) {
     return;
   }
+    Log("[si] tune from %u to %u", siCurrentFreq, freq);
   uint8_t hb = (freq >> 8) & 0xFF;
   uint8_t lb = freq & 0xFF;
 
