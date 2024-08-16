@@ -315,7 +315,7 @@ void SPECTRUM_render(void) {
     PrintMediumBoldEx(LCD_XCENTER, 16, POS_C, C_FILL, "%u.%05u",
                       gLastActiveLoot->f / 100000, gLastActiveLoot->f % 100000);
     if (gLastActiveLoot->ct != 0xFF) {
-      PrintSmallEx(LCD_XCENTER, 16 + 6, POS_C, C_FILL, "CT:%u.%uHz",
+      PrintSmallEx(LCD_XCENTER, 16 + 6, POS_C, C_FILL, "CT %u.%u",
                    CTCSS_Options[gLastActiveLoot->ct] / 10,
                    CTCSS_Options[gLastActiveLoot->ct] % 10);
     }

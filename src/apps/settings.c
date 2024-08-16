@@ -26,6 +26,8 @@ typedef enum {
   M_SQL_CLOSE_T,
   M_SQL_TO_OPEN,
   M_SQL_TO_CLOSE,
+  M_DW,
+  M_SCRAMBLER,
   M_BRIGHTNESS,
   M_CONTRAST,
   M_BL_TIME,
@@ -62,11 +64,13 @@ static const MenuItem menu[] = {
     {"SCAN single freq time", M_SCAN_DELAY, 255},
     {"SCAN listen time", M_SQL_TO_OPEN, ARRAY_SIZE(SCAN_TIMEOUT_NAMES)},
     {"SCAN after close time", M_SQL_TO_CLOSE, ARRAY_SIZE(SCAN_TIMEOUT_NAMES)},
+    {"Dual watch", M_DW, 2},
     {"Brightness", M_BRIGHTNESS, 16},
     {"Contrast", M_CONTRAST, 16},
     {"BL time", M_BL_TIME, ARRAY_SIZE(BL_TIME_VALUES)},
     {"BL SQL mode", M_BL_SQL, ARRAY_SIZE(BL_SQL_MODE_NAMES)},
     {"Filter bound", M_FLT_BOUND, 2},
+    {"Scrambler", M_SCRAMBLER, 16},
     {"Beep", M_BEEP, 2},
     {"BAT calibration", M_BAT_CAL, 255},
     {"BAT type", M_BAT_TYPE, ARRAY_SIZE(BATTERY_TYPE_NAMES)},
@@ -96,14 +100,10 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     sprintf(name, "%ums", index);
     return;
   case M_SQL_OPEN_T:
-    sprintf(name, "%ums", index * 5);
-    return;
   case M_SQL_CLOSE_T:
     sprintf(name, "%ums", index * 5);
     return;
   case M_SQL_TO_OPEN:
-    strncpy(name, SCAN_TIMEOUT_NAMES[index], 31);
-    return;
   case M_SQL_TO_CLOSE:
     strncpy(name, SCAN_TIMEOUT_NAMES[index], 31);
     return;
@@ -114,6 +114,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     strncpy(name, fltBound[index], 31);
     return;
   case M_BRIGHTNESS:
+  case M_SCRAMBLER:
     sprintf(name, "%u", index);
     return;
   case M_CONTRAST:
@@ -138,12 +139,9 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     strncpy(name, EEPROM_TYPE_NAMES[index], 31);
     return;
   case M_RESET:
-    strncpy(name, yesNo[index], 31);
-    return;
   case M_SKIP_GARBAGE_FREQS:
-    strncpy(name, yesNo[index], 31);
-    return;
   case M_SI4732_POWER_OFF:
+  case M_DW:
     strncpy(name, yesNo[index], 31);
     return;
   case M_ROGER:
@@ -217,6 +215,10 @@ static void accept(void) {
     gSettings.backlight = subMenuIndex;
     SETTINGS_Save();
     break;
+  case M_SCRAMBLER:
+    gSettings.scrambler = subMenuIndex;
+    SETTINGS_Save();
+    break;
   case M_BEEP:
     gSettings.beep = subMenuIndex;
     SETTINGS_Save();
@@ -245,6 +247,10 @@ static void accept(void) {
     gSettings.si4732PowerOff = subMenuIndex;
     SETTINGS_Save();
     break;
+  case M_DW:
+    gSettings.dw = subMenuIndex;
+    SETTINGS_Save();
+    break;
   case M_ROGER:
     gSettings.roger = subMenuIndex;
     SETTINGS_Save();
@@ -266,6 +272,9 @@ static const char *getValue(Menu type) {
     return Output;
   case M_CONTRAST:
     sprintf(Output, "%d", gSettings.contrast - 8);
+    return Output;
+  case M_SCRAMBLER:
+    sprintf(Output, "%u", gSettings.scrambler);
     return Output;
   case M_BAT_CAL:
     sprintf(Output, "%u", gSettings.batteryCalibration);
@@ -306,6 +315,8 @@ static const char *getValue(Menu type) {
     return yesNo[gSettings.skipGarbageFrequencies];
   case M_SI4732_POWER_OFF:
     return yesNo[gSettings.si4732PowerOff];
+  case M_DW:
+    return yesNo[gSettings.dw];
   case M_ROGER:
     return rogerNames[gSettings.roger];
   case M_NICKNAME:
@@ -370,6 +381,9 @@ static void setInitialSubmenuIndex(void) {
   case M_UPCONVERTER:
     subMenuIndex = gSettings.upconverter;
     break;
+  case M_SCRAMBLER:
+    subMenuIndex = gSettings.scrambler;
+    break;
   case M_BEEP:
     subMenuIndex = gSettings.beep;
     break;
@@ -390,6 +404,9 @@ static void setInitialSubmenuIndex(void) {
     break;
   case M_SI4732_POWER_OFF:
     subMenuIndex = gSettings.si4732PowerOff;
+    break;
+  case M_DW:
+    subMenuIndex = gSettings.dw;
     break;
   case M_ROGER:
     subMenuIndex = gSettings.roger;

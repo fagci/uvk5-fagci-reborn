@@ -479,16 +479,12 @@ void BK4819_SelectFilter(uint32_t f) {
 }
 
 void BK4819_DisableScramble(void) {
-  uint16_t Value;
-
-  Value = BK4819_ReadRegister(BK4819_REG_31);
+  uint16_t Value = BK4819_ReadRegister(BK4819_REG_31);
   BK4819_WriteRegister(BK4819_REG_31, Value & 0xFFFD);
 }
 
 void BK4819_EnableScramble(uint8_t Type) {
-  uint16_t Value;
-
-  Value = BK4819_ReadRegister(BK4819_REG_31);
+  uint16_t Value = BK4819_ReadRegister(BK4819_REG_31);
   BK4819_WriteRegister(BK4819_REG_31, Value | 2);
   BK4819_WriteRegister(BK4819_REG_71, (Type * 0x0408) + 0x68DC);
 }
@@ -987,11 +983,13 @@ void BK4819_PlayRogerUgly(void) {
   BK4819_EnableTXLink();
   SYSTEM_DelayMs(50);
 
-  for (uint8_t i = 0; i < 3; i++) {
+  for (uint8_t i = 0; i < 2; i++) {
     BK4819_SetToneFrequency(425), BK4819_ExitTxMute(), SYSTEM_DelayMs(350),
         BK4819_EnterTxMute();
     SYSTEM_DelayMs(350);
   }
+  BK4819_SetToneFrequency(425), BK4819_ExitTxMute(), SYSTEM_DelayMs(350),
+      BK4819_EnterTxMute();
 
   BK4819_WriteRegister(BK4819_REG_70, 0x0000);
   BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);

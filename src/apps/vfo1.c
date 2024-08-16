@@ -151,7 +151,7 @@ static void drawRDS() {
     PrintSmallEx(LCD_XCENTER, 14, POS_C, C_FILL, "%s", genre);
 
     if (SI47XX_GetLocalDateTime(&dt)) {
-      PrintSmallEx(LCD_XCENTER, 22, POS_C, C_FILL,
+      PrintSmallEx(LCD_XCENTER, LCD_HEIGHT - 16, POS_C, C_FILL,
                    "%02u.%02u.%04u, %s %02u:%02u", dt.day, dt.month, dt.year,
                    wd[dt.wday], dt.hour, dt.minute);
     }

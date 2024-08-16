@@ -5,6 +5,7 @@
 #include "../helper/channels.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
+#include "../helper/presetlist.h"
 #include "../radio.h"
 #include "../scheduler.h"
 #include "../ui/graphics.h"
@@ -147,6 +148,10 @@ static void saveAllToFreeChannels(void) {
       }
       ch.memoryBanks = 1 << 7;
       snprintf(ch.name, 9, "%lu.%05lu", ch.rx.f / 100000, ch.rx.f % 100000);
+
+      Preset *p = PRESET_ByFrequency(loot->f);
+      ch.radio = p->radio;
+      ch.modulation = p->band.modulation;
 
       CHANNELS_Save(chnum, &ch);
       chnum--;
