@@ -28,10 +28,26 @@ void VFO2_init(void) {
 
 void VFO2_deinit(void) {}
 
+uint8_t dwVfo = 0;
+uint32_t lastDw = 0;
+
 void VFO2_update(void) {
   if (gIsListening && Now() - lastRender >= 1000) {
     gRedrawScreen = true;
     lastRender = Now();
+  }
+  if (gSettings.dw && Now() - lastDw > 100) {
+    lastDw = Now();
+    if (gIsListening) {
+      gSettings.activeVFO = dwVfo;
+      RADIO_SaveCurrentVFO();
+    } else {
+      dwVfo = !dwVfo;
+      radio = &gVFO[dwVfo];
+      gCurrentLoot = &gLoot[dwVfo];
+      RADIO_SetupByCurrentVFO();
+      radio = &gVFO[gSettings.activeVFO];
+    }
   }
 }
 
@@ -55,6 +71,8 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
   // up-down keys
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
+    bool isSsb =
+        RADIO_GetModulation() == MOD_LSB || RADIO_GetModulation() == MOD_USB;
     switch (key) {
     case KEY_UP:
       if (SVC_Running(SVC_SCAN)) {
@@ -68,6 +86,18 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       }
       RADIO_NextFreqNoClicks(false);
       return true;
+    case KEY_SIDE1:
+      if (RADIO_GetRadio() == RADIO_SI4732 && isSsb) {
+        RADIO_TuneToSave(radio->rx.f + 10);
+        return true;
+      }
+      break;
+    case KEY_SIDE2:
+      if (RADIO_GetRadio() == RADIO_SI4732 && isSsb) {
+        RADIO_TuneToSave(radio->rx.f - 10);
+        return true;
+      }
+      break;
     default:
       break;
     }
@@ -194,7 +224,9 @@ static void render2VFOPart(uint8_t i) {
       PrintMedium(0, bl, "TX");
     }
     if (gIsListening) {
-      PrintMedium(0, bl, RADIO_GetRadio() == RADIO_SI4732 && rds.RDSSignal ? "RDS" : "RX");
+      PrintMedium(0, bl,
+                  RADIO_GetRadio() == RADIO_SI4732 && rds.RDSSignal ? "RDS"
+                                                                    : "RX");
       UI_RSSIBar(gLoot[i].rssi, vfo->rx.f, 31);
     }
   }
@@ -219,22 +251,26 @@ static void render2VFOPart(uint8_t i) {
     }
   }
 
+  Radio r = vfo->radio == RADIO_UNKNOWN ? p->radio : vfo->radio;
+
   uint32_t est = loot->lastTimeOpen ? (Now() - loot->lastTimeOpen) / 1000 : 0;
-  if (loot->ct != 0xFF) {
-    PrintSmallEx(0, bl + 6, POS_L, C_FILL, "CT:%u.%uHz",
-                 CTCSS_Options[loot->ct] / 10, CTCSS_Options[loot->ct] % 10);
-  } else if (loot->cd != 0xFF) {
-    PrintSmallEx(0, bl + 6, POS_L, C_FILL, "D%03oN(fake)",
-                 DCS_Options[loot->cd]);
+  if (r == RADIO_BK4819) {
+    if (loot->ct != 0xFF) {
+      PrintSmallEx(0, bl + 6, POS_L, C_FILL, "CT %u.%u",
+                   CTCSS_Options[loot->ct] / 10, CTCSS_Options[loot->ct] % 10);
+    } else if (loot->cd != 0xFF) {
+      PrintSmallEx(0, bl + 6, POS_L, C_FILL, "D%03oN(fake)",
+                   DCS_Options[loot->cd]);
+    }
   }
-  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %c SQ%u %c %s %4s",
+  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %c SQ%u %c %s %s",
                p->allowTx ? TX_POWER_NAMES[p->power][0] : ' ',
                "WNn"[p->band.bw], p -> band.squelch,
                RADIO_GetTXFEx(vfo, p) != vfo->rx.f
                    ? (p->offsetDir ? TX_OFFSET_NAMES[p->offsetDir][0] : '*')
                    : ' ',
                vfo->tx.codeType ? TX_CODE_TYPES[vfo->tx.codeType] : "",
-               radioNames[vfo->radio == RADIO_UNKNOWN ? p->radio : vfo->radio]);
+               shortRadioNames[r]);
 
   if (loot->lastTimeOpen) {
     PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,

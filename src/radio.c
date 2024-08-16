@@ -66,6 +66,7 @@ const char *modulationTypeOptions[8] = {"FM",  "AM",  "LSB", "USB",
 const char *powerNames[] = {"LOW", "MID", "HIGH"};
 const char *bwNames[3] = {"25k", "12.5k", "6.25k"};
 const char *radioNames[4] = {"BK4819", "BK1080", "SI4732", "Preset"};
+const char *shortRadioNames[4] = {"BK", "BC", "SI", "PR"};
 const char *TX_STATE_NAMES[7] = {"TX Off",    "TX On",    "VOL HIGH",
                                  "BAT LOW",   "DISABLED", "UPCONVERTER",
                                  "HIGH POWER"};
@@ -276,7 +277,8 @@ void RADIO_ToggleRX(bool on) {
 
   gIsListening = on;
 
-  BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN, on);
+  BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN,
+                       gSettings.brightness > 1 && on);
 
   if (on) {
     if (gSettings.backlightOnSquelch != BL_SQL_OFF) {
@@ -449,7 +451,7 @@ void RADIO_ToggleTX(bool on) {
     BK4819_RX_TurnOn();
   }
 
-  BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, on);
+  BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, gSettings.brightness > 1 && on);
 
   gTxState = on;
 }
@@ -632,6 +634,7 @@ void RADIO_SetGain(uint8_t gainIndex) {
 }
 
 void RADIO_SetupBandParams() {
+  Log("RADIO_SetupBandParams");
   Band *b = &gCurrentPreset->band;
   uint32_t fMid = b->bounds.start + (b->bounds.end - b->bounds.start) / 2;
   ModulationType mod = RADIO_GetModulation();
@@ -642,6 +645,11 @@ void RADIO_SetupBandParams() {
                    gSettings.sqlCloseTime);
     BK4819_SetFilterBandwidth(b->bw);
     BK4819_SetModulation(mod);
+    if (gSettings.scrambler) {
+      BK4819_EnableScramble(gSettings.scrambler);
+    } else {
+      BK4819_DisableScramble();
+    }
     break;
   case RADIO_BK1080:
     break;
@@ -677,6 +685,7 @@ void RADIO_SetupBandParams() {
     break;
   }
   RADIO_SetGain(b->gainIndex);
+  Log("RADIO_SetupBandParams end");
 }
 
 static bool isSqOpenSimple(uint16_t r) {
@@ -816,7 +825,9 @@ Loot *RADIO_UpdateMeasurements(void) {
       }
     }
   }
-  LOOT_Update(msm);
+  if (RADIO_GetRadio() == RADIO_BK4819) {
+    LOOT_Update(msm);
+  }
 
   bool rx = msm->open;
   if (gTxState != TX_ON) {
