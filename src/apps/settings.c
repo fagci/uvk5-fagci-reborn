@@ -64,7 +64,7 @@ static const MenuItem menu[] = {
     {"SCAN single freq time", M_SCAN_DELAY, 255},
     {"SCAN listen time", M_SQL_TO_OPEN, ARRAY_SIZE(SCAN_TIMEOUT_NAMES)},
     {"SCAN after close time", M_SQL_TO_CLOSE, ARRAY_SIZE(SCAN_TIMEOUT_NAMES)},
-    {"Dual watch", M_DW, 2},
+    {"Dual watch", M_DW, 3},
     {"Brightness", M_BRIGHTNESS, 16},
     {"Contrast", M_CONTRAST, 16},
     {"BL time", M_BL_TIME, ARRAY_SIZE(BL_TIME_VALUES)},
@@ -142,7 +142,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
   case M_SKIP_GARBAGE_FREQS:
   case M_SI4732_POWER_OFF:
   case M_DW:
-    strncpy(name, yesNo[index], 31);
+    strncpy(name, dwNames[index], 31);
     return;
   case M_ROGER:
     strncpy(name, rogerNames[index], 31);

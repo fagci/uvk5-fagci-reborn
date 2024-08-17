@@ -42,10 +42,12 @@ void VFO2_update(void) {
     if (gIsListening) {
       if (gSettings.activeVFO != dwVfo) {
         gRedrawScreen = true;
-        gSettings.activeVFO = dwVfo;
         radio = &gVFO[dwVfo];
         gCurrentLoot = &gLoot[dwVfo];
-        RADIO_SaveCurrentVFO();
+        if (gSettings.dw == DW_SWITCH) {
+          gSettings.activeVFO = dwVfo;
+          RADIO_SaveCurrentVFO();
+        }
         RADIO_SetupByCurrentVFO();
       }
     } else {
