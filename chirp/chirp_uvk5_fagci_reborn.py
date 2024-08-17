@@ -942,8 +942,7 @@ APP_LIST = [
     "Settings",
     "1 VFO",
     "2 VFO",
-    "ABOUT",
-    "Antenna len"
+    "ABOUT"
 ]
 
 BATTERY_TYPE_NAMES = ["1600mAh", "2200mAh", "3500mAh"]
@@ -959,9 +958,9 @@ VFOs = ["VFO A", "VFO B"]
 
 SQUELCH_TYPE_LIST = ["RNG", "RG", "RN", "R"]
 
-SQL_CLOSE_NAMES = [f"{i}ms" for i in range(0, 35, 5)]
+SQL_CLOSE_NAMES = [f"{i}ms" for i in range(0, 15, 5)]
 
-SQL_OPEN_NAMES = [f"{i}ms" for i in range(0, 15, 5)]
+SQL_OPEN_NAMES = [f"{i}ms" for i in range(0, 35, 5)]
 
 # power
 UVK5_POWER_LEVELS = [chirp_common.PowerLevel("Low", watts=1.00),
@@ -1091,7 +1090,7 @@ MEM_SETTINGS = """
 struct {
   u8 checkbyte : 5,
      eepromType : 3;
-  u8 scrambler:4, 
+  u8 scrambler : 4, 
      squelch : 4;
   u8 vox : 4,
      batsave : 4;
@@ -1122,7 +1121,8 @@ struct {
   u8 sqClosedTimeout : 4,
      sqOpenedTimeout : 4;
   u8 backlightOnSquelch : 2,
-     reserved2 : 4,
+     reserved2 : 3,
+     si4732PowerOff: 1,
      noListen : 1,
      bound_240_280 : 1;
   u8 scanTimeout : 8;
@@ -1502,11 +1502,11 @@ def _sayhello(serport):
 # --------------------------------------------------------------------------------
 
 def _get_offset(serport, offset, length):
-    a = [1]
-    while len(a) > 0:
-        a = serport.read(512)  # flush the serial port
     global OFFSET_SIZE
     if OFFSET_SIZE == 0:
+        a = [1]
+        while len(a) > 0:
+            a = serport.read(512)  # flush the serial port
         readmem = b"\x1b\x05\x08\x00" + \
                   struct.pack("<HBB", 0, MEM_BLOCK, 0) + \
                   b"\x6a\x39\x57\x64"
@@ -1830,16 +1830,16 @@ def do_upload(radio):
     if has_patch:
         status.msg = "Uploading Patch"
 
-    while addr < memory_size:
-        o = radio.get_mmap()[addr:addr + MEM_BLOCK]
-        _writemem(serport, o, addr)
-        status.cur = addr
-        radio.status_fn(status)
-        status.msg = f"Uploading Patch ({addr - ch_memory_end} / {PATCH_SIZE})"
-        if o:
-            addr += MEM_BLOCK
-        else:
-            raise errors.RadioError("Memory upload incomplete")
+        while addr < memory_size:
+            o = radio.get_mmap()[addr:addr + MEM_BLOCK]
+            _writemem(serport, o, addr)
+            status.cur = addr
+            radio.status_fn(status)
+            status.msg = f"Uploading Patch ({addr - ch_memory_end} / {PATCH_SIZE})"
+            if o:
+                addr += MEM_BLOCK
+            else:
+                raise errors.RadioError("Memory upload incomplete")
 
     status.msg = "Upload OK"
 
@@ -2435,6 +2435,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
     # --------------------------------------------------------------------------------
     def get_settings(self):
         _mem = self._memobj
+        (_, _, has_patch, _) = get_mem_addrs_and_meta(EEPROM_SIZES[_mem.Settings.eepromType])
 
         basic = RadioSettingGroup("basic", "Basic Settings")
         display = RadioSettingGroup("Display", "Display")
@@ -2658,7 +2659,6 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         #  PATCH   #
         ############
 
-        (_, _, has_patch, _) = get_mem_addrs_and_meta(EEPROM_SIZES[_mem.Settings.eepromType])
 
         ssb_patch_idx = 2
         
@@ -2674,8 +2674,6 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         patch.append(rs)
 
         tmpval = _mem.Settings.checkbyte
-        if tmpval > 61 or tmpval < 4:
-            tmpval = 4
         rs = RadioSetting("checkbyte", "Check Byte", RadioSettingValueInteger(0, 31, tmpval))
         basic.append(rs)
 
@@ -2702,13 +2700,8 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         basic.append(rs)
 
         tmpval = _mem.Settings.backlight
-        try:
-            tmpval_idx = BL_TIME_VALUES.index(tmpval)
-        except ValueError:
-            tmpval_idx = 1
         rs = RadioSetting("backlight", "BLmode (TX/RX)",
-                          RadioSettingValueList(BL_TIME_NAMES,
-                                                BL_TIME_NAMES[tmpval_idx]))  # transform into RadioSettingValueMap
+                          RadioSettingValueList(BL_TIME_NAMES, BL_TIME_NAMES[tmpval])) 
         display.append(rs)
 
         tmpval = _mem.Settings.currentScanlist
@@ -2769,11 +2762,11 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         basic.append(rs)
 
         tmpval = _mem.Settings.dw
-        rs = RadioSetting("dw", "DW", RadioSettingValueBoolean(bool(tmpval)))
+        rs = RadioSetting("dw", "Dual Watch", RadioSettingValueBoolean(bool(tmpval)))
         basic.append(rs)
 
-        tmpval = _mem.Settings.contrast
-        rs = RadioSetting("contrast", "Contrast", RadioSettingValueInteger(0, 15, tmpval))
+        tmpval = _mem.Settings.contrast - 8
+        rs = RadioSetting("contrast", "Contrast", RadioSettingValueInteger(-8, 7, tmpval))
         display.append(rs)
 
         tmpval = _mem.Settings.brightness
@@ -2814,12 +2807,12 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         basic.append(rs)
 
         tmpval = _mem.Settings.sqOpenedTimeout
-        rs = RadioSetting("sqOpenedTimeout", "SQL Opened Timeout",
+        rs = RadioSetting("sqOpenedTimeout", "SCAN listen time",
                           RadioSettingValueList(SCAN_TIMEOUT_NAMES, SCAN_TIMEOUT_NAMES[tmpval]))
         sql.append(rs)
 
         tmpval = _mem.Settings.sqClosedTimeout
-        rs = RadioSetting("sqClosedTimeout", "SQL Closed Timeout",
+        rs = RadioSetting("sqClosedTimeout", "SCAN after close timex",
                           RadioSettingValueList(SCAN_TIMEOUT_NAMES, SCAN_TIMEOUT_NAMES[tmpval]))
         sql.append(rs)
 
@@ -2832,13 +2825,17 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         rs = RadioSetting("noListen", "No Listen", RadioSettingValueBoolean(bool(tmpval)))
         basic.append(rs)
 
+        tmpval = _mem.Settings.si4732PowerOff
+        rs = RadioSetting("si4732PowerOff", "SI4732 Power Off", RadioSettingValueBoolean(bool(tmpval)))
+        basic.append(rs)
+
         tmpval = _mem.Settings.bound_240_280
         rs = RadioSetting("bound_240_280", "Bound 240 / 280",
                           RadioSettingValueList(BOUND_240_280_NAMES, BOUND_240_280_NAMES[tmpval]))
         basic.append(rs)
 
         tmpval = _mem.Settings.scanTimeout
-        rs = RadioSetting("scanTimeout", "Scan Listen Time", RadioSettingValueInteger(0, 255, tmpval))
+        rs = RadioSetting("scanTimeout", "SCAN single freq Time", RadioSettingValueInteger(0, 255, tmpval))
         basic.append(rs)
 
         tmpval = _mem.Settings.activeVFO
@@ -2852,14 +2849,14 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         tmpval = _mem.Settings.sqlOpenTime
         if tmpval >= len(SQL_OPEN_NAMES):
             tmpval = 0
-        rs = RadioSetting("sqlOpenTime", "SCAN listen time",
+        rs = RadioSetting("sqlOpenTime", "SQL open time",
                           RadioSettingValueList(SQL_OPEN_NAMES, SQL_OPEN_NAMES[tmpval]))
         sql.append(rs)
 
         tmpval = _mem.Settings.sqlCloseTime
         if tmpval >= len(SQL_CLOSE_NAMES):
             tmpval = 0
-        rs = RadioSetting("sqlCloseTime", "SCAN after close time",
+        rs = RadioSetting("sqlCloseTime", "SQL close time",
                           RadioSettingValueList(SQL_CLOSE_NAMES, SQL_CLOSE_NAMES[tmpval]))
         sql.append(rs)
 
@@ -2924,7 +2921,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 _mem.Settings.txTime = int(element.value)
 
             if element.get_name() == "backlight":
-                _mem.Settings.backlight = BL_TIME_VALUES[BL_TIME_NAMES.index(element.value)]
+                _mem.Settings.backlight = BL_TIME_NAMES.index(element.value)
 
             if element.get_name() == "currentScanlist":
                 _mem.Settings.currentScanlist = int(element.value) - 1
@@ -2969,7 +2966,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 _mem.Settings.dw = element.value and 1 or 0
 
             if element.get_name() == "contrast":
-                _mem.Settings.contrast = int(element.value)
+                _mem.Settings.contrast = int(element.value) + 8
 
             if element.get_name() == "brightness":
                 _mem.Settings.brightness = int(element.value)
@@ -3004,6 +3001,9 @@ class UVK5Radio(chirp_common.CloneModeRadio):
 
             if element.get_name() == "noListen":
                 _mem.Settings.noListen = element.value and 1 or 0
+
+            if element.get_name() == "si4732PowerOff":
+                _mem.Settings.si4732PowerOff = element.value and 1 or 0
 
             if element.get_name() == "bound_240_280":
                 _mem.Settings.bound_240_280 = BOUND_240_280_NAMES.index(element.value)
