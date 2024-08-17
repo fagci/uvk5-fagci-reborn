@@ -1027,6 +1027,7 @@ BANDS = {
 # ]
 
 TMODES = [None, "Tone", "DTCS", "DTCS"]
+ROGER_NAMES = ["None", "Moto", "Tiny", "Call"]
 
 CTCSS_TONES = [
     67.0, 69.3, 71.9, 74.4, 77.0, 79.7, 82.5, 85.4,
@@ -1261,25 +1262,23 @@ def transform_to_8bit(num):
     return uint8_list
 
 def copy_patch(src, dest):
-    if "Patch" in src and "Patch" in dest:
-        for i in range(len(src["Patch"])):
-            for j in range(len(src["Patch"][i]["patch_data"])):
-                patch_block = transform_to_8bit(src["Patch"][i]["patch_data"][j])
-                curr_patch_data_block_val = 0
-                for k in range(PATCH_BLOCK_SIZE):
-                    curr_patch_data_block_val |= patch_block[k] << (8 * (PATCH_BLOCK_SIZE - k - 1))
-                dest["Patch"][i]["patch_data"][j] = curr_patch_data_block_val
+    for i in range(len(src["Patch"])):
+        for j in range(len(src["Patch"][i]["patch_data"])):
+            patch_block = transform_to_8bit(src["Patch"][i]["patch_data"][j])
+            curr_patch_data_block_val = 0
+            for k in range(PATCH_BLOCK_SIZE):
+                curr_patch_data_block_val |= patch_block[k] << (8 * (PATCH_BLOCK_SIZE - k - 1))
+            dest["Patch"][i]["patch_data"][j] = curr_patch_data_block_val
 
 def assign_patch(dest):
-    if "Patch" in dest:
-        for i in range(len(dest["Patch"])):
-            for j in range(len(dest["Patch"][i]["patch_data"])):
-                curr_patch_data_ptr = i * PATCH_DATA_BLOCK_SIZE + j * PATCH_BLOCK_SIZE
-                curr_patch_data_block_val = 0
-                for k in range(PATCH_BLOCK_SIZE):
-                    curr_patch_data_block_val |= RAW_PATCH_DATA[curr_patch_data_ptr + k] << (8 * (PATCH_BLOCK_SIZE - k - 1))
-                # LOG.debug("i=%d, j=%d, p=%d, v=%x" % (i,j,curr_patch_data_ptr,curr_patch_data_block_val))
-                dest["Patch"][i]["patch_data"][j] = curr_patch_data_block_val
+    for i in range(len(dest["Patch"])):
+        for j in range(len(dest["Patch"][i]["patch_data"])):
+            curr_patch_data_ptr = i * PATCH_DATA_BLOCK_SIZE + j * PATCH_BLOCK_SIZE
+            curr_patch_data_block_val = 0
+            for k in range(PATCH_BLOCK_SIZE):
+                curr_patch_data_block_val |= RAW_PATCH_DATA[curr_patch_data_ptr + k] << (8 * (PATCH_BLOCK_SIZE - k - 1))
+            # LOG.debug("i=%d, j=%d, p=%d, v=%x" % (i,j,curr_patch_data_ptr,curr_patch_data_block_val))
+            dest["Patch"][i]["patch_data"][j] = curr_patch_data_block_val
 
 EMPTY_PATCH_VALUE = empty_patch()
 OLD_PATCH_VALUE =  empty_patch()
@@ -2093,9 +2092,10 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         memory_size = EEPROM_SIZES[eeprom_type]
         set_mem_struct_from_settings(memory_size)
         self._memobj = bitwise.parse(MEM_FORMAT, self._mmap)
-        (_, _, _, max_channels) = get_mem_addrs_and_meta(memory_size)
+        (_, _, has_patch, max_channels) = get_mem_addrs_and_meta(memory_size)
         self.max_channels = max_channels
-        copy_patch(self._memobj, OLD_PATCH_VALUE)
+        if has_patch:
+            copy_patch(self._memobj, OLD_PATCH_VALUE)
         # # This code works, But is what we want?
         # real_bands = [(10.0000, 660.0000), (840.0000, 1340.0000)]
         # for i in range(0, len(self._memobj.Preset)):
@@ -2701,6 +2701,10 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         rs = RadioSetting("txTime", "Tx Time", RadioSettingValueInteger(0, 15, tmpval))
         basic.append(rs)
 
+        tmpval = _mem.Settings.scrambler
+        rs = RadioSetting("scrambler", "Scrambler", RadioSettingValueInteger(0, 15, tmpval))
+        basic.append(rs)
+
         tmpval = _mem.Settings.backlight
         rs = RadioSetting("backlight", "BLmode (TX/RX)",
                           RadioSettingValueList(BL_TIME_NAMES, BL_TIME_NAMES[tmpval])) 
@@ -2726,7 +2730,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         basic.append(rs)
 
         tmpval = _mem.Settings.roger
-        rs = RadioSetting("roger", "Roger", RadioSettingValueInteger(0, 3, tmpval))
+        rs = RadioSetting("roger", "Roger", RadioSettingValueList(ROGER_NAMES, ROGER_NAMES[tmpval]))
         basic.append(rs)
 
         tmpval = _mem.Settings.upconverter
@@ -2921,6 +2925,9 @@ class UVK5Radio(chirp_common.CloneModeRadio):
 
             if element.get_name() == "txTime":
                 _mem.Settings.txTime = int(element.value)
+                
+            if element.get_name() == "scrambler":
+                _mem.Settings.scrambler = int(element.value)
 
             if element.get_name() == "backlight":
                 _mem.Settings.backlight = BL_TIME_NAMES.index(element.value)
@@ -2938,7 +2945,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 _mem.Settings.scanmode = int(element.value)
 
             if element.get_name() == "roger":
-                _mem.Settings.roger = int(element.value)
+                _mem.Settings.roger = ROGER_NAMES.index(element.value)
 
             if element.get_name() == "upconverter":
                 _mem.Settings.upconverter = UPCONVERTER_TYPES.index(element.value)
