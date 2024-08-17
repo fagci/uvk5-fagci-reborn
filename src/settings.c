@@ -13,6 +13,7 @@ const char *TX_POWER_NAMES[3] = {"Low", "Mid", "High"};
 const char *TX_OFFSET_NAMES[3] = {"Unset", "+", "-"};
 const char *TX_CODE_TYPES[4] = {"None", "CT", "DCS", "-DCS"};
 const char *rogerNames[4] = {"None", "Moto", "Tiny", "Call"};
+const char *dwNames[3] = {"Off", "TX Stay", "TX Switch"};
 const char *EEPROM_TYPE_NAMES[8] = {
     "none 1",          // 000
     "none 2",          // 001

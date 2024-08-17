@@ -46,6 +46,12 @@ typedef enum {
 } BacklightOnSquelchMode;
 
 typedef enum {
+  DW_OFF,
+  DW_STAY,
+  DW_SWITCH,
+} DWType;
+
+typedef enum {
   BAT_1600,
   BAT_2200,
   BAT_3500,
@@ -112,7 +118,7 @@ typedef struct {
   uint8_t roger : 2;
   uint8_t scanmode : 2;
   uint8_t chDisplayMode : 2;
-  uint8_t dw : 1;
+  uint8_t reserved : 1;
   uint8_t crossBand : 1;
   uint8_t beep : 1;
   uint8_t keylock : 1;
@@ -134,7 +140,8 @@ typedef struct {
   bool bound_240_280 : 1;
   bool noListen : 1;
   bool si4732PowerOff : 1;
-  uint8_t reserved2 : 3;
+  uint8_t dw : 2;
+  uint8_t reserved2 : 1;
   BacklightOnSquelchMode backlightOnSquelch : 2;
   uint8_t scanTimeout : 8;
   uint8_t sqlOpenTime : 3;
@@ -240,6 +247,7 @@ extern const char *TX_POWER_NAMES[3];
 extern const char *TX_OFFSET_NAMES[3];
 extern const char *TX_CODE_TYPES[4];
 extern const char *rogerNames[4];
+extern const char *dwNames[3];
 
 void SETTINGS_Save();
 void SETTINGS_Load();
