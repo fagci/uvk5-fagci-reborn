@@ -1261,23 +1261,25 @@ def transform_to_8bit(num):
     return uint8_list
 
 def copy_patch(src, dest):
-    for i in range(len(src["Patch"])):
-        for j in range(len(src["Patch"][i]["patch_data"])):
-            patch_block = transform_to_8bit(src["Patch"][i]["patch_data"][j])
-            curr_patch_data_block_val = 0
-            for k in range(PATCH_BLOCK_SIZE):
-                curr_patch_data_block_val |= patch_block[k] << (8 * (PATCH_BLOCK_SIZE - k - 1))
-            dest["Patch"][i]["patch_data"][j] = curr_patch_data_block_val
+    if "Patch" in src and "Patch" in dest:
+        for i in range(len(src["Patch"])):
+            for j in range(len(src["Patch"][i]["patch_data"])):
+                patch_block = transform_to_8bit(src["Patch"][i]["patch_data"][j])
+                curr_patch_data_block_val = 0
+                for k in range(PATCH_BLOCK_SIZE):
+                    curr_patch_data_block_val |= patch_block[k] << (8 * (PATCH_BLOCK_SIZE - k - 1))
+                dest["Patch"][i]["patch_data"][j] = curr_patch_data_block_val
 
 def assign_patch(dest):
-    for i in range(len(dest["Patch"])):
-        for j in range(len(dest["Patch"][i]["patch_data"])):
-            curr_patch_data_ptr = i * PATCH_DATA_BLOCK_SIZE + j * PATCH_BLOCK_SIZE
-            curr_patch_data_block_val = 0
-            for k in range(PATCH_BLOCK_SIZE):
-                curr_patch_data_block_val |= RAW_PATCH_DATA[curr_patch_data_ptr + k] << (8 * (PATCH_BLOCK_SIZE - k - 1))
-            # LOG.debug("i=%d, j=%d, p=%d, v=%x" % (i,j,curr_patch_data_ptr,curr_patch_data_block_val))
-            dest["Patch"][i]["patch_data"][j] = curr_patch_data_block_val
+    if "Patch" in dest:
+        for i in range(len(dest["Patch"])):
+            for j in range(len(dest["Patch"][i]["patch_data"])):
+                curr_patch_data_ptr = i * PATCH_DATA_BLOCK_SIZE + j * PATCH_BLOCK_SIZE
+                curr_patch_data_block_val = 0
+                for k in range(PATCH_BLOCK_SIZE):
+                    curr_patch_data_block_val |= RAW_PATCH_DATA[curr_patch_data_ptr + k] << (8 * (PATCH_BLOCK_SIZE - k - 1))
+                # LOG.debug("i=%d, j=%d, p=%d, v=%x" % (i,j,curr_patch_data_ptr,curr_patch_data_block_val))
+                dest["Patch"][i]["patch_data"][j] = curr_patch_data_block_val
 
 EMPTY_PATCH_VALUE = empty_patch()
 OLD_PATCH_VALUE =  empty_patch()
