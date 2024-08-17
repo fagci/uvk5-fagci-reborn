@@ -43,6 +43,7 @@ import math
 import struct
 import logging
 import re
+import wx
 
 # noinspection PyUnresolvedReferences
 from chirp import chirp_common, directory, bitwise, memmap, errors, util
@@ -73,7 +74,7 @@ MEM_BLOCK = 0x80  # largest block of memory that we can reliably write
 
 OFFSET_SIZE = 0  # size of the offset in the memory map
 
-PATCH_DATA = [21, 0, 15, 224, 242, 115, 118, 47, 22, 111, 38, 30, 0, 75, 44, 88, 22, 163, 116, 15, 224, 76, 54, 228,
+RAW_PATCH_DATA = [21, 0, 15, 224, 242, 115, 118, 47, 22, 111, 38, 30, 0, 75, 44, 88, 22, 163, 116, 15, 224, 76, 54, 228,
               22, 10, 224, 248, 205, 243, 135, 218, 22, 46, 161, 223, 110, 235, 53, 156, 22, 159, 26, 9, 238, 185,
               181, 69, 22, 163, 92, 15, 162, 193, 63, 174, 22, 133, 82, 68, 119, 49, 234, 132, 22, 79, 253, 12, 84,
               127, 69, 207, 22, 249, 39, 2, 78, 9, 162, 104, 22, 127, 156, 248, 207, 51, 57, 45, 22, 86, 142, 194,
@@ -1074,6 +1075,8 @@ BIT_MASK_NAMES.append("12345678")
 
 BIT_MASK_NAMES.append("Custom")
 
+SSB_PATCHES = ["None", "SSB V1", "Unknown Patch"]
+
 ##################
 # END Fagci Reborn
 ##################
@@ -1210,14 +1213,21 @@ MEM_CH = """struct {
       radio : 2;
 } CH[""" + f"{CHAN_MAX}" + "];\n"
 
-PATCH_BLOCK_SIZE = 4  # patch_data = ul32
-# PATCH_BLOCK_SIZE = 2  # patch_data = ul16
-# PATCH_BLOCK_SIZE = 1  # patch_data = ul8
+
+##  NOTE 
+##  THIS SHOULD MATCH WITH MEM_PATCH Object Size
+PATCH_BLOCK_SIZE, SINGLE_PATCH_VAL = 4, 0xffffffff # patch_data = ul32
+#PATCH_BLOCK_SIZE, SINGLE_PATCH_VAL = 2, 0xffff # patch_data = ul16
+#PATCH_BLOCK_SIZE, SINGLE_PATCH_VAL = 1, 0xff # patch_data = ul8
+
+PATCH_DATA_BLOCKS_IN_PATCH_BLOCK = int(PATCH_SIZE / PATCH_BLOCKS / PATCH_BLOCK_SIZE)
 
 MEM_PATCH = """struct {
-  ul32 patch_data[""" + f"{int(PATCH_SIZE / PATCH_BLOCKS / PATCH_BLOCK_SIZE)}" + """];
+  u32 patch_data[""" + f"{PATCH_DATA_BLOCKS_IN_PATCH_BLOCK}" + """];
 } Patch[""" + f"{PATCH_BLOCKS}" + """];
 """
+
+PATCH_DATA_BLOCK_SIZE = int(PATCH_SIZE / PATCH_BLOCKS)
 
 MEM_FORMAT = MEM_SETTINGS + MEM_VF0 + MEM_PRESET
 
@@ -1229,6 +1239,55 @@ ERROR_TIP = ("\n\nPlease ensure that the radio is **NOT** tuned to a frequency t
              " as this can interrupt the upload / download process.\n\nCheck the cable is connected to the radio and"
              " try again. If everything is ok, just try again, sometimes it requires a few tries")
 
+def empty_patch():
+    a = {"Patch": []}
+    for _ in (range(PATCH_BLOCKS)):
+        b = {"patch_data" : []}
+        for _ in range(PATCH_DATA_BLOCKS_IN_PATCH_BLOCK):
+            b["patch_data"].append(SINGLE_PATCH_VAL)
+        a["Patch"].append(b)
+    return a
+    #return {"Patch": [{"patch_data": [SINGLE_PATCH_VAL] * PATCH_DATA_BLOCKS_IN_PATCH_BLOCK}] * PATCH_BLOCKS}
+
+def transform_to_8bit(num):
+    # Initialize an empty list to store the 8-bit integers
+    uint8_list = []
+
+    # Loop through each integer in the input list
+    for i in range(PATCH_BLOCK_SIZE):
+        shift_amount = (PATCH_BLOCK_SIZE - 1 - i) * 8
+        uint8_list.append((num >> shift_amount) & 0xFF)
+
+    return uint8_list
+
+def copy_patch(src, dest):
+    for i in range(len(src["Patch"])):
+        for j in range(len(src["Patch"][i]["patch_data"])):
+            patch_block = transform_to_8bit(src["Patch"][i]["patch_data"][j])
+            curr_patch_data_block_val = 0
+            for k in range(PATCH_BLOCK_SIZE):
+                curr_patch_data_block_val |= patch_block[k] << (8 * (PATCH_BLOCK_SIZE - k - 1))
+            dest["Patch"][i]["patch_data"][j] = curr_patch_data_block_val
+
+def assign_patch(dest):
+    for i in range(len(dest["Patch"])):
+        for j in range(len(dest["Patch"][i]["patch_data"])):
+            curr_patch_data_ptr = i * PATCH_DATA_BLOCK_SIZE + j * PATCH_BLOCK_SIZE
+            curr_patch_data_block_val = 0
+            for k in range(PATCH_BLOCK_SIZE):
+                curr_patch_data_block_val |= RAW_PATCH_DATA[curr_patch_data_ptr + k] << (8 * (PATCH_BLOCK_SIZE - k - 1))
+            # LOG.debug("i=%d, j=%d, p=%d, v=%x" % (i,j,curr_patch_data_ptr,curr_patch_data_block_val))
+            dest["Patch"][i]["patch_data"][j] = curr_patch_data_block_val
+
+EMPTY_PATCH_VALUE = empty_patch()
+OLD_PATCH_VALUE =  empty_patch()
+SSB_V1_PATCH_DATA_VALUE =  empty_patch()
+assign_patch(SSB_V1_PATCH_DATA_VALUE)
+LOG.debug( SSB_V1_PATCH_DATA_VALUE)
+USER_SELECTION_PATCH = {
+    "Clear": False,
+    "Update" : False
+}
 
 def sanitize_str(val):
     """)
@@ -1443,6 +1502,9 @@ def _sayhello(serport):
 # --------------------------------------------------------------------------------
 
 def _get_offset(serport, offset, length):
+    a = [1]
+    while len(a) > 0:
+        a = serport.read(512)  # flush the serial port
     global OFFSET_SIZE
     if OFFSET_SIZE == 0:
         readmem = b"\x1b\x05\x08\x00" + \
@@ -1709,7 +1771,7 @@ def do_upload(radio):
     status.cur = 0
     memory_size = EEPROM_SIZES[radio._memobj.Settings.eepromType]
     (ch_memory_start, ch_memory_end, has_patch, max_channels) = get_mem_addrs_and_meta(memory_size)
-    status.max = ch_memory_end
+    status.max = memory_size
 
     status.msg = "Uploading VFO Setting to radio"
     radio.status_fn(status)
@@ -2013,6 +2075,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
     def sync_in(self):
         self._mmap = do_download(self)
         self.process_mmap()
+        
 
     # --------------------------------------------------------------------------------
     # Do an upload of the radio to the serial port
@@ -2030,7 +2093,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         self._memobj = bitwise.parse(MEM_FORMAT, self._mmap)
         (_, _, _, max_channels) = get_mem_addrs_and_meta(memory_size)
         self.max_channels = max_channels
-
+        copy_patch(self._memobj, OLD_PATCH_VALUE)
         # # This code works, But is what we want?
         # real_bands = [(10.0000, 660.0000), (840.0000, 1340.0000)]
         # for i in range(0, len(self._memobj.Preset)):
@@ -2287,7 +2350,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                           RadioSettingValueList(BIT_MASK_NAMES, BIT_MASK_NAMES[memory_banks_idx]))
         mem.extra.append(rs)
 
-        LOG.debug("Setting memory #%d banks to %s" % (number, memory_banks))
+        #LOG.debug("Setting memory #%d banks to %s" % (number, memory_banks))
 
         return mem
 
@@ -2376,7 +2439,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         basic = RadioSettingGroup("basic", "Basic Settings")
         display = RadioSettingGroup("Display", "Display")
         sql = RadioSettingGroup("sql", "SQL")
-        patch = RadioSettingGroup("patch", "Patch")
+        patch = RadioSettingGroup("patches", "Patches")
 
         # --------------------------------------------------------------------------------
         # helper function
@@ -2403,6 +2466,9 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         # append_label(basic, f"Last Used Freq Offset 1: {_mem.lastUsedFreq_offset_2}")
         # append_label(basic, f"Last Used Freq Offset 2: {_mem.lastUsedFreq_offset_2}")
 
+        ############
+        #   VFO    #
+        ############
         vfo = []
         for i in range(len(_mem.VFO)):
             curr_vfo = _mem.VFO[i]
@@ -2411,7 +2477,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             #tx_f
             tx = int(curr_vfo.tx.f)
             v.append(
-                RadioSetting(f"vfo{i}_tx_f", "TX Frequency", RadioSettingValueInteger(MIN_FREQ, MAX_FREQ, tx * 10)))
+                RadioSetting(f"vfo{i}_tx_f", "TX Frequency", RadioSettingValueInteger(0, MAX_FREQ, tx * 10)))
 
             #tx_codeType
             tx_codeType = int(curr_vfo.tx.codeType)
@@ -2464,7 +2530,10 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             v.append(RadioSetting(f"vfo{i}_radio", "Radio", RadioSettingValueList(RADIO_LIST, RADIO_LIST[radio])))
 
             vfo.append(v)
-
+       
+        ############
+        #  PRESET  #
+        ############
         presets = []
         for i in range(len(_mem.Preset)):
 
@@ -2585,53 +2654,24 @@ class UVK5Radio(chirp_common.CloneModeRadio):
 
             presets.append(pr)
 
-            # (_, _, haspatch, _) = get_mem_addrs_and_meta(self.memory_size)
-            # if haspatch:
-            #     is_patched = False
-            #     for i in range(len(_mem.Patch)):
-            #         curr_patch_blocks = _mem.Patch[i].patch_data
-            #         for j in range(len(curr_patch_blocks)):
-            #             if patch_index < len(PATCH_DATA):
-            #                 curr_patch_block = curr_patch_blocks[j]
-            #                 patch_data_block = PATCH_DATA[patch_index]
-            #                 LOG.debug(f"Patch block {j} for patch {i} (== {patch_data_block} ? ): {curr_patch_block}")
-            #                 if curr_patch_block != patch_data_block:
-            #                     is_patched = True
-            #                     break
-            #                 patch_index += 1
-            #             else:
-            #                 break
-            #         if is_patched:
-            #             break
-            # (_, _, haspatch, _) = get_mem_addrs_and_meta(self.memory_size)
-            # if haspatch:
-            #     is_patched = False
-            #     patch_index = 0
-            #     for i in range(len(_mem.Patch)):
-            #         curr_patch_blocks = _mem.Patch[i].patch_data
-            #         for j in range(len(curr_patch_blocks)):
-            #             if patch_index < len(PATCH_DATA):
-            #                 curr_patch_block = curr_patch_blocks[j]
-            #                 patch_data_block = PATCH_DATA[patch_index]
-            #                 LOG.debug(f"Patch block {j} for patch {i} (== {patch_data_block} ? ): {curr_patch_block}")
-            #                 if curr_patch_block != patch_data_block:
-            #                     is_patched = True
-            #                     break
-            #                 patch_index += 1
-            #             else:
-            #                 break
-            #         if is_patched:
-            #             break
+        ############
+        #  PATCH   #
+        ############
 
+        (_, _, has_patch, _) = get_mem_addrs_and_meta(EEPROM_SIZES[_mem.Settings.eepromType])
 
-            # # val = RadioSettingValueBoolean(is_patched)
-            # val = RadioSettingValueBoolean(False)
-            # val.set_mutable(False)
-            # rs = RadioSetting("is_patched", "Is Patched", val)
-            # patch.append(rs)
-
-            # rs = RadioSetting("update_patch", "Update Patch", RadioSettingValueBoolean(False))
-            # patch.append(rs)
+        ssb_patch_idx = 2
+        
+        if has_patch:
+            if self.is_none_patched(_mem):
+                ssb_patch_idx = 0
+            elif self.is_ssb_v1_patched(_mem):
+                ssb_patch_idx = 1
+          
+        val = RadioSettingValueList(SSB_PATCHES, SSB_PATCHES[ssb_patch_idx])
+        val.set_mutable(has_patch)
+        rs = RadioSetting("ssb_patch", "SSB Patch", val)
+        patch.append(rs)
 
         tmpval = _mem.Settings.checkbyte
         if tmpval > 61 or tmpval < 4:
@@ -2831,6 +2871,32 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         return top
 
     # --------------------------------------------------------------------------------
+
+    def is_ssb_v1_patched(self, _mem):
+        for i in range(len(_mem.Patch)):
+            curr_patch_blocks = _mem.Patch[i].patch_data
+            for j in range(len(curr_patch_blocks)):
+                test = 0
+                curr_patch_data_ptr = i * PATCH_DATA_BLOCK_SIZE + j * PATCH_BLOCK_SIZE
+                for k in range(PATCH_BLOCK_SIZE):
+                    test |= RAW_PATCH_DATA[curr_patch_data_ptr + k] << (8 * (PATCH_BLOCK_SIZE - k - 1))
+                LOG.debug("curr_patch_blocks[j] = %x, test=%x" % (curr_patch_blocks[j],test ))
+                if curr_patch_blocks[j] != test:
+                    return False
+        return True
+    
+    def is_none_patched(self, _mem):
+        for i in range(len(_mem.Patch)):
+            curr_patch_blocks = _mem.Patch[i].patch_data
+            for j in range(len(curr_patch_blocks)):
+                test = 0
+                for k in range(PATCH_BLOCK_SIZE):
+                    test |= (0xff << (k * 8))
+                if curr_patch_blocks[j] != test:
+                    return False
+        return True
+
+    # --------------------------------------------------------------------------------
     def set_settings(self, settings):
 
         _mem = self._memobj
@@ -2972,11 +3038,6 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 if element.get_name() == f"{base_vfo_name}_tx_codeType":
                     #  Needed some logic to update the settings list values
                     _mem.VFO[vfo_idx].tx.codeType = TX_CODE_TYPES.index(element.value)
-                    # LOG.debug(f"TX_CODE_TYPES: {TX_CODE_TYPES}, element.value: {element }")
-                    # #list all keys in self object
-                    # LOG.debug(dir(self))
-                    # self.get_settings()
-                    # set_tx_code(_mem, _mem.VFO[vfo_idx], vfo_idx, element)
 
                 if element.get_name() == f"{base_vfo_name}_tx_code":
                     _mem.VFO[vfo_idx].tx.code = int(element.value)
@@ -3026,8 +3087,8 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                     _mem.Preset[pr_idx].Band.FRange.end_msb = (end >> 5) & 0x3FFFFF
                     _mem.Preset[pr_idx].Band.FRange.end_lsb = end & 0x1FF
 
-                    LOG.debug(
-                        f"end: {end}, _mem.Preset[pr_idx].Band.FRange.end_msb: {_mem.Preset[pr_idx].Band.FRange.end_msb}, _mem.Preset[pr_idx].Band.FRange.end_lsb: {_mem.Preset[pr_idx].Band.FRange.end_lsb}")
+                    # LOG.debug(
+                    #     f"end: {end}, _mem.Preset[pr_idx].Band.FRange.end_msb: {_mem.Preset[pr_idx].Band.FRange.end_msb}, _mem.Preset[pr_idx].Band.FRange.end_lsb: {_mem.Preset[pr_idx].Band.FRange.end_lsb}")
 
                 if element.get_name() == f"{base_pr_name}_band_name":
                     _mem.Preset[pr_idx].Band.name = sanitize_str_10(element.value)
@@ -3065,14 +3126,10 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 if element.get_name() == f"{base_pr_name}_power":
                     _mem.Preset[pr_idx].power = TXPOWER_LIST.index(element.value)
 
-                if element.get_name() == f"update_patch":
-                    # Set the _mem.Patch with the content of patch data
-                    for i in range(len(_mem.Patch)):
-                        curr_patch_blocks = _mem.Patch[i].patch_data
-                        for j in range(len(curr_patch_blocks)):
-                            index = i * len(curr_patch_blocks) + j
-                            if index < len(PATCH_DATA):
-                                curr_patch_blocks[j] = PATCH_DATA[index]
-                            else:
-                                curr_patch_blocks[j] = (1 << (
-                                        PATCH_BLOCK_SIZE * 4)) - 1  # Fill remaining blocks with 0xFF
+            if element.get_name() == f"ssb_patch":
+                if (element.value == "SSB V1"):
+                    copy_patch(SSB_V1_PATCH_DATA_VALUE, _mem)
+                elif (element.value == "None"):
+                    copy_patch(EMPTY_PATCH_VALUE, _mem)
+                else: 
+                    copy_patch(OLD_PATCH_VALUE, _mem)
