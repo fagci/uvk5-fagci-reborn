@@ -83,6 +83,10 @@ void STATUSLINE_render(void) {
     icons[idx++] = SYM_EEPROM_W;
   }
 
+  if (SVC_Running(SVC_FC)) {
+    icons[idx++] = SYM_FC;
+  }
+
   if (SVC_Running(SVC_SCAN)) {
     icons[idx++] = SYM_SCAN;
   }
@@ -91,7 +95,7 @@ void STATUSLINE_render(void) {
     icons[idx++] = SYM_MONITOR;
   }
 
-  if (RADIO_GetRadio() != RADIO_BK1080 || isSi4732On) {
+  if (RADIO_GetRadio() == RADIO_BK1080 || isSi4732On) {
     icons[idx++] = SYM_BROADCAST;
   }
 

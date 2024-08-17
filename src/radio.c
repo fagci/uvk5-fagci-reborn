@@ -104,7 +104,9 @@ void RADIO_SetupRegisters(void) {
     SYSTEM_DelayMs(1);
   }
   BK4819_WriteRegister(BK4819_REG_3F, 0);
-  BK4819_WriteRegister(BK4819_REG_7D, 0xE94F);
+  BK4819_WriteRegister(BK4819_REG_7D, 0xE94F); // mic
+  BK4819_WriteRegister(0x74, 0xAF1F);          // 3k resp TX
+  BK4819_WriteRegister(0x75, 0xAF1F);          // 3k resp RX
   /* BK4819_SetFrequency(Frequency);
   BK4819_SelectFilter(Frequency); */
   BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, true);
@@ -222,18 +224,18 @@ static void setupToneDetection() {
   switch (radio->rx.codeType) {
   case CODE_TYPE_DIGITAL:
   case CODE_TYPE_REVERSE_DIGITAL:
-    Log("DCS on");
+    // Log("DCS on");
     BK4819_SetCDCSSCodeWord(
         DCS_GetGolayCodeWord(radio->rx.codeType, radio->rx.code));
     InterruptMask |= BK4819_REG_3F_CDCSS_FOUND | BK4819_REG_3F_CDCSS_LOST;
     break;
   case CODE_TYPE_CONTINUOUS_TONE:
-    Log("CTCSS on");
+    // Log("CTCSS on");
     BK4819_SetCTCSSFrequency(CTCSS_Options[radio->rx.code]);
     InterruptMask |= BK4819_REG_3F_CTCSS_FOUND | BK4819_REG_3F_CTCSS_LOST;
     break;
   default:
-    Log("STE on");
+    // Log("STE on");
     BK4819_SetCTCSSFrequency(670);
     BK4819_SetTailDetection(550);
     break;
@@ -503,7 +505,7 @@ void RADIO_SetSquelchPure(uint32_t f, uint8_t sql) {
 void RADIO_TuneToPure(uint32_t f, bool precise) {
   LOOT_Replace(&gLoot[gSettings.activeVFO], f);
   Radio r = RADIO_GetRadio();
-  Log("Tune %s to %u", radioNames[r], f);
+  // Log("Tune %s to %u", radioNames[r], f);
   switch (r) {
   case RADIO_BK4819:
     BK4819_TuneTo(f, precise);
@@ -551,7 +553,11 @@ void RADIO_SetupByCurrentVFO(void) {
 
 // USE CASE: set vfo temporary for current app
 void RADIO_TuneTo(uint32_t f) {
-  radio->channel = -1;
+  if (radio->channel != -1) {
+    radio->channel = -1;
+    radio->radio = RADIO_UNKNOWN;
+    radio->modulation = MOD_PRST;
+  }
   radio->tx.f = 0;
   radio->rx.f = f;
   RADIO_SetupByCurrentVFO();
@@ -634,7 +640,7 @@ void RADIO_SetGain(uint8_t gainIndex) {
 }
 
 void RADIO_SetupBandParams() {
-  Log("RADIO_SetupBandParams");
+  // Log("RADIO_SetupBandParams");
   Band *b = &gCurrentPreset->band;
   uint32_t fMid = b->bounds.start + (b->bounds.end - b->bounds.start) / 2;
   ModulationType mod = RADIO_GetModulation();
@@ -685,7 +691,7 @@ void RADIO_SetupBandParams() {
     break;
   }
   RADIO_SetGain(b->gainIndex);
-  Log("RADIO_SetupBandParams end");
+  // Log("RADIO_SetupBandParams end");
 }
 
 static bool isSqOpenSimple(uint16_t r) {

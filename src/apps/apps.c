@@ -8,7 +8,6 @@
 #include "antenna.h"
 #include "appslist.h"
 #include "channelscanner.h"
-#include "fastscan.h"
 #include "finput.h"
 #include "lootlist.h"
 #include "memview.h"
@@ -65,7 +64,6 @@ const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
     APP_SAVECH,       //
     APP_SPECTRUM,     //
     APP_ANALYZER,     //
-    APP_FASTSCAN,     //
     APP_LOOT_LIST,    //
     APP_PRESETS_LIST, //
     APP_MEMVIEW,      //
@@ -83,8 +81,6 @@ const App apps[APPS_COUNT] = {
     {"CH Scan", CHSCANNER_init, CHSCANNER_update, CHSCANNER_render,
      CHSCANNER_key, CHSCANNER_deinit},
     {"Channels", SAVECH_init, SAVECH_update, SAVECH_render, SAVECH_key, NULL},
-    {"Freq catch", FASTSCAN_init, FASTSCAN_update, FASTSCAN_render,
-     FASTSCAN_key, FASTSCAN_deinit},
     {"1 VFO pro", STILL_init, STILL_update, STILL_render, STILL_key,
      STILL_deinit},
     {"Frequency input", FINPUT_init, NULL, FINPUT_render, FINPUT_key,

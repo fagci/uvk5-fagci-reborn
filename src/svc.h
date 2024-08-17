@@ -8,6 +8,7 @@ typedef enum {
   SVC_KEYBOARD,
   SVC_LISTEN,
   SVC_SCAN,
+  SVC_FC,
   SVC_BAT_SAVE,
   SVC_APPS,
   SVC_SYS,
