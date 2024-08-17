@@ -62,7 +62,7 @@ void VFO2_update(void) {
 static void setChannel(uint16_t v) { RADIO_TuneToCH(v - 1); }
 
 bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  Log("onkey, dw revert");
+  // Log("onkey, dw revert");
   // dw hack start
   lastDw = Now(); // prevent dw to switch now
   radio = &gVFO[gSettings.activeVFO];
