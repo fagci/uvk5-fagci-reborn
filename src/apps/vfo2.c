@@ -1,5 +1,6 @@
 #include "vfo2.h"
 #include "../dcs.h"
+#include "../driver/uart.h"
 #include "../helper/channels.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
@@ -36,17 +37,22 @@ void VFO2_update(void) {
     gRedrawScreen = true;
     lastRender = Now();
   }
-  if (gSettings.dw && Now() - lastDw > 100) {
+  if (gTxState != TX_ON && gSettings.dw && Now() - lastDw >= 250) {
     lastDw = Now();
     if (gIsListening) {
-      gSettings.activeVFO = dwVfo;
-      RADIO_SaveCurrentVFO();
+      if (gSettings.activeVFO != dwVfo) {
+        gRedrawScreen = true;
+        gSettings.activeVFO = dwVfo;
+        radio = &gVFO[dwVfo];
+        gCurrentLoot = &gLoot[dwVfo];
+        RADIO_SaveCurrentVFO();
+        RADIO_SetupByCurrentVFO();
+      }
     } else {
       dwVfo = !dwVfo;
       radio = &gVFO[dwVfo];
       gCurrentLoot = &gLoot[dwVfo];
       RADIO_SetupByCurrentVFO();
-      radio = &gVFO[gSettings.activeVFO];
     }
   }
 }
@@ -54,6 +60,14 @@ void VFO2_update(void) {
 static void setChannel(uint16_t v) { RADIO_TuneToCH(v - 1); }
 
 bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  Log("onkey, dw revert");
+  // dw hack start
+  lastDw = Now(); // prevent dw to switch now
+  radio = &gVFO[gSettings.activeVFO];
+  gCurrentLoot = &gLoot[gSettings.activeVFO];
+  RADIO_SetupByCurrentVFO();
+  // dw hack end
+
   if (!bKeyPressed && !bKeyHeld && radio->channel >= 0) {
     if (!gIsNumNavInput && key >= KEY_0 && key <= KEY_9) {
       NUMNAV_Init(radio->channel + 1, 1, CHANNELS_GetCountMax());
@@ -88,13 +102,13 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_SIDE1:
       if (RADIO_GetRadio() == RADIO_SI4732 && isSsb) {
-        RADIO_TuneToSave(radio->rx.f + 10);
+        RADIO_TuneToSave(radio->rx.f + 5);
         return true;
       }
       break;
     case KEY_SIDE2:
       if (RADIO_GetRadio() == RADIO_SI4732 && isSsb) {
-        RADIO_TuneToSave(radio->rx.f - 10);
+        RADIO_TuneToSave(radio->rx.f - 5);
         return true;
       }
       break;
@@ -120,6 +134,11 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       RADIO_ToggleVfoMR();
       return true;
     case KEY_4: // freq catch
+      if (SVC_Running(SVC_FC)) {
+        SVC_Toggle(SVC_FC, false, 10);
+      } else {
+        SVC_Toggle(SVC_FC, true, 10);
+      }
       return true;
     case KEY_5: // noaa
       return true;
@@ -140,6 +159,9 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_STAR:
       SVC_Toggle(SVC_SCAN, true, 10);
+      return true;
+    case KEY_SIDE1:
+      APPS_run(APP_ANALYZER);
       return true;
     default:
       break;

@@ -336,6 +336,10 @@ static void onSubChange(void) {
   case M_BL_TIME:
     BACKLIGHT_SetDuration(BL_TIME_VALUES[subMenuIndex]);
     break;
+  case M_SCRAMBLER:
+    gSettings.scrambler = subMenuIndex;
+    RADIO_SetupByCurrentVFO();
+    break;
   case M_CONTRAST:
     gSettings.contrast = subMenuIndex;
     break;
