@@ -3,3 +3,4 @@ bin/
 src/external/
 .vsconfig/
 .idea/
+.DS_Store
