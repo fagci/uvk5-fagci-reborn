@@ -484,7 +484,6 @@ void RADIO_ToggleTX(bool on) {
   } else if (gTxState == TX_ON) {
     BK4819_ExitDTMF_TX(true);
 
-    // RADIO_EnableCxCSS();
     sendEOT();
 
     BK4819_SetupPowerAmplifier(0, 0);
@@ -548,7 +547,6 @@ void RADIO_SetupByCurrentVFO(void) {
 
   RADIO_SetupBandParams();
   setupToneDetection();
-  // RADIO_ToggleRX(false); // to prevent muting when tune to new band
 
   RADIO_TuneToPure(f, !gMonitorMode); // todo: precise when old preset !=new?
 }
@@ -574,11 +572,6 @@ void RADIO_TuneToSave(uint32_t f) {
 }
 
 void RADIO_SaveCurrentVFO(void) { VFOS_Save(gSettings.activeVFO, radio); }
-
-void RADIO_SelectPreset(int8_t num) {
-  PRESET_Select(num);
-  RADIO_TuneTo(gCurrentPreset->lastUsedFreq);
-}
 
 void RADIO_SelectPresetSave(int8_t num) {
   radio->radio = RADIO_UNKNOWN;
