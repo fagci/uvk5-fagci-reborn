@@ -289,6 +289,7 @@ static void sendEOT() {
   default:
     break;
   }
+  SYSTEM_DelayMs(10);
   BK4819_GenTail(4);
   BK4819_WriteRegister(BK4819_REG_51, 0x9033);
   SYSTEM_DelayMs(200);
@@ -574,13 +575,6 @@ void RADIO_TuneToSave(uint32_t f) {
 
 void RADIO_SaveCurrentVFO(void) { VFOS_Save(gSettings.activeVFO, radio); }
 
-void RADIO_VfoLoadCH(uint8_t i) {
-  CH ch;
-  CHANNELS_Load(gVFO[i].channel, &ch);
-  CH2VFO(&ch, &gVFO[i]);
-  strncpy(gVFONames[i], ch.name, 9);
-}
-
 void RADIO_SelectPreset(int8_t num) {
   PRESET_Select(num);
   RADIO_TuneTo(gCurrentPreset->lastUsedFreq);
@@ -794,13 +788,17 @@ bool RADIO_UpdateMeasurementsEx(Loot *dest) {
   return msm->open;
 }
 
+void RADIO_VfoLoadCH(uint8_t i) {
+  CH ch;
+  CHANNELS_Load(gVFO[i].channel, &ch);
+  CH2VFO(&ch, &gVFO[i]);
+  strncpy(gVFONames[i], ch.name, 9);
+}
+
 bool RADIO_TuneToCH(int32_t num) {
   if (CHANNELS_Existing(num)) {
-    CH ch;
-    CHANNELS_Load(num, &ch);
-    CH2VFO(&ch, radio);
-    strncpy(gVFONames[gSettings.activeVFO], ch.name, 9);
     radio->channel = num;
+    RADIO_VfoLoadCH(gSettings.activeVFO);
     onVfoUpdate();
     RADIO_SetupByCurrentVFO();
     return true;
@@ -809,28 +807,7 @@ bool RADIO_TuneToCH(int32_t num) {
 }
 
 void RADIO_NextCH(bool next) {
-  int32_t i;
-  if (radio->channel >= 0) {
-    i = CHANNELS_Next(radio->channel, next);
-    if (i > -1) {
-      radio->channel = i;
-      RADIO_VfoLoadCH(gSettings.activeVFO);
-    }
-    onVfoUpdate();
-    RADIO_SetupByCurrentVFO();
-    return;
-  }
-
-  i = radio->channel;
-
-  if (!CHANNELS_Existing(i)) {
-    i = CHANNELS_Next(i, true);
-    if (i == -1) {
-      return;
-    }
-  }
-
-  RADIO_TuneToCH(i);
+  RADIO_TuneToCH(CHANNELS_Next(radio->channel, next));
 }
 
 void RADIO_NextVFO(void) {
@@ -884,14 +861,6 @@ void RADIO_NextFreqNoClicks(bool next) {
   onVfoUpdate();
 }
 
-void RADIO_NextPresetFreq(bool next) {
-  uint32_t steps = PRESETS_GetSteps(gCurrentPreset);
-  uint32_t step = PRESETS_GetChannel(gCurrentPreset, radio->rx.f);
-  IncDec32(&step, 0, steps, next ? 1 : -1);
-  radio->rx.f = PRESETS_GetF(gCurrentPreset, step);
-  RADIO_TuneToPure(radio->rx.f, true);
-}
-
 void RADIO_NextPresetFreqEx(bool next, bool precise) {
   uint32_t steps = PRESETS_GetSteps(gCurrentPreset);
   uint32_t step = PRESETS_GetChannel(gCurrentPreset, radio->rx.f);
@@ -899,6 +868,8 @@ void RADIO_NextPresetFreqEx(bool next, bool precise) {
   radio->rx.f = PRESETS_GetF(gCurrentPreset, step);
   RADIO_TuneToPure(radio->rx.f, precise);
 }
+
+void RADIO_NextPresetFreq(bool next) { RADIO_NextPresetFreqEx(next, true); }
 
 void RADIO_ToggleModulation(void) {
   if (radio->modulation == MOD_PRST) {
@@ -936,6 +907,5 @@ void RADIO_ToggleTxPower(void) {
     ++gCurrentPreset->power;
   }
 
-  BK4819_SetFilterBandwidth(gCurrentPreset->band.bw);
   onPresetUpdate();
 }
