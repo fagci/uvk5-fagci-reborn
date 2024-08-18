@@ -612,8 +612,7 @@ void RADIO_SetGain(uint8_t gainIndex) {
   gCurrentPreset->band.gainIndex = gainIndex;
   switch (RADIO_GetRadio()) {
   case RADIO_BK4819:
-    BK4819_SetAGC(gCurrentPreset->band.modulation != MOD_AM,
-                  gCurrentPreset->band.gainIndex);
+    BK4819_SetAGC(gCurrentPreset->band.modulation != MOD_AM, gainIndex);
     break;
   case RADIO_SI4732:
     gainIndex = ARRAY_SIZE(gainTable) - 1 - gainIndex;
