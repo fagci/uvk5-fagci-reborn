@@ -1,30 +1,19 @@
 #include "vfo2.h"
 #include "../dcs.h"
-#include "../driver/uart.h"
-#include "../helper/channels.h"
 #include "../helper/lootlist.h"
-#include "../helper/measurements.h"
 #include "../helper/numnav.h"
 #include "../helper/presetlist.h"
 #include "../helper/rds.h"
 #include "../scheduler.h"
 #include "../settings.h"
-#include "../svc.h"
-#include "../svc_scan.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/statusline.h"
-#include "apps.h"
-#include "finput.h"
 #include "vfo1.h"
 
 static uint32_t lastRender = 0;
 
-void VFO2_init(void) {
-  RADIO_LoadCurrentVFO();
-
-  gRedrawScreen = true;
-}
+void VFO2_init(void) { RADIO_LoadCurrentVFO(); }
 
 void VFO2_deinit(void) {}
 

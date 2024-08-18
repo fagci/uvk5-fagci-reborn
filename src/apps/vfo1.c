@@ -20,7 +20,6 @@ static void tuneTo(uint32_t f) { RADIO_TuneToSave(GetTuneF(f)); }
 
 void VFO1_init(void) {
   RADIO_LoadCurrentVFO();
-  gRedrawScreen = true;
 }
 
 void VFO1_deinit(void) {}
