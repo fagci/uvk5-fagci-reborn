@@ -11,10 +11,11 @@ static uint8_t menuIndex = 0;
 
 static void getPresetText(uint16_t i, char *name) {
   Preset *item = PRESETS_Item(i);
-  uint32_t fs = item->band.bounds.start;
-  uint32_t fe = item->band.bounds.end;
-  if (item->band.name[0] > 32) {
-    sprintf(name, "%s", item->band.name);
+  Band *b = &item->band;
+  uint32_t fs = b->bounds.start;
+  uint32_t fe = b->bounds.end;
+  if (b->name[0] > 32) {
+    sprintf(name, "%s", b->name);
   } else {
     sprintf(name, "%u.%05u-%u.%05u", fs / 100000, fs % 100000, fe / 100000,
             fe % 100000);
@@ -49,23 +50,30 @@ bool PRESETLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     }
   }
+  // Simple keypress
+  if (!bKeyPressed && !bKeyHeld) {
+    switch (key) {
+    case KEY_EXIT:
+      APPS_exit();
+      return true;
+    case KEY_MENU:
+      RADIO_SelectPresetSave(menuIndex);
+      APPS_exit();
+      return true;
+    case KEY_F:
+      PRESET_Select(menuIndex);
+      APPS_run(APP_PRESET_CFG);
+      return true;
+    default:
+      break;
+    }
+  }
   switch (key) {
   case KEY_UP:
     IncDec8(&menuIndex, 0, MENU_SIZE, -1);
     return true;
   case KEY_DOWN:
     IncDec8(&menuIndex, 0, MENU_SIZE, 1);
-    return true;
-  case KEY_EXIT:
-    APPS_exit();
-    return true;
-  case KEY_MENU:
-    RADIO_SelectPresetSave(menuIndex);
-    APPS_exit();
-    return true;
-  case KEY_F:
-    PRESET_Select(menuIndex);
-    APPS_run(APP_PRESET_CFG);
     return true;
   default:
     break;

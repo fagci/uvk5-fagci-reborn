@@ -124,35 +124,13 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     strncpy(name, TX_CODE_TYPES[index], 15);
     return;
   case M_RX_CODE:
-    if (radio->rx.codeType) {
-      if (radio->rx.codeType == CODE_TYPE_CONTINUOUS_TONE) {
-        sprintf(name, "CT:%u.%uHz", CTCSS_Options[index] / 10,
-                CTCSS_Options[index] % 10);
-      } else if (radio->rx.codeType == CODE_TYPE_DIGITAL) {
-        sprintf(name, "DCS:D%03oN", DCS_Options[index]);
-      } else if (radio->rx.codeType == CODE_TYPE_REVERSE_DIGITAL) {
-        sprintf(name, "DCS:D%03oI", DCS_Options[index]);
-      } else {
-        sprintf(name, "No code");
-      }
-    }
+    PrintRTXCode(name, &radio->rx);
     return;
   case M_TX_CODE_TYPE:
     strncpy(name, TX_CODE_TYPES[index], 15);
     return;
   case M_TX_CODE:
-    if (radio->tx.codeType) {
-      if (radio->tx.codeType == CODE_TYPE_CONTINUOUS_TONE) {
-        sprintf(name, "CT:%u.%uHz", CTCSS_Options[index] / 10,
-                CTCSS_Options[index] % 10);
-      } else if (radio->tx.codeType == CODE_TYPE_DIGITAL) {
-        sprintf(name, "DCS:D%03oN", DCS_Options[index]);
-      } else if (radio->tx.codeType == CODE_TYPE_REVERSE_DIGITAL) {
-        sprintf(name, "DCS:D%03oI", DCS_Options[index]);
-      } else {
-        sprintf(name, "No code");
-      }
-    }
+    PrintRTXCode(name, &radio->tx);
     return;
   case M_F_TXP:
     strncpy(name, TX_POWER_NAMES[index], 15);
@@ -188,14 +166,6 @@ static void setTXOffset(uint32_t f) {
 void VFOCFG_init(void) {
   gRedrawScreen = true;
   updateTxCodeListSize();
-  /* for (uint8_t i = 0; i < MENU_SIZE; ++i) {
-    if (menu[i].type == M_MODULATION) {
-      menu[i].size = RADIO_IsBK1080Range(radio->rx.f)
-                         ? ARRAY_SIZE(modulationTypeOptions)
-                         : ARRAY_SIZE(modulationTypeOptions) - 1;
-      break;
-    }
-  } */
 }
 
 void VFOCFG_update(void) {}

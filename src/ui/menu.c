@@ -75,8 +75,7 @@ void UI_ShowMenuEx(void (*showItem)(uint16_t i, uint16_t index, bool isCurrent),
   UI_DrawScrollBar(size, currentIndex, linesMax);
 }
 
-#include "../helper/presetlist.h"
-void printRTXCode(char *Output, F *rtx) {
+void PrintRTXCode(char *Output, F *rtx) {
   if (rtx->codeType) {
     if (rtx->codeType == CODE_TYPE_CONTINUOUS_TONE) {
       sprintf(Output, "CT:%u.%uHz", CTCSS_Options[rtx->code] / 10,
@@ -145,13 +144,13 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
     strncpy(Output, TX_CODE_TYPES[radio->rx.codeType], 31);
     break;
   case M_RX_CODE:
-    printRTXCode(Output, &radio->rx);
+    PrintRTXCode(Output, &radio->rx);
     break;
   case M_TX_CODE_TYPE:
     strncpy(Output, TX_CODE_TYPES[radio->tx.codeType], 31);
     break;
   case M_TX_CODE:
-    printRTXCode(Output, &radio->tx);
+    PrintRTXCode(Output, &radio->tx);
     break;
   case M_TX_OFFSET:
     sprintf(Output, "%u.%05u", gCurrentPreset->offset / 100000,

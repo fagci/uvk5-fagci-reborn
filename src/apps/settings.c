@@ -140,6 +140,8 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     return;
   case M_RESET:
   case M_SKIP_GARBAGE_FREQS:
+    strncpy(name, yesNo[index], 31);
+    return;
   case M_SI4732_POWER_OFF:
   case M_DW:
     strncpy(name, dwNames[index], 31);
