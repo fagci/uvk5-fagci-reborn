@@ -16,10 +16,9 @@
 #include "../ui/statusline.h"
 #include "apps.h"
 #include "finput.h"
+#include "vfo1.h"
 
 static uint32_t lastRender = 0;
-
-static void tuneTo(uint32_t f) { RADIO_TuneToSave(GetTuneF(f)); }
 
 void VFO2_init(void) {
   RADIO_LoadCurrentVFO();
@@ -29,197 +28,31 @@ void VFO2_init(void) {
 
 void VFO2_deinit(void) {}
 
-uint8_t dwVfo = 0;
-uint32_t lastDw = 0;
-
 void VFO2_update(void) {
   if (gIsListening && Now() - lastRender >= 1000) {
     gRedrawScreen = true;
     lastRender = Now();
   }
-  if (gTxState != TX_ON && gSettings.dw && Now() - lastDw >= 250) {
-    lastDw = Now();
-    if (gIsListening) {
-      if (gSettings.activeVFO != dwVfo) {
-        gRedrawScreen = true;
-        radio = &gVFO[dwVfo];
-        gCurrentLoot = &gLoot[dwVfo];
-        if (gSettings.dw == DW_SWITCH) {
-          gSettings.activeVFO = dwVfo;
-          RADIO_SaveCurrentVFO();
-        }
-        RADIO_SetupByCurrentVFO();
-      }
-    } else {
-      dwVfo = !dwVfo;
-      radio = &gVFO[dwVfo];
-      gCurrentLoot = &gLoot[dwVfo];
-      RADIO_SetupByCurrentVFO();
-    }
-  }
 }
 
-static void setChannel(uint16_t v) { RADIO_TuneToCH(v - 1); }
-
 bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  // Log("onkey, dw revert");
-  // dw hack start
-  lastDw = Now(); // prevent dw to switch now
-  radio = &gVFO[gSettings.activeVFO];
-  gCurrentLoot = &gLoot[gSettings.activeVFO];
-  RADIO_SetupByCurrentVFO();
-  // dw hack end
-
-  if (!bKeyPressed && !bKeyHeld && radio->channel >= 0) {
-    if (!gIsNumNavInput && key >= KEY_0 && key <= KEY_9) {
-      NUMNAV_Init(radio->channel + 1, 1, CHANNELS_GetCountMax());
-      gNumNavCallback = setChannel;
-    }
-    if (gIsNumNavInput) {
-      NUMNAV_Input(key);
-      return true;
-    }
-  }
-  if (key == KEY_PTT) {
-    RADIO_ToggleTX(bKeyHeld);
+  if (VFO1_key(key, bKeyPressed, bKeyHeld)) {
     return true;
-  }
-
-  // up-down keys
-  if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
-    bool isSsb =
-        RADIO_GetModulation() == MOD_LSB || RADIO_GetModulation() == MOD_USB;
-    switch (key) {
-    case KEY_UP:
-      if (SVC_Running(SVC_SCAN)) {
-        gScanForward = true;
-      }
-      RADIO_NextFreqNoClicks(true);
-      return true;
-    case KEY_DOWN:
-      if (SVC_Running(SVC_SCAN)) {
-        gScanForward = false;
-      }
-      RADIO_NextFreqNoClicks(false);
-      return true;
-    case KEY_SIDE1:
-      if (RADIO_GetRadio() == RADIO_SI4732 && isSsb) {
-        RADIO_TuneToSave(radio->rx.f + 5);
-        return true;
-      }
-      break;
-    case KEY_SIDE2:
-      if (RADIO_GetRadio() == RADIO_SI4732 && isSsb) {
-        RADIO_TuneToSave(radio->rx.f - 5);
-        return true;
-      }
-      break;
-    default:
-      break;
-    }
   }
 
   // long held
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     OffsetDirection offsetDirection = gCurrentPreset->offsetDir;
     switch (key) {
-    case KEY_EXIT:
-      return true;
-    case KEY_1:
-      APPS_run(APP_PRESETS_LIST);
-      return true;
     case KEY_2:
       LOOT_Standby();
       RADIO_NextVFO();
-      return true;
-    case KEY_3:
-      RADIO_ToggleVfoMR();
-      return true;
-    case KEY_4: // freq catch
-      if (SVC_Running(SVC_FC)) {
-        SVC_Toggle(SVC_FC, false, 10);
-      } else {
-        SVC_Toggle(SVC_FC, true, 10);
-      }
-      return true;
-    case KEY_5: // noaa
-      return true;
-    case KEY_6:
-      RADIO_ToggleTxPower();
-      return true;
-    case KEY_7:
-      RADIO_UpdateStep(true);
-      return true;
-    case KEY_8:
-      IncDec8(&offsetDirection, 0, OFFSET_MINUS, 1);
-      gCurrentPreset->offsetDir = offsetDirection;
-      return true;
-    case KEY_9: // call
-      return true;
-    case KEY_0:
-      RADIO_ToggleModulation();
-      return true;
-    case KEY_STAR:
-      SVC_Toggle(SVC_SCAN, true, 10);
-      return true;
-    case KEY_SIDE1:
-      APPS_run(APP_ANALYZER);
       return true;
     default:
       break;
     }
   }
 
-  // Simple keypress
-  if (!bKeyPressed && !bKeyHeld) {
-    switch (key) {
-    case KEY_0:
-    case KEY_1:
-    case KEY_2:
-    case KEY_3:
-    case KEY_4:
-    case KEY_5:
-    case KEY_6:
-    case KEY_7:
-    case KEY_8:
-    case KEY_9:
-      gFInputCallback = tuneTo;
-      APPS_run(APP_FINPUT);
-      APPS_key(key, bKeyPressed, bKeyHeld);
-      return true;
-    case KEY_F:
-      APPS_run(APP_VFO_CFG);
-      return true;
-    case KEY_STAR:
-      APPS_run(APP_LOOT_LIST);
-      return true;
-    case KEY_SIDE1:
-      if (SVC_Running(SVC_SCAN)) {
-        LOOT_BlacklistLast();
-        return true;
-      }
-      gMonitorMode = !gMonitorMode;
-      return true;
-    case KEY_SIDE2:
-      if (SVC_Running(SVC_SCAN)) {
-        LOOT_GoodKnownLast();
-        return true;
-      }
-      break;
-    case KEY_EXIT:
-      if (SVC_Running(SVC_SCAN)) {
-        SVC_Toggle(SVC_SCAN, false, 0);
-        return true;
-      }
-      if (!APPS_exit()) {
-        LOOT_Standby();
-        RADIO_NextVFO();
-      }
-      return true;
-    default:
-      break;
-    }
-  }
   return false;
 }
 
@@ -241,6 +74,7 @@ static void render2VFOPart(uint8_t i) {
   const char *mod =
       modulationTypeOptions[vfo->modulation == MOD_PRST ? p->band.modulation
                                                         : vfo->modulation];
+  const uint8_t step = StepFrequencyTable[p->band.step];
 
   if (isActive && gTxState <= TX_ON) {
     FillRect(0, bl - 14, 28, 7, C_FILL);
@@ -300,9 +134,8 @@ static void render2VFOPart(uint8_t i) {
     PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,
                  est % 60, loot->duration / 1000);
   } else {
-    PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%d.%02dk",
-                 StepFrequencyTable[p->band.step] / 100,
-                 StepFrequencyTable[p->band.step] % 100);
+    PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%d.%02dk", step / 100,
+                 step % 100);
   }
 }
 

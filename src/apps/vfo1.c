@@ -1,5 +1,8 @@
 #include "vfo1.h"
+#include "../helper/channels.h"
 #include "../helper/lootlist.h"
+#include "../helper/numnav.h"
+#include "../helper/presetlist.h"
 #include "../helper/rds.h"
 #include "../radio.h"
 #include "../scheduler.h"
@@ -12,6 +15,8 @@
 
 static uint32_t lastUpdate = 0;
 static DateTime dt;
+static void setChannel(uint16_t v) { RADIO_TuneToCH(v - 1); }
+static void tuneTo(uint32_t f) { RADIO_TuneToSave(GetTuneF(f)); }
 
 void VFO1_init(void) {
   RADIO_LoadCurrentVFO();
@@ -28,6 +33,16 @@ void VFO1_update(void) {
 }
 
 bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  if (!bKeyPressed && !bKeyHeld && radio->channel >= 0) {
+    if (!gIsNumNavInput && key >= KEY_0 && key <= KEY_9) {
+      NUMNAV_Init(radio->channel + 1, 1, CHANNELS_GetCountMax());
+      gNumNavCallback = setChannel;
+    }
+    if (gIsNumNavInput) {
+      NUMNAV_Input(key);
+      return true;
+    }
+  }
   if (key == KEY_PTT) {
     RADIO_ToggleTX(bKeyHeld);
     return true;
@@ -35,21 +50,32 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
   // up-down keys
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
+    bool isSsb = RADIO_IsSSB();
     switch (key) {
     case KEY_UP:
       if (SVC_Running(SVC_SCAN)) {
         gScanForward = true;
-        return true;
       }
       RADIO_NextFreqNoClicks(true);
       return true;
     case KEY_DOWN:
       if (SVC_Running(SVC_SCAN)) {
         gScanForward = false;
-        return true;
       }
       RADIO_NextFreqNoClicks(false);
       return true;
+    case KEY_SIDE1:
+      if (RADIO_GetRadio() == RADIO_SI4732 && isSsb) {
+        RADIO_TuneToSave(radio->rx.f + 5);
+        return true;
+      }
+      break;
+    case KEY_SIDE2:
+      if (RADIO_GetRadio() == RADIO_SI4732 && isSsb) {
+        RADIO_TuneToSave(radio->rx.f - 5);
+        return true;
+      }
+      break;
     default:
       break;
     }
@@ -57,31 +83,49 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
   // long held
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
+    OffsetDirection offsetDirection = gCurrentPreset->offsetDir;
     switch (key) {
-    /* case KEY_2:
-      LOOT_Standby();
-      RADIO_NextVFO(true);
-      msm.f = radio->rx.f;
-      return true; */
-    case KEY_STAR:
-      SVC_Toggle(SVC_SCAN, true, 10);
-      return true;
     case KEY_EXIT:
+      return true;
+    case KEY_1:
+      APPS_run(APP_PRESETS_LIST);
       return true;
     case KEY_3:
       RADIO_ToggleVfoMR();
       return true;
-    case KEY_1:
-      RADIO_UpdateStep(true);
+    case KEY_4: // freq catch
+      if (SVC_Running(SVC_FC)) {
+        SVC_Toggle(SVC_FC, false, 10);
+      } else {
+        SVC_Toggle(SVC_FC, true, 10);
+      }
+      return true;
+    case KEY_5: // noaa
+      return true;
+    case KEY_6:
+      RADIO_ToggleTxPower();
       return true;
     case KEY_7:
-      RADIO_UpdateStep(false);
+      RADIO_UpdateStep(true);
+      return true;
+    case KEY_8:
+      IncDec8(&offsetDirection, 0, OFFSET_MINUS, 1);
+      gCurrentPreset->offsetDir = offsetDirection;
+      return true;
+    case KEY_9: // call
       return true;
     case KEY_0:
       RADIO_ToggleModulation();
       return true;
-    case KEY_6:
-      RADIO_ToggleListeningBW();
+    case KEY_STAR:
+      if (RADIO_GetRadio() == RADIO_SI4732 && RADIO_IsSSB()) {
+        // todo: scan by snr
+      } else {
+        SVC_Toggle(SVC_SCAN, true, 10);
+      }
+      return true;
+    case KEY_SIDE1:
+      APPS_run(APP_ANALYZER);
       return true;
     default:
       break;
@@ -101,7 +145,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_7:
     case KEY_8:
     case KEY_9:
-      gFInputCallback = RADIO_TuneToSave;
+      gFInputCallback = tuneTo;
       APPS_run(APP_FINPUT);
       APPS_key(key, bKeyPressed, bKeyHeld);
       return true;
