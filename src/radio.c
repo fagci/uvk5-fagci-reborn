@@ -296,7 +296,6 @@ static void sendEOT() {
   BK4819_WriteRegister(BK4819_REG_51, 0x9033);
   SYSTEM_DelayMs(200);
   BK4819_ExitSubAu();
-  setupToneDetection();
 }
 
 void RADIO_RxTurnOff() {
@@ -410,7 +409,7 @@ void RADIO_EnableCxCSS(void) {
     break;
   }
 
-  SYSTEM_DelayMs(200);
+  // SYSTEM_DelayMs(200);
 }
 
 uint32_t RADIO_GetTXFEx(VFO *vfo, Preset *p) {
@@ -427,45 +426,52 @@ uint32_t RADIO_GetTXFEx(VFO *vfo, Preset *p) {
 
 uint32_t RADIO_GetTXF(void) { return RADIO_GetTXFEx(radio, gCurrentPreset); }
 
+TXState RADIO_GetTXState(uint32_t txF) {
+  if (gSettings.upconverter) {
+    return TX_DISABLED_UPCONVERTER;
+  }
+
+  Preset *txPreset = PRESET_ByFrequency(txF);
+
+  if (!txPreset->allowTx || RADIO_GetRadio() != RADIO_BK4819) {
+    return TX_DISABLED;
+  }
+
+  if (gBatteryPercent == 0) {
+    return TX_BAT_LOW;
+  }
+  if (gChargingWithTypeC || gBatteryVoltage > 880) {
+    return TX_VOL_HIGH;
+  }
+  return TX_ON;
+}
+
+uint32_t RADIO_GetTxPower(uint32_t txF) {
+  Preset *txPreset = PRESET_ByFrequency(txF);
+  uint8_t power = calculateOutputPower(txPreset, txF);
+  if (power > 0x91) {
+    power = 0x91;
+  }
+  power >>= 2 - gCurrentPreset->power;
+  return power;
+}
 void RADIO_ToggleTX(bool on) {
+  uint32_t txF = RADIO_GetTXF();
+  uint8_t power = RADIO_GetTxPower(txF);
+  RADIO_ToggleTXEX(on, txF, power);
+}
+
+void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power) {
   if (gTxState == on) {
     return;
   }
-
-  uint8_t power = 0;
-  uint32_t txF = RADIO_GetTXF();
+  gTxState = RADIO_GetTXState(txF);
 
   if (on) {
-    if (gSettings.upconverter) {
-      gTxState = TX_DISABLED_UPCONVERTER;
+    if (gTxState != TX_ON) {
       return;
     }
 
-    Preset *txPreset = PRESET_ByFrequency(txF);
-
-    if (!txPreset->allowTx || RADIO_GetRadio() != RADIO_BK4819) {
-      gTxState = TX_DISABLED;
-      return;
-    }
-
-    if (gBatteryPercent == 0) {
-      gTxState = TX_BAT_LOW;
-      return;
-    }
-    if (gChargingWithTypeC || gBatteryVoltage > 880) {
-      gTxState = TX_VOL_HIGH;
-      return;
-    }
-    power = calculateOutputPower(txPreset, txF);
-    if (power > 0x91) {
-      power = 0;
-      gTxState = TX_POW_OVERDRIVE;
-      return;
-    }
-    power >>= 2 - gCurrentPreset->power;
-  }
-
-  if (on) {
     RADIO_ToggleRX(false);
 
     BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, false);
@@ -476,7 +482,7 @@ void RADIO_ToggleTX(bool on) {
     BK4819_PrepareTransmit();
 
     SYSTEM_DelayMs(10);
-    BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, true);
+    BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, power);
     SYSTEM_DelayMs(5);
     BK4819_SetupPowerAmplifier(power, txF);
     SYSTEM_DelayMs(10);
@@ -492,8 +498,9 @@ void RADIO_ToggleTX(bool on) {
     BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, false);
     BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, true);
 
-    BK4819_TuneTo(radio->rx.f, true);
     BK4819_RX_TurnOn();
+    setupToneDetection();
+    BK4819_TuneTo(radio->rx.f, true);
   }
 
   BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, gSettings.brightness > 1 && on);
@@ -633,6 +640,7 @@ void RADIO_SetupBandParams() {
   Band *b = &gCurrentPreset->band;
   uint32_t fMid = b->bounds.start + (b->bounds.end - b->bounds.start) / 2;
   ModulationType mod = RADIO_GetModulation();
+  RADIO_SetGain(b->gainIndex);
   Log("Set mod %s", modulationTypeOptions[mod]);
   switch (RADIO_GetRadio()) {
   case RADIO_BK4819:
@@ -646,6 +654,7 @@ void RADIO_SetupBandParams() {
     } else {
       BK4819_DisableScramble();
     }
+    BK4819_RX_TurnOn();
     break;
   case RADIO_BK1080:
     break;
@@ -669,7 +678,6 @@ void RADIO_SetupBandParams() {
   default:
     break;
   }
-  RADIO_SetGain(b->gainIndex);
   // Log("RADIO_SetupBandParams end");
 }
 

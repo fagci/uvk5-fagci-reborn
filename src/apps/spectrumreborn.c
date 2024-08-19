@@ -19,7 +19,6 @@
 
 static const uint16_t U16_MAX = 65535;
 
-// TODO: use as variable
 static uint8_t noiseOpenDiff = 14;
 
 static const uint8_t S_HEIGHT = 40;
@@ -165,8 +164,8 @@ static void startNewScan() {
     LOOT_Standby();
     rssiO = U16_MAX;
     noiseO = 0;
+    radio->radio = RADIO_BK4819;
     RADIO_SetupBandParams();
-    BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
     oldPresetIndex = gSettings.activePreset;
     gRedrawScreen = true;
     bandFilled = false;
@@ -178,6 +177,8 @@ static void startNewScan() {
 void SPECTRUM_init(void) {
   SVC_Toggle(SVC_LISTEN, false, 0);
   RADIO_LoadCurrentVFO();
+  radio->radio = RADIO_BK4819;
+  RADIO_SetupBandParams();
   newScan = true;
   timeout = 0;
   oldPresetIndex = 0;
@@ -225,6 +226,8 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_4:
     softResetRssi = !softResetRssi;
     resetBkVal = softResetRssi ? BK_RST_SOFT : BK_RST_HARD;
+    resetRssiHistory();
+    newScan = true;
     return true;
   case KEY_1:
     IncDec8(&msmDelay, 0, 20, 1);
@@ -269,6 +272,7 @@ void SPECTRUM_update(void) {
   if (gIsListening) {
     updateMeasurements();
     gRedrawScreen = true;
+    lastRender = Now();
   }
   if (gIsListening) {
     return;
@@ -276,6 +280,7 @@ void SPECTRUM_update(void) {
   if (msm.f >= currentBand->bounds.end) {
     updateStats();
     gRedrawScreen = true; // FIXME: first msm high??!
+    lastRender = Now();
     newScan = true;
     return;
   }

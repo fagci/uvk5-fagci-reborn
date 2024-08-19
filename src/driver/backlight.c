@@ -12,7 +12,7 @@ bool state = false;
 
 void BACKLIGHT_Init() {
   // 48MHz / 94 / 1024 ~ 500Hz
-  const uint32_t PWM_FREQUENCY_HZ = 24000;
+  const uint32_t PWM_FREQUENCY_HZ = 25000;
   PWM_PLUS0_CLKSRC |= ((CPU_CLOCK_HZ / 1024 / PWM_FREQUENCY_HZ) << 16);
   PWM_PLUS0_PERIOD = 1023;
 
