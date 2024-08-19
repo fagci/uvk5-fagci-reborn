@@ -6,6 +6,7 @@
 #include "appslist.h"
 #include "channelscanner.h"
 #include "finput.h"
+#include "generator.h"
 #include "lootlist.h"
 #include "memview.h"
 #include "presetcfg.h"
@@ -65,6 +66,7 @@ const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
     APP_PRESETS_LIST, //
     APP_MEMVIEW,      //
     APP_ABOUT,        //
+    APP_GENERATOR,
 };
 
 const App apps[APPS_COUNT] = {
@@ -94,6 +96,8 @@ const App apps[APPS_COUNT] = {
     {"Settings", SETTINGS_init, NULL, SETTINGS_render, SETTINGS_key, NULL},
     {"1 VFO", VFO1_init, VFO1_update, VFO1_render, VFO1_key, VFO1_deinit},
     {"2 VFO", VFO2_init, VFO2_update, VFO2_render, VFO2_key, VFO2_deinit},
+    {"Generator", GENERATOR_init, GENERATOR_update, GENERATOR_render,
+     GENERATOR_key, NULL},
     {"ABOUT", NULL, NULL, ABOUT_Render, ABOUT_key, NULL},
 };
 
@@ -103,6 +107,7 @@ bool APPS_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   }
   return false;
 }
+
 void APPS_init(AppType_t app) {
   gCurrentApp = app;
 
@@ -113,21 +118,25 @@ void APPS_init(AppType_t app) {
     apps[gCurrentApp].init();
   }
 }
+
 void APPS_update(void) {
   if (apps[gCurrentApp].update) {
     apps[gCurrentApp].update();
   }
 }
+
 void APPS_render(void) {
   if (apps[gCurrentApp].render) {
     apps[gCurrentApp].render();
   }
 }
+
 void APPS_deinit(void) {
   if (apps[gCurrentApp].deinit) {
     apps[gCurrentApp].deinit();
   }
 }
+
 void APPS_run(AppType_t app) {
   if (appsStack[stackIndex] == app) {
     return;
