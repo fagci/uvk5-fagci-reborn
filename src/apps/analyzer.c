@@ -37,13 +37,20 @@ static Preset opt = {
 static uint8_t spectrumWidth = LCD_WIDTH;
 
 static bool bandFilled = false;
+static const uint16_t BK_RST_SOFT = 0xBFF1 & ~BK4819_REG_30_ENABLE_VCO_CALIB;
 
 static void startNewScan(bool reset) {
   _peakF = 0;
   peakRssi = 0;
   if (reset) {
     LOOT_Standby();
-    RADIO_TuneToPure(msm.f = opt.band.bounds.start, true);
+    // RADIO_TuneToPure(msm.f, true);
+    msm.f = opt.band.bounds.start;
+    BK4819_WriteRegister(BK4819_REG_38, msm.f & 0xFFFF);
+    BK4819_WriteRegister(BK4819_REG_39, (msm.f >> 16) & 0xFFFF);
+    BK4819_WriteRegister(BK4819_REG_30, BK_RST_SOFT);
+    BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
+    // SYSTICK_DelayUs(msmDelay * 1000); // (X_X)
     SP_Init(PRESETS_GetSteps(&opt), spectrumWidth);
     bandFilled = false;
   } else {

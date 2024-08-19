@@ -4,8 +4,10 @@
 #include "graphics.h"
 
 #define MAX_POINTS 128
+static const uint16_t U16_MAX = 65535;
 
 static uint16_t rssiHistory[MAX_POINTS] = {0};
+static uint16_t noiseHistory[MAX_POINTS] = {0};
 static bool markers[MAX_POINTS] = {0};
 static uint8_t x;
 static uint8_t historySize;
@@ -20,6 +22,7 @@ static uint16_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 void SP_ResetHistory(void) {
   for (uint8_t i = 0; i < MAX_POINTS; ++i) {
     rssiHistory[i] = 0;
+    noiseHistory[x] = 255;
     markers[i] = false;
   }
   filledPoints = 0;
@@ -52,6 +55,9 @@ void SP_AddPoint(Loot *msm) {
     }
     if (msm->rssi > rssiHistory[x]) {
       rssiHistory[x] = msm->rssi;
+    }
+    if (msm->noise < noiseHistory[x]) {
+      noiseHistory[x] = msm->noise;
     }
     if (markers[x] == false && msm->open) {
       markers[x] = msm->open;
@@ -123,4 +129,11 @@ void SP_RenderRssi(uint16_t rssi, char *text, bool top, uint8_t sx, uint8_t sy,
   DrawHLine(sx, S_BOTTOM - yVal, sx + filledPoints, C_FILL);
   PrintSmallEx(sx, S_BOTTOM - yVal + (top ? -2 : 6), POS_L, C_FILL, "%s %u %d",
                text, rssi, Rssi2DBm(rssi));
+}
+
+uint16_t SP_GetNoiseFloor() {
+  return Std(rssiHistory, x);
+}
+uint16_t SP_GetNoiseMax() {
+  return Max(noiseHistory, x);
 }
