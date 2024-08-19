@@ -190,8 +190,11 @@ uint16_t BK4819_ReadRegister(BK4819_REGISTER_t Register) {
 
   return Value;
 }
-
+#include "uart.h"
 void BK4819_WriteRegister(BK4819_REGISTER_t Register, uint16_t Data) {
+  if (BK4819_ReadRegister(Register) == Data)
+    return;
+  // Log("BK 0x%x < 0x%x", Register, Data);
   GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCN);
   GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
   SYSTICK_Delay250ns(1);
@@ -338,9 +341,6 @@ void BK4819_SetFilterBandwidth(BK4819_FilterBandwidth_t Bandwidth) {
 void BK4819_SetupPowerAmplifier(uint8_t Bias, uint32_t Frequency) {
   uint8_t Gain = Frequency < VHF_UHF_BOUND2 ? 0x08 : 0x22;
 
-  if (Bias > 255) {
-    Bias = 255;
-  }
   // Enable PACTLoutput
   BK4819_WriteRegister(BK4819_REG_36, (Bias << 8) | 0x80U | Gain);
 }
@@ -434,32 +434,10 @@ void BK4819_SetModulation(ModulationType type) {
 }
 
 void BK4819_RX_TurnOn(void) {
-  // DSP Voltage Setting = 1
-  // ANA LDO = 2.7v
-  // VCO LDO = 2.7v
-  // RF LDO = 2.7v
-  // PLL LDO = 2.7v
-  // ANA LDO bypass
-  // VCO LDO bypass
-  // RF LDO bypass
-  // PLL LDO bypass
-  // Reserved bit is 1 instead of 0
-  // Enable DSP
-  // Enable XTAL
-  // Enable Band Gap
-  BK4819_WriteRegister(BK4819_REG_37, 0x1F0F);
-
-  // Turn off everything
-  BK4819_Idle();
-
-  // Enable VCO Calibration
-  // Enable RX Link
-  // Enable AF DAC
-  // Enable PLL/VCO
-  // Disable PA Gain
-  // Disable MIC ADC
-  // Disable TX DSP
-  // Enable RX DSP
+  // init bw, mod before that
+  BK4819_WriteRegister(BK4819_REG_37, 0x9F1F);
+  BK4819_WriteRegister(BK4819_REG_30, 0x0200);
+  SYSTEM_DelayMs(10);
   BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
 }
 
@@ -1072,7 +1050,8 @@ void BK4819_TuneTo(uint32_t f, bool precise) {
   BK4819_SetFrequency(f);
   uint16_t reg = BK4819_ReadRegister(BK4819_REG_30);
   if (precise) {
-    BK4819_Idle();
+    // BK4819_Idle();
+    BK4819_WriteRegister(BK4819_REG_30, 0x0200);
   } else {
     BK4819_WriteRegister(BK4819_REG_30, reg & ~BK4819_REG_30_ENABLE_VCO_CALIB);
   }

@@ -96,9 +96,6 @@ void Main(void) {
   SYSTICK_Init();
   BOARD_Init();
 
-  UART_Init();
-  UART_printf("fagci R3b0rn\n");
-
   BACKLIGHT_SetBrightness(7);
 
   SVC_Toggle(SVC_RENDER, true, 25);

@@ -51,8 +51,10 @@ void RADIO_SetupRegisters();
 void RADIO_SaveCurrentVFO();
 void RADIO_LoadCurrentVFO();
 
+TXState RADIO_GetTXState(uint32_t txF);
 void RADIO_ToggleRX(bool on);
 void RADIO_ToggleTX(bool on);
+void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power);
 
 void RADIO_TuneTo(uint32_t f);
 bool RADIO_TuneToCH(int32_t num);
