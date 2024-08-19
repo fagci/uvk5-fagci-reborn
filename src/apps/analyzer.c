@@ -1,10 +1,10 @@
 #include "analyzer.h"
+#include "../apps/finput.h"
 #include "../driver/st7565.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
 #include "../helper/presetlist.h"
 #include "../radio.h"
-#include "../scheduler.h"
 #include "../settings.h"
 #include "../svc.h"
 #include "../svc_scan.h"
@@ -142,16 +142,13 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     switch (Key) {
-    case KEY_0:
-      LOOT_Clear();
-      return true;
     case KEY_UP:
-      centerF += StepFrequencyTable[opt.band.step] * 64;
-      setup();
+      setCenterF(centerF + StepFrequencyTable[opt.band.step] * 64);
+      startNewScan(true);
       return true;
     case KEY_DOWN:
-      centerF -= StepFrequencyTable[opt.band.step] * 64;
-      setup();
+      setCenterF(centerF - StepFrequencyTable[opt.band.step] * 64);
+      startNewScan(true);
       return true;
     default:
       break;
@@ -205,6 +202,8 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       APPS_run(APP_LOOT_LIST);
       return true;
     case KEY_5:
+      gFInputCallback = setCenterF;
+      APPS_run(APP_FINPUT);
       return true;
     case KEY_3:
       if (opt.band.squelch < 9) {

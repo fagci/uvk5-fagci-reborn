@@ -2,7 +2,7 @@
 #include "../dcs.h"
 #include "../driver/bk4819.h"
 #include "../driver/st7565.h"
-#include "../driver/system.h"
+#include "../driver/systick.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
 #include "../helper/presetlist.h"
@@ -56,16 +56,23 @@ static bool bandFilled = false;
 uint32_t timeout = 0;
 bool lastListenState = false;
 
+const uint16_t BK_RST_HARD = 0x200;
+const uint16_t BK_RST_SOFT = 0xBFF1 & ~BK4819_REG_30_ENABLE_VCO_CALIB;
+
+bool softResetRssi = true;
+uint16_t resetBkVal = BK_RST_SOFT;
+
 static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
 
 static uint16_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 
 static void updateMeasurements() {
   if (!gIsListening) {
-    BK4819_SetFrequency(msm.f);
-    BK4819_WriteRegister(BK4819_REG_30, 0x200);
+    BK4819_WriteRegister(BK4819_REG_38, msm.f & 0xFFFF);
+    BK4819_WriteRegister(BK4819_REG_39, (msm.f >> 16) & 0xFFFF);
+    BK4819_WriteRegister(BK4819_REG_30, resetBkVal);
     BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
-    SYSTEM_DelayMs(msmDelay); // (X_X)
+    SYSTICK_DelayUs(msmDelay * 1000); // (X_X)
   }
   msm.rssi = BK4819_GetRSSI();
   msm.noise = BK4819_GetNoise();
@@ -127,15 +134,9 @@ static void resetRssiHistory() {
 uint32_t lastRender = 0;
 
 static void step() {
-  msm.rssi = 0;
+  // msm.rssi = 0;
   msm.blacklist = false;
-  msm.noise = 255;
-  for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
-    uint8_t lx = DATA_LEN * currentStep / stepsCount + exIndex;
-    noiseHistory[lx] = 255;
-    rssiHistory[lx] = 0;
-    markers[lx] = false;
-  }
+  // msm.noise = 255;
 
   updateMeasurements();
 }
@@ -165,6 +166,7 @@ static void startNewScan() {
     rssiO = U16_MAX;
     noiseO = 0;
     RADIO_SetupBandParams();
+    BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
     oldPresetIndex = gSettings.activePreset;
     gRedrawScreen = true;
     bandFilled = false;
@@ -175,7 +177,6 @@ static void startNewScan() {
 
 void SPECTRUM_init(void) {
   SVC_Toggle(SVC_LISTEN, false, 0);
-  RADIO_ToggleRX(false);
   RADIO_LoadCurrentVFO();
   newScan = true;
   timeout = 0;
@@ -221,6 +222,10 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_5:
     return true;
+  case KEY_4:
+    softResetRssi = !softResetRssi;
+    resetBkVal = softResetRssi ? BK_RST_SOFT : BK_RST_HARD;
+    return true;
   case KEY_1:
     IncDec8(&msmDelay, 0, 20, 1);
     resetRssiHistory();
@@ -250,7 +255,7 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void SPECTRUM_update(void) {
-  if (Now() - lastRender >= 150) {
+  if (Now() - lastRender >= 500) {
     lastRender = Now();
     gRedrawScreen = true;
   }
@@ -270,7 +275,7 @@ void SPECTRUM_update(void) {
   }
   if (msm.f >= currentBand->bounds.end) {
     updateStats();
-    gRedrawScreen = true;
+    gRedrawScreen = true; // FIXME: first msm high??!
     newScan = true;
     return;
   }
@@ -306,6 +311,8 @@ void SPECTRUM_render(void) {
   DrawHLine(0, S_BOTTOM, DATA_LEN, C_FILL);
 
   PrintSmallEx(0, SPECTRUM_Y - 3, POS_L, C_FILL, "%ums", msmDelay);
+  PrintSmallEx(0, SPECTRUM_Y - 3 + 6, POS_L, C_FILL, "%s",
+               softResetRssi ? "Soft" : "Hard");
   PrintSmallEx(DATA_LEN - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "SQ %u",
                noiseOpenDiff);
   PrintSmallEx(DATA_LEN - 2, SPECTRUM_Y - 3 + 8, POS_R, C_FILL, "%s",

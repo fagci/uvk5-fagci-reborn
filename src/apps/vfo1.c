@@ -1,4 +1,6 @@
 #include "vfo1.h"
+#include "../apps/textinput.h"
+#include "../driver/bk4819.h"
 #include "../helper/channels.h"
 #include "../helper/lootlist.h"
 #include "../helper/numnav.h"
@@ -18,9 +20,17 @@ static DateTime dt;
 static void setChannel(uint16_t v) { RADIO_TuneToCH(v - 1); }
 static void tuneTo(uint32_t f) { RADIO_TuneToSave(GetTuneF(f)); }
 
-void VFO1_init(void) {
-  RADIO_LoadCurrentVFO();
+static char message[16] = {'\0'};
+static void sendDtmf() {
+  RADIO_ToggleTX(true);
+  if (gTxState == TX_ON) {
+    BK4819_EnterDTMF_TX(true);
+    BK4819_PlayDTMFString(message, true, 100, 100, 100, 100);
+    RADIO_ToggleTX(false);
+  }
 }
+
+void VFO1_init(void) { RADIO_LoadCurrentVFO(); }
 
 void VFO1_deinit(void) {}
 
@@ -112,6 +122,10 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       gCurrentPreset->offsetDir = offsetDirection;
       return true;
     case KEY_9: // call
+      gTextInputSize = 15;
+      gTextinputText = message;
+      gTextInputCallback = sendDtmf;
+      APPS_run(APP_TEXTINPUT);
       return true;
     case KEY_0:
       RADIO_ToggleModulation();
