@@ -10,7 +10,6 @@
 #include "../settings.h"
 #include "../svc.h"
 #include "../svc_scan.h"
-#include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/spectrum.h"
 #include "../ui/statusline.h"
@@ -22,23 +21,15 @@ static const uint16_t U16_MAX = 65535;
 
 static uint8_t noiseOpenDiff = 14;
 
-static const uint8_t S_HEIGHT = 40;
+static const uint8_t SPECTRUM_H = 40;
 
 static const uint8_t SPECTRUM_Y = 16;
-
-static uint16_t rssiHistory[DATA_LEN] = {0};
-static uint16_t noiseHistory[DATA_LEN] = {0};
-static bool markers[DATA_LEN] = {0};
 
 static uint8_t x;
 
 static Band *currentBand;
 
 static uint32_t currentStepSize;
-static uint8_t exLen;
-static uint16_t stepsCount;
-static uint16_t currentStep;
-static uint32_t bandwidth;
 
 static bool newScan = true;
 
@@ -50,10 +41,10 @@ static Loot msm = {0};
 
 static uint16_t oldPresetIndex = 255;
 
-static bool bandFilled = false;
-
 static uint32_t timeout = 0;
 static bool lastListenState = false;
+
+static uint32_t lastRender = 0;
 
 static const uint16_t BK_RST_HARD = 0x200;
 static const uint16_t BK_RST_SOFT = 0xBFF1 & ~BK4819_REG_30_ENABLE_VCO_CALIB;
@@ -96,14 +87,8 @@ static void updateMeasurements() {
   }
   SP_AddPoint(&msm);
   LOOT_Update(&msm);
-  if (bandFilled) {
-    RADIO_ToggleRX(msm.open);
-  }
+  RADIO_ToggleRX(msm.open);
 }
-
-uint32_t lastRender = 0;
-
-static void step() { updateMeasurements(); }
 
 static void updateStats() {
   const uint16_t noiseFloor = SP_GetNoiseFloor();
@@ -113,14 +98,8 @@ static void updateStats() {
 }
 
 static void startNewScan() {
-  currentStep = 0;
   currentBand = &gCurrentPreset->band;
   currentStepSize = StepFrequencyTable[currentBand->step];
-
-  bandwidth = currentBand->bounds.end - currentBand->bounds.start;
-
-  stepsCount = bandwidth / currentStepSize;
-  exLen = ceilDiv(DATA_LEN, stepsCount);
 
   msm.f = currentBand->bounds.start;
 
@@ -133,10 +112,8 @@ static void startNewScan() {
     RADIO_SetupBandParams();
     SP_Init(PRESETS_GetSteps(gCurrentPreset), LCD_WIDTH);
     gRedrawScreen = true;
-    bandFilled = false;
   } else {
     SP_Begin();
-    bandFilled = true;
   }
 }
 
@@ -148,8 +125,6 @@ void SPECTRUM_init(void) {
   newScan = true;
   timeout = 0;
   oldPresetIndex = 0;
-
-  step();
 }
 
 void SPECTRUM_deinit() {
@@ -225,28 +200,23 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 
 void SPECTRUM_update(void) {
   if (Now() - lastRender >= 500) {
-    lastRender = Now();
     gRedrawScreen = true;
   }
-  if (msm.rssi == 0) {
+  /* if (msm.rssi == 0) {
     return;
-  }
+  } */
   if (newScan || gSettings.activePreset != oldPresetIndex) {
     newScan = false;
     startNewScan();
   }
+  updateMeasurements();
   if (gIsListening) {
-    updateMeasurements();
     gRedrawScreen = true;
-    lastRender = Now();
-  }
-  if (gIsListening) {
     return;
   }
   if (msm.f >= currentBand->bounds.end) {
     updateStats();
     gRedrawScreen = true; // FIXME: first msm high??!
-    lastRender = Now();
     newScan = true;
     return;
   }
@@ -255,16 +225,14 @@ void SPECTRUM_update(void) {
   if (gSettings.skipGarbageFrequencies && (msm.f % 1300000 == 0)) {
     msm.f += currentStepSize;
   }
-  currentStep++;
   SP_Next();
-  step();
 }
 
 void SPECTRUM_render(void) {
   UI_ClearScreen();
   STATUSLINE_SetText(currentBand->name);
 
-  SP_Render(gCurrentPreset, 0, SPECTRUM_Y, S_HEIGHT);
+  SP_Render(gCurrentPreset, 0, SPECTRUM_Y, SPECTRUM_H);
 
   PrintSmallEx(0, SPECTRUM_Y - 3, POS_L, C_FILL, "%ums", msmDelay);
   PrintSmallEx(0, SPECTRUM_Y - 3 + 6, POS_L, C_FILL, "%s",
@@ -291,4 +259,6 @@ void SPECTRUM_render(void) {
                fs % 100000);
   PrintSmallEx(LCD_WIDTH, LCD_HEIGHT - 1, POS_R, C_FILL, "%u.%05u", fe / 100000,
                fe % 100000);
+
+  lastRender = Now();
 }
