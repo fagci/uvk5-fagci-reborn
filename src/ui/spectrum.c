@@ -51,6 +51,7 @@ void SP_AddPoint(Loot *msm) {
     x = historySize * currentStep / stepsCount + exIndex;
     if (ox != x) {
       rssiHistory[x] = markers[x] = 0;
+      noiseHistory[x] = 255;
       ox = x;
     }
     if (msm->rssi > rssiHistory[x]) {
@@ -65,14 +66,6 @@ void SP_AddPoint(Loot *msm) {
   }
   if (x > filledPoints && x < historySize) {
     filledPoints = x;
-  }
-}
-
-void SP_ResetPoint(void) {
-  for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
-    uint8_t lx = historySize * currentStep / stepsCount + exIndex;
-    rssiHistory[lx] = 0;
-    markers[lx] = false;
   }
 }
 
@@ -131,9 +124,5 @@ void SP_RenderRssi(uint16_t rssi, char *text, bool top, uint8_t sx, uint8_t sy,
                text, rssi, Rssi2DBm(rssi));
 }
 
-uint16_t SP_GetNoiseFloor() {
-  return Std(rssiHistory, x);
-}
-uint16_t SP_GetNoiseMax() {
-  return Max(noiseHistory, x);
-}
+uint16_t SP_GetNoiseFloor() { return Std(rssiHistory, x); }
+uint16_t SP_GetNoiseMax() { return Max(noiseHistory, x); }

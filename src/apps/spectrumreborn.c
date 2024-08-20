@@ -2,7 +2,7 @@
 #include "../dcs.h"
 #include "../driver/bk4819.h"
 #include "../driver/st7565.h"
-#include "../driver/systick.h"
+#include "../driver/system.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
 #include "../helper/presetlist.h"
@@ -24,8 +24,6 @@ static uint8_t noiseOpenDiff = 14;
 static const uint8_t SPECTRUM_H = 40;
 
 static const uint8_t SPECTRUM_Y = 16;
-
-static uint8_t x;
 
 static Band *currentBand;
 
@@ -54,15 +52,12 @@ static uint16_t resetBkVal = BK_RST_SOFT;
 
 static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
 
-static uint16_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
-
 static void updateMeasurements() {
   if (!gIsListening) {
-    BK4819_WriteRegister(BK4819_REG_38, msm.f & 0xFFFF);
-    BK4819_WriteRegister(BK4819_REG_39, (msm.f >> 16) & 0xFFFF);
+    BK4819_SetFrequency(msm.f);
     BK4819_WriteRegister(BK4819_REG_30, resetBkVal);
     BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
-    SYSTICK_DelayUs(msmDelay * 1000); // (X_X)
+    SYSTEM_DelayMs(msmDelay); // (X_X)
   }
   msm.blacklist = false;
   msm.rssi = BK4819_GetRSSI();
@@ -85,6 +80,7 @@ static void updateMeasurements() {
   if (timeout && CheckTimeout(&timeout)) {
     msm.open = false;
   }
+
   SP_AddPoint(&msm);
   LOOT_Update(&msm);
   RADIO_ToggleRX(msm.open);
