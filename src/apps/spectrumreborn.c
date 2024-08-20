@@ -46,8 +46,12 @@ static uint32_t lastRender = 0;
 
 static const uint16_t BK_RST_HARD = 0x200;
 static const uint16_t BK_RST_SOFT = 0xBFF1 & ~BK4819_REG_30_ENABLE_VCO_CALIB;
+static const uint16_t BK_RST_OLD = 0xBFF1 & ~BK4819_REG_30_ENABLE_RX_DSP;
 
-static bool softResetRssi = true;
+static const uint16_t RESET_METHODS[] = {BK_RST_HARD, BK_RST_SOFT, BK_RST_OLD};
+static const char *RESET_METHOD_NAMES[] = {"Hard", "Soft", "Old"};
+
+static uint8_t rssiResetMethod = 1;
 static uint16_t resetBkVal = BK_RST_SOFT;
 
 static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
@@ -161,8 +165,8 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_5:
     return true;
   case KEY_4:
-    softResetRssi = !softResetRssi;
-    resetBkVal = softResetRssi ? BK_RST_SOFT : BK_RST_HARD;
+    IncDec8(&rssiResetMethod, 0, 3, 1);
+    resetBkVal = RESET_METHODS[rssiResetMethod];
     SP_ResetHistory();
     newScan = true;
     return true;
@@ -232,7 +236,7 @@ void SPECTRUM_render(void) {
 
   PrintSmallEx(0, SPECTRUM_Y - 3, POS_L, C_FILL, "%ums", msmDelay);
   PrintSmallEx(0, SPECTRUM_Y - 3 + 6, POS_L, C_FILL, "%s",
-               softResetRssi ? "Soft" : "Hard");
+               RESET_METHOD_NAMES[rssiResetMethod]);
   PrintSmallEx(DATA_LEN - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "SQ %u",
                noiseOpenDiff);
   PrintSmallEx(DATA_LEN - 2, SPECTRUM_Y - 3 + 8, POS_R, C_FILL, "%s",
