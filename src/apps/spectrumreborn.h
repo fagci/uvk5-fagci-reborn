@@ -1,5 +1,5 @@
-#ifndef SPECTRUM_H
-#define SPECTRUM_H
+#ifndef SPECTRUMREBORN_H
+#define SPECTRUMREBORN_H
 
 #include "../driver/keyboard.h"
 #include "../radio.h"
@@ -13,4 +13,4 @@ void SPECTRUM_deinit(void);
 void SPECTRUM_update(void);
 void SPECTRUM_render(void);
 
-#endif /* ifndef SPECTRUM_H */
+#endif /* ifndef SPECTRUMREBORN_H */
