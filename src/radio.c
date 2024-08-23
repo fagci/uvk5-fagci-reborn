@@ -97,7 +97,7 @@ void RADIO_SetupRegisters(void) {
   }
   BK4819_WriteRegister(BK4819_REG_3F, 0);
   BK4819_WriteRegister(BK4819_REG_7D, 0xE94F); // mic
-  BK4819_WriteRegister(0x74, 0xAF1F);          // 3k resp TX
+  // BK4819_WriteRegister(0x74, 0xAF1F);          // 3k resp TX
   // BK4819_WriteRegister(0x75, 0xAF1F);          // 3k resp RX
   /* BK4819_SetFrequency(Frequency);
   BK4819_SelectFilter(Frequency); */
@@ -276,6 +276,7 @@ static uint8_t calculateOutputPower(Preset *p, uint32_t Frequency) {
 }
 
 static void sendEOT() {
+  BK4819_ExitSubAu();
   switch (gSettings.roger) {
   case 0:
     break;
@@ -455,6 +456,7 @@ uint32_t RADIO_GetTxPower(uint32_t txF) {
   power >>= 2 - gCurrentPreset->power;
   return power;
 }
+
 void RADIO_ToggleTX(bool on) {
   uint32_t txF = RADIO_GetTXF();
   uint8_t power = RADIO_GetTxPower(txF);
@@ -467,15 +469,11 @@ void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power) {
   }
   gTxState = RADIO_GetTXState(txF);
 
-  if (on) {
-    if (gTxState != TX_ON) {
-      return;
-    }
-
-    RADIO_ToggleRX(false);
+  if (on && gTxState == TX_ON) {
+    RADIO_ToggleRX(gSettings.toneLocal);
 
     BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, false);
-    RADIO_SetupBandParams();
+    // RADIO_SetupBandParams(); // overengineer
 
     BK4819_TuneTo(txF, true);
 
@@ -489,16 +487,18 @@ void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power) {
 
     RADIO_EnableCxCSS();
 
-  } else if (gTxState == TX_ON) {
-    BK4819_ExitDTMF_TX(true);
+  } else {
+    // BK4819_ExitDTMF_TX(true);
 
     sendEOT();
+    BK4819_TurnsOffTones_TurnsOnRX();
 
     BK4819_SetupPowerAmplifier(0, 0);
     BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, false);
     BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, true);
 
-    BK4819_RX_TurnOn();
+    // BK4819_RX_TurnOn();
+    RADIO_ToggleRX(false);
     setupToneDetection();
     BK4819_TuneTo(radio->rx.f, true);
   }

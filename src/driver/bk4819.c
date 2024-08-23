@@ -83,6 +83,10 @@ const Gain gainTable[19] = {
     {0x3E0, 0},   //
 };
 
+__inline uint16_t scale_freq(const uint16_t freq) {
+  return (((uint32_t)freq * 1353245u) + (1u << 16)) >> 17; // with rounding
+}
+
 void BK4819_Idle(void) { BK4819_WriteRegister(BK4819_REG_30, 0x0000); }
 
 void BK4819_Init(void) {
@@ -435,10 +439,16 @@ void BK4819_SetModulation(ModulationType type) {
 
 void BK4819_RX_TurnOn(void) {
   // init bw, mod before that
-  BK4819_WriteRegister(BK4819_REG_37, 0x9F1F);
+  BK4819_WriteRegister(BK4819_REG_37, 0x1F0F);
   BK4819_WriteRegister(BK4819_REG_30, 0x0200);
   SYSTEM_DelayMs(10);
-  BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
+  BK4819_WriteRegister(
+      BK4819_REG_30,
+      BK4819_REG_30_ENABLE_VCO_CALIB | BK4819_REG_30_DISABLE_UNKNOWN |
+          BK4819_REG_30_ENABLE_RX_LINK | BK4819_REG_30_ENABLE_AF_DAC |
+          BK4819_REG_30_ENABLE_DISC_MODE | BK4819_REG_30_ENABLE_PLL_VCO |
+          BK4819_REG_30_DISABLE_PA_GAIN | BK4819_REG_30_DISABLE_MIC_ADC |
+          BK4819_REG_30_DISABLE_TX_DSP | BK4819_REG_30_ENABLE_RX_DSP);
 }
 
 void BK4819_DisableFilter(void) {
@@ -714,7 +724,7 @@ void BK4819_TransmitTone(bool bLocalLoopback, uint32_t Frequency) {
   BK4819_EnterTxMute();
   BK4819_WriteRegister(BK4819_REG_70,
                        BK4819_REG_70_MASK_ENABLE_TONE1 |
-                           (96U << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+                           (66 << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
   BK4819_SetToneFrequency(Frequency);
 
   BK4819_SetAF(bLocalLoopback ? BK4819_AF_BEEP : BK4819_AF_MUTE);
@@ -900,76 +910,48 @@ void BK4819_PlayRoger(void) {
   const uint32_t TONE1 = 1540;
   const uint32_t TONE2 = 1310;
 
-  BK4819_EnterTxMute();
-  BK4819_SetAF(BK4819_AF_MUTE);
-
-  BK4819_WriteRegister(BK4819_REG_70,
-                       BK4819_REG_70_ENABLE_TONE1 |
-                           (66u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
-
-  BK4819_EnableTXLink();
-  SYSTEM_DelayMs(50);
-
-  BK4819_SetToneFrequency(TONE1);
-
-  BK4819_ExitTxMute();
+  BK4819_TransmitTone(gSettings.toneLocal, TONE1);
   SYSTEM_DelayMs(80);
   BK4819_EnterTxMute();
 
-  BK4819_SetToneFrequency(TONE2);
+  SYSTEM_DelayMs(80);
 
-  BK4819_ExitTxMute();
+  BK4819_TransmitTone(gSettings.toneLocal, TONE2);
   SYSTEM_DelayMs(80);
   BK4819_EnterTxMute();
-
-  BK4819_WriteRegister(BK4819_REG_70, 0x0000);
-  BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);
 }
 
 void BK4819_PlayRogerTiny(void) {
+  BK4819_TransmitTone(gSettings.toneLocal, 1250);
+  SYSTEM_DelayMs(25);
   BK4819_EnterTxMute();
-  BK4819_SetAF(BK4819_AF_MUTE);
 
-  BK4819_WriteRegister(BK4819_REG_70,
-                       BK4819_REG_70_ENABLE_TONE1 |
-                           (66u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
-
-  BK4819_EnableTXLink();
   SYSTEM_DelayMs(50);
 
-  BK4819_SetToneFrequency(1250), BK4819_ExitTxMute(), SYSTEM_DelayMs(25),
-      BK4819_EnterTxMute();
-  SYSTEM_DelayMs(50);
-  BK4819_SetToneFrequency(1500), BK4819_ExitTxMute(), SYSTEM_DelayMs(25),
-      BK4819_EnterTxMute();
-  BK4819_SetToneFrequency(750), BK4819_ExitTxMute(), SYSTEM_DelayMs(25),
-      BK4819_EnterTxMute();
+  BK4819_TransmitTone(gSettings.toneLocal, 1500);
+  SYSTEM_DelayMs(25);
+  BK4819_TransmitTone(gSettings.toneLocal, 750);
+  SYSTEM_DelayMs(25);
 
-  BK4819_WriteRegister(BK4819_REG_70, 0x0000);
-  BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);
+  BK4819_EnterTxMute();
 }
 
 void BK4819_PlayRogerUgly(void) {
+  BK4819_TransmitTone(gSettings.toneLocal, 425);
+  SYSTEM_DelayMs(350);
   BK4819_EnterTxMute();
-  BK4819_SetAF(BK4819_AF_MUTE);
 
-  BK4819_WriteRegister(BK4819_REG_70,
-                       BK4819_REG_70_ENABLE_TONE1 |
-                           (66u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+  SYSTEM_DelayMs(350);
 
-  BK4819_EnableTXLink();
-  SYSTEM_DelayMs(50);
+  BK4819_TransmitTone(gSettings.toneLocal, 425);
+  SYSTEM_DelayMs(350);
+  BK4819_EnterTxMute();
 
-  for (uint8_t i = 0; i < 2; i++) {
-    BK4819_SetToneFrequency(425), BK4819_ExitTxMute(), SYSTEM_DelayMs(350),
-        BK4819_EnterTxMute();
-    SYSTEM_DelayMs(350);
-  }
-  BK4819_SetToneFrequency(425), BK4819_ExitTxMute(), SYSTEM_DelayMs(350),
-      BK4819_EnterTxMute();
+  SYSTEM_DelayMs(350);
 
-  BK4819_WriteRegister(BK4819_REG_70, 0x0000);
-  BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);
+  BK4819_TransmitTone(gSettings.toneLocal, 425);
+  SYSTEM_DelayMs(350);
+  BK4819_EnterTxMute();
 }
 
 void BK4819_PlayRogerMDC(void) {
@@ -1050,7 +1032,6 @@ void BK4819_TuneTo(uint32_t f, bool precise) {
   BK4819_SetFrequency(f);
   uint16_t reg = BK4819_ReadRegister(BK4819_REG_30);
   if (precise) {
-    // BK4819_Idle();
     BK4819_WriteRegister(BK4819_REG_30, 0x0200);
   } else {
     BK4819_WriteRegister(BK4819_REG_30, reg & ~BK4819_REG_30_ENABLE_VCO_CALIB);
@@ -1059,11 +1040,11 @@ void BK4819_TuneTo(uint32_t f, bool precise) {
 }
 
 void BK4819_SetToneFrequency(uint16_t f) {
-  BK4819_WriteRegister(BK4819_REG_71, (f * 103U) / 10U);
+  BK4819_WriteRegister(BK4819_REG_71, scale_freq(f));
 }
 
 void BK4819_SetTone2Frequency(uint16_t f) {
-  BK4819_WriteRegister(BK4819_REG_72, (f * 103U) / 10U);
+  BK4819_WriteRegister(BK4819_REG_72, scale_freq(f));
 }
 
 bool BK4819_IsSquelchOpen(void) {

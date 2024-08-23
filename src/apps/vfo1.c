@@ -110,6 +110,11 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       }
       return true;
     case KEY_5: // noaa
+      if (SVC_Running(SVC_BEACON)) {
+        SVC_Toggle(SVC_BEACON, false, 15000);
+      } else {
+        SVC_Toggle(SVC_BEACON, true, 15000);
+      }
       return true;
     case KEY_6:
       RADIO_ToggleTxPower();

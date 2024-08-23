@@ -42,6 +42,7 @@ typedef enum {
   M_SKIP_GARBAGE_FREQS,
   M_SI4732_POWER_OFF,
   M_ROGER,
+  M_TONE_LOCAL,
   M_RESET,
 } Menu;
 
@@ -80,6 +81,7 @@ static const MenuItem menu[] = {
     {"Skip garbage freqs", M_SKIP_GARBAGE_FREQS, 2},
     {"SI4732 power off", M_SKIP_GARBAGE_FREQS, 2},
     {"Roger", M_ROGER, 4},
+    {"Tone local", M_TONE_LOCAL, 2},
     {"EEPROM reset", M_RESET, 2},
 };
 
@@ -139,6 +141,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     strncpy(name, EEPROM_TYPE_NAMES[index], 31);
     return;
   case M_RESET:
+  case M_TONE_LOCAL:
   case M_SKIP_GARBAGE_FREQS:
     strncpy(name, yesNo[index], 31);
     return;
@@ -257,6 +260,10 @@ static void accept(void) {
     gSettings.roger = subMenuIndex;
     SETTINGS_Save();
     break;
+  case M_TONE_LOCAL:
+    gSettings.toneLocal = subMenuIndex;
+    SETTINGS_Save();
+    break;
   case M_RESET:
     if (subMenuIndex) {
       APPS_run(APP_RESET);
@@ -318,7 +325,9 @@ static const char *getValue(Menu type) {
   case M_SI4732_POWER_OFF:
     return yesNo[gSettings.si4732PowerOff];
   case M_DW:
-    return yesNo[gSettings.dw];
+    return dwNames[gSettings.dw];
+  case M_TONE_LOCAL:
+    return yesNo[gSettings.toneLocal];
   case M_ROGER:
     return rogerNames[gSettings.roger];
   case M_NICKNAME:
@@ -416,6 +425,9 @@ static void setInitialSubmenuIndex(void) {
     break;
   case M_ROGER:
     subMenuIndex = gSettings.roger;
+    break;
+  case M_TONE_LOCAL:
+    subMenuIndex = gSettings.toneLocal;
     break;
   case M_MAIN_APP:
     for (i = 0; i < ARRAY_SIZE(appsAvailableToRun); ++i) {

@@ -9,6 +9,7 @@ typedef enum {
   SVC_LISTEN,
   SVC_SCAN,
   SVC_FC,
+  SVC_BEACON,
   SVC_BAT_SAVE,
   SVC_APPS,
   SVC_SYS,

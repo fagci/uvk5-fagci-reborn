@@ -48,10 +48,10 @@ static const uint16_t BK_RST_HARD = 0x200;
 static const uint16_t BK_RST_SOFT = 0xBFF1 & ~BK4819_REG_30_ENABLE_VCO_CALIB;
 static const uint16_t BK_RST_OLD = 0xBFF1 & ~BK4819_REG_30_ENABLE_RX_DSP;
 
-static const uint16_t RESET_METHODS[] = {BK_RST_HARD, BK_RST_SOFT, BK_RST_OLD};
-static const char *RESET_METHOD_NAMES[] = {"Hard", "Soft", "Old"};
+static const uint16_t RESET_METHODS[] = {BK_RST_HARD, BK_RST_SOFT};
+static const char *RESET_METHOD_NAMES[] = {"Hard", "Soft"};
 
-static uint8_t rssiResetMethod = 1;
+static uint8_t rssiResetMethod = 0;
 static uint16_t resetBkVal = BK_RST_SOFT;
 
 static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
@@ -99,7 +99,7 @@ static void updateStats() {
 
 static void startNewScan() {
   currentBand = &gCurrentPreset->band;
-  currentStepSize = StepFrequencyTable[currentBand->step];
+  currentStepSize = PRESETS_GetStepSize(gCurrentPreset);
 
   msm.f = currentBand->bounds.start;
 
@@ -128,6 +128,7 @@ void SPECTRUM_init(void) {
 }
 
 void SPECTRUM_deinit() {
+  BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
   RADIO_ToggleRX(false);
   SVC_Toggle(SVC_LISTEN, true, gSettings.scanTimeout);
 }
@@ -202,9 +203,6 @@ void SPECTRUM_update(void) {
   if (Now() - lastRender >= 500) {
     gRedrawScreen = true;
   }
-  /* if (msm.rssi == 0) {
-    return;
-  } */
   if (newScan || gSettings.activePreset != oldPresetIndex) {
     newScan = false;
     startNewScan();
@@ -216,16 +214,17 @@ void SPECTRUM_update(void) {
   }
   if (msm.f >= currentBand->bounds.end) {
     updateStats();
-    gRedrawScreen = true; // FIXME: first msm high??!
+    gRedrawScreen = true;
     newScan = true;
     return;
   }
 
   msm.f += currentStepSize;
+  SP_Next();
   if (gSettings.skipGarbageFrequencies && (msm.f % 1300000 == 0)) {
     msm.f += currentStepSize;
+    SP_Next();
   }
-  SP_Next();
 }
 
 void SPECTRUM_render(void) {
