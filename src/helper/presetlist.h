@@ -12,7 +12,7 @@ static Preset
             (Preset){
                 .band =
                     {
-                        .bounds = {10000, 2999999},
+                        .bounds = {1500000, 2999999},
                         .name = "15-30",
                         .step = STEP_5_0kHz,
                         .modulation = MOD_AM,
@@ -501,6 +501,34 @@ static Preset
                 .lastUsedFreq = 126000000,
                 .powCalib = {0x8C, 0x8C, 0x8C},
                 .radio = RADIO_BK4819,
+            },
+
+            // si4732 presets
+            (Preset){
+                .band =
+                    {
+                        .bounds = {350000, 380000},
+                        .name = "80m HAM",
+                        .step = STEP_1_0kHz,
+                        .modulation = MOD_LSB,
+                        .bw = BK4819_FILTER_BW_NARROW,
+                        .gainIndex = 18,
+                    },
+                .lastUsedFreq = 364800,
+                .radio = RADIO_SI4732,
+            },
+            (Preset){
+                .band =
+                    {
+                        .bounds = {700000, 7199999},
+                        .name = "40m HAM",
+                        .step = STEP_1_0kHz,
+                        .modulation = MOD_LSB,
+                        .bw = BK4819_FILTER_BW_NARROW,
+                        .gainIndex = 18,
+                    },
+                .lastUsedFreq = 710000,
+                .radio = RADIO_SI4732,
             },
 };
 // char (*__defpres)[sizeof(defaultPresets)/sizeof(Preset)] = 1;

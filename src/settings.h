@@ -141,7 +141,7 @@ typedef struct {
   bool noListen : 1;
   bool si4732PowerOff : 1;
   uint8_t dw : 2;
-  uint8_t reserved2 : 1;
+  bool toneLocal : 1;
   BacklightOnSquelchMode backlightOnSquelch : 2;
   uint8_t scanTimeout : 8;
   uint8_t sqlOpenTime : 3;
