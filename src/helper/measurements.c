@@ -46,7 +46,7 @@ uint8_t Rssi2PX(uint16_t rssi, uint8_t pxMin, uint8_t pxMax) {
   return ConvertDomain(rssi - 320, -260, -120, pxMin, pxMax);
 }
 
-int Mid(uint16_t *array, uint8_t n) {
+uint16_t Mid(uint16_t *array, uint8_t n) {
   int32_t sum = 0;
   for (uint8_t i = 0; i < n; ++i) {
     sum += array[i];
@@ -54,8 +54,8 @@ int Mid(uint16_t *array, uint8_t n) {
   return sum / n;
 }
 
-int Min(uint16_t *array, uint8_t n) {
-  uint8_t min = array[0];
+uint16_t Min(uint16_t *array, uint8_t n) {
+  uint16_t min = array[0];
   for (uint8_t i = 1; i < n; ++i) {
     if (array[i] < min) {
       min = array[i];
@@ -64,8 +64,8 @@ int Min(uint16_t *array, uint8_t n) {
   return min;
 }
 
-int Max(uint16_t *array, uint8_t n) {
-  uint8_t max = array[0];
+uint16_t Max(uint16_t *array, uint8_t n) {
+  uint16_t max = array[0];
   for (uint8_t i = 1; i < n; ++i) {
     if (array[i] > max) {
       max = array[i];

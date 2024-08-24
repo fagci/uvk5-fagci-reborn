@@ -49,6 +49,7 @@ static void startNewScan(bool reset) {
     BK4819_WriteRegister(BK4819_REG_39, (msm.f >> 16) & 0xFFFF);
     BK4819_WriteRegister(BK4819_REG_30, BK_RST_SOFT);
     BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
+    BK4819_SetRegValue(afcDisableRegSpec, true);
     // SYSTICK_DelayUs(msmDelay * 1000); // (X_X)
     SP_Init(PRESETS_GetSteps(&opt), spectrumWidth);
   } else {
