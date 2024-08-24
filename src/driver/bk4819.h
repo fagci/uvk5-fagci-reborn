@@ -166,7 +166,7 @@ void BK4819_PlayDTMFString(const char *pString, bool bDelayFirst,
                            uint16_t HashCodePersistTime,
                            uint16_t CodePersistTime, uint16_t CodeInternalTime);
 
-void BK4819_TransmitTone(bool bLocalLoopback, uint32_t Frequency);
+void BK4819_TransmitTone(uint32_t Frequency);
 
 void BK4819_GenTail(uint8_t Tail);
 void BK4819_EnableCDCSS(void);
@@ -195,6 +195,7 @@ uint8_t BK4819_GetCTCType(void);
 void BK4819_SendFSKData(uint16_t *pData);
 void BK4819_PrepareFSKReceive(void);
 
+void BK4819_PlaySequence(const uint8_t *M);
 void BK4819_PlayRoger(void);
 void BK4819_PlayRogerTiny(void);
 void BK4819_PlayRogerMDC(void);

@@ -721,9 +721,9 @@ void BK4819_PlayDTMFString(const char *pString, bool bDelayFirst,
   }
 }
 
-void BK4819_TransmitTone(bool bLocalLoopback, uint32_t Frequency) {
+void BK4819_TransmitTone(uint32_t Frequency) {
   BK4819_EnterTxMute();
-  if (bLocalLoopback) {
+  if (gSettings.toneLocal) {
     AUDIO_ToggleSpeaker(false);
     SYSTEM_DelayMs(8);
   }
@@ -732,10 +732,10 @@ void BK4819_TransmitTone(bool bLocalLoopback, uint32_t Frequency) {
                            (66 << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
   BK4819_SetToneFrequency(Frequency);
 
-  BK4819_SetAF(bLocalLoopback ? BK4819_AF_BEEP : BK4819_AF_MUTE);
+  BK4819_SetAF(gSettings.toneLocal ? BK4819_AF_BEEP : BK4819_AF_MUTE);
 
   BK4819_EnableTXLink();
-  if (bLocalLoopback) {
+  if (gSettings.toneLocal) {
     SYSTEM_DelayMs(8);
     AUDIO_ToggleSpeaker(true);
   }
@@ -916,56 +916,42 @@ void BK4819_PrepareFSKReceive(void) {
 #endif
 
 void BK4819_PlayRoger(void) {
-  const uint32_t TONE1 = 1540;
-  const uint32_t TONE2 = 1310;
-
-  BK4819_TransmitTone(gSettings.toneLocal, TONE1);
-  SYSTEM_DelayMs(80);
-  BK4819_EnterTxMute();
-
-  SYSTEM_DelayMs(80);
-
-  BK4819_SetToneFrequency(TONE2);
-  BK4819_ExitTxMute();
-  SYSTEM_DelayMs(80);
-  BK4819_EnterTxMute();
+  const uint8_t M[] = {154, 80, 0, 80, 131, 80, 0, 0};
+  BK4819_PlaySequence(M);
 }
 
 void BK4819_PlayRogerTiny(void) {
-  BK4819_TransmitTone(gSettings.toneLocal, 1250);
-  SYSTEM_DelayMs(25);
-  BK4819_EnterTxMute();
-
-  SYSTEM_DelayMs(50);
-
-  BK4819_SetToneFrequency(1500);
-  BK4819_ExitTxMute();
-  SYSTEM_DelayMs(25);
-  BK4819_SetToneFrequency(750);
-  BK4819_ExitTxMute();
-  SYSTEM_DelayMs(25);
-
-  BK4819_EnterTxMute();
+  const uint8_t M[] = {125, 3, 0, 5, 150, 3, 75, 3, 0, 0};
+  BK4819_PlaySequence(M);
 }
 
 void BK4819_PlayRogerUgly(void) {
-  BK4819_TransmitTone(gSettings.toneLocal, 425);
-  SYSTEM_DelayMs(350);
-  BK4819_EnterTxMute();
+  const uint8_t M[] = {43, 35, 0, 35, 43, 35, 0, 35, 43, 35, 0, 0};
+  BK4819_PlaySequence(M);
+}
 
-  SYSTEM_DelayMs(350);
-
-  BK4819_SetToneFrequency(425);
-  BK4819_ExitTxMute();
-  SYSTEM_DelayMs(350);
-  BK4819_EnterTxMute();
-
-  SYSTEM_DelayMs(350);
-
-  BK4819_SetToneFrequency(425);
-  BK4819_ExitTxMute();
-  SYSTEM_DelayMs(350);
-  BK4819_EnterTxMute();
+void BK4819_PlaySequence(const uint8_t *M) {
+  bool initialTone = true;
+  for (uint8_t i = 0; i < 255; i += 2) {
+    uint16_t note = M[i] * 10;
+    uint16_t t = M[i + 1] * 10;
+    if (note) {
+      if (initialTone) {
+        BK4819_TransmitTone(note);
+      } else {
+        BK4819_SetToneFrequency(note);
+      }
+    }
+    if (!note && !t) {
+      BK4819_EnterTxMute();
+      return;
+    }
+    if (note && !t) {
+      return;
+    }
+    SYSTEM_DelayMs(t);
+    BK4819_EnterTxMute();
+  }
 }
 
 void BK4819_PlayRogerMDC(void) {

@@ -118,7 +118,7 @@ typedef struct {
   uint8_t roger : 2;
   uint8_t scanmode : 2;
   uint8_t chDisplayMode : 2;
-  uint8_t reserved : 1;
+  uint8_t pttLock : 1;
   uint8_t crossBand : 1;
   uint8_t beep : 1;
   uint8_t keylock : 1;
