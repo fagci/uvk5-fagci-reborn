@@ -5,7 +5,7 @@
 #include "radio.h"
 #include "settings.h"
 
-static const uint8_t M[] = {100, 100};
+static const uint8_t M[] = {100, 10};
 
 void SVC_BEACON_Init() {}
 void SVC_BEACON_Update() {
