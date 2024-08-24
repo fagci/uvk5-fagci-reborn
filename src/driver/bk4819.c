@@ -22,6 +22,7 @@
 #include "../inc/dp32g030/portcon.h"
 #include "../misc.h"
 #include "../settings.h"
+#include "audio.h"
 #include "bk4819-regs.h"
 
 #define BK4819_F_MIN 1600000
@@ -722,6 +723,10 @@ void BK4819_PlayDTMFString(const char *pString, bool bDelayFirst,
 
 void BK4819_TransmitTone(bool bLocalLoopback, uint32_t Frequency) {
   BK4819_EnterTxMute();
+  if (bLocalLoopback) {
+    AUDIO_ToggleSpeaker(false);
+    SYSTEM_DelayMs(8);
+  }
   BK4819_WriteRegister(BK4819_REG_70,
                        BK4819_REG_70_MASK_ENABLE_TONE1 |
                            (66 << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
@@ -730,6 +735,10 @@ void BK4819_TransmitTone(bool bLocalLoopback, uint32_t Frequency) {
   BK4819_SetAF(bLocalLoopback ? BK4819_AF_BEEP : BK4819_AF_MUTE);
 
   BK4819_EnableTXLink();
+  if (bLocalLoopback) {
+    SYSTEM_DelayMs(8);
+    AUDIO_ToggleSpeaker(true);
+  }
   SYSTEM_DelayMs(50);
   BK4819_ExitTxMute();
 }
@@ -916,7 +925,8 @@ void BK4819_PlayRoger(void) {
 
   SYSTEM_DelayMs(80);
 
-  BK4819_TransmitTone(gSettings.toneLocal, TONE2);
+  BK4819_SetToneFrequency(TONE2);
+  BK4819_ExitTxMute();
   SYSTEM_DelayMs(80);
   BK4819_EnterTxMute();
 }
@@ -928,9 +938,11 @@ void BK4819_PlayRogerTiny(void) {
 
   SYSTEM_DelayMs(50);
 
-  BK4819_TransmitTone(gSettings.toneLocal, 1500);
+  BK4819_SetToneFrequency(1500);
+  BK4819_ExitTxMute();
   SYSTEM_DelayMs(25);
-  BK4819_TransmitTone(gSettings.toneLocal, 750);
+  BK4819_SetToneFrequency(750);
+  BK4819_ExitTxMute();
   SYSTEM_DelayMs(25);
 
   BK4819_EnterTxMute();
@@ -943,13 +955,15 @@ void BK4819_PlayRogerUgly(void) {
 
   SYSTEM_DelayMs(350);
 
-  BK4819_TransmitTone(gSettings.toneLocal, 425);
+  BK4819_SetToneFrequency(425);
+  BK4819_ExitTxMute();
   SYSTEM_DelayMs(350);
   BK4819_EnterTxMute();
 
   SYSTEM_DelayMs(350);
 
-  BK4819_TransmitTone(gSettings.toneLocal, 425);
+  BK4819_SetToneFrequency(425);
+  BK4819_ExitTxMute();
   SYSTEM_DelayMs(350);
   BK4819_EnterTxMute();
 }
