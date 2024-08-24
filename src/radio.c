@@ -228,11 +228,11 @@ static void toggleBK4819(bool on) {
   if (on) {
     BK4819_ToggleAFDAC(true);
     BK4819_ToggleAFBit(true);
-    SYSTEM_DelayMs(10);
+    SYSTEM_DelayMs(8);
     AUDIO_ToggleSpeaker(true);
   } else {
     AUDIO_ToggleSpeaker(false);
-    SYSTEM_DelayMs(10);
+    SYSTEM_DelayMs(8);
     BK4819_ToggleAFDAC(false);
     BK4819_ToggleAFBit(false);
   }
@@ -241,11 +241,11 @@ static void toggleBK4819(bool on) {
 static void toggleBK1080SI4732(bool on) {
   Log("Toggle bk1080si audio %u", on);
   if (on) {
-    SYSTEM_DelayMs(10);
+    SYSTEM_DelayMs(8);
     AUDIO_ToggleSpeaker(true);
   } else {
     AUDIO_ToggleSpeaker(false);
-    SYSTEM_DelayMs(10);
+    SYSTEM_DelayMs(8);
   }
 }
 
@@ -292,10 +292,12 @@ static void sendEOT() {
   default:
     break;
   }
-  SYSTEM_DelayMs(10);
-  BK4819_GenTail(4);
-  BK4819_WriteRegister(BK4819_REG_51, 0x9033);
-  SYSTEM_DelayMs(200);
+  if (gSettings.ste) {
+    SYSTEM_DelayMs(50);
+    BK4819_GenTail(4);
+    BK4819_WriteRegister(BK4819_REG_51, 0x9033);
+    SYSTEM_DelayMs(200);
+  }
   BK4819_ExitSubAu();
 }
 
@@ -470,8 +472,8 @@ void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power) {
   gTxState = RADIO_GetTXState(txF);
 
   if (on && gTxState == TX_ON) {
+    toggleBK1080SI4732(gSettings.toneLocal);
     RADIO_ToggleRX(false);
-    AUDIO_ToggleSpeaker(gSettings.toneLocal);
 
     BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, false);
     // RADIO_SetupBandParams(); // overengineer
@@ -492,6 +494,7 @@ void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power) {
     // BK4819_ExitDTMF_TX(true);
 
     sendEOT();
+    toggleBK1080SI4732(false);
     BK4819_TurnsOffTones_TurnsOnRX();
 
     BK4819_SetupPowerAmplifier(0, 0);
@@ -499,7 +502,6 @@ void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power) {
     BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, true);
 
     // BK4819_RX_TurnOn();
-    AUDIO_ToggleSpeaker(false);
     setupToneDetection();
     BK4819_TuneTo(radio->rx.f, true);
   }

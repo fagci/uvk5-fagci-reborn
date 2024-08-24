@@ -43,6 +43,7 @@ typedef enum {
   M_SI4732_POWER_OFF,
   M_ROGER,
   M_TONE_LOCAL,
+  M_STE,
   M_RESET,
 } Menu;
 
@@ -82,6 +83,7 @@ static const MenuItem menu[] = {
     {"SI4732 power off", M_SKIP_GARBAGE_FREQS, 2},
     {"Roger", M_ROGER, 4},
     {"Tone local", M_TONE_LOCAL, 2},
+    {"STE", M_STE, 2},
     {"EEPROM reset", M_RESET, 2},
 };
 
@@ -126,6 +128,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     strncpy(name, BL_TIME_NAMES[index], 31);
     return;
   case M_BEEP:
+  case M_STE:
     strncpy(name, onOff[index], 31);
     return;
   case M_BAT_CAL:
@@ -260,6 +263,10 @@ static void accept(void) {
     gSettings.roger = subMenuIndex;
     SETTINGS_Save();
     break;
+  case M_STE:
+    gSettings.ste = subMenuIndex;
+    SETTINGS_Save();
+    break;
   case M_TONE_LOCAL:
     gSettings.toneLocal = subMenuIndex;
     SETTINGS_Save();
@@ -320,6 +327,8 @@ static const char *getValue(Menu type) {
     return upConverterFreqNames[gSettings.upconverter];
   case M_BEEP:
     return onOff[gSettings.beep];
+  case M_STE:
+    return onOff[gSettings.ste];
   case M_SKIP_GARBAGE_FREQS:
     return yesNo[gSettings.skipGarbageFrequencies];
   case M_SI4732_POWER_OFF:
@@ -428,6 +437,9 @@ static void setInitialSubmenuIndex(void) {
     break;
   case M_TONE_LOCAL:
     subMenuIndex = gSettings.toneLocal;
+    break;
+  case M_STE:
+    subMenuIndex = gSettings.ste;
     break;
   case M_MAIN_APP:
     for (i = 0; i < ARRAY_SIZE(appsAvailableToRun); ++i) {
