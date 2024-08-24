@@ -479,7 +479,7 @@ void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power) {
     // RADIO_SetupBandParams(); // overengineer
 
     BK4819_TuneTo(txF, true);
-
+        
     BK4819_PrepareTransmit();
 
     SYSTEM_DelayMs(10);
