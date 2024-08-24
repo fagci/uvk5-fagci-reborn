@@ -44,7 +44,7 @@ static bool lastListenState = false;
 
 static uint32_t lastRender = 0;
 
-static const uint16_t BK_RST_HARD = 0x200;
+static const uint16_t BK_RST_HARD = 0x0200;
 static const uint16_t BK_RST_SOFT = 0xBFF1 & ~BK4819_REG_30_ENABLE_VCO_CALIB;
 static const uint16_t BK_RST_OLD = 0xBFF1 & ~BK4819_REG_30_ENABLE_RX_DSP;
 
@@ -52,7 +52,7 @@ static const uint16_t RESET_METHODS[] = {BK_RST_HARD, BK_RST_SOFT};
 static const char *RESET_METHOD_NAMES[] = {"Hard", "Soft"};
 
 static uint8_t rssiResetMethod = 0;
-static uint16_t resetBkVal = BK_RST_SOFT;
+static uint16_t resetBkVal = BK_RST_HARD;
 
 static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
 
@@ -97,6 +97,22 @@ static void updateStats() {
   noiseO = noiseMax - noiseOpenDiff;
 }
 
+static void init() {
+  newScan = true;
+  timeout = 0;
+  oldPresetIndex = 0;
+  rssiO = U16_MAX;
+  noiseO = 0;
+
+  radio->radio = RADIO_BK4819;
+
+  LOOT_Standby();
+  RADIO_SetupBandParams();
+
+  SP_Init(PRESETS_GetSteps(gCurrentPreset), LCD_WIDTH);
+  gRedrawScreen = true;
+}
+
 static void startNewScan() {
   currentBand = &gCurrentPreset->band;
   currentStepSize = PRESETS_GetStepSize(gCurrentPreset);
@@ -104,14 +120,8 @@ static void startNewScan() {
   msm.f = currentBand->bounds.start;
 
   if (gSettings.activePreset != oldPresetIndex) {
+    init();
     oldPresetIndex = gSettings.activePreset;
-    rssiO = U16_MAX;
-    noiseO = 0;
-    radio->radio = RADIO_BK4819;
-    LOOT_Standby();
-    RADIO_SetupBandParams();
-    SP_Init(PRESETS_GetSteps(gCurrentPreset), LCD_WIDTH);
-    gRedrawScreen = true;
   } else {
     SP_Begin();
   }
@@ -120,17 +130,14 @@ static void startNewScan() {
 void SPECTRUM_init(void) {
   SVC_Toggle(SVC_LISTEN, false, 0);
   RADIO_LoadCurrentVFO();
-  radio->radio = RADIO_BK4819;
-  RADIO_SetupBandParams();
-  newScan = true;
-  timeout = 0;
-  oldPresetIndex = 0;
+  init();
 }
 
 void SPECTRUM_deinit() {
   BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
   RADIO_ToggleRX(false);
   SVC_Toggle(SVC_LISTEN, true, gSettings.scanTimeout);
+  RADIO_SetupBandParams();
 }
 
 bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {

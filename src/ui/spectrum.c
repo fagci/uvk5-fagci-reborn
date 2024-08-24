@@ -4,6 +4,7 @@
 #include "graphics.h"
 
 #define MAX_POINTS 128
+static const uint8_t U8_MAX = 255;
 static const uint16_t U16_MAX = 65535;
 
 static uint16_t rssiHistory[MAX_POINTS] = {0};
@@ -19,10 +20,20 @@ static uint8_t exLen;
 
 static uint16_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 
+static uint16_t minRssi(uint16_t *array, uint8_t n) {
+  uint16_t min = U16_MAX;
+  for (uint8_t i = 0; i < n; ++i) {
+    if (array[i] && array[i] < min) {
+      min = array[i];
+    }
+  }
+  return min;
+}
+
 void SP_ResetHistory(void) {
   for (uint8_t i = 0; i < MAX_POINTS; ++i) {
     rssiHistory[i] = 0;
-    noiseHistory[x] = 255;
+    noiseHistory[x] = U8_MAX;
     markers[i] = false;
   }
   filledPoints = 0;
@@ -46,12 +57,12 @@ void SP_Init(uint16_t steps, uint8_t width) {
 }
 
 void SP_AddPoint(Loot *msm) {
-  uint8_t ox = 255;
+  uint8_t ox = U8_MAX;
   for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
     x = historySize * currentStep / stepsCount + exIndex;
     if (ox != x) {
       rssiHistory[x] = markers[x] = 0;
-      noiseHistory[x] = 255;
+      noiseHistory[x] = U8_MAX;
       ox = x;
     }
     if (msm->rssi > rssiHistory[x]) {
@@ -71,7 +82,7 @@ void SP_AddPoint(Loot *msm) {
 
 void SP_Render(Preset *p, uint8_t sx, uint8_t sy, uint8_t sh) {
   const uint8_t S_BOTTOM = sy + sh;
-  const uint16_t rssiMin = Min(rssiHistory, filledPoints);
+  const uint16_t rssiMin = minRssi(rssiHistory, filledPoints);
   const uint16_t rssiMax = Max(rssiHistory, filledPoints);
   const uint16_t vMin = rssiMin - 2;
   const uint16_t vMax = rssiMax + 20 + (rssiMax - rssiMin) / 2;
@@ -124,5 +135,5 @@ void SP_RenderRssi(uint16_t rssi, char *text, bool top, uint8_t sx, uint8_t sy,
                text, rssi, Rssi2DBm(rssi));
 }
 
-uint16_t SP_GetNoiseFloor() { return Std(rssiHistory, x); }
-uint16_t SP_GetNoiseMax() { return Max(noiseHistory, x); }
+uint16_t SP_GetNoiseFloor() { return Std(rssiHistory, filledPoints); }
+uint16_t SP_GetNoiseMax() { return Max(noiseHistory, filledPoints); }

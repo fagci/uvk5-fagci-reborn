@@ -163,9 +163,17 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_7:
     case KEY_8:
     case KEY_9:
-      gFInputCallback = tuneTo;
-      APPS_run(APP_FINPUT);
-      APPS_key(key, bKeyPressed, bKeyHeld);
+      if (SVC_Running(SVC_SCAN)) {
+        if (radio->channel == -1) {
+          RADIO_SelectPresetSave(key - KEY_0 + 5);
+        } else {
+          // todo: switch scanlist
+        }
+      } else {
+        gFInputCallback = tuneTo;
+        APPS_run(APP_FINPUT);
+        APPS_key(key, bKeyPressed, bKeyHeld);
+      }
       return true;
     case KEY_F:
       APPS_run(APP_VFO_CFG);
