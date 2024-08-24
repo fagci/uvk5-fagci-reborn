@@ -61,7 +61,9 @@ void SVC_FC_Update(void) {
   }
   BK4819_DisableFrequencyScan();
   BK4819_EnableFrequencyScanEx(F_SC_T_0_2s);
-  scanF = f;
+  if (f) {
+    scanF = f;
+  }
 }
 
 void SVC_FC_Deinit(void) {

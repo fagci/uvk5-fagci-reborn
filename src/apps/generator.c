@@ -5,9 +5,7 @@
 #include "apps.h"
 #include "finput.h"
 
-static const char *TYPES[] = {"Sine", "Square"};
 static uint16_t tone1Freq = 1000;
-static uint8_t toneType = 0;
 static uint8_t power = 10;
 
 static void setTone1Freq(uint32_t f) { tone1Freq = f / 100; }
@@ -15,10 +13,11 @@ static void setTone1Freq(uint32_t f) { tone1Freq = f / 100; }
 void GENERATOR_init() {}
 void GENERATOR_update() {}
 bool GENERATOR_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  const uint8_t M[] = {tone1Freq / 10, 0, 0, 0};
   if (key == KEY_PTT) {
     RADIO_ToggleTXEX(bKeyHeld, RADIO_GetTXF(), power);
     if (bKeyHeld && gTxState == TX_ON) {
-      BK4819_TransmitTone(gSettings.toneLocal, tone1Freq);
+      BK4819_PlaySequence(M);
     }
 
     return true;
@@ -67,6 +66,7 @@ bool GENERATOR_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   }
   return false;
 }
+
 void GENERATOR_render() {
   UI_ClearScreen();
   uint32_t txf = RADIO_GetTXF();

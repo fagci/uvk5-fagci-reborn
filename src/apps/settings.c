@@ -44,6 +44,7 @@ typedef enum {
   M_ROGER,
   M_TONE_LOCAL,
   M_STE,
+  M_PTT_LOCK,
   M_RESET,
 } Menu;
 
@@ -84,6 +85,7 @@ static const MenuItem menu[] = {
     {"Roger", M_ROGER, 4},
     {"Tone local", M_TONE_LOCAL, 2},
     {"STE", M_STE, 2},
+    {"Lock PTT", M_PTT_LOCK, 2},
     {"EEPROM reset", M_RESET, 2},
 };
 
@@ -145,6 +147,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     return;
   case M_RESET:
   case M_TONE_LOCAL:
+  case M_PTT_LOCK:
   case M_SKIP_GARBAGE_FREQS:
     strncpy(name, yesNo[index], 31);
     return;
@@ -271,6 +274,10 @@ static void accept(void) {
     gSettings.toneLocal = subMenuIndex;
     SETTINGS_Save();
     break;
+  case M_PTT_LOCK:
+    gSettings.pttLock = subMenuIndex;
+    SETTINGS_Save();
+    break;
   case M_RESET:
     if (subMenuIndex) {
       APPS_run(APP_RESET);
@@ -337,6 +344,8 @@ static const char *getValue(Menu type) {
     return dwNames[gSettings.dw];
   case M_TONE_LOCAL:
     return yesNo[gSettings.toneLocal];
+  case M_PTT_LOCK:
+    return yesNo[gSettings.pttLock];
   case M_ROGER:
     return rogerNames[gSettings.roger];
   case M_NICKNAME:
@@ -440,6 +449,9 @@ static void setInitialSubmenuIndex(void) {
     break;
   case M_STE:
     subMenuIndex = gSettings.ste;
+    break;
+  case M_PTT_LOCK:
+    subMenuIndex = gSettings.pttLock;
     break;
   case M_MAIN_APP:
     for (i = 0; i < ARRAY_SIZE(appsAvailableToRun); ++i) {
