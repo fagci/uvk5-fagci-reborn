@@ -543,6 +543,16 @@ typedef union {
 
 typedef union {
   struct {
+    uint8_t INTACK : 1; //!<  If set, clears the seek/tune complete interrupt
+                        //!<  status indicator.
+    uint8_t CANCEL : 1; //!<  If set, aborts a seek currently in progress.
+    uint8_t RESERVED2 : 6;
+  } arg;
+  uint8_t raw;
+} SI47XX_TuneStatus;
+
+typedef union {
+  struct {
     uint8_t AMCHFLT : 4; //!<  Selects the bandwidth of the AM channel filter.
     uint8_t DUMMY1 : 4;
     uint8_t AMPLFLT : 1; //!<  Enables the AM Power Line Noise Rejection Filter.
@@ -574,6 +584,7 @@ void SI47XX_SetBFO(int16_t bfo);
 void SI47XX_SetSsbCapacitor(uint16_t v);
 void SI47XX_TuneTo(uint32_t f);
 void SI47XX_SetVolume(uint8_t volume);
+void SI47xx_GetStatus(uint8_t intack, uint8_t cancel);
 
 extern SI47XX_MODE si4732mode;
 extern RSQStatus rsqStatus;

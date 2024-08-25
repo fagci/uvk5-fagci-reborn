@@ -83,6 +83,10 @@ void STATUSLINE_render(void) {
     icons[idx++] = SYM_EEPROM_W;
   }
 
+  if (SVC_Running(SVC_BEACON)) {
+    icons[idx++] = SYM_BEACON;
+  }
+
   if (SVC_Running(SVC_FC)) {
     icons[idx++] = SYM_FC;
   }

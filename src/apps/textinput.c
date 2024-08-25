@@ -129,7 +129,7 @@ bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_9:
       if (currentSet == numbers) {
         if (strlen(inputField) < gTextInputSize) {
-          insert(key - KEY_0 + '0');
+          insert(key + '0');
         }
         return true;
       }
@@ -152,7 +152,7 @@ bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_0:
       if (currentSet == numbers && strlen(inputField) < gTextInputSize) {
-        insert(key - KEY_0 + '0');
+        insert('0');
         return true;
       }
       if (!currentRow) {

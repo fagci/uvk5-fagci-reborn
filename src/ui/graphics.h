@@ -39,6 +39,7 @@ typedef enum {
   SYM_NO_LISTEN = 0x3E,
   SYM_LOOT = 0x3F,
   SYM_FC = 0x40,
+  SYM_BEACON = 0x41,
 } Symbol;
 
 typedef struct {

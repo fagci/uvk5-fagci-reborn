@@ -44,7 +44,7 @@ void RESET_Init(void) {
   settingsWrote = false;
   memset(buf, 0xFF, sizeof(buf));
   channelsMax = CHANNELS_GetCountMax();
-  bytesMax = SETTINGS_GetEEPROMSize();
+  bytesMax = ARRAY_SIZE(defaultPresets) * PRESET_SIZE + channelsMax * CH_SIZE;
 }
 
 void RESET_Update(void) {

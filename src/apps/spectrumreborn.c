@@ -46,7 +46,6 @@ static uint32_t lastRender = 0;
 
 static const uint16_t BK_RST_HARD = 0x0200;
 static const uint16_t BK_RST_SOFT = 0xBFF1 & ~BK4819_REG_30_ENABLE_VCO_CALIB;
-static const uint16_t BK_RST_OLD = 0xBFF1 & ~BK4819_REG_30_ENABLE_RX_DSP;
 
 static const uint16_t RESET_METHODS[] = {BK_RST_HARD, BK_RST_SOFT};
 static const char *RESET_METHOD_NAMES[] = {"Hard", "Soft"};

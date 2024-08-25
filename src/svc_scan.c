@@ -105,8 +105,9 @@ void SVC_SCAN_Deinit(void) {
   if (RADIO_GetRadio() != RADIO_BK4819) {
     uint32_t f = radio->rx.f;
 
-    SI47XX_PowerDown();
-    SI47XX_PowerUp();
+    if (RADIO_GetRadio() == RADIO_SI4732) {
+      SI47xx_GetStatus(true, true);
+    }
     RADIO_TuneToSave(f);
   }
 }

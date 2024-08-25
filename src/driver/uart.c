@@ -259,20 +259,6 @@ typedef struct {
   } Data;
 } REPLY_0602_t;
 
-typedef struct {
-  Header_t Header;
-  uint16_t Offset;
-  uint32_t Timestamp;
-} CMD_0701_t;
-
-typedef struct {
-  Header_t Header;
-  struct {
-    uint16_t Offset;
-    uint8_t Data[sizeof(CH)];
-  } Data;
-} REPLY_0702_t;
-
 static const uint8_t Obfuscation[16] = {0x16, 0x6C, 0x14, 0xE6, 0x2E, 0x91,
                                         0x0D, 0x40, 0x21, 0x35, 0xD5, 0x40,
                                         0x13, 0x03, 0xE9, 0x80};
@@ -591,22 +577,6 @@ static void CMD_0602(const uint8_t *pBuffer) {
 
 #endif
 
-#include "../helper/channels.h"
-static void CMD_0701(const uint8_t *pBuffer) {
-  const CMD_0701_t *pCmd = (const CMD_0701_t *)pBuffer;
-  REPLY_0702_t Reply;
-
-  memset(&Reply, 0, sizeof(Reply));
-  Reply.Header.ID = 0x0702;
-  Reply.Data.Offset = pCmd->Offset;
-  Reply.Header.Size = sizeof(Reply.Data);
-  CH ch;
-  CHANNELS_Load(pCmd->Offset, &ch);
-  memcpy(Reply.Data.Data, &ch, sizeof(ch));
-
-  SendReply(&Reply, sizeof(Reply));
-}
-
 uint64_t xtou64(const char *str) {
   uint64_t res = 0;
   char c;
@@ -759,11 +729,6 @@ void UART_HandleCommand(void) {
     // write patch
   case 0x061D:
     CMD_061D(UART_Command.Buffer);
-    break;
-
-    // read ch
-  case 0x0701:
-    CMD_0701(UART_Command.Buffer);
     break;
   }
 }

@@ -61,13 +61,13 @@ uint16_t NUMNAV_Input(KEY_Code_t key) {
     NUMNAV_Accept();
     return NUMNAV_GetCurrentValue();
   }
-  if (key < KEY_0 || key > KEY_9) {
+  if (key > KEY_9) {
     uint16_t v = NUMNAV_GetCurrentValue();
     NUMNAV_Deinit();
     return v;
   }
 
-  uint8_t nextNum = (uint8_t)key - KEY_0;
+  uint8_t nextNum = (uint8_t)key;
   gNumNavInput[pos] = '0' + nextNum;
 
   pos++;

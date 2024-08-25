@@ -31,7 +31,6 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
   // long held
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
-    OffsetDirection offsetDirection = gCurrentPreset->offsetDir;
     switch (key) {
     case KEY_2:
       LOOT_Standby();
