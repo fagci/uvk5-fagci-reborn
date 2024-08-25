@@ -43,7 +43,7 @@ void VFO1_update(void) {
 
 bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld && radio->channel >= 0) {
-    if (!gIsNumNavInput && key >= KEY_0 && key <= KEY_9) {
+    if (!gIsNumNavInput && key <= KEY_9) {
       NUMNAV_Init(radio->channel + 1, 1, CHANNELS_GetCountMax());
       gNumNavCallback = setChannel;
     }
@@ -165,7 +165,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_9:
       if (SVC_Running(SVC_SCAN)) {
         if (radio->channel == -1) {
-          RADIO_SelectPresetSave(key - KEY_0 + 5);
+          RADIO_SelectPresetSave(key + 5);
         } else {
           // todo: switch scanlist
         }

@@ -916,7 +916,7 @@ void BK4819_PrepareFSKReceive(void) {
 #endif
 
 void BK4819_PlayRoger(void) {
-  const uint8_t M[] = {154, 80, 0, 80, 131, 80, 0, 0};
+  const uint8_t M[] = {154, 8, 0, 8, 131, 8, 0, 0};
   BK4819_PlaySequence(M);
 }
 

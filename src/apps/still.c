@@ -91,12 +91,12 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_1:
     case KEY_2:
     case KEY_3:
-      menuState = key - KEY_0;
+      menuState = key;
       return true;
     case KEY_4:
     case KEY_5:
     case KEY_6:
-      menuState = key - KEY_0 + 1;
+      menuState = key + 1;
       return true;
     case KEY_0:
       menuState = 8;

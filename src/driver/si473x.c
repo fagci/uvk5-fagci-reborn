@@ -52,7 +52,7 @@ void waitToSend() {
 
 bool SI47XX_downloadPatch() {
   uint8_t buf[248];
-  const uint8_t PAGE_SIZE = SETTINGS_GetPageSize();
+  // const uint8_t PAGE_SIZE = SETTINGS_GetPageSize();
   const uint32_t EEPROM_SIZE = SETTINGS_GetEEPROMSize();
   const uint32_t PATCH_START = EEPROM_SIZE - PATCH_SIZE;
   for (uint16_t offset = 0; offset < PATCH_SIZE; offset += 248) {
@@ -268,12 +268,10 @@ void SI47XX_SwitchMode(SI47XX_MODE mode) {
     }
   }
 }
-#include "uart.h"
 void SI47XX_SetFreq(uint16_t freq) {
   if (siCurrentFreq == freq) {
     return;
   }
-    Log("[si] tune from %u to %u", siCurrentFreq, freq);
   uint8_t hb = (freq >> 8) & 0xFF;
   uint8_t lb = freq & 0xFF;
 
@@ -369,17 +367,14 @@ void SI47XX_SetSeekAmRssiThreshold(uint16_t value) {
 
 void SI47XX_SetBFO(int16_t bfo) { sendProperty(PROP_SSB_BFO, bfo); }
 
-#include "uart.h"
 void SI47XX_TuneTo(uint32_t f) {
   if (SI47XX_IsSSB()) {
     int64_t bfo = ((int64_t)(siCurrentFreq * fDiv()) - (int64_t)f) * 10;
     if (bfo > -16000 && bfo < 16000) {
       SI47XX_SetBFO(bfo);
       f = siCurrentFreq * fDiv();
-      Log("f=%u, bfo=%d", f, bfo);
     } else {
       SI47XX_SetBFO(0);
-      Log("f=%u, bfo=%d", f, 0);
     }
   }
   f /= fDiv();
@@ -387,4 +382,30 @@ void SI47XX_TuneTo(uint32_t f) {
     f -= f % 5;
   }
   SI47XX_SetFreq(f);
+}
+
+void SI47xx_GetStatus(uint8_t intack, uint8_t cancel) {
+  SI47XX_TuneStatus status;
+
+  uint8_t cmd = CMD_FM_TUNE_STATUS;
+
+  if (si4732mode == SI47XX_AM) {
+    cmd = CMD_AM_TUNE_STATUS;
+  }
+
+  status.arg.INTACK = intack;
+  status.arg.CANCEL = cancel;
+  status.arg.RESERVED2 = 0;
+
+  uint8_t cmdA[2] = {cmd, status.raw};
+
+  uint8_t response[4] = {0};
+
+  waitToSend();
+  SI47XX_WriteBuffer(cmdA, 2);
+  SI47XX_ReadBuffer(response, 4);
+
+  /* if (valid) {
+    *valid = !(response[0] & STATUS_ERR);
+  } */
 }
