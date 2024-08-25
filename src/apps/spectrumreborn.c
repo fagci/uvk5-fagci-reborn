@@ -53,7 +53,8 @@ static const char *RESET_METHOD_NAMES[] = {"Hard", "Soft"};
 static uint8_t rssiResetMethod = 0;
 static uint16_t resetBkVal = BK_RST_HARD;
 
-static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
+// static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
+static bool isSquelchOpen() { return msm.noise <= 50; }
 
 static void updateMeasurements() {
   if (!gIsListening) {

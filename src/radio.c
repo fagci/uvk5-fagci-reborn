@@ -488,7 +488,7 @@ void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power) {
     RADIO_EnableCxCSS();
 
   } else {
-    // BK4819_ExitDTMF_TX(true);
+    BK4819_ExitDTMF_TX(true); // also prepares to tx ste
 
     sendEOT();
     toggleBK1080SI4732(false);
