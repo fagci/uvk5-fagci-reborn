@@ -124,13 +124,13 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     strncpy(name, TX_CODE_TYPES[index], 15);
     return;
   case M_RX_CODE:
-    PrintRTXCode(name, &radio->rx);
+    PrintRTXCode(name, radio->rx.codeType, index);
     return;
   case M_TX_CODE_TYPE:
     strncpy(name, TX_CODE_TYPES[index], 15);
     return;
   case M_TX_CODE:
-    PrintRTXCode(name, &radio->tx);
+    PrintRTXCode(name, radio->tx.codeType, index);
     return;
   case M_F_TXP:
     strncpy(name, TX_POWER_NAMES[index], 15);

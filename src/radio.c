@@ -470,11 +470,9 @@ void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power) {
   gTxState = RADIO_GetTXState(txF);
 
   if (on && gTxState == TX_ON) {
-    toggleBK1080SI4732(gSettings.toneLocal);
     RADIO_ToggleRX(false);
 
     BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, false);
-    // RADIO_SetupBandParams(); // overengineer
 
     BK4819_TuneTo(txF, true);
 
@@ -501,7 +499,6 @@ void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power) {
     BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, false);
     BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, true);
 
-    // BK4819_RX_TurnOn();
     setupToneDetection();
     BK4819_TuneTo(radio->rx.f, true);
     gTxState = TX_UNKNOWN;

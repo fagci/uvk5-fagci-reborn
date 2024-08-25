@@ -75,15 +75,15 @@ void UI_ShowMenuEx(void (*showItem)(uint16_t i, uint16_t index, bool isCurrent),
   UI_DrawScrollBar(size, currentIndex, linesMax);
 }
 
-void PrintRTXCode(char *Output, F *rtx) {
-  if (rtx->codeType) {
-    if (rtx->codeType == CODE_TYPE_CONTINUOUS_TONE) {
-      sprintf(Output, "CT:%u.%uHz", CTCSS_Options[rtx->code] / 10,
-              CTCSS_Options[rtx->code] % 10);
-    } else if (rtx->codeType == CODE_TYPE_DIGITAL) {
-      sprintf(Output, "DCS:D%03oN", DCS_Options[rtx->code]);
-    } else if (rtx->codeType == CODE_TYPE_REVERSE_DIGITAL) {
-      sprintf(Output, "DCS:D%03oI", DCS_Options[rtx->code]);
+void PrintRTXCode(char *Output, uint8_t codeType, uint8_t code) {
+  if (codeType) {
+    if (codeType == CODE_TYPE_CONTINUOUS_TONE) {
+      sprintf(Output, "CT:%u.%uHz", CTCSS_Options[code] / 10,
+              CTCSS_Options[code] % 10);
+    } else if (codeType == CODE_TYPE_DIGITAL) {
+      sprintf(Output, "DCS:D%03oN", DCS_Options[code]);
+    } else if (codeType == CODE_TYPE_REVERSE_DIGITAL) {
+      sprintf(Output, "DCS:D%03oI", DCS_Options[code]);
     } else {
       sprintf(Output, "No code");
     }
@@ -144,13 +144,13 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
     strncpy(Output, TX_CODE_TYPES[radio->rx.codeType], 31);
     break;
   case M_RX_CODE:
-    PrintRTXCode(Output, &radio->rx);
+    PrintRTXCode(Output, radio->rx.codeType, radio->rx.code);
     break;
   case M_TX_CODE_TYPE:
     strncpy(Output, TX_CODE_TYPES[radio->tx.codeType], 31);
     break;
   case M_TX_CODE:
-    PrintRTXCode(Output, &radio->tx);
+    PrintRTXCode(Output, radio->tx.codeType, radio->tx.code);
     break;
   case M_TX_OFFSET:
     sprintf(Output, "%u.%05u", gCurrentPreset->offset / 100000,
