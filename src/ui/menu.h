@@ -58,6 +58,6 @@ void UI_ShowMenuEx(void (*showItem)(uint16_t i, uint16_t index, bool isCurrent),
 
 void GetMenuItemValue(PresetCfgMenu type, char *Output);
 void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex);
-void PrintRTXCode(char *Output, F *rtx);
+void PrintRTXCode(char *Output, uint8_t codeType, uint8_t code);
 
 #endif /* end of include guard: MENU_H */

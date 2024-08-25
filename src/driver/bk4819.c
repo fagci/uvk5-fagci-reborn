@@ -723,10 +723,6 @@ void BK4819_PlayDTMFString(const char *pString, bool bDelayFirst,
 
 void BK4819_TransmitTone(uint32_t Frequency) {
   BK4819_EnterTxMute();
-  if (gSettings.toneLocal) {
-    AUDIO_ToggleSpeaker(false);
-    SYSTEM_DelayMs(8);
-  }
   BK4819_WriteRegister(BK4819_REG_70,
                        BK4819_REG_70_MASK_ENABLE_TONE1 |
                            (66 << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
@@ -735,11 +731,7 @@ void BK4819_TransmitTone(uint32_t Frequency) {
   BK4819_SetAF(gSettings.toneLocal ? BK4819_AF_BEEP : BK4819_AF_MUTE);
 
   BK4819_EnableTXLink();
-  if (gSettings.toneLocal) {
-    SYSTEM_DelayMs(8);
-    AUDIO_ToggleSpeaker(true);
-  }
-  SYSTEM_DelayMs(50);
+  // SYSTEM_DelayMs(50);
   BK4819_ExitTxMute();
 }
 
@@ -935,23 +927,30 @@ void BK4819_PlaySequence(const uint8_t *M) {
   for (uint8_t i = 0; i < 255; i += 2) {
     uint16_t note = M[i] * 10;
     uint16_t t = M[i + 1] * 10;
-    if (note) {
-      if (initialTone) {
-        BK4819_TransmitTone(note);
-      } else {
-        BK4819_SetToneFrequency(note);
-      }
-    }
     if (!note && !t) {
-      BK4819_EnterTxMute();
-      return;
+      break;
+    }
+    if (initialTone) {
+      initialTone = false;
+      BK4819_TransmitTone(note);
+      if (gSettings.toneLocal) {
+        SYSTEM_DelayMs(10);
+        AUDIO_ToggleSpeaker(true);
+      }
+    } else {
+      BK4819_SetToneFrequency(note);
+      BK4819_ExitTxMute();
     }
     if (note && !t) {
       return;
     }
     SYSTEM_DelayMs(t);
-    BK4819_EnterTxMute();
   }
+  if (gSettings.toneLocal) {
+    AUDIO_ToggleSpeaker(false);
+    SYSTEM_DelayMs(10);
+  }
+  BK4819_EnterTxMute();
 }
 
 void BK4819_PlayRogerMDC(void) {
