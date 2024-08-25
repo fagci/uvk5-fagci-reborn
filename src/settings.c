@@ -15,14 +15,14 @@ const char *TX_CODE_TYPES[4] = {"None", "CT", "DCS", "-DCS"};
 const char *rogerNames[4] = {"None", "Moto", "Tiny", "Call"};
 const char *dwNames[3] = {"Off", "TX Stay", "TX Switch"};
 const char *EEPROM_TYPE_NAMES[8] = {
-    "none 1",          // 000
-    "none 2",          // 001
-    "BL24C64 (stock)", // 010
-    "BL24C128",        // 011
-    "BL24C256",        // 100
-    "BL24C512",        // 101
-    "BL24C1024",       // 110
-    "M24M02 (x1)",     // 111
+    "-",      // 000
+    "-",      // 001
+    "BL24C64 #",   // 010
+    "BL24C128",    // 011
+    "BL24C256",    // 100
+    "BL24C512",    // 101
+    "BL24C1024",   // 110
+    "M24M02", // 111
 };
 
 const uint32_t EEPROM_SIZES[8] = {
