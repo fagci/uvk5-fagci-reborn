@@ -1,7 +1,6 @@
 #include "lootlist.h"
 #include "../dcs.h"
 #include "../driver/st7565.h"
-#include "../driver/uart.h"
 #include "../helper/channels.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
