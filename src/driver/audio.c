@@ -21,7 +21,7 @@ void AUDIO_PlayTone(uint32_t frequency, uint16_t duration) {
 
   AUDIO_ToggleSpeaker(false);
 
-  SYSTEM_DelayMs(20);
+  SYSTEM_DelayMs(10);
   BK4819_PlayTone(frequency, true);
   SYSTEM_DelayMs(2);
 
@@ -32,7 +32,7 @@ void AUDIO_PlayTone(uint32_t frequency, uint16_t duration) {
   SYSTEM_DelayMs(duration);
   BK4819_EnterTxMute();
 
-  SYSTEM_DelayMs(20);
+  SYSTEM_DelayMs(10);
   AUDIO_ToggleSpeaker(false);
 
   SYSTEM_DelayMs(5);

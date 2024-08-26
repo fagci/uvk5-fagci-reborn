@@ -96,24 +96,20 @@ uint8_t DCS_GetCdcssCode(uint32_t Code) {
   return 0xFF;
 }
 
-uint8_t DCS_GetCtcssCode(uint16_t Code) {
-  uint8_t i;
-  int Smallest;
-  uint8_t Result = 0xFF;
+uint8_t DCS_GetCtcssCode(uint16_t code) {
+  uint16_t smallest;
+  uint8_t result = 0xFF;
 
-  Smallest = ARRAY_SIZE(CTCSS_Options);
-  for (i = 0; i < ARRAY_SIZE(CTCSS_Options); i++) {
-    int Delta;
+  smallest = ARRAY_SIZE(CTCSS_Options);
+  for (uint8_t i = 0; i < ARRAY_SIZE(CTCSS_Options); i++) {
+    uint16_t candidate = CTCSS_Options[i];
+    uint16_t d = candidate > code ? candidate - code : code - candidate;
 
-    Delta = Code - CTCSS_Options[i];
-    if (Delta < 0) {
-      Delta = -(Code - CTCSS_Options[i]);
-    }
-    if (Delta < Smallest) {
-      Smallest = Delta;
-      Result = i;
+    if (d < smallest) {
+      smallest = d;
+      result = i;
     }
   }
 
-  return Result;
+  return result;
 }

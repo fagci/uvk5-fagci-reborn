@@ -433,7 +433,7 @@ void BOARD_Init(void) {
   UART_Init();
   UART_printf("fagci R3b0rn\n");
 
-  // ST7565_Init();
+  ST7565_Init();
   // BK1080_Init(0, false);
   BK4819_Init();
   BACKLIGHT_Init();
