@@ -1,7 +1,6 @@
 #include "finput.h"
 #include "../driver/bk4819.h"
 #include "../driver/st7565.h"
-#include "../radio.h"
 #include "../scheduler.h"
 #include "../ui/graphics.h"
 #include "apps.h"

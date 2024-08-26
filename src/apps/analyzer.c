@@ -45,8 +45,7 @@ static void startNewScan(bool reset) {
     LOOT_Standby();
     // RADIO_TuneToPure(msm.f, true);
     msm.f = opt.band.bounds.start;
-    BK4819_WriteRegister(BK4819_REG_38, msm.f & 0xFFFF);
-    BK4819_WriteRegister(BK4819_REG_39, (msm.f >> 16) & 0xFFFF);
+    BK4819_SetFrequency(msm.f);
     BK4819_WriteRegister(BK4819_REG_30, BK_RST_SOFT);
     BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
     BK4819_SetRegValue(afcDisableRegSpec, true);
@@ -102,7 +101,6 @@ void ANALYZER_init(void) {
   SVC_Toggle(SVC_LISTEN, false, 0);
   RADIO_ToggleRX(false);
   RADIO_LoadCurrentVFO();
-  // RADIO_ToggleBK1080(false);
 
   gMonitorMode = false;
 
@@ -116,8 +114,6 @@ void ANALYZER_init(void) {
   gScanFn = scanFn;
   SVC_Toggle(SVC_SCAN, true, 1);
   gScanRedraw = false;
-
-  gRedrawScreen = true;
 }
 
 void ANALYZER_update(void) {}
