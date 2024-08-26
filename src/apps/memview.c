@@ -1,6 +1,5 @@
 #include "memview.h"
 #include "../driver/eeprom.h"
-#include "../driver/st7565.h"
 #include "../helper/measurements.h"
 #include "../settings.h"
 #include "../ui/graphics.h"
@@ -32,12 +31,6 @@ void MEMVIEW_Render(void) {
     PrintSmall(16 + col * 9, rowYBL, "%02x", buf[i]);
     PrintSmall(88 + col * 5, rowYBL, "%c",
                buf[i] >= 32 && buf[i] < 128 ? buf[i] : '.');
-    if (offset == SETTINGS_OFFSET || offset == VFOS_OFFSET ||
-        offset == PRESETS_OFFSET ||
-        (offset >= PRESETS_OFFSET &&
-         (offset - PRESETS_OFFSET) % PRESET_SIZE == 0)) {
-      FillRect(16 + col * 9 - 1, row * 6 + 8, 9, 7, C_INVERT);
-    }
   }
 }
 

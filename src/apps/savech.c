@@ -20,8 +20,8 @@ static int16_t from = -1;
 
 static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
   CH _ch;
-  const uint8_t y = MENU_Y + i * MENU_ITEM_H;
   CHANNELS_Load(index, &_ch);
+  const uint8_t y = MENU_Y + i * MENU_ITEM_H;
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
   }
@@ -75,7 +75,6 @@ static void saveNamed(void) {
 static void saveRenamed() { CHANNELS_Save(chNum, &ch); }
 
 void SAVECH_init(void) {
-  gRedrawScreen = true;
   CHANNELS_LoadScanlist(gSettings.currentScanlist);
   if (gSettings.currentScanlist == 15) {
     chCount = CHANNELS_GetCountMax();

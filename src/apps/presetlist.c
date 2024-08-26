@@ -1,5 +1,4 @@
 #include "presetlist.h"
-#include "../driver/st7565.h"
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"
 #include "../helper/presetlist.h"
@@ -10,16 +9,7 @@
 static uint8_t menuIndex = 0;
 
 static void getPresetText(uint16_t i, char *name) {
-  Preset *item = PRESETS_Item(i);
-  Band *b = &item->band;
-  uint32_t fs = b->bounds.start;
-  uint32_t fe = b->bounds.end;
-  if (b->name[0] > 32) {
-    sprintf(name, "%s", b->name);
-  } else {
-    sprintf(name, "%u.%05u-%u.%05u", fs / 100000, fs % 100000, fe / 100000,
-            fe % 100000);
-  }
+  sprintf(name, "%s", PRESETS_Item(i)->band.name);
 }
 
 void PRESETLIST_render(void) {
@@ -27,10 +17,7 @@ void PRESETLIST_render(void) {
   UI_ShowMenu(getPresetText, PRESETS_Size(), menuIndex);
 }
 
-void PRESETLIST_init(void) {
-  gRedrawScreen = true;
-  menuIndex = gSettings.activePreset;
-}
+void PRESETLIST_init(void) { menuIndex = gSettings.activePreset; }
 
 static void setMenuIndexAndRun(uint16_t v) {
   menuIndex = v - 1;
@@ -41,7 +28,7 @@ static void setMenuIndexAndRun(uint16_t v) {
 bool PRESETLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   const uint8_t MENU_SIZE = PRESETS_Size();
   if (!bKeyPressed && !bKeyHeld) {
-    if (!gIsNumNavInput && key >= KEY_0 && key <= KEY_9) {
+    if (!gIsNumNavInput && key <= KEY_9) {
       NUMNAV_Init(menuIndex + 1, 1, MENU_SIZE);
       gNumNavCallback = setMenuIndexAndRun;
     }
