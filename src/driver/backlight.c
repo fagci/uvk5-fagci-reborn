@@ -6,9 +6,9 @@
 #include "gpio.h"
 #include "system.h"
 
-uint8_t duration = 2;
-uint8_t countdown;
-bool state = false;
+static uint8_t duration = 2;
+static uint8_t countdown;
+static bool state = false;
 
 void BACKLIGHT_Init() {
   // 48MHz / 94 / 1024 ~ 500Hz
@@ -28,6 +28,10 @@ void BACKLIGHT_Init() {
 
   PWM_PLUS0_CFG =
       PWMPLUS_CFG_CNT_REP_BITS_ENABLE | PWMPLUS_CFG_COUNTER_EN_BITS_ENABLE | 0;
+
+  BACKLIGHT_SetDuration(BL_TIME_VALUES[gSettings.backlight]);
+  BACKLIGHT_SetBrightness(gSettings.brightness);
+  BACKLIGHT_On();
 }
 
 void BACKLIGHT_SetBrightness(uint8_t brigtness) {
@@ -40,13 +44,7 @@ void BACKLIGHT_Toggle(bool on) {
     return;
   }
   state = on;
-  if (on) {
-    // GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
-    BACKLIGHT_SetBrightness(gSettings.brightness);
-  } else {
-    // GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
-    BACKLIGHT_SetBrightness(0);
-  }
+  BACKLIGHT_SetBrightness(on ? gSettings.brightness : 0);
 }
 
 void BACKLIGHT_On() {

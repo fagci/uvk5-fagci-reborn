@@ -91,9 +91,10 @@ static void Intro(void) {
 }
 
 void Main(void) {
-  gSettings.contrast = 6;
   SYSTEM_ConfigureSysCon();
   SYSTICK_Init();
+
+  gSettings.contrast = 6;
   BOARD_Init();
 
   BACKLIGHT_SetBrightness(7);
@@ -106,13 +107,10 @@ void Main(void) {
   }
 
   SETTINGS_Load();
+  ST7565_Init();
+  BACKLIGHT_Init();
 
   BATTERY_UpdateBatteryInfo();
-
-  BACKLIGHT_SetDuration(BL_TIME_VALUES[gSettings.backlight]);
-  BACKLIGHT_SetBrightness(gSettings.brightness);
-  BACKLIGHT_On();
-  ST7565_Init();
 
   if (pressedKey == KEY_EXIT) {
     Boot(APP_RESET);
