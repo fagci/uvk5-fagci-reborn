@@ -24,7 +24,7 @@ static const RegisterSpec registerSpecs[] = {
     /* {"RF", BK4819_REG_43, 12, 0b111, 1},
     {"RFwe", BK4819_REG_43, 9, 0b111, 1}, */
 
-    {"IF", 0x3D, 0, 0xFFFF, 100},
+    // {"IF", 0x3D, 0, 0xFFFF, 100},
     // TODO: 7 values:
     /* 0: Zero IF
     0x2aab: 8.46 kHz IF
@@ -37,8 +37,12 @@ static const RegisterSpec registerSpecs[] = {
     If REG_43<5> = 1, IF = IF*2. */
 
     {"DEV", 0x40, 0, 0xFFF, 10},
-    {"CMP", 0x31, 3, 1, 1},
+    {"RF filt BW", 0x43, 12, 0b111, 1},
+    {"300Hz Tx", 0x44, 0,  0xFFFF, 100},
+    {"300Hz Rx", 0x54, 0,  0xFFFF, 100},
+    // {"CMP", 0x31, 3, 1, 1},
     {"MIC", 0x7D, 0, 0xF, 1},
+    {"AFC Range Select", 0x73, 11,  0b111, 1},
 };
 
 static void UpdateRegMenuValue(RegisterSpec s, bool add) {
