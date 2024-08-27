@@ -96,13 +96,15 @@ void RADIO_SetupRegisters(void) {
     SYSTEM_DelayMs(1);
   }
   BK4819_WriteRegister(BK4819_REG_3F, 0);
-  BK4819_WriteRegister(BK4819_REG_7D, 0xE94F); // mic
-  BK4819_WriteRegister(0x74, 0xf50b + (0xAF1F-0xf50b)/2);          // 3k resp TX
+  BK4819_WriteRegister(BK4819_REG_7D, 0xE94F | 0x1F); // mic
+  // BK4819_WriteRegister(0x74, 0xf50b + (0xAF1F-0xf50b)/2);          // 3k resp
+  // TX
+  // BK4819_WriteRegister(0x74, 2024); // 3k resp TX
   // BK4819_WriteRegister(0x75, 0xAF1F);          // 3k resp RX
+
   /* BK4819_SetFrequency(Frequency);
   BK4819_SelectFilter(Frequency); */
   BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, true);
-  // BK4819_WriteRegister(BK4819_REG_48, 0xB3A8);
   BK4819_WriteRegister(
       BK4819_REG_48,
       (11u << 12) |    // ??? .. 0 ~ 15, doesn't seem to make any difference
