@@ -26,9 +26,15 @@ typedef struct RegisterSpec {
   uint16_t inc;
 } RegisterSpec;
 
-static const RegisterSpec afcDisableRegSpec = {"AFC Disable", 0x73, 4, 1, 1};
-static const RegisterSpec afOutRegSpec = {"AF Output Select", 0x47, 8, 0xF, 1};
+static const RegisterSpec afcDisableRegSpec = {"AFC Dis", 0x73, 4, 1, 1};
+static const RegisterSpec afOutRegSpec = {"AF Out", 0x47, 8, 0xF, 1};
 static const RegisterSpec afDacGainRegSpec = {"AF DAC Gain", 0x48, 0, 0xF, 1};
+static const RegisterSpec RS_XTAL_MODE = {"XTAL F Mode", 0x3C, 6, 0b11, 1};
+static const RegisterSpec RS_RF_FILT_BW = {"RF filt BW", 0x43, 12, 0b111, 1};
+static const RegisterSpec RS_RF_FILT_BW_WEAK = {"RF filt BWw", 0x43, 9, 0b111,
+                                                1};
+static const RegisterSpec RS_BW_MODE = {"BW Mode", 0x43, 4, 0b11, 1};
+static const RegisterSpec RS_IF_F = {"IF step1x", 0x3D, 0, 0xFFFF, 1};
 
 enum BK4819_REGISTER_t {
   BK4819_REG_00 = 0x00U,
