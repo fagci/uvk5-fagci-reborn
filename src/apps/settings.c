@@ -45,6 +45,7 @@ typedef enum {
   M_TONE_LOCAL,
   M_STE,
   M_PTT_LOCK,
+  M_DTMF_DECODE,
   M_RESET,
 } Menu;
 
@@ -86,6 +87,7 @@ static const MenuItem menu[] = {
     {"Tone local", M_TONE_LOCAL, 2},
     {"STE", M_STE, 2},
     {"Lock PTT", M_PTT_LOCK, 2},
+    {"DTMF decode", M_PTT_LOCK, 2},
     {"EEPROM reset", M_RESET, 2},
 };
 
@@ -131,6 +133,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     return;
   case M_BEEP:
   case M_STE:
+  case M_DTMF_DECODE:
     strncpy(name, onOff[index], 31);
     return;
   case M_BAT_CAL:
@@ -278,6 +281,10 @@ static void accept(void) {
     gSettings.pttLock = subMenuIndex;
     SETTINGS_Save();
     break;
+  case M_DTMF_DECODE:
+    gSettings.dtmfdecode = subMenuIndex;
+    SETTINGS_Save();
+    break;
   case M_RESET:
     if (subMenuIndex) {
       APPS_run(APP_RESET);
@@ -334,6 +341,8 @@ static const char *getValue(Menu type) {
     return upConverterFreqNames[gSettings.upconverter];
   case M_BEEP:
     return onOff[gSettings.beep];
+  case M_DTMF_DECODE:
+    return onOff[gSettings.dtmfdecode];
   case M_STE:
     return onOff[gSettings.ste];
   case M_SKIP_GARBAGE_FREQS:
@@ -449,6 +458,9 @@ static void setInitialSubmenuIndex(void) {
     break;
   case M_STE:
     subMenuIndex = gSettings.ste;
+    break;
+  case M_DTMF_DECODE:
+    subMenuIndex = gSettings.dtmfdecode;
     break;
   case M_PTT_LOCK:
     subMenuIndex = gSettings.pttLock;

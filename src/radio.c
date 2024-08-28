@@ -150,7 +150,9 @@ static void onPresetUpdate(void) {
 static void setupToneDetection() {
   uint16_t InterruptMask =
       BK4819_REG_3F_CxCSS_TAIL | BK4819_REG_3F_DTMF_5TONE_FOUND;
-  // BK4819_EnableDTMF();
+  if (gSettings.dtmfdecode) {
+    BK4819_EnableDTMF();
+  }
   switch (radio->rx.codeType) {
   case CODE_TYPE_DIGITAL:
   case CODE_TYPE_REVERSE_DIGITAL:
