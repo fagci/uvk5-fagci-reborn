@@ -38,11 +38,11 @@ static const RegisterSpec registerSpecs[] = {
 
     {"DEV", 0x40, 0, 0xFFF, 10},
     {"300T", 0x44, 0, 0xFFFF, 1000},
-    {"300R", 0x54, 0, 0xFFFF, 1000},
+    // {"300R", 0x54, 0, 0xFFFF, 1000},
     RS_RF_FILT_BW,
     {"AFTxFlt", 0x43, 6, 0b111, 1}, // 7 is widest
     {"3kAFrsp", 0x74, 0, 0xFFFF, 100},
-    // {"CMP", 0x31, 3, 1, 1},
+    {"CMP", 0x31, 3, 1, 1},
     {"MIC", 0x7D, 0, 0xF, 1},
     // {"AFCrng", 0x73, 11, 0b111, 1},
 };
