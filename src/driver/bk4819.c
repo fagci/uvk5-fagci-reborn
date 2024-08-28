@@ -1117,8 +1117,7 @@ void BK4819_TuneTo(uint32_t f, bool precise) {
   BK4819_SetFrequency(f);
   uint16_t reg = BK4819_ReadRegister(BK4819_REG_30);
   if (precise) {
-    // BK4819_WriteRegister(BK4819_REG_30, 0x0200);
-    BK4819_WriteRegister(BK4819_REG_30, 0x0);
+    BK4819_WriteRegister(BK4819_REG_30, 0x0200);
   } else {
     BK4819_WriteRegister(BK4819_REG_30, reg & ~BK4819_REG_30_ENABLE_VCO_CALIB);
   }
