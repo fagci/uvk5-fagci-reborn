@@ -100,7 +100,7 @@ void RADIO_SetupRegisters(void) {
   // BK4819_WriteRegister(0x74, 0xf50b + (0xAF1F-0xf50b)/2);          // 3k resp
   // TX
   // BK4819_WriteRegister(0x74, 2024); // 3k resp TX
-  // BK4819_WriteRegister(0x75, 0xAF1F);          // 3k resp RX
+  BK4819_WriteRegister(0x75, 0xAF1F);          // 3k resp RX
 
   /* BK4819_SetFrequency(Frequency);
   BK4819_SelectFilter(Frequency); */
@@ -121,7 +121,7 @@ void RADIO_SetupRegisters(void) {
   /* BK4819_WriteRegister(BK4819_REG_3F, BK4819_REG_3F_SQUELCH_FOUND |
                                           BK4819_REG_3F_SQUELCH_LOST); */
   BK4819_WriteRegister(0x40, (BK4819_ReadRegister(0x40) & ~(0b11111111111)) |
-                                 0b10110101010 | (1 << 12));
+                                 1390 | (1 << 12));
   // BK4819_WriteRegister(0x40, (1 << 12) | (1450));
 }
 
@@ -148,6 +148,7 @@ static void onPresetUpdate(void) {
 }
 
 static void setupToneDetection() {
+    return;
   uint16_t InterruptMask =
       BK4819_REG_3F_CxCSS_TAIL | BK4819_REG_3F_DTMF_5TONE_FOUND;
   BK4819_EnableDTMF();
@@ -487,7 +488,7 @@ void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power) {
     BK4819_SetupPowerAmplifier(power, txF);
     SYSTEM_DelayMs(10);
 
-    RADIO_EnableCxCSS();
+    // RADIO_EnableCxCSS();
 
   } else {
     BK4819_ExitDTMF_TX(true); // also prepares to tx ste

@@ -386,8 +386,8 @@ void BK4819_SetFilterBandwidthEX(const BK4819_FilterBandwidth_t Bandwidth,
   switch (Bandwidth) {
   default:
   case BK4819_FILTER_BW_WIDE: // 25kHz
-    val = (3u << 12) |        // *3 RF filter bandwidth
-          (0u << 6) |         // *0 AFTxLPF2 filter Band Width
+    val = (7u << 12) |        // *3 RF filter bandwidth
+          (4u << 6) |         // *0 AFTxLPF2 filter Band Width
           (2u << 4) |         //  2 BW Mode Selection
           (1u << 3) |         //  1
           (0u << 2);          //  0 Gain after FM Demodulation
@@ -1117,7 +1117,8 @@ void BK4819_TuneTo(uint32_t f, bool precise) {
   BK4819_SetFrequency(f);
   uint16_t reg = BK4819_ReadRegister(BK4819_REG_30);
   if (precise) {
-    BK4819_WriteRegister(BK4819_REG_30, 0x0200);
+    // BK4819_WriteRegister(BK4819_REG_30, 0x0200);
+    BK4819_WriteRegister(BK4819_REG_30, 0x0);
   } else {
     BK4819_WriteRegister(BK4819_REG_30, reg & ~BK4819_REG_30_ENABLE_VCO_CALIB);
   }
