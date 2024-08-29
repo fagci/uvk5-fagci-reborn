@@ -152,6 +152,8 @@ static void setupToneDetection() {
       BK4819_REG_3F_CxCSS_TAIL | BK4819_REG_3F_DTMF_5TONE_FOUND;
   if (gSettings.dtmfdecode) {
     BK4819_EnableDTMF();
+  } else {
+    BK4819_DisableDTMF();
   }
   switch (radio->rx.codeType) {
   case CODE_TYPE_DIGITAL:
