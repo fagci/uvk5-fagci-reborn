@@ -89,7 +89,7 @@ void RADIO_SetupRegisters(void) {
   BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, false);
   BK4819_SetupPowerAmplifier(0, 0);
 
-  BK4819_SetFilterBandwidth(BK4819_FILTER_BW_WIDE);
+  // BK4819_SetFilterBandwidth(BK4819_FILTER_BW_WIDE);
 
   while (BK4819_ReadRegister(BK4819_REG_0C) & 1U) {
     BK4819_WriteRegister(BK4819_REG_02, 0);
@@ -470,12 +470,14 @@ void RADIO_ToggleTX(bool on) {
 }
 
 void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power) {
+  bool lastOn = gTxState == TX_ON;
   if (gTxState == on) {
     return;
   }
-  gTxState = RADIO_GetTXState(txF);
 
-  if (on && gTxState == TX_ON) {
+  gTxState = on ? RADIO_GetTXState(txF) : TX_UNKNOWN;
+
+  if (gTxState == TX_ON) {
     RADIO_ToggleRX(false);
 
     BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, false);
@@ -491,9 +493,8 @@ void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power) {
     BK4819_SetupPowerAmplifier(power, txF);
     SYSTEM_DelayMs(10);
 
-    // RADIO_EnableCxCSS();
-
-  } else {
+    RADIO_EnableCxCSS();
+  } else if (lastOn) {
     BK4819_ExitDTMF_TX(true); // also prepares to tx ste
 
     sendEOT();
@@ -507,7 +508,6 @@ void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power) {
 
     setupToneDetection();
     BK4819_TuneTo(radio->rx.f, true);
-    gTxState = TX_UNKNOWN;
   }
 }
 
