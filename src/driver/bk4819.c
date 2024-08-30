@@ -386,8 +386,8 @@ void BK4819_SetFilterBandwidthEX(const BK4819_FilterBandwidth_t Bandwidth,
   switch (Bandwidth) {
   default:
   case BK4819_FILTER_BW_WIDE: // 25kHz
-    val = (7u << 12) |        // *3 RF filter bandwidth
-          (4u << 6) |         // *0 AFTxLPF2 filter Band Width
+    val = (3u << 12) |        // *3 RF filter bandwidth
+          (0u << 6) |         // *0 AFTxLPF2 filter Band Width
           (2u << 4) |         //  2 BW Mode Selection
           (1u << 3) |         //  1
           (0u << 2);          //  0 Gain after FM Demodulation
