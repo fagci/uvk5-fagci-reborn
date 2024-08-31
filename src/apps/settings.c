@@ -82,7 +82,7 @@ static const MenuItem menu[] = {
     {"EEPROM type", M_EEPROM_TYPE, ARRAY_SIZE(EEPROM_TYPE_NAMES)},
     {"Nickname", M_NICKNAME, 0},
     {"Skip garbage freqs", M_SKIP_GARBAGE_FREQS, 2},
-    {"SI4732 power off", M_SKIP_GARBAGE_FREQS, 2},
+    {"SI4732 power off", M_SI4732_POWER_OFF, 2},
     {"Roger", M_ROGER, 4},
     {"Tone local", M_TONE_LOCAL, 2},
     {"STE", M_STE, 2},

@@ -1,5 +1,6 @@
 #include "si473x.h"
 #include "../inc/dp32g030/gpio.h"
+#include "../misc.h"
 #include "../settings.h"
 #include "audio.h"
 #include "eeprom.h"
@@ -86,7 +87,7 @@ uint16_t getProperty(uint16_t prop, bool *valid) {
     *valid = !(response[0] & STATUS_ERR);
   }
 
-  return (response[2] << 8) | response[3];
+  return MAKE_WORD(response[2], response[3]);
 }
 
 void RSQ_GET() {

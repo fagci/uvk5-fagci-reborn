@@ -1,9 +1,7 @@
 #include "backlight.h"
-#include "../inc/dp32g030/gpio.h"
 #include "../inc/dp32g030/portcon.h"
 #include "../inc/dp32g030/pwmplus.h"
 #include "../settings.h"
-#include "gpio.h"
 #include "system.h"
 
 static uint8_t duration = 2;

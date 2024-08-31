@@ -437,7 +437,7 @@ void BK4819_SetFilterBandwidthEX(const BK4819_FilterBandwidth_t Bandwidth,
 
 void BK4819_SetFilterBandwidth(BK4819_FilterBandwidth_t Bandwidth) {
   // BK4819_WriteRegister(BK4819_REG_43, BWRegValues[Bandwidth]);
-  BK4819_SetFilterBandwidthEX(Bandwidth, true);
+  BK4819_SetFilterBandwidthEX(Bandwidth, false);
 }
 
 void BK4819_SetupPowerAmplifier(uint8_t Bias, uint32_t Frequency) {
@@ -460,7 +460,7 @@ uint32_t BK4819_GetFrequency(void) {
 void BK4819_SetupSquelch(uint8_t ro, uint8_t rc, uint8_t no, uint8_t nc,
                          uint8_t gc, uint8_t go, uint8_t delayO,
                          uint8_t delayC) {
-  BK4819_WriteRegister(BK4819_REG_70, 0);
+  // BK4819_WriteRegister(BK4819_REG_70, 0); // for what??!
   BK4819_WriteRegister(BK4819_REG_4D, 0xA000 | gc);
   BK4819_WriteRegister(
       BK4819_REG_4E,
@@ -471,10 +471,11 @@ void BK4819_SetupSquelch(uint8_t ro, uint8_t rc, uint8_t no, uint8_t nc,
   BK4819_WriteRegister(BK4819_REG_4F, (nc << 8) | no);
   BK4819_WriteRegister(BK4819_REG_78, (ro << 8) | rc);
 
-  uint16_t r47 = BK4819_ReadRegister(BK4819_REG_47);
+  // note: mutes rx on tuning for some time
+  /* uint16_t r47 = BK4819_ReadRegister(BK4819_REG_47);
   BK4819_SetAF(BK4819_AF_MUTE);
   BK4819_RX_TurnOn();
-  BK4819_WriteRegister(BK4819_REG_47, r47); // revert AF
+  BK4819_WriteRegister(BK4819_REG_47, r47); // revert AF */
 }
 
 void BK4819_Squelch(uint8_t sql, uint32_t f, uint8_t OpenDelay,
@@ -584,19 +585,14 @@ void BK4819_EnableDTMF(void) {
 }
 
 void BK4819_PlayTone(uint16_t Frequency, bool bTuningGainSwitch) {
-  uint16_t ToneConfig;
-
   BK4819_EnterTxMute();
   BK4819_SetAF(BK4819_AF_BEEP);
 
-  if (bTuningGainSwitch == 0) {
-    ToneConfig = 0 | BK4819_REG_70_ENABLE_TONE1 |
-                 (96U << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN);
-  } else {
-    ToneConfig = 0 | BK4819_REG_70_ENABLE_TONE1 |
-                 (28U << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN);
-  }
-  BK4819_WriteRegister(BK4819_REG_70, ToneConfig);
+  uint8_t gain = bTuningGainSwitch ? 28 : 96;
+
+  uint16_t toneCfg = BK4819_REG_70_ENABLE_TONE1 |
+                     (gain << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN);
+  BK4819_WriteRegister(BK4819_REG_70, toneCfg);
 
   BK4819_Idle();
   BK4819_WriteRegister(BK4819_REG_30, 0 | BK4819_REG_30_ENABLE_AF_DAC |

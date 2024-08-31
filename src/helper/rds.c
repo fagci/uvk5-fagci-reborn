@@ -1,5 +1,6 @@
 #include "rds.h"
 #include "../driver/si473x.h"
+#include "../misc.h"
 #include <string.h>
 
 si47x_rds_status rdsResponse = {0};
@@ -15,8 +16,6 @@ enum {
   Block_D_L
 };
 
-#define MAKE_WORD(hb, lb) (((uint8_t)(hb) << 8U) | (uint8_t)lb)
-
 enum { NO_DATE_TIME = 127 };
 RDS rds = {.offset = NO_DATE_TIME};
 
@@ -24,13 +23,6 @@ enum {
   RDS_THRESHOLD = 3,     // Threshold for larger variables
   RDS_BOOL_THRESHOLD = 7 // Threshold for boolean variables
 };
-
-static char make_printable(char ch) {
-  // Replace non-ASCII char with space
-  if (ch < 32 || 126 < ch)
-    ch = ' ';
-  return ch;
-}
 
 /* RDS and RBDS data */
 static ternary _abRadioText;       // Indicates new radioText[] string
@@ -121,8 +113,8 @@ bool SI47XX_GetRDS() {
       if (type == 0) {
         // Program Service
         char *ps = &rds.programService[segment * 2];
-        *ps++ = make_printable(rdsResponse.raw[Block_D_H]);
-        *ps = make_printable(rdsResponse.raw[Block_D_L]);
+        *ps++ = printable(rdsResponse.raw[Block_D_H]);
+        *ps = printable(rdsResponse.raw[Block_D_L]);
       }
       new_info = true;
     }
@@ -203,7 +195,7 @@ bool SI47XX_GetRDS() {
           rds.radioTextLen = rt - rds.radioText;
         }
         // Put next char in rds.radioText[]
-        *rt++ = make_printable(ch);
+        *rt++ = printable(ch);
       } while (--i);
       new_info = true;
     }
@@ -260,10 +252,10 @@ bool SI47XX_GetRDS() {
 
       // Get Program Type Name
       char *name = &rds.programTypeName[segment * 4];
-      *name++ = make_printable(rdsResponse.raw[Block_C_H]);
-      *name++ = make_printable(rdsResponse.raw[Block_C_L]);
-      *name++ = make_printable(rdsResponse.raw[Block_D_H]);
-      *name = make_printable(rdsResponse.raw[Block_D_L]);
+      *name++ = printable(rdsResponse.raw[Block_C_H]);
+      *name++ = printable(rdsResponse.raw[Block_C_L]);
+      *name++ = printable(rdsResponse.raw[Block_D_H]);
+      *name = printable(rdsResponse.raw[Block_D_L]);
       new_info = true;
     }
   }
@@ -399,8 +391,8 @@ void SI47XX_GetProgramType(char buffer[17]) {
   static const RDS_PTY PTY_NAMES[] = {
       {"No program type", "No program type"},
       {"News", "News"},
-      {"Current affairs", "Information"},
-      {"Information", "Sport"},
+      {"Current affairs", "Info"},
+      {"Info", "Sport"},
       {"Sport", "Talk"},
       {"Education", "Rock"},
       {"Drama", "Classic Rock"},
@@ -410,22 +402,22 @@ void SI47XX_GetProgramType(char buffer[17]) {
       {"Pop", "Country Music"},
       {"Rock", "Music Oldies"},
       {"Easy listening", "Soft Music"},
-      {"Light classical", "Nostalgia"},
-      {"Serious classical", "Jazz"},
-      {"Other Music", "Classical"},
+      {"Light classic", "Nostalgia"},
+      {"Serious classic", "Jazz"},
+      {"Other Music", "Classic"},
       {"Weather", "Rhythm and Blues"},
-      {"Finance", "Soft Rhythm and Blues"},
-      {"Children's programs", "Language"},
-      {"Social Affairs", "Religious Music"},
+      {"Finance", "Soft Rhythm"},
+      {"Children's", "Language"},
+      {"Social affairs", "Religious Music"},
       {"Religion", "Religious Talk"},
-      {"Phone-in talk", "Personality"},
+      {"Phone talk", "Personality"},
       {"Travel", "Public"},
       {"Leisure", "College"},
-      {"Jazz Music", "Unassigned"},
-      {"Country Music", "Unassigned"},
-      {"National Music", "Unassigned"},
-      {"Oldies Music", "Unassigned"},
-      {"Folk Music", "Unassigned"},
+      {"Jazz Music", "-"},
+      {"Country Music", "-"},
+      {"National Music", "-"},
+      {"Oldies Music", "-"},
+      {"Folk Music", "-"},
       {"Documentary", "Weather"},
       {"Alarm Test", "Emergency Test"},
       {"Alarm", "Emergency"},
