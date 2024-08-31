@@ -9,7 +9,7 @@
 #include "settings.h"
 #include "svc.h"
 
-static FreqScanTime T = F_SC_T_0_8s;
+static FreqScanTime T = F_SC_T_0_2s;
 static uint32_t scanF = 0;
 static uint8_t hits = 0;
 static bool lower = true;
@@ -51,7 +51,7 @@ void SVC_FC_Update(void) {
 
   if (Now() - lastSwitch >= 1000) {
     lastSwitch = Now();
-    Log("switch:%u", lower);
+    // Log("switch:%u", lower);
     lower = !lower;
     BK4819_SelectFilter(lower ? 14500000 : 43300000);
   }
@@ -79,8 +79,7 @@ void SVC_FC_Update(void) {
   uint32_t bound = SETTINGS_GetFilterBound();
   if (f && ((lower && f < bound) || (!lower && f >= bound))) {
     scanF = f;
-    Log("f:%u", f);
-  } else {
+    Log("f: %u", f);
   }
 }
 
