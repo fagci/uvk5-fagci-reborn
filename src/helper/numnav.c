@@ -57,7 +57,7 @@ uint16_t NUMNAV_Input(KEY_Code_t key) {
     }
     return initV;
   }
-  if (key == KEY_MENU) {
+  if (key == KEY_MENU || key == KEY_PTT) {
     NUMNAV_Accept();
     return NUMNAV_GetCurrentValue();
   }

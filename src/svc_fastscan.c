@@ -4,7 +4,9 @@
 #include "helper/lootlist.h"
 #include "helper/presetlist.h"
 #include "radio.h"
+#include "svc.h"
 
+static FreqScanTime T = F_SC_T_0_4s;
 static uint32_t scanF = 0;
 static uint8_t hits = 0;
 
@@ -16,8 +18,10 @@ static uint32_t delta(uint32_t f1, uint32_t f2) {
 }
 
 void SVC_FC_Init(void) {
+  SVC_Toggle(SVC_LISTEN, false, 10);
+  // BK4819_DisableFilter();
   BK4819_StopScan();
-  BK4819_EnableFrequencyScanEx(F_SC_T_0_2s);
+  BK4819_EnableFrequencyScanEx(T);
   hits = 0;
 }
 
@@ -32,6 +36,8 @@ static void gotF(uint32_t f) {
   }
 
   Loot *loot = LOOT_Add(f);
+  RADIO_TuneToPure(f, true);
+  RADIO_UpdateMeasurementsEx(loot);
 }
 
 void SVC_FC_Update(void) {
@@ -48,7 +54,7 @@ void SVC_FC_Update(void) {
   uint32_t d = delta(f, scanF);
 
   if (d < 100) {
-    if (hits++ >= 2) {
+    if (++hits >= 2) {
       gRedrawScreen = true;
 
       gotF(scanF);
@@ -60,7 +66,7 @@ void SVC_FC_Update(void) {
     }
   }
   BK4819_DisableFrequencyScan();
-  BK4819_EnableFrequencyScanEx(F_SC_T_0_2s);
+  BK4819_EnableFrequencyScanEx(T);
   if (f) {
     scanF = f;
   }
@@ -69,4 +75,6 @@ void SVC_FC_Update(void) {
 void SVC_FC_Deinit(void) {
   BK4819_StopScan();
   BK4819_EnableRX();
+  RADIO_SetupByCurrentVFO();
+  SVC_Toggle(SVC_LISTEN, true, 10);
 }
