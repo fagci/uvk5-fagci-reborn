@@ -15,7 +15,7 @@ static const uint8_t SI47XX_I2C_ADDR = 0x22;
 #define RST_LOW GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BK1080)
 
 RSQStatus rsqStatus;
-SsbMode currentSsbMode;
+static SsbMode currentSsbMode;
 
 SI47XX_MODE si4732mode = SI47XX_FM;
 uint16_t siCurrentFreq = 0;

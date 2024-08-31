@@ -85,7 +85,7 @@ void SVC_FC_Update(void) {
 
 void SVC_FC_Deinit(void) {
   BK4819_StopScan();
-  BK4819_EnableRX();
+  BK4819_RX_TurnOn();
   RADIO_SetupByCurrentVFO();
   SVC_Toggle(SVC_LISTEN, true, 10);
 }
