@@ -15,6 +15,8 @@
 
 static const uint8_t ANALYZER_Y = 16;
 static const uint8_t ANALYZER_HEIGHT = 40;
+static const uint8_t spectrumWidth = LCD_WIDTH;
+static const uint16_t BK_RST_SOFT = 0xBFF1 & ~BK4819_REG_30_ENABLE_VCO_CALIB;
 
 static Loot msm;
 static uint32_t centerF = 0;
@@ -33,10 +35,6 @@ static Preset opt = {
             .name = "Analyzer",
         },
 };
-
-static uint8_t spectrumWidth = LCD_WIDTH;
-
-static const uint16_t BK_RST_SOFT = 0xBFF1 & ~BK4819_REG_30_ENABLE_VCO_CALIB;
 
 static void startNewScan(bool reset) {
   _peakF = 0;

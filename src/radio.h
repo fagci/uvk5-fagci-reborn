@@ -21,7 +21,6 @@ extern VFO *radio;
 extern VFO gVFO[2];
 extern Preset *gVFOPresets[2];
 
-extern Loot *gCurrentLoot;
 extern Loot gLoot[2];
 
 extern char gVFONames[2][10];

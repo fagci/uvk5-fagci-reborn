@@ -2,7 +2,6 @@
 #include "../helper/measurements.h"
 #include "../helper/presetlist.h"
 #include "../misc.h"
-#include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
 #include "finput.h"
@@ -15,8 +14,8 @@ static bool isSubMenu = false;
 
 static MenuItem menu[] = {
     {"Name", M_NAME},
-    {"Start freq", M_START},
-    {"End freq", M_END},
+    {"Start F", M_START},
+    {"End F", M_END},
     {"Step", M_STEP, ARRAY_SIZE(StepFrequencyTable)},
     {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions) - 1},
     {"BW", M_BW, ARRAY_SIZE(bwNames)},
@@ -88,7 +87,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     return;
   case M_GAIN:
     sprintf(name, "%ddB%s", gainTable[index].gainDb,
-            index == 16 ? "(def)" : "");
+            index == 16 ? " #" : "");
     return;
   case M_TX:
     strncpy(name, yesNo[index], 31);
@@ -116,8 +115,10 @@ static void setLowerBound(uint32_t f) {
   PRESETS_SaveCurrent();
 }
 
-void PRESETCFG_init(void) { gRedrawScreen = true; }
+void PRESETCFG_init(void) {}
+
 void PRESETCFG_update(void) {}
+
 bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   const MenuItem *item = &menu[menuIndex];
   const uint8_t MENU_SIZE = ARRAY_SIZE(menu);

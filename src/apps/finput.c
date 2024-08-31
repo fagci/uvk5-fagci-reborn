@@ -30,7 +30,7 @@ static void input(KEY_Code_t key) {
     return;
   }
   if (key == KEY_STAR) {
-    if (freqInputIndex == 0 || freqInputDotIndex) {
+    if (freqInputDotIndex) {
       return;
     }
     freqInputDotIndex = freqInputIndex;

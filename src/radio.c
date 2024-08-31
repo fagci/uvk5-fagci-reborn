@@ -6,7 +6,6 @@
 #include "driver/bk1080.h"
 #include "driver/bk4819-regs.h"
 #include "driver/bk4819.h"
-#include "driver/gpio.h"
 #include "driver/si473x.h"
 #include "driver/st7565.h"
 #include "driver/system.h"
@@ -19,7 +18,6 @@
 #include "helper/presetlist.h"
 #include "helper/rds.h"
 #include "helper/vfos.h"
-#include "inc/dp32g030/gpio.h"
 #include "misc.h"
 #include "scheduler.h"
 #include "settings.h"
@@ -30,7 +28,6 @@ VFO *radio;
 VFO gVFO[2] = {0};
 Preset *gVFOPresets[2] = {0};
 
-Loot *gCurrentLoot;
 Loot gLoot[2] = {0};
 
 char gVFONames[2][10] = {0};
@@ -605,7 +602,6 @@ void RADIO_LoadCurrentVFO(void) {
   }
 
   radio = &gVFO[gSettings.activeVFO];
-  gCurrentLoot = &gLoot[gSettings.activeVFO];
   RADIO_SetupByCurrentVFO();
 }
 
@@ -823,7 +819,6 @@ void RADIO_NextCH(bool next) {
 void RADIO_NextVFO(void) {
   gSettings.activeVFO = !gSettings.activeVFO;
   radio = &gVFO[gSettings.activeVFO];
-  gCurrentLoot = &gLoot[gSettings.activeVFO];
   RADIO_SetupByCurrentVFO();
   SETTINGS_Save();
 }

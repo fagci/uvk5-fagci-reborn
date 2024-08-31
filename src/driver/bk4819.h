@@ -94,10 +94,8 @@ typedef struct {
 } Gain;
 
 typedef enum BK4819_CssScanResult_t BK4819_CssScanResult_t;
-extern const uint16_t BWRegValues[3];
 extern const Gain gainTable[19];
 
-extern bool gRxIdleMode;
 extern const uint8_t SQ[2][6][11];
 
 void BK4819_Init(void);
@@ -154,8 +152,6 @@ void BK4819_PrepareTransmit(void);
 void BK4819_TxOn_Beep(void);
 void BK4819_ExitSubAu(void);
 
-void BK4819_EnableRX(void);
-
 void BK4819_EnterDTMF_TX(bool bLocalLoopback);
 void BK4819_ExitDTMF_TX(bool bKeep);
 void BK4819_EnableTXLink(void);
@@ -183,7 +179,6 @@ BK4819_CssScanResult_t BK4819_GetCxCSSScanResult(uint32_t *pCdcssFreq,
 void BK4819_DisableFrequencyScan(void);
 void BK4819_EnableFrequencyScan(void);
 void BK4819_EnableFrequencyScanEx(FreqScanTime t);
-void BK4819_SetScanFrequency(uint32_t Frequency);
 
 void BK4819_StopScan(void);
 
@@ -191,9 +186,6 @@ uint8_t BK4819_GetDTMF_5TONE_Code(void);
 
 uint8_t BK4819_GetCDCSSCodeType(void);
 uint8_t BK4819_GetCTCType(void);
-
-void BK4819_SendFSKData(uint16_t *pData);
-void BK4819_PrepareFSKReceive(void);
 
 void BK4819_PlaySequence(const uint8_t *M);
 void BK4819_PlayRoger(void);
