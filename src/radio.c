@@ -59,9 +59,8 @@ const char *powerNames[] = {"LOW", "MID", "HIGH"};
 const char *bwNames[3] = {"25k", "12.5k", "6.25k"};
 const char *radioNames[4] = {"BK4819", "BK1080", "SI4732", "Preset"};
 const char *shortRadioNames[4] = {"BK", "BC", "SI", "PR"};
-const char *TX_STATE_NAMES[7] = {"TX Off",    "TX On",    "VOL HIGH",
-                                 "BAT LOW",   "DISABLED", "UPCONVERTER",
-                                 "HIGH POWER"};
+const char *TX_STATE_NAMES[7] = {"TX Off",   "TX On",  "CHARGING", "BAT LOW",
+                                 "DISABLED", "UPCONV", "HIGH POW"};
 
 const SquelchType sqTypeValues[4] = {
     SQUELCH_RSSI_NOISE_GLITCH,
@@ -230,7 +229,7 @@ static bool isSqOpenSimple(uint16_t r) {
 }
 
 static void toggleBK4819(bool on) {
-  Log("Toggle bk4819 audio %u", on);
+  // Log("Toggle bk4819 audio %u", on);
   if (on) {
     BK4819_ToggleAFDAC(true);
     BK4819_ToggleAFBit(true);
@@ -245,7 +244,7 @@ static void toggleBK4819(bool on) {
 }
 
 static void toggleBK1080SI4732(bool on) {
-  Log("Toggle bk1080si audio %u", on);
+  // Log("Toggle bk1080si audio %u", on);
   if (on) {
     SYSTEM_DelayMs(8);
     AUDIO_ToggleSpeaker(true);
@@ -260,7 +259,7 @@ static uint8_t calculateOutputPower(Preset *p, uint32_t Frequency) {
   uint8_t TxpMid = p->powCalib.m;
   uint8_t TxpHigh = p->powCalib.e;
   uint32_t LowerLimit = p->band.bounds.start;
-  uint32_t UpperLimit = p->band.bounds.start;
+  uint32_t UpperLimit = p->band.bounds.end;
   uint32_t Middle = LowerLimit + (UpperLimit - LowerLimit) / 2;
 
   if (Frequency <= LowerLimit) {
@@ -306,7 +305,7 @@ static void sendEOT() {
 }
 
 void RADIO_RxTurnOff() {
-  Log("%s turn off", radioNames[oldRadio]);
+  // Log("%s turn off", radioNames[oldRadio]);
   switch (oldRadio) {
   case RADIO_BK4819:
     BK4819_Idle();
@@ -316,10 +315,10 @@ void RADIO_RxTurnOff() {
     break;
   case RADIO_SI4732:
     if (gSettings.si4732PowerOff) {
-      Log("Power down si");
+      // Log("Power down si");
       SI47XX_PowerDown();
     } else {
-      Log("Mute si, not power down");
+      // Log("Mute si, not power down");
       SI47XX_SetVolume(0);
     }
     break;
@@ -330,7 +329,7 @@ void RADIO_RxTurnOff() {
 void RADIO_RxTurnOn() {
   Radio r = RADIO_GetRadio();
 
-  Log("%s turn on", radioNames[r]);
+  // Log("%s turn on", radioNames[r]);
   switch (r) {
   case RADIO_BK4819:
     BK4819_RX_TurnOn();
@@ -343,14 +342,14 @@ void RADIO_RxTurnOn() {
   case RADIO_SI4732:
     BK4819_Idle();
     if (gSettings.si4732PowerOff || !isSi4732On) {
-      Log("Power up si");
+      // Log("Power up si");
       if (RADIO_IsSSB()) {
         SI47XX_PatchPowerUp();
       } else {
         SI47XX_PowerUp();
       }
     } else {
-      Log("NOT Power up si");
+      // Log("NOT Power up si");
       SI47XX_SetVolume(63);
     }
     break;
@@ -440,7 +439,8 @@ TXState RADIO_GetTXState(uint32_t txF) {
 
   Preset *txPreset = PRESET_ByFrequency(txF);
 
-  if (!txPreset->allowTx || RADIO_GetRadio() != RADIO_BK4819) {
+  if (!txPreset->allowTx || RADIO_GetRadio() != RADIO_BK4819 ||
+      SVC_Running(SVC_FC)) {
     return TX_DISABLED;
   }
 
@@ -540,7 +540,7 @@ void RADIO_SwitchRadio() {
   if (oldRadio == r) {
     return;
   }
-  Log("Switch radio from %u to %u", oldRadio + 1, r + 1);
+  // Log("Switch radio from %u to %u", oldRadio + 1, r + 1);
   RADIO_RxTurnOff();
   RADIO_RxTurnOn();
   oldRadio = r;
@@ -552,8 +552,8 @@ void RADIO_SetupByCurrentVFO(void) {
   PRESET_SelectByFrequency(f);
   gVFOPresets[gSettings.activeVFO] = gCurrentPreset;
 
-  Log("SetupByCurrentVFO, p=%s, r=%s, f=%u", gCurrentPreset->band.name,
-      radioNames[RADIO_GetRadio()], f);
+  /* Log("SetupByCurrentVFO, p=%s, r=%s, f=%u", gCurrentPreset->band.name,
+      radioNames[RADIO_GetRadio()], f); */
 
   RADIO_SwitchRadio();
 
@@ -644,7 +644,7 @@ void RADIO_SetupBandParams() {
   uint32_t fMid = b->bounds.start + (b->bounds.end - b->bounds.start) / 2;
   ModulationType mod = RADIO_GetModulation();
   RADIO_SetGain(b->gainIndex);
-  Log("Set mod %s", modulationTypeOptions[mod]);
+  // Log("Set mod %s", modulationTypeOptions[mod]);
   switch (RADIO_GetRadio()) {
   case RADIO_BK4819:
     BK4819_SquelchType(b->squelchType);
@@ -741,14 +741,14 @@ Loot *RADIO_UpdateMeasurements(void) {
       if ((intBits & BK4819_REG_02_CxCSS_TAIL) ||
           (intBits & BK4819_REG_02_CTCSS_FOUND) ||
           (intBits & BK4819_REG_02_CDCSS_FOUND)) {
-        Log("Tail tone or ctcss/dcs found");
+        // Log("Tail tone or ctcss/dcs found");
         msm->open = false;
         toneFound = false;
         lastTailTone = Now();
       }
       if ((intBits & BK4819_REG_02_CTCSS_LOST) ||
           (intBits & BK4819_REG_02_CDCSS_LOST)) {
-        Log("ctcss/dcs lost");
+        // Log("ctcss/dcs lost");
         msm->open = true;
         toneFound = true;
       }

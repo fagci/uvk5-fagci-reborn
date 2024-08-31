@@ -540,8 +540,8 @@ void BK4819_RX_TurnOn(void) {
 }
 
 void BK4819_DisableFilter(void) {
-  BK4819_ToggleGpioOut(BK4819_GPIO4_PIN32_VHF_LNA, false);
-  BK4819_ToggleGpioOut(BK4819_GPIO3_PIN31_UHF_LNA, false);
+  BK4819_ToggleGpioOut(BK4819_GPIO4_PIN32_VHF_LNA, true);
+  BK4819_ToggleGpioOut(BK4819_GPIO3_PIN31_UHF_LNA, true);
 }
 
 void BK4819_SelectFilter(uint32_t f) {

@@ -52,7 +52,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     }
   }
-  if (key == KEY_PTT) {
+  if (key == KEY_PTT && !gIsNumNavInput) {
     RADIO_ToggleTX(bKeyHeld);
     return true;
   }

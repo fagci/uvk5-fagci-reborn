@@ -61,7 +61,7 @@ static const uint16_t BAT_CAL_MIN = 1900;
 // static const uint16_t BAT_CAL_MAX = 2155;
 
 static const MenuItem menu[] = {
-    {"Upconverter", M_UPCONVERTER, ARRAY_SIZE(upConverterFreqNames)},
+    {"Upconv", M_UPCONVERTER, ARRAY_SIZE(upConverterFreqNames)},
     {"Main app", M_MAIN_APP, ARRAY_SIZE(appsAvailableToRun)},
     {"SQL open time", M_SQL_OPEN_T, 7},
     {"SQL close time", M_SQL_CLOSE_T, 3},

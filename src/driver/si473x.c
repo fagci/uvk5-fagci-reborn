@@ -251,6 +251,7 @@ void SI47XX_PowerDown() {
   SYSTICK_Delay250ns(10);
   RST_LOW;
   isSi4732On = false;
+  siCurrentFreq = 0;
 }
 
 void SI47XX_SwitchMode(SI47XX_MODE mode) {
