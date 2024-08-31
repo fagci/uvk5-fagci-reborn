@@ -690,7 +690,7 @@ uint16_t RADIO_GetRSSI(void) {
     return BK4819_GetRSSI();
   case RADIO_BK1080:
     return 0;
-    return BK1080_GetRSSI() << 1;
+    return BK1080_GetRSSI();
   case RADIO_SI4732:
     return 0;
     RSQ_GET();

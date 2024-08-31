@@ -2,7 +2,6 @@
 #include "../inc/dp32g030/gpio.h"
 #include "../settings.h"
 #include "audio.h"
-#include "bk4819.h"
 #include "eeprom.h"
 #include "gpio.h"
 #include "i2c.h"
