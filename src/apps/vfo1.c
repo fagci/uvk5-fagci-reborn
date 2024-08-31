@@ -103,18 +103,10 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       RADIO_ToggleVfoMR();
       return true;
     case KEY_4: // freq catch
-      if (SVC_Running(SVC_FC)) {
-        SVC_Toggle(SVC_FC, false, 10);
-      } else {
-        SVC_Toggle(SVC_FC, true, 10);
-      }
+      SVC_Toggle(SVC_FC, !SVC_Running(SVC_FC), 10);
       return true;
     case KEY_5: // noaa
-      if (SVC_Running(SVC_BEACON)) {
-        SVC_Toggle(SVC_BEACON, false, 15000);
-      } else {
-        SVC_Toggle(SVC_BEACON, true, 15000);
-      }
+      SVC_Toggle(SVC_BEACON, !SVC_Running(SVC_BEACON), 15000);
       return true;
     case KEY_6:
       RADIO_ToggleTxPower();

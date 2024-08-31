@@ -139,12 +139,12 @@ static void setSI4732Modulation(ModulationType mod) {
 
 static void onVfoUpdate(void) {
   TaskRemove(RADIO_SaveCurrentVFO);
-  TaskAdd("VFO save", RADIO_SaveCurrentVFO, 2000, false, 0);
+  TaskAdd("VFO sav", RADIO_SaveCurrentVFO, 2000, false, 0);
 }
 
 static void onPresetUpdate(void) {
   TaskRemove(PRESETS_SaveCurrent);
-  TaskAdd("Preset save", PRESETS_SaveCurrent, 2000, false, 0);
+  TaskAdd("PRS sav", PRESETS_SaveCurrent, 2000, false, 0);
 }
 
 static void setupToneDetection() {
