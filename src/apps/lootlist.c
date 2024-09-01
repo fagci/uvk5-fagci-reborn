@@ -115,7 +115,6 @@ void LOOTLIST_render(void) {
 }
 
 void LOOTLIST_init(void) {
-  gRedrawScreen = true;
   sortType = SORT_F;
   sort(SORT_LOT);
   if (LOOT_Size()) {

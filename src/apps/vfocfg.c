@@ -163,10 +163,7 @@ static void setTXOffset(uint32_t f) {
   PRESETS_SaveCurrent();
 }
 
-void VFOCFG_init(void) {
-  gRedrawScreen = true;
-  updateTxCodeListSize();
-}
+void VFOCFG_init(void) { updateTxCodeListSize(); }
 
 void VFOCFG_update(void) {}
 

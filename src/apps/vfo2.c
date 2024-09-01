@@ -6,21 +6,11 @@
 #include "../helper/rds.h"
 #include "../scheduler.h"
 #include "../settings.h"
-#include "../svc_render.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/statusline.h"
 #include "vfo1.h"
 
-void VFO2_init(void) { RADIO_LoadCurrentVFO(); }
-
-void VFO2_deinit(void) {}
-
-void VFO2_update(void) {
-  if (gIsListening && Now() - gLastRender >= 1000) {
-    gRedrawScreen = true;
-  }
-}
 
 bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (VFO1_key(key, bKeyPressed, bKeyHeld)) {
