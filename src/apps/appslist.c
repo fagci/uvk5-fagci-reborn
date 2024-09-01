@@ -35,7 +35,7 @@ static void setMenuIndexAndRun(uint16_t v) {
   APPS_runManual(appsAvailableToRun[menuIndex]);
 }
 
-void APPSLIST_init(void) { gRedrawScreen = true; }
+void APPSLIST_init(void) {}
 
 bool APPSLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld) {

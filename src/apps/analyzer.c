@@ -35,6 +35,7 @@ static Preset opt = {
             .name = "Analyzer",
         },
 };
+static uint16_t step;
 
 static void startNewScan(bool reset) {
   _peakF = 0;
@@ -43,11 +44,18 @@ static void startNewScan(bool reset) {
     LOOT_Standby();
     // RADIO_TuneToPure(msm.f, true);
     msm.f = opt.band.bounds.start;
-    BK4819_SetFrequency(msm.f);
-    BK4819_WriteRegister(BK4819_REG_30, BK_RST_SOFT);
-    BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
+    BK4819_TuneTo(msm.f, true);
     BK4819_SetRegValue(afcDisableRegSpec, true);
-    // SYSTICK_DelayUs(msmDelay * 1000); // (X_X)
+    BK4819_SetModulation(opt.band.modulation);
+    if (step > 5000) {
+      BK4819_SetModulation(MOD_WFM);
+    } else if (step >= 2400) {
+      BK4819_SetFilterBandwidth(BK4819_FILTER_BW_WIDE);
+    } else if (step >= 1200) {
+      BK4819_SetFilterBandwidth(BK4819_FILTER_BW_NARROW);
+    } else {
+      BK4819_SetFilterBandwidth(BK4819_FILTER_BW_NARROWER);
+    }
     SP_Init(PRESETS_GetSteps(&opt), spectrumWidth);
   } else {
     SP_Begin();
@@ -62,8 +70,6 @@ static void scanFn(bool forward) {
     peakRssi = msm.rssi;
     _peakF = msm.f;
   }
-
-  uint16_t step = StepFrequencyTable[opt.band.step];
 
   if (msm.f + step > opt.band.bounds.end) {
     msm.f = opt.band.bounds.start;
@@ -83,7 +89,8 @@ static void scanFn(bool forward) {
 }
 
 static void setCenterF(uint32_t f) {
-  const uint32_t halfBW = StepFrequencyTable[opt.band.step] * 64;
+  step = StepFrequencyTable[opt.band.step];
+  const uint32_t halfBW = step * 64;
   centerF = f;
   opt.band.bounds.start = centerF - halfBW;
   opt.band.bounds.end = centerF + halfBW;

@@ -171,7 +171,7 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_5:
     return true;
   case KEY_4:
-    IncDec8(&rssiResetMethod, 0, 3, 1);
+    rssiResetMethod = !rssiResetMethod;
     resetBkVal = RESET_METHODS[rssiResetMethod];
     SP_ResetHistory();
     newScan = true;

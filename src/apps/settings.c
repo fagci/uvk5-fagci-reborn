@@ -152,9 +152,9 @@ static void getSubmenuItemText(uint16_t index, char *name) {
   case M_TONE_LOCAL:
   case M_PTT_LOCK:
   case M_SKIP_GARBAGE_FREQS:
+  case M_SI4732_POWER_OFF:
     strncpy(name, yesNo[index], 31);
     return;
-  case M_SI4732_POWER_OFF:
   case M_DW:
     strncpy(name, dwNames[index], 31);
     return;
@@ -479,7 +479,7 @@ static void setInitialSubmenuIndex(void) {
   }
 }
 
-void SETTINGS_init(void) { gRedrawScreen = true; }
+void SETTINGS_init(void) {}
 
 static void setMenuIndexAndRun(uint16_t v) {
   menuIndex = v - 1;

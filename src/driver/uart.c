@@ -17,11 +17,9 @@
 #include <stdbool.h>
 #include <string.h>
 
-static const char Version[] = "OSFW-fffffff";
-static const char UART_Version[45] = "OSFW-fffffff\r\n";
+static const char Version[] = "R3b0rn";
 
-static bool UART_IsLogEnabled;
-uint8_t UART_DMA_Buffer[256];
+static uint8_t UART_DMA_Buffer[256];
 
 static bool bHasCustomAesKey = false;
 static bool bIsInLockScreen = false;
@@ -108,12 +106,6 @@ void UART_Send(const void *pBuffer, uint32_t Size) {
   }
 }
 
-void UART_LogSend(const void *pBuffer, uint32_t Size) {
-  if (UART_IsLogEnabled) {
-    UART_Send(pBuffer, Size);
-  }
-}
-
 #define DMA_INDEX(x, y) (((x) + (y)) % sizeof(UART_DMA_Buffer))
 
 typedef struct {
@@ -193,7 +185,6 @@ typedef struct {
     uint16_t Offset;
   } Data;
 } REPLY_061D_t;
-
 
 typedef struct {
   Header_t Header;
@@ -356,11 +347,11 @@ static void CMD_0514(const uint8_t *pBuffer) {
 static void CMD_051B(const uint8_t *pBuffer) {
   const CMD_051B_t *pCmd = (const CMD_051B_t *)pBuffer;
   REPLY_051B_t Reply;
-  bool bLocked = false;
   // char hex_output[sizeof(CMD_051B_t) * 3 + 1] = {0};
   // log_hex(pBuffer, sizeof(CMD_051B_t), hex_output);
   // Log("%s", hex_output);
-  // Log("CMD_051B: %d %d %d %d %d %d", pCmd->Header.ID, pCmd->Header.Size, pCmd->Offset, pCmd->Size, pCmd->Timestamp, Timestamp);
+  // Log("CMD_051B: %d %d %d %d %d %d", pCmd->Header.ID, pCmd->Header.Size,
+  // pCmd->Offset, pCmd->Size, pCmd->Timestamp, Timestamp);
 
   if (pCmd->Timestamp != Timestamp) {
     return;
@@ -372,13 +363,7 @@ static void CMD_051B(const uint8_t *pBuffer) {
   Reply.Data.Offset = pCmd->Offset;
   Reply.Data.Size = pCmd->Size;
 
-  if (bHasCustomAesKey) {
-    bLocked = gIsLocked;
-  }
-
-  if (!bLocked) {
-    EEPROM_ReadBuffer(pCmd->Offset, Reply.Data.Data, pCmd->Size);
-  }
+  EEPROM_ReadBuffer(pCmd->Offset, Reply.Data.Data, pCmd->Size);
 
   SendReply(&Reply, pCmd->Size + 8 + 4);
 }
@@ -386,14 +371,11 @@ static void CMD_051B(const uint8_t *pBuffer) {
 static void CMD_051D(const uint8_t *pBuffer) {
   const CMD_051D_t *pCmd = (const CMD_051D_t *)pBuffer;
   REPLY_051D_t Reply;
-  bool bReloadEeprom;
   bool bIsLocked;
 
   if (pCmd->Timestamp != Timestamp) {
     return;
   }
-
-  bReloadEeprom = false;
 
   Reply.Header.ID = 0x051E;
   Reply.Header.Size = sizeof(Reply.Data);
@@ -410,21 +392,11 @@ static void CMD_051D(const uint8_t *pBuffer) {
     for (i = 0; i < (pCmd->Size / 8U); i++) {
       uint32_t Offset = pCmd->Offset + (i * 8U);
 
-      if (Offset >= 0x0F30 && Offset < 0x0F40) {
-        if (!gIsLocked) {
-          bReloadEeprom = true;
-        }
-      }
-
       if ((Offset < 0x0E98 || Offset >= 0x0EA0) || !bIsInLockScreen ||
           pCmd->bAllowPassword) {
         EEPROM_WriteBuffer(Offset, &pCmd->Data[i * 8U], 8);
       }
     }
-
-    /* if (bReloadEeprom) {
-      BOARD_EEPROM_Init();
-    } */
   }
 
   SendReply(&Reply, sizeof(Reply));
@@ -433,35 +405,20 @@ static void CMD_051D(const uint8_t *pBuffer) {
 static void CMD_061D(const uint8_t *pBuffer) {
   const CMD_061D_t *pCmd = (const CMD_051D_t *)pBuffer;
   REPLY_061D_t Reply;
-  bool bReloadEeprom;
-  bool bIsLocked;
 
   if (pCmd->Timestamp != Timestamp) {
     return;
   }
 
-  bReloadEeprom = false;
-
   Reply.Header.ID = 0x061E;
   Reply.Header.Size = sizeof(Reply.Data);
   Reply.Data.Offset = pCmd->Offset;
-
-  bIsLocked = bHasCustomAesKey;
-  if (bHasCustomAesKey) {
-    bIsLocked = gIsLocked;
-  }
 
   const uint32_t EEPROM_SIZE = SETTINGS_GetEEPROMSize();
   const uint32_t PATCH_START = EEPROM_SIZE - PATCH_SIZE;
 
   for (uint16_t i = 0; i < (pCmd->Size / 8U); i++) {
     uint32_t Offset = PATCH_START + pCmd->Offset + (i * 8U);
-
-    if (Offset >= 0x0F30 && Offset < 0x0F40) {
-      if (!gIsLocked) {
-        bReloadEeprom = true;
-      }
-    }
 
     if ((Offset < 0x0E98 || Offset >= 0x0EA0) || !bIsInLockScreen ||
         pCmd->bAllowPassword) {

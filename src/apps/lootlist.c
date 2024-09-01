@@ -70,8 +70,8 @@ static void getLootItem(uint16_t i, uint16_t index, bool isCurrent) {
 }
 
 static void getLootItemShort(uint16_t i, uint16_t index, bool isCurrent) {
-  Loot *item = LOOT_Item(index);
-  uint32_t f = item->f;
+  const Loot *item = LOOT_Item(index);
+  const uint32_t f = item->f;
   const uint8_t x = LCD_WIDTH - 6;
   const uint8_t y = MENU_Y + i * MENU_ITEM_H;
   const uint32_t ago = (Now() - item->lastTimeOpen) / 1000;
@@ -105,7 +105,7 @@ static void sort(Sort type) {
   }
   LOOT_Sort(sortings[type], sortRev);
   sortType = type;
-  STATUSLINE_SetText("By %s %s", sortNames[sortType], sortRev ? "desc" : "asc");
+  STATUSLINE_SetText("By %s %s", sortNames[sortType], sortRev ? "v" : "^");
 }
 
 void LOOTLIST_render(void) {
@@ -118,8 +118,7 @@ void LOOTLIST_init(void) {
   sortType = SORT_F;
   sort(SORT_LOT);
   if (LOOT_Size()) {
-    Loot *item = LOOT_Item(menuIndex);
-    RADIO_TuneTo(item->f);
+    RADIO_TuneTo(LOOT_Item(menuIndex)->f);
   }
 }
 
