@@ -109,7 +109,6 @@ static void init() {
   RADIO_SetupBandParams();
 
   SP_Init(PRESETS_GetSteps(gCurrentPreset), LCD_WIDTH);
-  gRedrawScreen = true;
 }
 
 static void startNewScan() {
