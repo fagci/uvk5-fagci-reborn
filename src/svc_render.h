@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+extern uint32_t gLastRender;
+
 void SVC_RENDER_Init(void);
 void SVC_RENDER_Update(void);
 void SVC_RENDER_Deinit(void);

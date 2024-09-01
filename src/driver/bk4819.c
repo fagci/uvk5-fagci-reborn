@@ -217,7 +217,7 @@ void BK4819_SetAGC(bool useDefault, uint8_t gainIndex) {
     BK4819_WriteRegister(BK4819_REG_14, 0x0000);
     // slow 25 45
     // fast 15 50
-    low = 32;
+    low = 20;
     high = 50;
   }
   BK4819_WriteRegister(BK4819_REG_49, (Lo << 14) | (high << 7) | (low << 0));
@@ -477,16 +477,18 @@ void BK4819_SetRegValue(RegisterSpec s, uint16_t v) {
 }
 
 void BK4819_SetModulation(ModulationType type) {
+  bool isSsb = type == MOD_LSB || type == MOD_USB;
+  bool isFm = type == MOD_FM || type == MOD_WFM;
   BK4819_SetAF(modTypeReg47Values[type]);
   BK4819_SetRegValue(afDacGainRegSpec, 0x8);
-  BK4819_WriteRegister(0x3D, type == MOD_USB ? 0 : 0x2AAB);
-  BK4819_SetRegValue(afcDisableRegSpec, type != MOD_FM && type != MOD_WFM);
+  BK4819_WriteRegister(0x3D, isSsb ? 0 : 0x2AAB);
+  BK4819_SetRegValue(afcDisableRegSpec, !isFm);
   if (type == MOD_WFM) {
     BK4819_SetRegValue(RS_XTAL_MODE, 0);
+    BK4819_SetRegValue(RS_IF_F, 14223);
     BK4819_SetRegValue(RS_RF_FILT_BW, 7);
     BK4819_SetRegValue(RS_RF_FILT_BW_WEAK, 7);
     BK4819_SetRegValue(RS_BW_MODE, 3);
-    BK4819_SetRegValue(RS_IF_F, 14223);
   } else {
     BK4819_SetRegValue(RS_XTAL_MODE, 2);
     BK4819_SetRegValue(RS_IF_F, 10923);

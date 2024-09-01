@@ -9,13 +9,13 @@
 #include "../radio.h"
 #include "../scheduler.h"
 #include "../svc.h"
+#include "../svc_render.h"
 #include "../svc_scan.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "apps.h"
 #include "finput.h"
 
-static uint32_t lastUpdate = 0;
 static DateTime dt;
 static void setChannel(uint16_t v) { RADIO_TuneToCH(v - 1); }
 static void tuneTo(uint32_t f) { RADIO_TuneToSave(GetTuneF(f)); }
@@ -35,9 +35,8 @@ void VFO1_init(void) { RADIO_LoadCurrentVFO(); }
 void VFO1_deinit(void) {}
 
 void VFO1_update(void) {
-  if (gIsListening && Now() - lastUpdate >= 1000) {
+  if (gIsListening && Now() - gLastRender >= 1000) {
     gRedrawScreen = true;
-    lastUpdate = Now();
   }
 }
 

@@ -9,6 +9,7 @@
 #include "../scheduler.h"
 #include "../settings.h"
 #include "../svc.h"
+#include "../svc_render.h"
 #include "../svc_scan.h"
 #include "../ui/graphics.h"
 #include "../ui/spectrum.h"
@@ -41,8 +42,6 @@ static uint16_t oldPresetIndex = 255;
 
 static uint32_t timeout = 0;
 static bool lastListenState = false;
-
-static uint32_t lastRender = 0;
 
 static const uint16_t BK_RST_HARD = 0x0200;
 static const uint16_t BK_RST_SOFT = 0xBFF1 & ~BK4819_REG_30_ENABLE_VCO_CALIB;
@@ -207,7 +206,7 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void SPECTRUM_update(void) {
-  if (Now() - lastRender >= 500) {
+  if (Now() - gLastRender >= 500) {
     gRedrawScreen = true;
   }
   if (newScan || gSettings.activePreset != oldPresetIndex) {
@@ -265,6 +264,4 @@ void SPECTRUM_render(void) {
                fs % 100000);
   PrintSmallEx(LCD_WIDTH, LCD_HEIGHT - 1, POS_R, C_FILL, "%u.%05u", fe / 100000,
                fe % 100000);
-
-  lastRender = Now();
 }
