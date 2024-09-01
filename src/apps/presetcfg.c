@@ -14,8 +14,8 @@ static bool isSubMenu = false;
 
 static MenuItem menu[] = {
     {"Name", M_NAME},
-    {"Start F", M_START},
-    {"End F", M_END},
+    {"F start", M_START},
+    {"F end", M_END},
     {"Step", M_STEP, ARRAY_SIZE(StepFrequencyTable)},
     {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions) - 1},
     {"BW", M_BW, ARRAY_SIZE(bwNames)},

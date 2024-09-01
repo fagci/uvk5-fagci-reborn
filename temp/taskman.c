@@ -4,7 +4,7 @@
 #include "../ui/graphics.h"
 #include "apps.h"
 
-void TASKMAN_Init(void) { gRedrawScreen = true; }
+void TASKMAN_Init(void) { }
 
 void TASKMAN_Render(void) {
   UI_ClearScreen();

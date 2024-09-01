@@ -10,7 +10,7 @@ const char *BL_TIME_NAMES[7] = {"Off",  "5s",   "10s", "20s",
 
 const char *BL_SQL_MODE_NAMES[3] = {"Off", "On", "Open"};
 const char *TX_POWER_NAMES[3] = {"Low", "Mid", "High"};
-const char *TX_OFFSET_NAMES[3] = {"Unset", "+", "-"};
+const char *TX_OFFSET_NAMES[3] = {"None", "+", "-"};
 const char *TX_CODE_TYPES[4] = {"None", "CT", "DCS", "-DCS"};
 const char *rogerNames[4] = {"None", "Moto", "Tiny", "Call"};
 const char *dwNames[3] = {"Off", "TX Stay", "TX Switch"};
