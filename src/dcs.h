@@ -27,7 +27,6 @@ enum DCS_CodeType_t {
 };
 
 typedef enum DCS_CodeType_t DCS_CodeType_t;
-extern const char *dcsNames[];
 
 enum {
   CDCSS_POSITIVE_CODE = 1U,

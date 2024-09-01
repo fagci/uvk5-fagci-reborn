@@ -5,16 +5,16 @@
 #include "ui/statusline.h"
 
 static const uint32_t RENDER_TIME = 1000 / 25;
-static uint32_t lastRender = 0;
+uint32_t gLastRender = 0;
 
 void SVC_RENDER_Init(void) {}
 void SVC_RENDER_Update(void) {
-  if (gRedrawScreen && Now() - lastRender >= RENDER_TIME) {
+  if (gRedrawScreen && Now() - gLastRender >= RENDER_TIME) {
     APPS_render();
     STATUSLINE_render();
     ST7565_Render();
     gRedrawScreen = false;
-    lastRender = Now();
+    gLastRender = Now();
   }
 }
 void SVC_RENDER_Deinit(void) {}

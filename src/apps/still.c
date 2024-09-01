@@ -7,6 +7,7 @@
 #include "../misc.h"
 #include "../radio.h"
 #include "../scheduler.h"
+#include "../svc_render.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/statusline.h"
@@ -14,7 +15,6 @@
 #include "finput.h"
 
 static uint8_t menuState = 0;
-static uint32_t lastUpdate = 0;
 
 static char String[16];
 
@@ -81,9 +81,8 @@ void STILL_deinit(void) { RADIO_ToggleRX(false); }
 void STILL_update(void) {
   RADIO_UpdateMeasurementsEx(&gLoot[gSettings.activeVFO]);
 
-  if (Now() - lastUpdate >= 500) {
+  if (Now() - gLastRender >= 1000) {
     gRedrawScreen = true;
-    lastUpdate = Now();
   }
 }
 
