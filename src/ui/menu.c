@@ -19,7 +19,7 @@ void UI_DrawScrollBar(const uint16_t size, const uint16_t iCurrent,
 
 void UI_ShowMenuItem(uint8_t line, const char *name, bool isCurrent) {
   uint8_t by = MENU_Y + line * MENU_ITEM_H + 8;
-  PrintMedium(4, by, name);
+  PrintMedium(4, by, "%s", name);
   if (isCurrent) {
     FillRect(0, MENU_Y + line * MENU_ITEM_H, LCD_WIDTH - 3, MENU_ITEM_H,
              C_INVERT);

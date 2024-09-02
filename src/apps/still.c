@@ -80,7 +80,7 @@ void STILL_deinit(void) { RADIO_ToggleRX(false); }
 void STILL_update(void) {
   RADIO_UpdateMeasurementsEx(&gLoot[gSettings.activeVFO]);
 
-  if (Now() - gLastRender >= 1000) {
+  if (Now() - gLastRender >= 500) {
     gRedrawScreen = true;
   }
 }

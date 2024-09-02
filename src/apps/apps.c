@@ -66,26 +66,26 @@ const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
     APP_PRESETS_LIST, //
     APP_MEMVIEW,      //
     APP_GENERATOR,
-    APP_ABOUT,        //
+    APP_ABOUT, //
 };
 
 const App apps[APPS_COUNT] = {
     {"None"},
     {"EEPROM view", MEMVIEW_Init, MEMVIEW_Update, MEMVIEW_Render, MEMVIEW_key,
      NULL},
-    {"Band scan", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render,
-     SPECTRUM_key, SPECTRUM_deinit},
-    {"Analyzer", ANALYZER_init, ANALYZER_update, ANALYZER_render,
-     ANALYZER_key, ANALYZER_deinit},
+    {"Band scan", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render, SPECTRUM_key,
+     SPECTRUM_deinit},
+    {"Analyzer", ANALYZER_init, ANALYZER_update, ANALYZER_render, ANALYZER_key,
+     ANALYZER_deinit},
     {"CH Scan", CHSCANNER_init, CHSCANNER_update, CHSCANNER_render,
      CHSCANNER_key, CHSCANNER_deinit},
     {"Channels", SAVECH_init, SAVECH_update, SAVECH_render, SAVECH_key, NULL},
     {"1 VFO pro", STILL_init, STILL_update, STILL_render, STILL_key,
      STILL_deinit},
-    {"Freq input", FINPUT_init, NULL, FINPUT_render, FINPUT_key,
-     FINPUT_deinit},
+    {"Freq input", FINPUT_init, NULL, FINPUT_render, FINPUT_key, FINPUT_deinit},
     {"Run app", APPSLIST_init, NULL, APPSLIST_render, APPSLIST_key, NULL},
-    {"Loot", LOOTLIST_init, NULL, LOOTLIST_render, LOOTLIST_key, NULL},
+    {"Loot", LOOTLIST_init, LOOTLIST_update, LOOTLIST_render, LOOTLIST_key,
+     NULL},
     {"Presets", PRESETLIST_init, NULL, PRESETLIST_render, PRESETLIST_key, NULL},
     {"Reset", RESET_Init, RESET_Update, RESET_Render, RESET_key, NULL},
     {"Text input", TEXTINPUT_init, NULL, TEXTINPUT_render, TEXTINPUT_key,

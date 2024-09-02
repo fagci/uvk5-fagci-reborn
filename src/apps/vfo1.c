@@ -33,7 +33,7 @@ static void sendDtmf() {
 void VFO1_init(void) { RADIO_LoadCurrentVFO(); }
 
 void VFO1_update(void) {
-  if (gIsListening && Now() - gLastRender >= 1000) {
+  if (gIsListening && Now() - gLastRender >= 500) {
     gRedrawScreen = true;
   }
 }
