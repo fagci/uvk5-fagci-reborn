@@ -7,6 +7,7 @@
 #include "../helper/presetlist.h"
 #include "../radio.h"
 #include "../scheduler.h"
+#include "../svc.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
 #include "../ui/statusline.h"
@@ -89,6 +90,9 @@ static void getLootItemShort(uint16_t i, uint16_t index, bool isCurrent) {
     PrintSmallEx(x, y + 7, POS_R, C_INVERT, "%us", item->duration / 1000);
     break;
   }
+  if (gIsListening && isCurrent) {
+    PrintSymbolsEx(LCD_WIDTH - 24, y + 7, POS_R, C_INVERT, "%c", SYM_BEEP);
+  }
   if (item->blacklist) {
     PrintMediumEx(1, y + 7, POS_L, C_INVERT, "-");
   }
@@ -170,6 +174,9 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_5:
       saveAllToFreeChannels();
+      return true;
+    case KEY_4: // freq catch
+      SVC_Toggle(SVC_FC, !SVC_Running(SVC_FC), 100);
       return true;
     default:
       break;

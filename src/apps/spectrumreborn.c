@@ -139,67 +139,92 @@ void SPECTRUM_deinit() {
 }
 
 bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
-  switch (Key) {
-  case KEY_EXIT:
-    APPS_exit();
-    return true;
-  case KEY_UP:
-    PRESETS_SelectPresetRelative(true);
-    RADIO_SelectPresetSave(gSettings.activePreset);
-    newScan = true;
-    return true;
-  case KEY_DOWN:
-    PRESETS_SelectPresetRelative(false);
-    RADIO_SelectPresetSave(gSettings.activePreset);
-    newScan = true;
-    return true;
-  case KEY_SIDE1:
-    LOOT_BlacklistLast();
-    return true;
-  case KEY_SIDE2:
-    LOOT_GoodKnownLast();
-    return true;
-  case KEY_F:
-    APPS_run(APP_PRESET_CFG);
-    return true;
-  case KEY_0:
-    APPS_run(APP_PRESETS_LIST);
-    return true;
-  case KEY_STAR:
-    APPS_run(APP_LOOT_LIST);
-    return true;
-  case KEY_5:
-    return true;
-  case KEY_4:
-    rssiResetMethod = !rssiResetMethod;
-    resetBkVal = RESET_METHODS[rssiResetMethod];
-    SP_ResetHistory();
-    newScan = true;
-    return true;
-  case KEY_1:
-    IncDec8(&msmDelay, 0, 20, 1);
-    SP_ResetHistory();
-    newScan = true;
-    return true;
-  case KEY_7:
-    IncDec8(&msmDelay, 0, 20, -1);
-    SP_ResetHistory();
-    newScan = true;
-    return true;
-  case KEY_3:
-    IncDec8(&noiseOpenDiff, 2, 40, 1);
-    return true;
-  case KEY_9:
-    IncDec8(&noiseOpenDiff, 2, 40, -1);
-    return true;
-  case KEY_PTT:
-    if (gLastActiveLoot) {
-      RADIO_TuneToSave(gLastActiveLoot->f);
-      APPS_run(APP_STILL);
+  // up-down keys
+  if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
+    switch (Key) {
+    case KEY_UP:
+      PRESETS_SelectPresetRelative(true);
+      RADIO_SelectPresetSave(gSettings.activePreset);
+      newScan = true;
+      return true;
+    case KEY_DOWN:
+      PRESETS_SelectPresetRelative(false);
+      RADIO_SelectPresetSave(gSettings.activePreset);
+      newScan = true;
+      return true;
+    case KEY_1:
+      IncDec8(&msmDelay, 0, 20, 1);
+      SP_ResetHistory();
+      newScan = true;
+      return true;
+    case KEY_7:
+      IncDec8(&msmDelay, 0, 20, -1);
+      SP_ResetHistory();
+      newScan = true;
+      return true;
+    case KEY_3:
+      IncDec8(&noiseOpenDiff, 2, 40, 1);
+      return true;
+    case KEY_9:
+      IncDec8(&noiseOpenDiff, 2, 40, -1);
+      return true;
+    default:
+      break;
     }
-    return true;
-  default:
-    break;
+  }
+
+  // long held
+  if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
+    switch (Key) {
+    case KEY_SIDE1:
+      if (gLastActiveLoot) {
+        RADIO_TuneToSave(gLastActiveLoot->f);
+        APPS_run(APP_ANALYZER);
+      }
+      return true;
+    default:
+      break;
+    }
+  }
+
+  // Simple keypress
+  if (!bKeyPressed && !bKeyHeld) {
+    switch (Key) {
+    case KEY_EXIT:
+      APPS_exit();
+      return true;
+    case KEY_SIDE1:
+      LOOT_BlacklistLast();
+      return true;
+    case KEY_SIDE2:
+      LOOT_GoodKnownLast();
+      return true;
+    case KEY_F:
+      APPS_run(APP_PRESET_CFG);
+      return true;
+    case KEY_0:
+      APPS_run(APP_PRESETS_LIST);
+      return true;
+    case KEY_STAR:
+      APPS_run(APP_LOOT_LIST);
+      return true;
+    case KEY_5:
+      return true;
+    case KEY_4:
+      rssiResetMethod = !rssiResetMethod;
+      resetBkVal = RESET_METHODS[rssiResetMethod];
+      SP_ResetHistory();
+      newScan = true;
+      return true;
+    case KEY_PTT:
+      if (gLastActiveLoot) {
+        RADIO_TuneToSave(gLastActiveLoot->f);
+        APPS_run(APP_STILL);
+      }
+      return true;
+    default:
+      break;
+    }
   }
   return false;
 }

@@ -463,6 +463,7 @@ uint32_t RADIO_GetTxPower(uint32_t txF) {
 void RADIO_ToggleTX(bool on) {
   uint32_t txF = RADIO_GetTXF();
   uint8_t power = RADIO_GetTxPower(txF);
+  SVC_Toggle(SVC_FC, false, 0);
   RADIO_ToggleTXEX(on, txF, power);
 }
 
