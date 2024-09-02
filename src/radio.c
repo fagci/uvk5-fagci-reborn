@@ -93,14 +93,10 @@ void RADIO_SetupRegisters(void) {
   }
   BK4819_WriteRegister(BK4819_REG_3F, 0);
   BK4819_WriteRegister(BK4819_REG_7D, 0xE94F | 10); // mic
-  // BK4819_WriteRegister(0x74, 0xf50b + (0xAF1F-0xf50b)/2);          // 3k resp
   // TX
-  // BK4819_WriteRegister(0x75, 0xAF1F);          // 3k resp RX
-  BK4819_WriteRegister(0x44, 38888);  // 300 resp TX
+  // BK4819_WriteRegister(0x44, 38888);  // 300 resp TX
   BK4819_WriteRegister(0x74, 0xAF1F); // 3k resp TX
 
-  /* BK4819_SetFrequency(Frequency);
-  BK4819_SelectFilter(Frequency); */
   BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, true);
   BK4819_WriteRegister(
       BK4819_REG_48,
@@ -571,6 +567,7 @@ void RADIO_TuneTo(uint32_t f) {
   radio->tx.f = 0;
   radio->rx.f = f;
   RADIO_SetupByCurrentVFO();
+  setupToneDetection(); // note: idk where it will be
 }
 
 // USE CASE: set vfo and use in another app

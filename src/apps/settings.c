@@ -140,7 +140,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     sprintf(name, "%u.%02u (%u)", v / 100, v % 100, index + BAT_CAL_MIN);
     return;
   case M_BAT_TYPE:
-    strncpy(name, BATTERY_TYPE_NAMES[index], 31);
+    sprintf(name, BATTERY_TYPE_NAMES[index], 31);
     return;
   case M_BAT_STYLE:
     strncpy(name, BATTERY_STYLE_NAMES[index], 31);
@@ -489,7 +489,7 @@ static void setMenuIndexAndRun(uint16_t v) {
 
 bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld) {
-    if (!gIsNumNavInput && key >= KEY_0 && key <= KEY_9) {
+    if (!gIsNumNavInput && key <= KEY_9) {
       NUMNAV_Init(menuIndex + 1, 1, MENU_SIZE);
       gNumNavCallback = setMenuIndexAndRun;
     }
@@ -559,7 +559,7 @@ void SETTINGS_render(void) {
     STATUSLINE_SetText(item->name);
   } else {
     UI_ShowMenuSimple(menu, ARRAY_SIZE(menu), menuIndex);
-    PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 4, POS_C, C_FILL,
+    PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 4, POS_C, C_FILL, "%s",
                   getValue(item->type));
   }
 }

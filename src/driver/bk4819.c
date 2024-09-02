@@ -509,11 +509,6 @@ void BK4819_RX_TurnOn(void) {
           BK4819_REG_30_DISABLE_TX_DSP | BK4819_REG_30_ENABLE_RX_DSP);
 }
 
-void BK4819_DisableFilter(void) {
-  BK4819_ToggleGpioOut(BK4819_GPIO4_PIN32_VHF_LNA, true);
-  BK4819_ToggleGpioOut(BK4819_GPIO3_PIN31_UHF_LNA, true);
-}
-
 void BK4819_SelectFilter(uint32_t f) {
   Filter filter = f < SETTINGS_GetFilterBound() ? FILTER_VHF : FILTER_UHF;
 

@@ -8,6 +8,7 @@
 #include "../radio.h"
 #include "../scheduler.h"
 #include "../svc.h"
+#include "../svc_render.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
 #include "../ui/statusline.h"
@@ -37,49 +38,67 @@ static char *sortNames[] = {
     "frequency",
 };
 
-Sort sortType = SORT_LOT;
+static Sort sortType = SORT_LOT;
 
 static bool shortList = true;
 static bool sortRev = false;
 
+void LOOTLIST_update() {
+  if (Now() - gLastRender >= 500) {
+    gRedrawScreen = true;
+  }
+}
+
 static void getLootItem(uint16_t i, uint16_t index, bool isCurrent) {
-  Loot *item = LOOT_Item(index);
-  uint32_t f = item->f;
+  const Loot *item = LOOT_Item(index);
   const uint8_t y = MENU_Y + i * MENU_ITEM_H_LARGER;
+  const uint32_t f = item->f;
+
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H_LARGER, C_FILL);
   }
+
   PrintMediumEx(8, y + 7, POS_L, C_INVERT, "%u.%05u", f / 100000, f % 100000);
+  if (gIsListening && item->f == radio->rx.f) {
+    PrintSymbolsEx(LCD_WIDTH - 24, y + 7, POS_R, C_INVERT, "%c", SYM_BEEP);
+  }
+
   PrintSmallEx(LCD_WIDTH - 6, y + 7, POS_R, C_INVERT, "%us",
                item->duration / 1000);
 
-  PrintSmallEx(6, y + 7 + 6, POS_L, C_INVERT, "R:%03u", item->rssi);
-  if (item->cd != 0xFF) {
-    PrintSmallEx(6 + 55, y + 7 + 6, POS_L, C_INVERT, "DCS:D%03oN",
+  PrintSmallEx(8, y + 7 + 6, POS_L, C_INVERT, "%03ddB", Rssi2DBm(item->rssi));
+  if (item->ct != 0xFF) {
+    PrintSmallEx(8 + 55, y + 7 + 6, POS_L, C_INVERT, "CT:%u.%uHz",
+                 CTCSS_Options[item->ct] / 10, CTCSS_Options[item->ct] % 10);
+  } else if (item->cd != 0xFF) {
+    PrintSmallEx(8 + 55, y + 7 + 6, POS_L, C_INVERT, "DCS:D%03oN",
                  DCS_Options[item->cd]);
   }
-  if (item->ct != 0xFF) {
-    PrintSmallEx(6 + 55, y + 7 + 6, POS_L, C_INVERT, "CT:%u.%uHz",
-                 CTCSS_Options[item->ct] / 10, CTCSS_Options[item->ct] % 10);
-  }
+
   if (item->blacklist) {
-    PrintSmallEx(1, y + 5, POS_L, C_INVERT, "X");
+    PrintMediumEx(1, y + 7, POS_L, C_INVERT, "-");
   }
   if (item->goodKnown) {
-    PrintSmallEx(1, y + 5, POS_L, C_INVERT, "*");
+    PrintMediumEx(1, y + 7, POS_L, C_INVERT, "+");
   }
 }
 
 static void getLootItemShort(uint16_t i, uint16_t index, bool isCurrent) {
   const Loot *item = LOOT_Item(index);
-  const uint32_t f = item->f;
   const uint8_t x = LCD_WIDTH - 6;
   const uint8_t y = MENU_Y + i * MENU_ITEM_H;
+  const uint32_t f = item->f;
   const uint32_t ago = (Now() - item->lastTimeOpen) / 1000;
+
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
   }
+
   PrintMediumEx(8, y + 7, POS_L, C_INVERT, "%u.%05u", f / 100000, f % 100000);
+  if (gIsListening && item->f == radio->rx.f) {
+    PrintSymbolsEx(LCD_WIDTH - 24, y + 7, POS_R, C_INVERT, "%c", SYM_BEEP);
+  }
+
   switch (sortType) {
   case SORT_LOT:
     PrintSmallEx(x, y + 7, POS_R, C_INVERT, "%u:%02u", ago / 60, ago % 60);
@@ -90,9 +109,7 @@ static void getLootItemShort(uint16_t i, uint16_t index, bool isCurrent) {
     PrintSmallEx(x, y + 7, POS_R, C_INVERT, "%us", item->duration / 1000);
     break;
   }
-  if (gIsListening && isCurrent) {
-    PrintSymbolsEx(LCD_WIDTH - 24, y + 7, POS_R, C_INVERT, "%c", SYM_BEEP);
-  }
+
   if (item->blacklist) {
     PrintMediumEx(1, y + 7, POS_L, C_INVERT, "-");
   }

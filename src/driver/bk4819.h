@@ -129,7 +129,6 @@ void BK4819_SquelchType(SquelchType t);
 
 void BK4819_SetAF(BK4819_AF_Type_t AF);
 void BK4819_RX_TurnOn(void);
-void BK4819_DisableFilter();
 void BK4819_SelectFilter(uint32_t Frequency);
 void BK4819_DisableScramble(void);
 void BK4819_EnableScramble(uint8_t Type);
