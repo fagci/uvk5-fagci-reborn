@@ -88,18 +88,16 @@ static void getMenuItemText(uint16_t index, char *name) {
 static void updateTxCodeListSize() {
   for (uint8_t i = 0; i < ARRAY_SIZE(menu); ++i) {
     MenuItem *item = &menu[i];
+    F *f = NULL;
     if (item->type == M_TX_CODE) {
-      if (radio->tx.codeType == CODE_TYPE_CONTINUOUS_TONE) {
-        item->size = ARRAY_SIZE(CTCSS_Options);
-      } else if (radio->tx.codeType != CODE_TYPE_OFF) {
-        item->size = ARRAY_SIZE(DCS_Options);
-      } else {
-        item->size = 0;
-      }
+      f = &radio->tx;
     } else if (item->type == M_RX_CODE) {
-      if (radio->rx.codeType == CODE_TYPE_CONTINUOUS_TONE) {
+      f = &radio->rx;
+    }
+    if (f) {
+      if (f->codeType == CODE_TYPE_CONTINUOUS_TONE) {
         item->size = ARRAY_SIZE(CTCSS_Options);
-      } else if (radio->rx.codeType != CODE_TYPE_OFF) {
+      } else if (f->codeType != CODE_TYPE_OFF) {
         item->size = ARRAY_SIZE(DCS_Options);
       } else {
         item->size = 0;

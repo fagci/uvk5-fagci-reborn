@@ -42,6 +42,7 @@ static EEPROMType determineEepromType() {
   EEPROMType type = 0;
   uint8_t buf[8] = {119, 100, 110, 193, 110, 100, 0, 99};
   for (uint8_t i = 0; i < ARRAY_SIZE(EEPROM_SIZES); ++i) {
+    gSettings.eepromType = i;
     uint32_t sz = EEPROM_SIZES[i];
     uint32_t adr = sz - 8;
     EEPROM_ReadBuffer(adr, bkp, 8);
