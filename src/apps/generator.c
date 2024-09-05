@@ -1,21 +1,39 @@
 #include "generator.h"
 #include "../driver/bk4819.h"
 #include "../radio.h"
+#include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "apps.h"
 #include "finput.h"
 
 static uint16_t tone1Freq = 1000;
-static uint8_t power = 10;
+static uint8_t power = 26;
+static bool paEnabled = false;
+static uint8_t bkPower = 0;
 
 static void setTone1Freq(uint32_t f) { tone1Freq = f / 100; }
 
-void GENERATOR_init() {}
+static void calcPower() {
+  paEnabled = power >= 26;
+  bkPower = power < 26 ? power * 255 / 26 : (power - 26) * 255 / (255 - 26);
+}
+
+static void updatePower(int8_t v) {
+  if (v > 0 && power < 255) {
+    power++;
+  }
+  if (v < 0 && power > 0) {
+    power--;
+  }
+  calcPower();
+}
+
+void GENERATOR_init() { calcPower(); }
 void GENERATOR_update() {}
 bool GENERATOR_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   const uint8_t M[] = {tone1Freq / 10, 0, 0, 0};
   if (key == KEY_PTT) {
-    RADIO_ToggleTXEX(bKeyHeld, RADIO_GetTXF(), power);
+    RADIO_ToggleTXEX(bKeyHeld, RADIO_GetTXF(), power, bkPower);
     if (bKeyHeld && gTxState == TX_ON) {
       BK4819_PlaySequence(M);
     }
@@ -51,14 +69,10 @@ bool GENERATOR_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       RADIO_NextFreqNoClicks(false);
       return true;
     case KEY_2:
-      if (power < 255) {
-        power++;
-      }
+      updatePower(1);
       return true;
     case KEY_8:
-      if (power > 0) {
-        power--;
-      }
+      updatePower(-1);
       return true;
     default:
       break;
@@ -72,7 +86,7 @@ void GENERATOR_render() {
   uint32_t txf = RADIO_GetTXF();
   PrintMediumEx(LCD_XCENTER, 15, POS_C, C_FILL, "%u.%05u", txf / 100000,
                 txf % 100000);
-  PrintMediumEx(LCD_XCENTER, 15 + 12, POS_C, C_FILL, "Tone1: %uHz", tone1Freq);
-  PrintMediumEx(LCD_XCENTER, 15 + 28, POS_C, C_FILL, "Power: %u%s", power,
-                power < 0x91 ? "" : "!!!");
+  PrintMediumEx(LCD_XCENTER, 15 + 12, POS_C, C_FILL, "F: %uHz", tone1Freq);
+  PrintMediumEx(LCD_XCENTER, 15 + 28, POS_C, C_FILL, "Pow: %u%s", power,
+                (bkPower >= 0x91 && paEnabled) ? "!!!" : "");
 }
