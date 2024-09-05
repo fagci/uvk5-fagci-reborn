@@ -1,7 +1,6 @@
 #include "generator.h"
 #include "../driver/bk4819.h"
 #include "../radio.h"
-#include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "apps.h"
 #include "finput.h"

@@ -172,22 +172,6 @@ typedef struct {
 
 typedef struct {
   Header_t Header;
-  uint16_t Offset;
-  uint8_t Size;
-  bool bAllowPassword;
-  uint32_t Timestamp;
-  uint8_t Data[0];
-} CMD_061D_t;
-
-typedef struct {
-  Header_t Header;
-  struct {
-    uint16_t Offset;
-  } Data;
-} REPLY_061D_t;
-
-typedef struct {
-  Header_t Header;
   struct {
     uint16_t RSSI;
     uint8_t ExNoiseIndicator;
@@ -396,33 +380,6 @@ static void CMD_051D(const uint8_t *pBuffer) {
           pCmd->bAllowPassword) {
         EEPROM_WriteBuffer(Offset, &pCmd->Data[i * 8U], 8);
       }
-    }
-  }
-
-  SendReply(&Reply, sizeof(Reply));
-}
-
-static void CMD_061D(const uint8_t *pBuffer) {
-  const CMD_061D_t *pCmd = (const CMD_051D_t *)pBuffer;
-  REPLY_061D_t Reply;
-
-  if (pCmd->Timestamp != Timestamp) {
-    return;
-  }
-
-  Reply.Header.ID = 0x061E;
-  Reply.Header.Size = sizeof(Reply.Data);
-  Reply.Data.Offset = pCmd->Offset;
-
-  const uint32_t EEPROM_SIZE = SETTINGS_GetEEPROMSize();
-  const uint32_t PATCH_START = EEPROM_SIZE - PATCH_SIZE;
-
-  for (uint16_t i = 0; i < (pCmd->Size / 8U); i++) {
-    uint32_t Offset = PATCH_START + pCmd->Offset + (i * 8U);
-
-    if ((Offset < 0x0E98 || Offset >= 0x0EA0) || !bIsInLockScreen ||
-        pCmd->bAllowPassword) {
-      EEPROM_WriteBuffer(Offset, &pCmd->Data[i * 8U], 8);
     }
   }
 
@@ -683,10 +640,6 @@ void UART_HandleCommand(void) {
     NVIC_SystemReset();
     break;
 
-    // write patch
-  case 0x061D:
-    CMD_061D(UART_Command.Buffer);
-    break;
   }
 }
 
