@@ -37,23 +37,20 @@ static VFO defaultVFOs[2] = {
 };
 
 static EEPROMType determineEepromType() {
-  uint8_t bkp[8];
-  uint8_t bufr[8];
-  EEPROMType type = 0;
-  uint8_t buf[8] = {119, 100, 110, 193, 110, 100, 0, 99};
+  const uint8_t A = 33;
+  const uint8_t B = 55;
+  uint8_t bufr[1];
   for (uint8_t i = 0; i < ARRAY_SIZE(EEPROM_SIZES); ++i) {
     gSettings.eepromType = i;
     uint32_t sz = EEPROM_SIZES[i];
-    uint32_t adr = sz - 8;
-    EEPROM_ReadBuffer(adr, bkp, 8);
-    EEPROM_WriteBuffer(adr, buf, 8);
-    EEPROM_ReadBuffer(adr, bufr, 8);
-    if (memcmp(buf, bufr, 8) == 0) {
-      type = i;
+    EEPROM_WriteBuffer(0, (uint8_t[]){A}, 1);
+    EEPROM_WriteBuffer(sz, (uint8_t[]){B}, 1);
+    EEPROM_ReadBuffer(0, bufr, 1);
+    if (bufr[0] == B) {
+      return i;
     }
-    EEPROM_WriteBuffer(adr, bkp, 8);
   }
-  return type;
+  return gSettings.eepromType;
 }
 
 void RESET_Init(void) {
