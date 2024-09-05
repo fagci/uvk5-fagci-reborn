@@ -36,7 +36,7 @@ static VFO defaultVFOs[2] = {
     },
 };
 
-EEPROMType determineEepromType() {
+static EEPROMType determineEepromType() {
   uint8_t bkp[8];
   uint8_t bufr[8];
   EEPROMType type = 0;
@@ -56,7 +56,7 @@ EEPROMType determineEepromType() {
 }
 
 void RESET_Init(void) {
-  eepromType = gSettings.eepromType;
+  eepromType = determineEepromType();
   presetsWrote = 0;
   vfosWrote = 0;
   bytesWrote = 0;
@@ -70,7 +70,6 @@ void RESET_Init(void) {
 void RESET_Update(void) {
   if (!settingsWrote) {
     gSettings = (Settings){
-        .checkbyte = EEPROM_CHECKBYTE,
         .eepromType = eepromType,
         .squelch = 4,
         .scrambler = 0,

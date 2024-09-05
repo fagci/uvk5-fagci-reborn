@@ -7,8 +7,6 @@
 
 #define getsize(V) char (*__ #V)(void)[sizeof(V)] = 1;
 
-extern const uint8_t EEPROM_CHECKBYTE;
-
 typedef enum {
   STEP_0_01kHz,
   STEP_0_1kHz,
