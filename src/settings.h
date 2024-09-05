@@ -102,6 +102,7 @@ typedef enum {
 } EEPROMType;
 
 extern const char *EEPROM_TYPE_NAMES[8];
+extern const uint32_t EEPROM_SIZES[8];
 
 typedef struct {
   EEPROMType eepromType : 3;

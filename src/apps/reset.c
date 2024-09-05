@@ -1,4 +1,5 @@
 #include "reset.h"
+#include "../driver/eeprom.h"
 #include "../driver/st7565.h"
 #include "../helper/channels.h"
 #include "../helper/measurements.h"
@@ -34,6 +35,25 @@ static VFO defaultVFOs[2] = {
         .radio = RADIO_UNKNOWN,
     },
 };
+
+EEPROMType determineEepromType() {
+  uint8_t bkp[8];
+  uint8_t bufr[8];
+  EEPROMType type = 0;
+  uint8_t buf[8] = {119, 100, 110, 193, 110, 100, 0, 99};
+  for (uint8_t i = 0; i < ARRAY_SIZE(EEPROM_SIZES); ++i) {
+    uint32_t sz = EEPROM_SIZES[i];
+    uint32_t adr = sz - 8;
+    EEPROM_ReadBuffer(adr, bkp, 8);
+    EEPROM_WriteBuffer(adr, buf, 8);
+    EEPROM_ReadBuffer(adr, bufr, 8);
+    if (memcmp(buf, bufr, 8) == 0) {
+      type = i;
+    }
+    EEPROM_WriteBuffer(adr, bkp, 8);
+  }
+  return type;
+}
 
 void RESET_Init(void) {
   eepromType = gSettings.eepromType;

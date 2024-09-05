@@ -297,9 +297,8 @@ static void sendEOT() {
   BK4819_ExitSubAu();
 }
 
-void RADIO_RxTurnOff() {
-  // Log("%s turn off", radioNames[oldRadio]);
-  switch (oldRadio) {
+static void rxTurnOff(Radio r) {
+  switch (r) {
   case RADIO_BK4819:
     BK4819_Idle();
     break;
@@ -308,10 +307,8 @@ void RADIO_RxTurnOff() {
     break;
   case RADIO_SI4732:
     if (gSettings.si4732PowerOff) {
-      // Log("Power down si");
       SI47XX_PowerDown();
     } else {
-      // Log("Mute si, not power down");
       SI47XX_SetVolume(0);
     }
     break;
@@ -319,10 +316,8 @@ void RADIO_RxTurnOff() {
     break;
   }
 }
-void RADIO_RxTurnOn() {
-  Radio r = RADIO_GetRadio();
 
-  // Log("%s turn on", radioNames[r]);
+static void rxTurnOn(Radio r) {
   switch (r) {
   case RADIO_BK4819:
     BK4819_RX_TurnOn();
@@ -335,14 +330,12 @@ void RADIO_RxTurnOn() {
   case RADIO_SI4732:
     BK4819_Idle();
     if (gSettings.si4732PowerOff || !isSi4732On) {
-      // Log("Power up si");
       if (RADIO_IsSSB()) {
         SI47XX_PatchPowerUp();
       } else {
         SI47XX_PowerUp();
       }
     } else {
-      // Log("NOT Power up si");
       SI47XX_SetVolume(63);
     }
     break;
@@ -460,10 +453,10 @@ void RADIO_ToggleTX(bool on) {
   uint32_t txF = RADIO_GetTXF();
   uint8_t power = RADIO_GetTxPower(txF);
   SVC_Toggle(SVC_FC, false, 0);
-  RADIO_ToggleTXEX(on, txF, power);
+  RADIO_ToggleTXEX(on, txF, power, true);
 }
 
-void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power) {
+void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power, bool paEnabled) {
   bool lastOn = gTxState == TX_ON;
   if (gTxState == on) {
     return;
@@ -482,7 +475,7 @@ void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power) {
     BK4819_PrepareTransmit();
 
     SYSTEM_DelayMs(10);
-    BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, power);
+    BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, paEnabled);
     SYSTEM_DelayMs(5);
     BK4819_SetupPowerAmplifier(power, txF);
     SYSTEM_DelayMs(10);
@@ -535,8 +528,8 @@ void RADIO_SwitchRadio() {
     return;
   }
   // Log("Switch radio from %u to %u", oldRadio + 1, r + 1);
-  RADIO_RxTurnOff();
-  RADIO_RxTurnOn();
+  rxTurnOff(oldRadio);
+  rxTurnOn(r);
   oldRadio = r;
 }
 
