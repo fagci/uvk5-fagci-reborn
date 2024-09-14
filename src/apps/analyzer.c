@@ -244,18 +244,10 @@ void ANALYZER_render(void) {
 
   SP_RenderArrow(&opt, peakF, 0, ANALYZER_Y, ANALYZER_HEIGHT);
 
-  if (opt.band.squelch) {
-    uint8_t band = centerF > SETTINGS_GetFilterBound() ? 1 : 0;
-    SP_RenderRssi(SQ[band][0][opt.band.squelch], "SQLo", true, 0, ANALYZER_Y,
-                  ANALYZER_HEIGHT);
-    SP_RenderRssi(SQ[band][1][opt.band.squelch], "SQLc", false, 0, ANALYZER_Y,
-                  ANALYZER_HEIGHT);
-  }
-
-  PrintSmallEx(spectrumWidth - 2, ANALYZER_Y - 3, POS_R, C_FILL, "SQ:%u",
-               opt.band.squelch);
-  PrintSmallEx(0, ANALYZER_Y - 3 + 6, POS_L, C_FILL, "%ums", scanInterval);
-  PrintSmallEx(LCD_XCENTER, ANALYZER_Y - 3, POS_C, C_FILL, "Step: %u.%02uk",
+  PrintSmallEx(spectrumWidth - 2, ANALYZER_Y - 3, POS_R, C_FILL, "%04d/%04d",
+               Rssi2DBm(SP_GetNoiseFloor()), Rssi2DBm(SP_GetRssiMax()));
+  PrintSmallEx(0, ANALYZER_Y - 3, POS_L, C_FILL, "%ums", scanInterval);
+  PrintSmallEx(LCD_XCENTER, ANALYZER_Y - 3, POS_C, C_FILL, "Stp %u.%02uk",
                StepFrequencyTable[opt.band.step] / 100,
                StepFrequencyTable[opt.band.step] % 100);
 
