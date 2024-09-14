@@ -12,6 +12,9 @@ static const uint8_t rssi2s[2][15] = {
 
 long long Clamp(long long v, long long min, long long max);
 int ConvertDomain(int aValue, int aMin, int aMax, int bMin, int bMax);
+uint32_t ClampF(uint32_t v, uint32_t min, uint32_t max);
+static uint32_t ConvertDomainF(uint32_t aValue, uint32_t aMin, uint32_t aMax,
+                               uint32_t bMin, uint32_t bMax);
 uint8_t Rssi2PX(uint16_t rssi, uint8_t pxMin, uint8_t pxMax);
 uint8_t DBm2S(int dbm, bool isVHF);
 int Rssi2DBm(uint16_t rssi);
