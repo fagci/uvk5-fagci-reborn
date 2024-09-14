@@ -84,9 +84,12 @@ void SP_Render(Preset *p, uint8_t sx, uint8_t sy, uint8_t sh) {
   const uint8_t S_BOTTOM = sy + sh;
   const uint16_t rssiMin = minRssi(rssiHistory, filledPoints);
   const uint16_t rssiMax = Max(rssiHistory, filledPoints);
+  const uint16_t noiseFloor = SP_GetNoiseFloor();
   const uint16_t vMin = rssiMin - 2;
+  /* const uint16_t vMax =
+      rssiMax + Clamp((rssiMax - rssiMin), 15, rssiMax - rssiMin); */
   const uint16_t vMax =
-      rssiMax + Clamp((rssiMax - rssiMin), 15, rssiMax - rssiMin);
+      rssiMax + Clamp((rssiMax - noiseFloor), 20, rssiMax - noiseFloor);
 
   if (p) {
     UI_DrawTicks(sx, sx + historySize - 1, S_BOTTOM, &p->band);
@@ -103,18 +106,6 @@ void SP_Render(Preset *p, uint8_t sx, uint8_t sy, uint8_t sh) {
   }
 }
 
-uint32_t ClampF(uint32_t v, uint32_t min, uint32_t max) {
-  return v <= min ? min : (v >= max ? max : v);
-}
-
-static uint32_t ConvertDomainF(uint32_t aValue, uint32_t aMin, uint32_t aMax,
-                               uint32_t bMin, uint32_t bMax) {
-  const uint32_t aRange = aMax - aMin;
-  const uint32_t bRange = bMax - bMin;
-  aValue = ClampF(aValue, aMin, aMax);
-  return ((aValue - aMin) * bRange + aRange / 2) / aRange + bMin;
-}
-
 void SP_RenderArrow(Preset *p, uint32_t f, uint8_t sx, uint8_t sy, uint8_t sh) {
   uint8_t cx = ConvertDomain(f, p->band.bounds.start, p->band.bounds.end, sx,
                              sx + historySize - 1);
@@ -127,10 +118,13 @@ void SP_RenderRssi(uint16_t rssi, char *text, bool top, uint8_t sx, uint8_t sy,
   const uint8_t S_BOTTOM = sy + sh;
   const uint16_t rssiMin = Min(rssiHistory, filledPoints);
   const uint16_t rssiMax = Max(rssiHistory, filledPoints);
+  const uint16_t noiseFloor = SP_GetNoiseFloor();
   const uint16_t vMin = rssiMin - 2;
   // const uint16_t vMax = rssiMax + 20 + (rssiMax - rssiMin) / 2;
+  /* const uint16_t vMax =
+      rssiMax + Clamp((rssiMax - rssiMin), 15, rssiMax - rssiMin); */
   const uint16_t vMax =
-      rssiMax + Clamp((rssiMax - rssiMin), 15, rssiMax - rssiMin);
+      rssiMax + Clamp((rssiMax - noiseFloor), 20, rssiMax - noiseFloor);
 
   uint8_t yVal = ConvertDomain(rssi, vMin, vMax, 0, sh);
   DrawHLine(sx, S_BOTTOM - yVal, sx + filledPoints, C_FILL);

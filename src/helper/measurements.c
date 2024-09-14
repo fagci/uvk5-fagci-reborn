@@ -12,6 +12,18 @@ int ConvertDomain(int aValue, int aMin, int aMax, int bMin, int bMax) {
   return ((aValue - aMin) * bRange + aRange / 2) / aRange + bMin;
 }
 
+uint32_t ClampF(uint32_t v, uint32_t min, uint32_t max) {
+  return v <= min ? min : (v >= max ? max : v);
+}
+
+static uint32_t ConvertDomainF(uint32_t aValue, uint32_t aMin, uint32_t aMax,
+                               uint32_t bMin, uint32_t bMax) {
+  const uint64_t aRange = aMax - aMin;
+  const uint64_t bRange = bMax - bMin;
+  aValue = ClampF(aValue, aMin, aMax);
+  return ((aValue - aMin) * bRange + aRange / 2) / aRange + bMin;
+}
+
 uint8_t DBm2S(int dbm, bool isVHF) {
   uint8_t i = 0;
   dbm *= -1;
