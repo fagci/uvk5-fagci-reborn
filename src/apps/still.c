@@ -7,6 +7,7 @@
 #include "../misc.h"
 #include "../radio.h"
 #include "../scheduler.h"
+#include "../svc_render.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/statusline.h"
@@ -14,7 +15,6 @@
 #include "finput.h"
 
 static uint8_t menuState = 0;
-static uint32_t lastUpdate = 0;
 
 static char String[16];
 
@@ -24,7 +24,7 @@ static const RegisterSpec registerSpecs[] = {
     /* {"RF", BK4819_REG_43, 12, 0b111, 1},
     {"RFwe", BK4819_REG_43, 9, 0b111, 1}, */
 
-    {"IF", 0x3D, 0, 0xFFFF, 100},
+    // {"IF", 0x3D, 0, 0xFFFF, 100},
     // TODO: 7 values:
     /* 0: Zero IF
     0x2aab: 8.46 kHz IF
@@ -37,8 +37,14 @@ static const RegisterSpec registerSpecs[] = {
     If REG_43<5> = 1, IF = IF*2. */
 
     {"DEV", 0x40, 0, 0xFFF, 10},
+    {"300T", 0x44, 0, 0xFFFF, 1000},
+    // {"300R", 0x54, 0, 0xFFFF, 1000},
+    RS_RF_FILT_BW,
+    {"AFTxFlt", 0x43, 6, 0b111, 1}, // 7 is widest
+    {"3kAFrsp", 0x74, 0, 0xFFFF, 100},
     {"CMP", 0x31, 3, 1, 1},
     {"MIC", 0x7D, 0, 0xF, 1},
+    // {"AFCrng", 0x73, 11, 0b111, 1},
 };
 
 static void UpdateRegMenuValue(RegisterSpec s, bool add) {
@@ -67,17 +73,15 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
 
 void STILL_init(void) {
   RADIO_LoadCurrentVFO();
-  gRedrawScreen = true;
 }
 
 void STILL_deinit(void) { RADIO_ToggleRX(false); }
 
 void STILL_update(void) {
-  RADIO_UpdateMeasurementsEx(gCurrentLoot);
+  RADIO_UpdateMeasurementsEx(&gLoot[gSettings.activeVFO]);
 
-  if (Now() - lastUpdate >= 500) {
+  if (Now() - gLastRender >= 500) {
     gRedrawScreen = true;
-    lastUpdate = Now();
   }
 }
 
@@ -91,12 +95,12 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_1:
     case KEY_2:
     case KEY_3:
-      menuState = key - KEY_0;
+      menuState = key;
       return true;
     case KEY_4:
     case KEY_5:
     case KEY_6:
-      menuState = key - KEY_0 + 1;
+      menuState = key + 1;
       return true;
     case KEY_0:
       menuState = 8;
@@ -142,7 +146,7 @@ bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_SIDE2:
       return true;
     case KEY_8:
-      if (!isBK1080) {
+      if (RADIO_GetRadio() == RADIO_BK4819) {
         IncDec8(&menuState, 1, ARRAY_SIZE(registerSpecs), 1);
       }
       return true;
@@ -225,7 +229,7 @@ void STILL_render(void) {
   UI_FSmall(gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(radio->rx.f));
   UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, radio->rx.f, 23);
 
-  if (!isBK1080) {
+  if (RADIO_GetRadio() == RADIO_BK4819) {
     DrawRegs();
   }
 }

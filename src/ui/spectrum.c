@@ -4,8 +4,11 @@
 #include "graphics.h"
 
 #define MAX_POINTS 128
+static const uint8_t U8_MAX = 255;
+static const uint16_t U16_MAX = 65535;
 
 static uint16_t rssiHistory[MAX_POINTS] = {0};
+static uint16_t noiseHistory[MAX_POINTS] = {0};
 static bool markers[MAX_POINTS] = {0};
 static uint8_t x;
 static uint8_t historySize;
@@ -17,9 +20,20 @@ static uint8_t exLen;
 
 static uint16_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 
+static uint16_t minRssi(uint16_t *array, uint8_t n) {
+  uint16_t min = U16_MAX;
+  for (uint8_t i = 0; i < n; ++i) {
+    if (array[i] && array[i] < min) {
+      min = array[i];
+    }
+  }
+  return min;
+}
+
 void SP_ResetHistory(void) {
   for (uint8_t i = 0; i < MAX_POINTS; ++i) {
     rssiHistory[i] = 0;
+    noiseHistory[x] = U8_MAX;
     markers[i] = false;
   }
   filledPoints = 0;
@@ -43,39 +57,39 @@ void SP_Init(uint16_t steps, uint8_t width) {
 }
 
 void SP_AddPoint(Loot *msm) {
-  uint8_t ox = 255;
+  uint8_t ox = U8_MAX;
   for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
     x = historySize * currentStep / stepsCount + exIndex;
     if (ox != x) {
       rssiHistory[x] = markers[x] = 0;
+      noiseHistory[x] = U8_MAX;
       ox = x;
     }
     if (msm->rssi > rssiHistory[x]) {
       rssiHistory[x] = msm->rssi;
+    }
+    if (msm->noise < noiseHistory[x]) {
+      noiseHistory[x] = msm->noise;
     }
     if (markers[x] == false && msm->open) {
       markers[x] = msm->open;
     }
   }
   if (x > filledPoints && x < historySize) {
-    filledPoints = x;
-  }
-}
-
-void SP_ResetPoint(void) {
-  for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
-    uint8_t lx = historySize * currentStep / stepsCount + exIndex;
-    rssiHistory[lx] = 0;
-    markers[lx] = false;
+    filledPoints = x + 1;
   }
 }
 
 void SP_Render(Preset *p, uint8_t sx, uint8_t sy, uint8_t sh) {
   const uint8_t S_BOTTOM = sy + sh;
-  const uint16_t rssiMin = Min(rssiHistory, filledPoints);
+  const uint16_t rssiMin = minRssi(rssiHistory, filledPoints);
   const uint16_t rssiMax = Max(rssiHistory, filledPoints);
+  const uint16_t noiseFloor = SP_GetNoiseFloor();
   const uint16_t vMin = rssiMin - 2;
-  const uint16_t vMax = rssiMax + 20 + (rssiMax - rssiMin) / 2;
+  /* const uint16_t vMax =
+      rssiMax + Clamp((rssiMax - rssiMin), 15, rssiMax - rssiMin); */
+  const uint16_t vMax =
+      rssiMax + Clamp((rssiMax - noiseFloor), 20, rssiMax - noiseFloor);
 
   if (p) {
     UI_DrawTicks(sx, sx + historySize - 1, S_BOTTOM, &p->band);
@@ -84,24 +98,12 @@ void SP_Render(Preset *p, uint8_t sx, uint8_t sy, uint8_t sh) {
   DrawHLine(sx, S_BOTTOM, historySize, C_FILL);
 
   for (uint8_t i = 0; i < filledPoints; ++i) {
-    uint8_t yVal = ConvertDomain(rssiHistory[i], vMin, vMax, 0, sh);
+    uint8_t yVal = ConvertDomain(rssiHistory[i] * 2, vMin * 2, vMax * 2, 0, sh);
     DrawVLine(i, S_BOTTOM - yVal, yVal, C_FILL);
     if (markers[i]) {
       DrawVLine(i, S_BOTTOM + 6, 2, C_FILL);
     }
   }
-}
-
-uint32_t ClampF(uint32_t v, uint32_t min, uint32_t max) {
-  return v <= min ? min : (v >= max ? max : v);
-}
-
-static uint32_t ConvertDomainF(uint32_t aValue, uint32_t aMin, uint32_t aMax,
-                               uint32_t bMin, uint32_t bMax) {
-  const uint32_t aRange = aMax - aMin;
-  const uint32_t bRange = bMax - bMin;
-  aValue = ClampF(aValue, aMin, aMax);
-  return ((aValue - aMin) * bRange + aRange / 2) / aRange + bMin;
 }
 
 void SP_RenderArrow(Preset *p, uint32_t f, uint8_t sx, uint8_t sy, uint8_t sh) {
@@ -116,11 +118,20 @@ void SP_RenderRssi(uint16_t rssi, char *text, bool top, uint8_t sx, uint8_t sy,
   const uint8_t S_BOTTOM = sy + sh;
   const uint16_t rssiMin = Min(rssiHistory, filledPoints);
   const uint16_t rssiMax = Max(rssiHistory, filledPoints);
+  const uint16_t noiseFloor = SP_GetNoiseFloor();
   const uint16_t vMin = rssiMin - 2;
-  const uint16_t vMax = rssiMax + 20 + (rssiMax - rssiMin) / 2;
+  // const uint16_t vMax = rssiMax + 20 + (rssiMax - rssiMin) / 2;
+  /* const uint16_t vMax =
+      rssiMax + Clamp((rssiMax - rssiMin), 15, rssiMax - rssiMin); */
+  const uint16_t vMax =
+      rssiMax + Clamp((rssiMax - noiseFloor), 20, rssiMax - noiseFloor);
 
-  uint8_t yVal = ConvertDomainF(rssi, vMin, vMax, 0, sh);
+  uint8_t yVal = ConvertDomain(rssi, vMin, vMax, 0, sh);
   DrawHLine(sx, S_BOTTOM - yVal, sx + filledPoints, C_FILL);
   PrintSmallEx(sx, S_BOTTOM - yVal + (top ? -2 : 6), POS_L, C_FILL, "%s %u %d",
                text, rssi, Rssi2DBm(rssi));
 }
+
+uint16_t SP_GetNoiseFloor() { return Std(rssiHistory, filledPoints); }
+uint16_t SP_GetNoiseMax() { return Max(noiseHistory, filledPoints); }
+uint16_t SP_GetRssiMax() { return Max(rssiHistory, filledPoints); }

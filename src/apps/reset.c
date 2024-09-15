@@ -1,4 +1,5 @@
 #include "reset.h"
+#include "../driver/eeprom.h"
 #include "../driver/st7565.h"
 #include "../helper/channels.h"
 #include "../helper/measurements.h"
@@ -24,15 +25,36 @@ static VFO defaultVFOs[2] = {
     (VFO){
         .rx.f = 14550000,
         .channel = -1,
+        .modulation = MOD_PRST,
+        .radio = RADIO_UNKNOWN,
     },
     (VFO){
         .rx.f = 43307500,
         .channel = -1,
+        .modulation = MOD_PRST,
+        .radio = RADIO_UNKNOWN,
     },
 };
 
+static EEPROMType determineEepromType() {
+  const uint8_t A = 33;
+  const uint8_t B = 55;
+  uint8_t bufr[1];
+  for (uint8_t i = 0; i < ARRAY_SIZE(EEPROM_SIZES); ++i) {
+    gSettings.eepromType = i;
+    uint32_t sz = EEPROM_SIZES[i];
+    EEPROM_WriteBuffer(0, (uint8_t[]){A}, 1);
+    EEPROM_WriteBuffer(sz, (uint8_t[]){B}, 1);
+    EEPROM_ReadBuffer(0, bufr, 1);
+    if (bufr[0] == B) {
+      return i;
+    }
+  }
+  return gSettings.eepromType;
+}
+
 void RESET_Init(void) {
-  eepromType = gSettings.eepromType;
+  eepromType = determineEepromType();
   presetsWrote = 0;
   vfosWrote = 0;
   bytesWrote = 0;
@@ -40,13 +62,12 @@ void RESET_Init(void) {
   settingsWrote = false;
   memset(buf, 0xFF, sizeof(buf));
   channelsMax = CHANNELS_GetCountMax();
-  bytesMax = SETTINGS_GetEEPROMSize();
+  bytesMax = ARRAY_SIZE(defaultPresets) * PRESET_SIZE + channelsMax * CH_SIZE;
 }
 
 void RESET_Update(void) {
   if (!settingsWrote) {
     gSettings = (Settings){
-        .checkbyte = EEPROM_CHECKBYTE,
         .eepromType = eepromType,
         .squelch = 4,
         .scrambler = 0,

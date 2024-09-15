@@ -17,12 +17,9 @@
 #include <stdbool.h>
 #include <string.h>
 
-static const char Version[] = "OSFW-fffffff";
-static const char UART_Version[45] =
-    "UV-K5 Firmware, Open Edition, OSFW-fffffff\r\n";
+static const char Version[] = "R3b0rn";
 
-static bool UART_IsLogEnabled;
-uint8_t UART_DMA_Buffer[256];
+static uint8_t UART_DMA_Buffer[256];
 
 static bool bHasCustomAesKey = false;
 static bool bIsInLockScreen = false;
@@ -109,12 +106,6 @@ void UART_Send(const void *pBuffer, uint32_t Size) {
   }
 }
 
-void UART_LogSend(const void *pBuffer, uint32_t Size) {
-  if (UART_IsLogEnabled) {
-    UART_Send(pBuffer, Size);
-  }
-}
-
 #define DMA_INDEX(x, y) (((x) + (y)) % sizeof(UART_DMA_Buffer))
 
 typedef struct {
@@ -145,26 +136,27 @@ typedef struct {
 
 typedef struct {
   Header_t Header;
-  uint16_t Offset;
+  uint32_t Offset;
   uint8_t Size;
-  uint8_t Padding;
+  uint8_t Padding[3];
   uint32_t Timestamp;
 } CMD_051B_t;
 
 typedef struct {
   Header_t Header;
   struct {
-    uint16_t Offset;
+    uint32_t Offset;
     uint8_t Size;
-    uint8_t Padding;
+    uint8_t Padding[3];
     uint8_t Data[128];
   } Data;
 } REPLY_051B_t;
 
 typedef struct {
   Header_t Header;
-  uint16_t Offset;
+  uint32_t Offset;
   uint8_t Size;
+  uint8_t Padding[2];
   bool bAllowPassword;
   uint32_t Timestamp;
   uint8_t Data[0];
@@ -173,7 +165,8 @@ typedef struct {
 typedef struct {
   Header_t Header;
   struct {
-    uint16_t Offset;
+    uint32_t Offset;
+    uint8_t Padding[2];
   } Data;
 } REPLY_051D_t;
 
@@ -240,20 +233,6 @@ typedef struct {
     uint8_t v2;
   } Data;
 } REPLY_0602_t;
-
-typedef struct {
-  Header_t Header;
-  uint16_t Offset;
-  uint32_t Timestamp;
-} CMD_0701_t;
-
-typedef struct {
-  Header_t Header;
-  struct {
-    uint16_t Offset;
-    uint8_t Data[sizeof(CH)];
-  } Data;
-} REPLY_0702_t;
 
 static const uint8_t Obfuscation[16] = {0x16, 0x6C, 0x14, 0xE6, 0x2E, 0x91,
                                         0x0D, 0x40, 0x21, 0x35, 0xD5, 0x40,
@@ -343,10 +322,20 @@ static void CMD_0514(const uint8_t *pBuffer) {
   SendVersion();
 }
 
+// static void log_hex(const uint8_t *buffer, uint32_t size, char *output) {
+//   for (uint32_t i = 0; i < size; i++) {
+//     sprintf(output + (i * 3), "%02X ", buffer[i]);
+//   }
+// }
+
 static void CMD_051B(const uint8_t *pBuffer) {
   const CMD_051B_t *pCmd = (const CMD_051B_t *)pBuffer;
   REPLY_051B_t Reply;
-  bool bLocked = false;
+  // char hex_output[sizeof(CMD_051B_t) * 3 + 1] = {0};
+  // log_hex(pBuffer, sizeof(CMD_051B_t), hex_output);
+  // Log("%s", hex_output);
+  // Log("CMD_051B: %d %d %d %d %d %d", pCmd->Header.ID, pCmd->Header.Size,
+  // pCmd->Offset, pCmd->Size, pCmd->Timestamp, Timestamp);
 
   if (pCmd->Timestamp != Timestamp) {
     return;
@@ -354,32 +343,23 @@ static void CMD_051B(const uint8_t *pBuffer) {
 
   memset(&Reply, 0, sizeof(Reply));
   Reply.Header.ID = 0x051C;
-  Reply.Header.Size = pCmd->Size + 4;
+  Reply.Header.Size = pCmd->Size + 8 + 4;
   Reply.Data.Offset = pCmd->Offset;
   Reply.Data.Size = pCmd->Size;
 
-  if (bHasCustomAesKey) {
-    bLocked = gIsLocked;
-  }
+  EEPROM_ReadBuffer(pCmd->Offset, Reply.Data.Data, pCmd->Size);
 
-  if (!bLocked) {
-    EEPROM_ReadBuffer(pCmd->Offset, Reply.Data.Data, pCmd->Size);
-  }
-
-  SendReply(&Reply, pCmd->Size + 8);
+  SendReply(&Reply, pCmd->Size + 8 + 4);
 }
 
 static void CMD_051D(const uint8_t *pBuffer) {
   const CMD_051D_t *pCmd = (const CMD_051D_t *)pBuffer;
   REPLY_051D_t Reply;
-  bool bReloadEeprom;
   bool bIsLocked;
 
   if (pCmd->Timestamp != Timestamp) {
     return;
   }
-
-  bReloadEeprom = false;
 
   Reply.Header.ID = 0x051E;
   Reply.Header.Size = sizeof(Reply.Data);
@@ -394,64 +374,12 @@ static void CMD_051D(const uint8_t *pBuffer) {
     uint16_t i;
 
     for (i = 0; i < (pCmd->Size / 8U); i++) {
-      uint16_t Offset = pCmd->Offset + (i * 8U);
-
-      if (Offset >= 0x0F30 && Offset < 0x0F40) {
-        if (!gIsLocked) {
-          bReloadEeprom = true;
-        }
-      }
+      uint32_t Offset = pCmd->Offset + (i * 8U);
 
       if ((Offset < 0x0E98 || Offset >= 0x0EA0) || !bIsInLockScreen ||
           pCmd->bAllowPassword) {
         EEPROM_WriteBuffer(Offset, &pCmd->Data[i * 8U], 8);
       }
-    }
-
-    /* if (bReloadEeprom) {
-      BOARD_EEPROM_Init();
-    } */
-  }
-
-  SendReply(&Reply, sizeof(Reply));
-}
-
-static void CMD_061D(const uint8_t *pBuffer) {
-  const CMD_051D_t *pCmd = (const CMD_051D_t *)pBuffer;
-  REPLY_051D_t Reply;
-  bool bReloadEeprom;
-  bool bIsLocked;
-
-  if (pCmd->Timestamp != Timestamp) {
-    return;
-  }
-
-  bReloadEeprom = false;
-
-  Reply.Header.ID = 0x061E;
-  Reply.Header.Size = sizeof(Reply.Data);
-  Reply.Data.Offset = pCmd->Offset;
-
-  bIsLocked = bHasCustomAesKey;
-  if (bHasCustomAesKey) {
-    bIsLocked = gIsLocked;
-  }
-
-  const uint32_t EEPROM_SIZE = SETTINGS_GetEEPROMSize();
-  const uint32_t PATCH_START = EEPROM_SIZE - PATCH_SIZE;
-
-  for (uint16_t i = 0; i < (pCmd->Size / 8U); i++) {
-    uint32_t Offset = PATCH_START + pCmd->Offset + (i * 8U);
-
-    if (Offset >= 0x0F30 && Offset < 0x0F40) {
-      if (!gIsLocked) {
-        bReloadEeprom = true;
-      }
-    }
-
-    if ((Offset < 0x0E98 || Offset >= 0x0EA0) || !bIsInLockScreen ||
-        pCmd->bAllowPassword) {
-      EEPROM_WriteBuffer(Offset, &pCmd->Data[i * 8U], 8);
     }
   }
 
@@ -563,22 +491,6 @@ static void CMD_0602(const uint8_t *pBuffer) {
 
 #endif
 
-#include "../helper/channels.h"
-static void CMD_0701(const uint8_t *pBuffer) {
-  const CMD_0701_t *pCmd = (const CMD_0701_t *)pBuffer;
-  REPLY_0702_t Reply;
-
-  memset(&Reply, 0, sizeof(Reply));
-  Reply.Header.ID = 0x0702;
-  Reply.Data.Offset = pCmd->Offset;
-  Reply.Header.Size = sizeof(Reply.Data);
-  CH ch;
-  CHANNELS_Load(pCmd->Offset, &ch);
-  memcpy(Reply.Data.Data, &ch, sizeof(ch));
-
-  SendReply(&Reply, sizeof(Reply));
-}
-
 uint64_t xtou64(const char *str) {
   uint64_t res = 0;
   char c;
@@ -590,21 +502,6 @@ uint64_t xtou64(const char *str) {
 
   return res;
 }
-
-static const uint8_t CSV_LEN = 35;
-static const uint8_t PRE_LEN = 2;
-
-enum {
-  FIELD_CH,
-  FIELD_NAME,
-  FIELD_FRX,
-  FIELD_FTX,
-  FIELD_MOD,
-  FIELD_BW,
-} FieldIndex;
-
-uint32_t pow10[] = {1,      10,      100,      1000,      10000,
-                    100000, 1000000, 10000000, 100000000, 1000000000};
 
 bool UART_IsCommandAvailable(void) {
   uint16_t DmaLength;
@@ -620,92 +517,6 @@ bool UART_IsCommandAvailable(void) {
     if (gUART_WriteIndex == DmaLength) {
       return false;
     }
-
-    // --- 8< ---
-    if (strncmp(((char *)UART_DMA_Buffer) + gUART_WriteIndex, "CH", PRE_LEN) ==
-        0) {
-      char csvLine[CSV_LEN + PRE_LEN];
-      memset(csvLine, 0, sizeof(csvLine));
-      snprintf(csvLine, (CSV_LEN + PRE_LEN), "%s",
-               &UART_DMA_Buffer[gUART_WriteIndex + PRE_LEN]);
-
-      int8_t fieldIndex = -1;  // index of field
-      uint8_t fieldOffset = 0; // index of first char in field
-      uint8_t fieldLength = 0; // index of first char in field
-
-      CH ch = {
-          .rx = {0, 0, 0},
-          .tx = {0},
-          .name = {0},
-          .modulation = 0,
-          .bw = 0,
-      };
-      uint16_t chNum = 0;
-      for (int i = 0; csvLine[i] != '\0'; i++) {
-        if (csvLine[i] == '\r' || csvLine[i] == '\n') {
-          csvLine[i] = '\0';
-        }
-      }
-      /* if (strlen(csvLine) > 0) {
-        UART_printf("GOT: %s\r\n", csvLine);
-      } */
-
-      for (uint8_t i = 0; csvLine[i] != '\0'; i++) {
-        char c = csvLine[i];
-
-        if (c == '\0') {
-          break;
-        }
-
-        if (c == ',' || i == 0) {
-          fieldIndex++;
-          fieldOffset = i == 0 ? 0 : i + 1;
-          fieldLength = 0;
-          char nc = csvLine[fieldOffset + fieldLength];
-          while (nc != '\0' && nc != ',') {
-            fieldLength++;
-            nc = csvLine[fieldOffset + fieldLength];
-          }
-          // UART_printf("field: %d, len: %d\r\n", fieldIndex, fieldLength);
-          if (i != 0) {
-            continue;
-          }
-        }
-
-        uint8_t insideOffset = i - fieldOffset;
-        uint8_t razr = fieldLength - insideOffset - 1;
-
-        switch (fieldIndex) {
-        case FIELD_CH:
-          chNum += (c - '0') * pow10[razr];
-          break;
-        case FIELD_NAME:
-          ch.name[insideOffset] = c;
-          break;
-        case FIELD_FRX:
-          ch.rx.f += (c - '0') * pow10[razr];
-          break;
-        case FIELD_FTX:
-          ch.tx.f += (c - '0') * pow10[razr];
-          break;
-        case FIELD_MOD:
-          ch.modulation += (c - '0') * pow10[razr];
-          break;
-        case FIELD_BW:
-          ch.bw += (c - '0') * pow10[razr];
-          break;
-        }
-      }
-      if (fieldIndex == 5) {
-        CHANNELS_Save(chNum - 1, &ch);
-        UART_printf("CH%d,%s,%lu,%lu,%d,%d\r\n", chNum, ch.name, ch.rx.f,
-                    ch.tx.f, ch.modulation, ch.bw);
-      } else {
-        UART_printf("ERROR CH%d,%s,%lu,%lu,%d,%d\r\n", chNum, ch.name, ch.rx.f,
-                    ch.tx.f, ch.modulation, ch.bw);
-      }
-    }
-    // --- >8 ---
 
     while (gUART_WriteIndex != DmaLength &&
            UART_DMA_Buffer[gUART_WriteIndex] != 0xABU) {
@@ -829,15 +640,6 @@ void UART_HandleCommand(void) {
     NVIC_SystemReset();
     break;
 
-    // write patch
-  case 0x061D:
-    CMD_061D(UART_Command.Buffer);
-    break;
-
-    // read ch
-  case 0x0701:
-    CMD_0701(UART_Command.Buffer);
-    break;
   }
 }
 

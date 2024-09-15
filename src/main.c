@@ -22,6 +22,9 @@
 #include <string.h>
 
 static void Boot(AppType_t appToRun) {
+  RADIO_SetupRegisters();
+  RADIO_LoadCurrentVFO();
+
   SVC_Toggle(SVC_KEYBOARD, true, 10);
   SVC_Toggle(SVC_LISTEN, true, 10);
   SVC_Toggle(SVC_APPS, true, 1);
@@ -88,13 +91,11 @@ static void Intro(void) {
 }
 
 void Main(void) {
-  gSettings.contrast = 6;
   SYSTEM_ConfigureSysCon();
   SYSTICK_Init();
-  BOARD_Init();
 
-  UART_Init();
-  UART_Send("fagci r3b0rn", 13);
+  gSettings.contrast = 6;
+  BOARD_Init();
 
   BACKLIGHT_SetBrightness(7);
 
@@ -106,14 +107,10 @@ void Main(void) {
   }
 
   SETTINGS_Load();
+  ST7565_Init();
+  BACKLIGHT_Init();
 
   BATTERY_UpdateBatteryInfo();
-  RADIO_SetupRegisters();
-
-  BACKLIGHT_SetDuration(BL_TIME_VALUES[gSettings.backlight]);
-  BACKLIGHT_SetBrightness(gSettings.brightness);
-  BACKLIGHT_On();
-  ST7565_Init();
 
   if (pressedKey == KEY_EXIT) {
     Boot(APP_RESET);

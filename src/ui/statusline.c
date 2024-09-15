@@ -1,5 +1,6 @@
 #include "statusline.h"
 #include "../driver/eeprom.h"
+#include "../driver/si473x.h"
 #include "../driver/st7565.h"
 #include "../helper/battery.h"
 #include "../scheduler.h"
@@ -82,6 +83,14 @@ void STATUSLINE_render(void) {
     icons[idx++] = SYM_EEPROM_W;
   }
 
+  if (SVC_Running(SVC_BEACON)) {
+    icons[idx++] = SYM_BEACON;
+  }
+
+  if (SVC_Running(SVC_FC)) {
+    icons[idx++] = SYM_FC;
+  }
+
   if (SVC_Running(SVC_SCAN)) {
     icons[idx++] = SYM_SCAN;
   }
@@ -90,7 +99,7 @@ void STATUSLINE_render(void) {
     icons[idx++] = SYM_MONITOR;
   }
 
-  if (isBK1080) {
+  if (RADIO_GetRadio() == RADIO_BK1080 || isSi4732On) {
     icons[idx++] = SYM_BROADCAST;
   }
 

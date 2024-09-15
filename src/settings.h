@@ -7,8 +7,6 @@
 
 #define getsize(V) char (*__ #V)(void)[sizeof(V)] = 1;
 
-extern const uint8_t EEPROM_CHECKBYTE;
-
 typedef enum {
   STEP_0_01kHz,
   STEP_0_1kHz,
@@ -46,6 +44,12 @@ typedef enum {
 } BacklightOnSquelchMode;
 
 typedef enum {
+  DW_OFF,
+  DW_STAY,
+  DW_SWITCH,
+} DWType;
+
+typedef enum {
   BAT_1600,
   BAT_2200,
   BAT_3500,
@@ -62,6 +66,13 @@ typedef enum {
   TX_POW_MID,
   TX_POW_HIGH,
 } TXOutputPower;
+
+typedef enum {
+  RADIO_BK4819,
+  RADIO_BK1080,
+  RADIO_SI4732,
+  RADIO_UNKNOWN,
+} Radio;
 
 typedef enum {
   SCAN_TO_0,
@@ -89,6 +100,7 @@ typedef enum {
 } EEPROMType;
 
 extern const char *EEPROM_TYPE_NAMES[8];
+extern const uint32_t EEPROM_SIZES[8];
 
 typedef struct {
   EEPROMType eepromType : 3;
@@ -105,7 +117,7 @@ typedef struct {
   uint8_t roger : 2;
   uint8_t scanmode : 2;
   uint8_t chDisplayMode : 2;
-  uint8_t dw : 1;
+  uint8_t pttLock : 1;
   uint8_t crossBand : 1;
   uint8_t beep : 1;
   uint8_t keylock : 1;
@@ -126,11 +138,13 @@ typedef struct {
   ScanTimeout sqClosedTimeout : 4;
   bool bound_240_280 : 1;
   bool noListen : 1;
-  uint8_t reserved2 : 4;
+  bool si4732PowerOff : 1;
+  uint8_t dw : 2;
+  bool toneLocal : 1;
   BacklightOnSquelchMode backlightOnSquelch : 2;
   uint8_t scanTimeout : 8;
-  uint8_t sqlOpenTime : 2;
-  uint8_t sqlCloseTime : 3;
+  uint8_t sqlOpenTime : 3;
+  uint8_t sqlCloseTime : 2;
   bool skipGarbageFrequencies : 1;
   uint8_t activeVFO : 2;
   char nickName[10];
@@ -152,6 +166,7 @@ typedef struct {
   ModulationType modulation : 4;
   BK4819_FilterBandwidth_t bw : 2;
   TXOutputPower power : 2;
+  Radio radio : 2;
 } __attribute__((packed)) CH; // 22 B
 // getsize(CH)
 
@@ -159,7 +174,9 @@ typedef struct {
   F rx;
   F tx;
   int16_t channel;
+  ModulationType modulation : 4;
   TXOutputPower power : 2;
+  Radio radio : 2;
 } __attribute__((packed)) VFO;
 // getsize(VFO)
 
@@ -194,6 +211,7 @@ typedef struct {
   uint8_t memoryBanks : 8;
   TXOutputPower power : 2;
   OffsetDirection offsetDir : 2;
+  Radio radio : 2;
   bool allowTx : 1;
 } __attribute__((packed)) Preset;
 // getsize(Preset)
@@ -227,6 +245,8 @@ extern const char *BL_SQL_MODE_NAMES[3];
 extern const char *TX_POWER_NAMES[3];
 extern const char *TX_OFFSET_NAMES[3];
 extern const char *TX_CODE_TYPES[4];
+extern const char *rogerNames[4];
+extern const char *dwNames[3];
 
 void SETTINGS_Save();
 void SETTINGS_Load();

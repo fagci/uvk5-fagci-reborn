@@ -1,5 +1,6 @@
 #include "svc_scan.h"
 #include "apps/apps.h"
+#include "driver/si473x.h"
 #include "driver/st7565.h"
 #include "driver/system.h"
 #include "radio.h"
@@ -14,7 +15,7 @@ uint32_t SCAN_TIMEOUTS[11] = {
     0,
     500,
     1000 * 1,
-    1000 * 2,
+    1000 * 3,
     1000 * 5,
     1000 * 10,
     1000 * 30,
@@ -25,7 +26,7 @@ uint32_t SCAN_TIMEOUTS[11] = {
 };
 
 char *SCAN_TIMEOUT_NAMES[11] = {
-    "0",   "500ms", "1s",   "2s",   "5s",   "10s",
+    "0",   "500ms", "1s",   "3s",   "5s",   "10s",
     "30s", "1min",  "2min", "5min", "None",
 };
 
@@ -47,6 +48,12 @@ static void next(void) {
 
 void SVC_SCAN_Init(void) {
   gScanForward = true;
+
+  if (RADIO_GetRadio() == RADIO_SI4732) {
+    SI47XX_Seek(gScanForward, true);
+    return;
+  }
+
   if (!gScanFn) {
     if (radio->channel >= 0) {
       gScanFn = RADIO_NextCH;
@@ -58,11 +65,20 @@ void SVC_SCAN_Init(void) {
 }
 
 uint32_t lastSavedF = 0;
+bool lastScanForward = true;
 
 void SVC_SCAN_Update(void) {
+  if (RADIO_GetRadio() != RADIO_BK4819) {
+    if (RADIO_GetRadio() == RADIO_SI4732 && lastScanForward != gScanForward) {
+      SI47XX_Seek(gScanForward, true);
+      lastScanForward = gScanForward;
+    }
+    return;
+  }
   if (lastListenState != gIsListening) {
     if (gIsListening &&
-        (gCurrentApp != APP_SPECTRUM && gCurrentApp != APP_ANALYZER && gCurrentApp != APP_CH_SCANNER) &&
+        (gCurrentApp != APP_SPECTRUM && gCurrentApp != APP_ANALYZER &&
+         gCurrentApp != APP_CH_SCANNER) &&
         lastSavedF != radio->rx.f) {
       lastSavedF = radio->rx.f;
       RADIO_SaveCurrentVFO();
@@ -86,4 +102,12 @@ void SVC_SCAN_Update(void) {
 void SVC_SCAN_Deinit(void) {
   gScanFn = NULL;
   gScanRedraw = true;
+  if (RADIO_GetRadio() != RADIO_BK4819) {
+    uint32_t f = radio->rx.f;
+
+    if (RADIO_GetRadio() == RADIO_SI4732) {
+      SI47xx_GetStatus(true, true);
+    }
+    RADIO_TuneToSave(f);
+  }
 }

@@ -23,6 +23,7 @@
 #include "driver/crc.h"
 #include "driver/gpio.h"
 #include "driver/st7565.h"
+#include "driver/uart.h"
 #include "inc/dp32g030/gpio.h"
 #include "inc/dp32g030/portcon.h"
 #include "inc/dp32g030/saradc.h"
@@ -427,9 +428,13 @@ void BOARD_Init(void) {
   BOARD_PORTCON_Init();
   BOARD_GPIO_Init();
   BOARD_ADC_Init();
+
+  CRC_Init();
+  UART_Init();
+  UART_printf("fagci R3b0rn\n");
+
   ST7565_Init();
   // BK1080_Init(0, false);
   BK4819_Init();
   BACKLIGHT_Init();
-  CRC_Init();
 }

@@ -19,7 +19,7 @@ void UI_DrawScrollBar(const uint16_t size, const uint16_t iCurrent,
 
 void UI_ShowMenuItem(uint8_t line, const char *name, bool isCurrent) {
   uint8_t by = MENU_Y + line * MENU_ITEM_H + 8;
-  PrintMedium(4, by, name);
+  PrintMedium(4, by, "%s", name);
   if (isCurrent) {
     FillRect(0, MENU_Y + line * MENU_ITEM_H, LCD_WIDTH - 3, MENU_ITEM_H,
              C_INVERT);
@@ -75,13 +75,31 @@ void UI_ShowMenuEx(void (*showItem)(uint16_t i, uint16_t index, bool isCurrent),
   UI_DrawScrollBar(size, currentIndex, linesMax);
 }
 
-#include "../helper/presetlist.h"
+void PrintRTXCode(char *Output, uint8_t codeType, uint8_t code) {
+  if (codeType) {
+    if (codeType == CODE_TYPE_CONTINUOUS_TONE) {
+      sprintf(Output, "CT:%u.%uHz", CTCSS_Options[code] / 10,
+              CTCSS_Options[code] % 10);
+    } else if (codeType == CODE_TYPE_DIGITAL) {
+      sprintf(Output, "DCS:D%03oN", DCS_Options[code]);
+    } else if (codeType == CODE_TYPE_REVERSE_DIGITAL) {
+      sprintf(Output, "DCS:D%03oI", DCS_Options[code]);
+    } else {
+      sprintf(Output, "No code");
+    }
+  }
+}
 
 void GetMenuItemValue(PresetCfgMenu type, char *Output) {
   Band *band = &gCurrentPreset->band;
   uint32_t fs = band->bounds.start;
   uint32_t fe = band->bounds.end;
+  bool isVfo = gCurrentApp == APP_VFO_CFG;
   switch (type) {
+  case M_RADIO:
+    strncpy(Output, radioNames[isVfo ? radio->radio : gCurrentPreset->radio],
+            31);
+    break;
   case M_START:
     sprintf(Output, "%lu.%03lu", fs / 100000, fs / 100 % 1000);
     break;
@@ -104,7 +122,10 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
     sprintf(Output, "%ddB", gainTable[band->gainIndex].gainDb);
     break;
   case M_MODULATION:
-    strncpy(Output, modulationTypeOptions[band->modulation], 31);
+    strncpy(Output,
+            modulationTypeOptions[isVfo ? radio->modulation
+                                        : gCurrentPreset->band.modulation],
+            31);
     break;
   case M_STEP:
     sprintf(Output, "%u.%02uKHz", StepFrequencyTable[band->step] / 100,
@@ -119,22 +140,17 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
   case M_F_TX:
     sprintf(Output, "%u.%05u", radio->tx.f / 100000, radio->tx.f % 100000);
     break;
+  case M_RX_CODE_TYPE:
+    strncpy(Output, TX_CODE_TYPES[radio->rx.codeType], 31);
+    break;
+  case M_RX_CODE:
+    PrintRTXCode(Output, radio->rx.codeType, radio->rx.code);
+    break;
   case M_TX_CODE_TYPE:
     strncpy(Output, TX_CODE_TYPES[radio->tx.codeType], 31);
     break;
   case M_TX_CODE:
-    if (radio->tx.codeType) {
-      if (radio->tx.codeType == CODE_TYPE_CONTINUOUS_TONE) {
-        sprintf(Output, "CT:%u.%uHz", CTCSS_Options[radio->tx.code] / 10,
-                CTCSS_Options[radio->tx.code] % 10);
-      } else if (radio->tx.codeType == CODE_TYPE_DIGITAL) {
-        sprintf(Output, "DCS:D%03oN", DCS_Options[radio->tx.code]);
-      } else if (radio->tx.codeType == CODE_TYPE_REVERSE_DIGITAL) {
-        sprintf(Output, "DCS:D%03oI", DCS_Options[radio->tx.code]);
-      } else {
-        sprintf(Output, "No code");
-      }
-    }
+    PrintRTXCode(Output, radio->tx.codeType, radio->tx.code);
     break;
   case M_TX_OFFSET:
     sprintf(Output, "%u.%05u", gCurrentPreset->offset / 100000,
@@ -152,6 +168,7 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
 }
 
 void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
+  bool isVfo = gCurrentApp == APP_VFO_CFG;
   switch (item->type) {
   case M_BW:
     gCurrentPreset->band.bw = subMenuIndex;
@@ -167,13 +184,14 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
     PRESETS_SaveCurrent();
     break;
   case M_MODULATION:
-    gCurrentPreset->band.modulation = subMenuIndex;
-    // NOTE: for right BW after switching from WFM to another
-    BK4819_SetFilterBandwidth(gCurrentPreset->band.bw);
-    BK4819_SetModulation(subMenuIndex);
-    BK4819_SetAGC(gCurrentPreset->band.modulation != MOD_AM,
-                  gCurrentPreset->band.gainIndex);
-    PRESETS_SaveCurrent();
+    if (isVfo) {
+      radio->modulation = subMenuIndex;
+      RADIO_SaveCurrentVFO();
+      RADIO_SetupByCurrentVFO();
+    } else {
+      gCurrentPreset->band.modulation = subMenuIndex;
+      PRESETS_SaveCurrent();
+    }
     break;
   case M_STEP:
     gCurrentPreset->band.step = subMenuIndex;
@@ -193,13 +211,21 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
 
   case M_GAIN:
     gCurrentPreset->band.gainIndex = subMenuIndex;
-    BK4819_SetAGC(gCurrentPreset->band.modulation != MOD_AM,
+    BK4819_SetAGC(RADIO_GetModulation() != MOD_AM,
                   gCurrentPreset->band.gainIndex);
     PRESETS_SaveCurrent();
     break;
   case M_TX:
     gCurrentPreset->allowTx = subMenuIndex;
     PRESETS_SaveCurrent();
+    break;
+  case M_RX_CODE_TYPE:
+    radio->rx.codeType = subMenuIndex;
+    RADIO_SaveCurrentVFO();
+    break;
+  case M_RX_CODE:
+    radio->rx.code = subMenuIndex;
+    RADIO_SaveCurrentVFO();
     break;
   case M_TX_CODE_TYPE:
     radio->tx.codeType = subMenuIndex;
@@ -208,6 +234,15 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
   case M_TX_CODE:
     radio->tx.code = subMenuIndex;
     RADIO_SaveCurrentVFO();
+    break;
+  case M_RADIO:
+    if (isVfo) {
+      radio->radio = subMenuIndex;
+      RADIO_SaveCurrentVFO();
+    } else {
+      gCurrentPreset->radio = subMenuIndex;
+      PRESETS_SaveCurrent();
+    }
     break;
 
   default:

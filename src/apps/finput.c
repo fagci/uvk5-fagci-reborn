@@ -1,7 +1,6 @@
 #include "finput.h"
 #include "../driver/bk4819.h"
 #include "../driver/st7565.h"
-#include "../radio.h"
 #include "../scheduler.h"
 #include "../ui/graphics.h"
 #include "apps.h"
@@ -31,7 +30,7 @@ static void input(KEY_Code_t key) {
     return;
   }
   if (key == KEY_STAR) {
-    if (freqInputIndex == 0 || freqInputDotIndex) {
+    if (freqInputDotIndex) {
       return;
     }
     freqInputDotIndex = freqInputIndex;

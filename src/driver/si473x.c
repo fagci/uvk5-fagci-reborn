@@ -1,5 +1,6 @@
 #include "si473x.h"
 #include "../inc/dp32g030/gpio.h"
+#include "../misc.h"
 #include "../settings.h"
 #include "audio.h"
 #include "eeprom.h"
@@ -14,10 +15,13 @@ static const uint8_t SI47XX_I2C_ADDR = 0x22;
 #define RST_LOW GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BK1080)
 
 RSQStatus rsqStatus;
-SsbMode currentSsbMode;
+static SsbMode currentSsbMode;
 
 SI47XX_MODE si4732mode = SI47XX_FM;
-uint16_t siCurrentFreq = 10320;
+uint16_t siCurrentFreq = 0;
+bool isSi4732On = false;
+
+static uint16_t fDiv() { return si4732mode == SI47XX_FM ? 1000 : 100; }
 
 void SI47XX_ReadBuffer(uint8_t *buf, uint8_t size) {
   I2C_Start();
@@ -48,7 +52,7 @@ void waitToSend() {
 
 bool SI47XX_downloadPatch() {
   uint8_t buf[248];
-  const uint8_t PAGE_SIZE = SETTINGS_GetPageSize();
+  // const uint8_t PAGE_SIZE = SETTINGS_GetPageSize();
   const uint32_t EEPROM_SIZE = SETTINGS_GetEEPROMSize();
   const uint32_t PATCH_START = EEPROM_SIZE - PATCH_SIZE;
   for (uint16_t offset = 0; offset < PATCH_SIZE; offset += 248) {
@@ -83,7 +87,7 @@ uint16_t getProperty(uint16_t prop, bool *valid) {
     *valid = !(response[0] & STATUS_ERR);
   }
 
-  return (response[2] << 8) | response[3];
+  return MAKE_WORD(response[2], response[3]);
 }
 
 void RSQ_GET() {
@@ -97,9 +101,7 @@ void RSQ_GET() {
   SI47XX_ReadBuffer(rsqStatus.raw, si4732mode == SI47XX_FM ? 8 : 6);
 }
 
-void setVolume(uint8_t volume) {
-  if (volume < 0)
-    volume = 0;
+void SI47XX_SetVolume(uint8_t volume) {
   if (volume > 63)
     volume = 63;
   sendProperty(PROP_RX_VOLUME, volume);
@@ -155,8 +157,10 @@ void SI47XX_PowerUp() {
   SI47XX_WriteBuffer(cmd, 3);
   SYSTEM_DelayMs(500);
 
+  isSi4732On = true;
+
   AUDIO_ToggleSpeaker(true);
-  setVolume(63);
+  SI47XX_SetVolume(63);
 
   if (si4732mode == SI47XX_FM) {
     enableRDS();
@@ -164,7 +168,6 @@ void SI47XX_PowerUp() {
     SI47XX_SetAutomaticGainControl(1, 0);
     sendProperty(PROP_AM_SOFT_MUTE_MAX_ATTENUATION, 0);
     sendProperty(PROP_AM_AUTOMATIC_VOLUME_CONTROL_MAX_GAIN, 0x7800);
-    SI47XX_SetSeekAmLimits(1800, 30000);
   }
   SI47XX_SetFreq(siCurrentFreq);
 }
@@ -189,12 +192,14 @@ void SI47XX_PatchPowerUp() {
   SI47XX_WriteBuffer(cmd, 3);
   SYSTEM_DelayMs(550);
 
+  isSi4732On = true;
+
   SI47XX_downloadPatch();
 
   SI47XX_SsbSetup(2, 1, 0, 1, 0, 1);
 
   AUDIO_ToggleSpeaker(true);
-  setVolume(63);
+  SI47XX_SetVolume(63);
 
   SI47XX_SetFreq(siCurrentFreq);
   sendProperty(PROP_SSB_SOFT_MUTE_MAX_ATTENUATION, 0);
@@ -218,7 +223,7 @@ void SI47XX_Seek(bool up, bool wrap) {
   SI47XX_WriteBuffer(cmd, si4732mode == SI47XX_FM ? 2 : 6);
 }
 
-uint16_t SI47XX_getFrequency(bool *valid) {
+uint32_t SI47XX_getFrequency(bool *valid) {
   uint8_t response[4] = {0};
   uint8_t cmd[1] = {CMD_FM_TUNE_STATUS};
 
@@ -234,7 +239,7 @@ uint16_t SI47XX_getFrequency(bool *valid) {
     *valid = (response[1] & STATUS_VALID);
   }
 
-  return (response[2] << 8) | response[3];
+  return ((response[2] << 8) | response[3]) * fDiv();
 }
 
 void SI47XX_PowerDown() {
@@ -245,6 +250,8 @@ void SI47XX_PowerDown() {
   SI47XX_WriteBuffer(cmd, 1);
   SYSTICK_Delay250ns(10);
   RST_LOW;
+  isSi4732On = false;
+  siCurrentFreq = 0;
 }
 
 void SI47XX_SwitchMode(SI47XX_MODE mode) {
@@ -262,8 +269,10 @@ void SI47XX_SwitchMode(SI47XX_MODE mode) {
     }
   }
 }
-
 void SI47XX_SetFreq(uint16_t freq) {
+  if (siCurrentFreq == freq) {
+    return;
+  }
   uint8_t hb = (freq >> 8) & 0xFF;
   uint8_t lb = freq & 0xFF;
 
@@ -302,7 +311,7 @@ void SI47XX_SetFreq(uint16_t freq) {
   siCurrentFreq = freq;
 
   SYSTEM_DelayMs(30);
-  // RSQ_GET();
+  RSQ_GET();
 }
 
 void SI47XX_SetAMFrontendAGC(uint8_t minGainIdx, uint8_t attnBackup) {
@@ -323,21 +332,29 @@ void SI47XX_ReadRDS(uint8_t buf[13]) {
   SI47XX_ReadBuffer(buf, 13);
 }
 
-void SI47XX_SetSeekFmLimits(uint16_t bottom, uint16_t top) {
+void SI47XX_SetSeekFmLimits(uint32_t bottom, uint32_t top) {
+  uint16_t divider = fDiv();
+  bottom /= divider;
+  top /= divider;
   sendProperty(PROP_FM_SEEK_BAND_BOTTOM, bottom);
   sendProperty(PROP_FM_SEEK_BAND_TOP, top);
 }
 
-void SI47XX_SetSeekAmLimits(uint16_t bottom, uint16_t top) {
+void SI47XX_SetSeekAmLimits(uint32_t bottom, uint32_t top) {
+  uint16_t divider = fDiv();
+  bottom /= divider;
+  top /= divider;
   sendProperty(PROP_AM_SEEK_BAND_BOTTOM, bottom);
   sendProperty(PROP_AM_SEEK_BAND_TOP, top);
 }
 
-void SI47XX_SetSeekFmSpacing(uint16_t spacing) {
+void SI47XX_SetSeekFmSpacing(uint32_t spacing) {
+  spacing /= fDiv();
   sendProperty(PROP_FM_SEEK_FREQ_SPACING, spacing);
 }
 
-void SI47XX_SetSeekAmSpacing(uint16_t spacing) {
+void SI47XX_SetSeekAmSpacing(uint32_t spacing) {
+  spacing /= fDiv();
   sendProperty(PROP_AM_SEEK_FREQ_SPACING, spacing);
 }
 
@@ -350,3 +367,46 @@ void SI47XX_SetSeekAmRssiThreshold(uint16_t value) {
 }
 
 void SI47XX_SetBFO(int16_t bfo) { sendProperty(PROP_SSB_BFO, bfo); }
+
+void SI47XX_TuneTo(uint32_t f) {
+  if (SI47XX_IsSSB()) {
+    int64_t bfo = ((int64_t)(siCurrentFreq * fDiv()) - (int64_t)f) * 10;
+    if (bfo > -16000 && bfo < 16000) {
+      SI47XX_SetBFO(bfo);
+      f = siCurrentFreq * fDiv();
+    } else {
+      SI47XX_SetBFO(0);
+    }
+  }
+  f /= fDiv();
+  if (si4732mode == SI47XX_FM) {
+    f -= f % 5;
+  }
+  SI47XX_SetFreq(f);
+}
+
+void SI47xx_GetStatus(uint8_t intack, uint8_t cancel) {
+  SI47XX_TuneStatus status;
+
+  uint8_t cmd = CMD_FM_TUNE_STATUS;
+
+  if (si4732mode == SI47XX_AM) {
+    cmd = CMD_AM_TUNE_STATUS;
+  }
+
+  status.arg.INTACK = intack;
+  status.arg.CANCEL = cancel;
+  status.arg.RESERVED2 = 0;
+
+  uint8_t cmdA[2] = {cmd, status.raw};
+
+  uint8_t response[4] = {0};
+
+  waitToSend();
+  SI47XX_WriteBuffer(cmdA, 2);
+  SI47XX_ReadBuffer(response, 4);
+
+  /* if (valid) {
+    *valid = !(response[0] & STATUS_ERR);
+  } */
+}

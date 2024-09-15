@@ -1,8 +1,8 @@
 #include "lootlist.h"
 #include "../dcs.h"
 #include "../driver/bk4819.h"
-#include "../scheduler.h"
 #include "../radio.h"
+#include "../scheduler.h"
 
 static Loot loot[LOOT_SIZE_MAX] = {0};
 static int16_t lootIndex = -1;
@@ -34,7 +34,7 @@ Loot *LOOT_Get(uint32_t f) {
 }
 
 int16_t LOOT_IndexOf(Loot *item) {
-  for (int16_t i = 0; i < LOOT_Size(); ++i) {
+  for (uint8_t i = 0; i < LOOT_Size(); ++i) {
     if (&item[i] == item) {
       return i;
     }

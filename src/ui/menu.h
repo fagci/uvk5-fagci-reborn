@@ -1,6 +1,7 @@
 #ifndef MENU_H
 #define MENU_H
 
+#include "../helper/presetlist.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -11,6 +12,7 @@ extern const char *onOff[];
 extern const char *yesNo[];
 
 typedef enum {
+  M_RADIO,
   M_START,
   M_END,
   M_NAME,
@@ -23,6 +25,8 @@ typedef enum {
   M_TX,
   M_F_RX,
   M_F_TX,
+  M_RX_CODE_TYPE,
+  M_RX_CODE,
   M_TX_CODE_TYPE,
   M_TX_CODE,
   M_TX_OFFSET,
@@ -54,5 +58,6 @@ void UI_ShowMenuEx(void (*showItem)(uint16_t i, uint16_t index, bool isCurrent),
 
 void GetMenuItemValue(PresetCfgMenu type, char *Output);
 void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex);
+void PrintRTXCode(char *Output, uint8_t codeType, uint8_t code);
 
 #endif /* end of include guard: MENU_H */

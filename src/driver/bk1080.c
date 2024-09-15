@@ -16,7 +16,7 @@ static const uint16_t BK1080_RegisterTable[] = {
 static bool gIsInitBK1080;
 static uint32_t currentF = 0;
 
-uint16_t CH_SP_F[] = {20000, 10000, 5000};
+static uint16_t CH_SP_F[] = {20000, 10000, 5000};
 
 void BK1080_SetFrequency(uint32_t f) {
   if (f == currentF) {
@@ -75,7 +75,7 @@ uint16_t BK1080_ReadRegister(BK1080_Register_t Register) {
   I2C_Write((Register << 1) | I2C_READ);
   I2C_ReadBuffer(Value, sizeof(Value));
   I2C_Stop();
-  return (Value[0] << 8) | Value[1];
+  return MAKE_WORD(Value[0], Value[1]);
 }
 
 void BK1080_WriteRegister(BK1080_Register_t Register, uint16_t Value) {

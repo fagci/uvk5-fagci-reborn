@@ -1,10 +1,10 @@
 #include "analyzer.h"
+#include "../apps/finput.h"
 #include "../driver/st7565.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
 #include "../helper/presetlist.h"
 #include "../radio.h"
-#include "../scheduler.h"
 #include "../settings.h"
 #include "../svc.h"
 #include "../svc_scan.h"
@@ -15,6 +15,8 @@
 
 static const uint8_t ANALYZER_Y = 16;
 static const uint8_t ANALYZER_HEIGHT = 40;
+static const uint8_t spectrumWidth = LCD_WIDTH;
+static const uint16_t BK_RST_SOFT = 0xBFF1 & ~BK4819_REG_30_ENABLE_VCO_CALIB;
 
 static Loot msm;
 static uint32_t centerF = 0;
@@ -33,22 +35,30 @@ static Preset opt = {
             .name = "Analyzer",
         },
 };
-
-static uint8_t spectrumWidth = LCD_WIDTH;
-
-static bool bandFilled = false;
+static uint16_t step;
 
 static void startNewScan(bool reset) {
   _peakF = 0;
   peakRssi = 0;
   if (reset) {
     LOOT_Standby();
-    RADIO_TuneToPure(msm.f = opt.band.bounds.start, true);
+    // RADIO_TuneToPure(msm.f, true);
+    msm.f = opt.band.bounds.start;
+    BK4819_TuneTo(msm.f, true);
+    BK4819_SetRegValue(afcDisableRegSpec, true);
+    BK4819_SetModulation(opt.band.modulation);
+    if (step > 5000) {
+      BK4819_SetModulation(MOD_WFM);
+    } else if (step >= 2400) {
+      BK4819_SetFilterBandwidth(BK4819_FILTER_BW_WIDE);
+    } else if (step >= 1200) {
+      BK4819_SetFilterBandwidth(BK4819_FILTER_BW_NARROW);
+    } else {
+      BK4819_SetFilterBandwidth(BK4819_FILTER_BW_NARROWER);
+    }
     SP_Init(PRESETS_GetSteps(&opt), spectrumWidth);
-    bandFilled = false;
   } else {
     SP_Begin();
-    bandFilled = true;
   }
 }
 
@@ -60,8 +70,6 @@ static void scanFn(bool forward) {
     peakRssi = msm.rssi;
     _peakF = msm.f;
   }
-
-  uint16_t step = StepFrequencyTable[opt.band.step];
 
   if (msm.f + step > opt.band.bounds.end) {
     msm.f = opt.band.bounds.start;
@@ -81,7 +89,8 @@ static void scanFn(bool forward) {
 }
 
 static void setCenterF(uint32_t f) {
-  const uint32_t halfBW = StepFrequencyTable[opt.band.step] * 64;
+  step = StepFrequencyTable[opt.band.step];
+  const uint32_t halfBW = step * 64;
   centerF = f;
   opt.band.bounds.start = centerF - halfBW;
   opt.band.bounds.end = centerF + halfBW;
@@ -97,7 +106,6 @@ void ANALYZER_init(void) {
   SVC_Toggle(SVC_LISTEN, false, 0);
   RADIO_ToggleRX(false);
   RADIO_LoadCurrentVFO();
-  // RADIO_ToggleBK1080(false);
 
   gMonitorMode = false;
 
@@ -111,8 +119,6 @@ void ANALYZER_init(void) {
   gScanFn = scanFn;
   SVC_Toggle(SVC_SCAN, true, 1);
   gScanRedraw = false;
-
-  gRedrawScreen = true;
 }
 
 void ANALYZER_update(void) {}
@@ -142,16 +148,13 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     switch (Key) {
-    case KEY_0:
-      LOOT_Clear();
-      return true;
     case KEY_UP:
-      centerF += StepFrequencyTable[opt.band.step] * 64;
-      setup();
+      setCenterF(centerF + StepFrequencyTable[opt.band.step] * 64);
+      startNewScan(true);
       return true;
     case KEY_DOWN:
-      centerF -= StepFrequencyTable[opt.band.step] * 64;
-      setup();
+      setCenterF(centerF - StepFrequencyTable[opt.band.step] * 64);
+      startNewScan(true);
       return true;
     default:
       break;
@@ -205,6 +208,8 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       APPS_run(APP_LOOT_LIST);
       return true;
     case KEY_5:
+      gFInputCallback = setCenterF;
+      APPS_run(APP_FINPUT);
       return true;
     case KEY_3:
       if (opt.band.squelch < 9) {
@@ -239,18 +244,10 @@ void ANALYZER_render(void) {
 
   SP_RenderArrow(&opt, peakF, 0, ANALYZER_Y, ANALYZER_HEIGHT);
 
-  if (opt.band.squelch) {
-    uint8_t band = centerF > SETTINGS_GetFilterBound() ? 1 : 0;
-    SP_RenderRssi(SQ[band][0][opt.band.squelch], "SQLo", true, 0, ANALYZER_Y,
-                  ANALYZER_HEIGHT);
-    SP_RenderRssi(SQ[band][1][opt.band.squelch], "SQLc", false, 0, ANALYZER_Y,
-                  ANALYZER_HEIGHT);
-  }
-
-  PrintSmallEx(spectrumWidth - 2, ANALYZER_Y - 3, POS_R, C_FILL, "SQ:%u",
-               opt.band.squelch);
-  PrintSmallEx(0, ANALYZER_Y - 3 + 6, POS_L, C_FILL, "%ums", scanInterval);
-  PrintSmallEx(LCD_XCENTER, ANALYZER_Y - 3, POS_C, C_FILL, "Step: %u.%02uk",
+  PrintSmallEx(spectrumWidth - 2, ANALYZER_Y - 3, POS_R, C_FILL, "%04d/%04d",
+               Rssi2DBm(SP_GetNoiseFloor()), Rssi2DBm(SP_GetRssiMax()));
+  PrintSmallEx(0, ANALYZER_Y - 3, POS_L, C_FILL, "%ums", scanInterval);
+  PrintSmallEx(LCD_XCENTER, ANALYZER_Y - 3, POS_C, C_FILL, "Stp %u.%02uk",
                StepFrequencyTable[opt.band.step] / 100,
                StepFrequencyTable[opt.band.step] % 100);
 

@@ -61,7 +61,7 @@ static void ST7565_FillScreen(uint8_t Value) {
   for (i = 0; i < 8; i++) {
     ST7565_SelectColumnAndLine(0, i);
     GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
-    for (j = 0; j < 132; j++) {
+    for (j = 0; j < LCD_WIDTH; j++) {
       while (NEED_WAIT_FIFO)
         continue;
       SPI0->WDR = Value;

@@ -20,8 +20,8 @@ static int16_t from = -1;
 
 static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
   CH _ch;
-  const uint8_t y = MENU_Y + i * MENU_ITEM_H;
   CHANNELS_Load(index, &_ch);
+  const uint8_t y = MENU_Y + i * MENU_ITEM_H;
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
   }
@@ -75,7 +75,6 @@ static void saveNamed(void) {
 static void saveRenamed() { CHANNELS_Save(chNum, &ch); }
 
 void SAVECH_init(void) {
-  gRedrawScreen = true;
   CHANNELS_LoadScanlist(gSettings.currentScanlist);
   if (gSettings.currentScanlist == 15) {
     chCount = CHANNELS_GetCountMax();
@@ -99,7 +98,6 @@ static void setMenuIndexAndRun(uint16_t v) {
   currentChannelIndex = v - 1;
   save();
 }
-#include "../driver/uart.h"
 static void toggleScanlist(uint16_t idx, uint8_t n) {
   CH _ch;
   uint16_t chNum = gScanlist[idx];
@@ -107,22 +105,8 @@ static void toggleScanlist(uint16_t idx, uint8_t n) {
     chNum = idx;
   }
   CHANNELS_Load(chNum, &_ch);
-  Log("i:%d, ch:%d, name: %s", idx, chNum, _ch.name);
   _ch.memoryBanks ^= 1 << n;
   CHANNELS_Save(chNum, &_ch);
-}
-
-static void exportScanList() {
-  UART_printf("--- 8< ---\r\n");
-  UART_printf("CH#,Name,fRX,fTX,mod,bw\r\n");
-  for (uint8_t i = 0; i < gScanlistSize; ++i) {
-    CH _ch;
-    uint16_t chNum = gScanlist[i];
-    CHANNELS_Load(chNum, &_ch);
-    UART_printf("CH%u,%s,%u,%u,%u,%u\r\n", chNum + 1, _ch.name, _ch.rx.f,
-                _ch.tx.f, _ch.modulation, _ch.bw);
-  }
-  UART_printf("--- >8 ---\r\n");
 }
 
 bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
@@ -166,7 +150,6 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       from = -1;
       return true;
     case KEY_9:
-      exportScanList();
       from = -1;
       return true;
     case KEY_0:

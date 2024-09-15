@@ -50,10 +50,12 @@ enum BK4819_AF_Type_t {
 typedef enum {
   MOD_FM,
   MOD_AM,
+  MOD_LSB,
   MOD_USB,
   MOD_BYP,
   MOD_RAW,
   MOD_WFM,
+  MOD_PRST,
 } ModulationType;
 
 typedef enum {
@@ -92,10 +94,8 @@ typedef struct {
 } Gain;
 
 typedef enum BK4819_CssScanResult_t BK4819_CssScanResult_t;
-extern const uint16_t BWRegValues[3];
 extern const Gain gainTable[19];
 
-extern bool gRxIdleMode;
 extern const uint8_t SQ[2][6][11];
 
 void BK4819_Init(void);
@@ -129,7 +129,6 @@ void BK4819_SquelchType(SquelchType t);
 
 void BK4819_SetAF(BK4819_AF_Type_t AF);
 void BK4819_RX_TurnOn(void);
-void BK4819_DisableFilter();
 void BK4819_SelectFilter(uint32_t Frequency);
 void BK4819_DisableScramble(void);
 void BK4819_EnableScramble(uint8_t Type);
@@ -152,8 +151,6 @@ void BK4819_PrepareTransmit(void);
 void BK4819_TxOn_Beep(void);
 void BK4819_ExitSubAu(void);
 
-void BK4819_EnableRX(void);
-
 void BK4819_EnterDTMF_TX(bool bLocalLoopback);
 void BK4819_ExitDTMF_TX(bool bKeep);
 void BK4819_EnableTXLink(void);
@@ -164,7 +161,7 @@ void BK4819_PlayDTMFString(const char *pString, bool bDelayFirst,
                            uint16_t HashCodePersistTime,
                            uint16_t CodePersistTime, uint16_t CodeInternalTime);
 
-void BK4819_TransmitTone(bool bLocalLoopback, uint32_t Frequency);
+void BK4819_TransmitTone(uint32_t Frequency);
 
 void BK4819_GenTail(uint8_t Tail);
 void BK4819_EnableCDCSS(void);
@@ -181,7 +178,6 @@ BK4819_CssScanResult_t BK4819_GetCxCSSScanResult(uint32_t *pCdcssFreq,
 void BK4819_DisableFrequencyScan(void);
 void BK4819_EnableFrequencyScan(void);
 void BK4819_EnableFrequencyScanEx(FreqScanTime t);
-void BK4819_SetScanFrequency(uint32_t Frequency);
 
 void BK4819_StopScan(void);
 
@@ -190,11 +186,11 @@ uint8_t BK4819_GetDTMF_5TONE_Code(void);
 uint8_t BK4819_GetCDCSSCodeType(void);
 uint8_t BK4819_GetCTCType(void);
 
-void BK4819_SendFSKData(uint16_t *pData);
-void BK4819_PrepareFSKReceive(void);
-
+void BK4819_PlaySequence(const uint8_t *M);
 void BK4819_PlayRoger(void);
+void BK4819_PlayRogerTiny(void);
 void BK4819_PlayRogerMDC(void);
+void BK4819_PlayRogerUgly(void);
 
 void BK4819_Enable_AfDac_DiscMode_TxDsp(void);
 
@@ -207,6 +203,7 @@ uint16_t BK4819_GetRegValue(RegisterSpec s);
 void BK4819_SetRegValue(RegisterSpec s, uint16_t v);
 void BK4819_TuneTo(uint32_t f, bool precise);
 void BK4819_SetToneFrequency(uint16_t f);
+void BK4819_SetTone2Frequency(uint16_t f);
 void BK4819_SetModulation(ModulationType type);
 bool BK4819_IsSquelchOpen();
 void BK4819_ResetRSSI();
