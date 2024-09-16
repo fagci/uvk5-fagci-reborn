@@ -20,6 +20,9 @@ static DateTime dt;
 static void setChannel(uint16_t v) { RADIO_TuneToCH(v - 1); }
 static void tuneTo(uint32_t f) { RADIO_TuneToSave(GetTuneF(f)); }
 
+static bool SSB_Seek_ON = false;
+static bool SSB_Seek_UP = true;
+
 static char message[16] = {'\0'};
 static void sendDtmf() {
   RADIO_ToggleTX(true);
@@ -33,6 +36,22 @@ static void sendDtmf() {
 void VFO1_init(void) { RADIO_LoadCurrentVFO(); }
 
 void VFO1_update(void) {
+
+if (SSB_Seek_ON) {
+  if (RADIO_GetRadio() == RADIO_SI4732 && RADIO_IsSSB()) {
+   if (Now() - gLastRender  >= 250) {
+         if (SSB_Seek_UP) {
+            gScanForward = true;
+            RADIO_NextFreqNoClicks(true);
+         } else {
+            gScanForward = false;
+            RADIO_NextFreqNoClicks(false);
+         }
+        gRedrawScreen = true;
+      }
+  }
+}
+
   if (gIsListening && Now() - gLastRender >= 500) {
     gRedrawScreen = true;
   }
@@ -59,12 +78,16 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     bool isSsb = RADIO_IsSSB();
     switch (key) {
     case KEY_UP:
+      SSB_Seek_ON=false; 
+      SSB_Seek_UP=true;   
       if (SVC_Running(SVC_SCAN)) {
         gScanForward = true;
       }
       RADIO_NextFreqNoClicks(true);
       return true;
     case KEY_DOWN:
+      SSB_Seek_ON=false;
+      SSB_Seek_UP=false;
       if (SVC_Running(SVC_SCAN)) {
         gScanForward = false;
       }
@@ -126,6 +149,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_STAR:
       if (RADIO_GetRadio() == RADIO_SI4732 && RADIO_IsSSB()) {
+        SSB_Seek_ON=true;
         // todo: scan by snr
       } else {
         SVC_Toggle(SVC_SCAN, true, 10);
