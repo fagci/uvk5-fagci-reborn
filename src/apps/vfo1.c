@@ -75,10 +75,10 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
   // up-down keys
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
+    SSB_Seek_ON=false;
     bool isSsb = RADIO_IsSSB();
     switch (key) {
     case KEY_UP:
-      SSB_Seek_ON=false; 
       SSB_Seek_UP=true;   
       if (SVC_Running(SVC_SCAN)) {
         gScanForward = true;
@@ -86,7 +86,6 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       RADIO_NextFreqNoClicks(true);
       return true;
     case KEY_DOWN:
-      SSB_Seek_ON=false;
       SSB_Seek_UP=false;
       if (SVC_Running(SVC_SCAN)) {
         gScanForward = false;
@@ -113,6 +112,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   // long held
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     OffsetDirection offsetDirection = gCurrentPreset->offsetDir;
+    SSB_Seek_ON=false;
     switch (key) {
     case KEY_EXIT:
       return true;
@@ -165,6 +165,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
   // Simple keypress
   if (!bKeyPressed && !bKeyHeld) {
+    SSB_Seek_ON=false;
     switch (key) {
     case KEY_0:
     case KEY_1:
