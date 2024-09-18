@@ -29,7 +29,7 @@ extern bool gIsListening;
 extern bool gMonitorMode;
 extern TXState gTxState;
 
-extern const uint16_t StepFrequencyTable[14];
+extern const uint16_t StepFrequencyTable[15];
 extern const char *modulationTypeOptions[8];
 extern const SquelchType sqTypeValues[4];
 
