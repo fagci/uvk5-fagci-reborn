@@ -52,7 +52,7 @@ const char *upConverterFreqNames[3] = {"None", "50M", "125M"};
 
 const char *modulationTypeOptions[8] = {"FM",  "AM",  "LSB", "USB",
                                         "BYP", "RAW", "WFM", "Preset"};
-const char *powerNames[] = {"LOW", "MID", "HIGH"};
+const char *powerNames[4] = {"ULOW, LOW", "MID", "HIGH"};
 const char *bwNames[3] = {"25k", "12.5k", "6.25k"};
 const char *radioNames[4] = {"BK4819", "BK1080", "SI4732", "Preset"};
 const char *shortRadioNames[4] = {"BK", "BC", "SI", "PR"};
@@ -248,6 +248,29 @@ static void toggleBK1080SI4732(bool on) {
 }
 
 static uint8_t calculateOutputPower(Preset *p, uint32_t Frequency) {
+    uint8_t power_bias = p->powCalib.s; 
+    if (power_bias>10) power_bias-=10; // 10mw if Low=500mw
+    
+    switch (p->power) {
+      case TX_POW_LOW:
+          power_bias = p->powCalib.s;
+          break;
+          
+      case TX_POW_MID:
+          power_bias = p->powCalib.m;
+          break;
+          
+      case TX_POW_HIGH:
+          power_bias = p->powCalib.e;
+          break;
+    }
+    
+    
+    return power_bias;
+
+}
+
+/* static uint8_t calculateOutputPower(Preset *p, uint32_t Frequency) {
   uint8_t TxpLow = p->powCalib.s;
   uint8_t TxpMid = p->powCalib.m;
   uint8_t TxpHigh = p->powCalib.e;
@@ -272,7 +295,7 @@ static uint8_t calculateOutputPower(Preset *p, uint32_t Frequency) {
   TxpMid += ((TxpHigh - TxpMid) * (Frequency - Middle)) / (UpperLimit - Middle);
   return TxpMid;
 }
-
+*/
 static void sendEOT() {
   BK4819_ExitSubAu();
   switch (gSettings.roger) {
@@ -445,7 +468,7 @@ uint32_t RADIO_GetTxPower(uint32_t txF) {
   if (power > 0x91) {
     power = 0x91;
   }
-  power >>= 2 - gCurrentPreset->power;
+  //power >>= 2 - gCurrentPreset->power;
   return power;
 }
 
@@ -898,7 +921,7 @@ void RADIO_ToggleListeningBW(void) {
 
 void RADIO_ToggleTxPower(void) {
   if (gCurrentPreset->power == TX_POW_HIGH) {
-    gCurrentPreset->power = TX_POW_LOW;
+    gCurrentPreset->power = TX_POW_ULOW;
   } else {
     ++gCurrentPreset->power;
   }

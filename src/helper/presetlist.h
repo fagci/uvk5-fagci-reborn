@@ -26,7 +26,7 @@ uint32_t PRESETS_GetSteps(Preset *p);
 uint32_t PRESETS_GetF(Preset *p, uint32_t channel);
 uint32_t PRESETS_GetChannel(Preset *p, uint32_t f);
 
-extern Preset defaultPresets[31];
+extern Preset defaultPresets[33];
 extern Preset defaultPreset;
 extern Preset *gCurrentPreset;
 
