@@ -828,6 +828,7 @@ STEP_NAMES = [
     "10.0kHz",
     "12.5kHz",
     "25.0kHz",
+    "50.0kHz",
     "100.0kHz",
     "125.0kHz",
     "200.0kHz"
@@ -907,7 +908,7 @@ BL_TIME_NAMES = ["Off", "5s", "10s", "20s", "1min", "2min", "On"]
 BL_TIME_MAP = list(zip(BL_TIME_NAMES, BL_TIME_VALUES))
 
 BL_SQL_MODE_NAMES = ["Off", "On", "Open"]
-TX_POWER_NAMES = ["Ulow" ,"Low", "Mid", "High"]
+TX_POWER_NAMES = ["ULow", "Low", "Mid", "High"]
 TX_OFFSET_NAMES = ["Unset", "+", "-"]
 
 TX_CODE_TYPES = RX_CODE_TYPES = ["None", "CTCSS", "DCS", "-DCS"]
@@ -930,6 +931,7 @@ APP_LIST = [
     "Spectrum analyzer",
     "CH Scan",
     "Channels",
+    "Freq catch",
     "1 VFO pro",
     "Frequency input",
     "Run app",
@@ -949,7 +951,7 @@ BATTERY_TYPE_NAMES = ["1600mAh", "2200mAh", "3500mAh"]
 BATTERY_STYLE_NAMES = ["Plain", "Percent", "Voltage"]
 
 SCAN_TIMEOUT_NAMES = [
-    "0", "500ms", "1s", "3s", "5s", "10s",
+    "0", "500ms", "1s", "2s", "5s", "10s",
     "30s", "1min", "2min", "5min", "None"
 ]
 
@@ -963,8 +965,9 @@ SQL_CLOSE_NAMES = [f"{i}ms" for i in range(0, 15, 5)]
 SQL_OPEN_NAMES = [f"{i}ms" for i in range(0, 35, 5)]
 
 # power
-UVK5_POWER_LEVELS = [chirp_common.PowerLevel("Low", watts=1.00),
-                     chirp_common.PowerLevel("Med", watts=2.50),
+UVK5_POWER_LEVELS = [chirp_common.PowerLevel("ULow", watts=0.01),
+                     chirp_common.PowerLevel("Low", watts=0.50),
+                     chirp_common.PowerLevel("Med", watts=2.00),
                      chirp_common.PowerLevel("High", watts=5.00)]
 
 BANDS = {
@@ -1023,11 +1026,19 @@ BANDS = {
 #     "GSM-900",
 #     "960-1260",
 #     "23cm HAM",
-#     "1.3-1.34"
+#     "1.3-1.34",
+#     "160m HAM",
+#     "80m HAM",
+#     "60m HAM",
+#     "40m HAM",
+#     "20m HAM",
+#     "17m HAM",
+#     "15m HAM",
+#     "12m HAM",
+#     "10m HAM"
 # ]
 
 TMODES = [None, "Tone", "DTCS", "DTCS"]
-ROGER_NAMES = ["None", "Moto", "Tiny", "Call"]
 
 CTCSS_TONES = [
     67.0, 69.3, 71.9, 74.4, 77.0, 79.7, 82.5, 85.4,
@@ -1056,12 +1067,13 @@ DTCS_CODES = [
 
 DTCS_CODES_NAMES = list(map(str, DTCS_CODES))
 
-TXPOWER_LIST = ["Low", "Mid", "High"]
+TXPOWER_LIST = ["ULow", "Low", "Mid", "High"]
 
 MIN_FREQ = 153000
 MAX_FREQ = 1399999990
 
-SETTINGS_VF0_PRESET_SIZE = 0x3d1  #  TERRIBLE hardcoding; should get sizeof(MEM_SETTINGS)
+# SETTINGS_VF0_PRESET_SIZE = 0x3d1  #  TERRIBLE hardcoding; should get sizeof(MEM_SETTINGS) ## add 20hex / Preset ##
+SETTINGS_VF0_PRESET_SIZE = 0x411  #  TERRIBLE hardcoding; should get sizeof(MEM_SETTINGS)
 MEMORY_START_LOWER_LIMIT = SETTINGS_VF0_PRESET_SIZE
 
 BIT_MASK_NAMES = ["--------"]
@@ -1189,7 +1201,7 @@ struct {
      radio : 2,
      offsetDir : 2,
      power : 2;
-} Preset[29];
+} Preset[33];
 """
 
 MEM_CH = """struct {
@@ -1262,23 +1274,25 @@ def transform_to_8bit(num):
     return uint8_list
 
 def copy_patch(src, dest):
-    for i in range(len(src["Patch"])):
-        for j in range(len(src["Patch"][i]["patch_data"])):
-            patch_block = transform_to_8bit(src["Patch"][i]["patch_data"][j])
-            curr_patch_data_block_val = 0
-            for k in range(PATCH_BLOCK_SIZE):
-                curr_patch_data_block_val |= patch_block[k] << (8 * (PATCH_BLOCK_SIZE - k - 1))
-            dest["Patch"][i]["patch_data"][j] = curr_patch_data_block_val
+    if "Patch" in src and "Patch" in dest:
+        for i in range(len(src["Patch"])):
+            for j in range(len(src["Patch"][i]["patch_data"])):
+                patch_block = transform_to_8bit(src["Patch"][i]["patch_data"][j])
+                curr_patch_data_block_val = 0
+                for k in range(PATCH_BLOCK_SIZE):
+                    curr_patch_data_block_val |= patch_block[k] << (8 * (PATCH_BLOCK_SIZE - k - 1))
+                dest["Patch"][i]["patch_data"][j] = curr_patch_data_block_val
 
 def assign_patch(dest):
-    for i in range(len(dest["Patch"])):
-        for j in range(len(dest["Patch"][i]["patch_data"])):
-            curr_patch_data_ptr = i * PATCH_DATA_BLOCK_SIZE + j * PATCH_BLOCK_SIZE
-            curr_patch_data_block_val = 0
-            for k in range(PATCH_BLOCK_SIZE):
-                curr_patch_data_block_val |= RAW_PATCH_DATA[curr_patch_data_ptr + k] << (8 * (PATCH_BLOCK_SIZE - k - 1))
-            # LOG.debug("i=%d, j=%d, p=%d, v=%x" % (i,j,curr_patch_data_ptr,curr_patch_data_block_val))
-            dest["Patch"][i]["patch_data"][j] = curr_patch_data_block_val
+    if "Patch" in dest:
+        for i in range(len(dest["Patch"])):
+            for j in range(len(dest["Patch"][i]["patch_data"])):
+                curr_patch_data_ptr = i * PATCH_DATA_BLOCK_SIZE + j * PATCH_BLOCK_SIZE
+                curr_patch_data_block_val = 0
+                for k in range(PATCH_BLOCK_SIZE):
+                    curr_patch_data_block_val |= RAW_PATCH_DATA[curr_patch_data_ptr + k] << (8 * (PATCH_BLOCK_SIZE - k - 1))
+                # LOG.debug("i=%d, j=%d, p=%d, v=%x" % (i,j,curr_patch_data_ptr,curr_patch_data_block_val))
+                dest["Patch"][i]["patch_data"][j] = curr_patch_data_block_val
 
 EMPTY_PATCH_VALUE = empty_patch()
 OLD_PATCH_VALUE =  empty_patch()
@@ -2092,10 +2106,9 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         memory_size = EEPROM_SIZES[eeprom_type]
         set_mem_struct_from_settings(memory_size)
         self._memobj = bitwise.parse(MEM_FORMAT, self._mmap)
-        (_, _, has_patch, max_channels) = get_mem_addrs_and_meta(memory_size)
+        (_, _, _, max_channels) = get_mem_addrs_and_meta(memory_size)
         self.max_channels = max_channels
-        if has_patch:
-            copy_patch(self._memobj, OLD_PATCH_VALUE)
+        copy_patch(self._memobj, OLD_PATCH_VALUE)
         # # This code works, But is what we want?
         # real_bands = [(10.0000, 660.0000), (840.0000, 1340.0000)]
         # for i in range(0, len(self._memobj.Preset)):
@@ -2408,12 +2421,14 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         self._set_tone(mem, _mem)
 
         # tx power
-        if str(mem.power) == str(UVK5_POWER_LEVELS[2]):
+        if str(mem.power) == str(UVK5_POWER_LEVELS[3]):
             _mem.power = TXPOWER_LIST.index("High")
-        elif str(mem.power) == str(UVK5_POWER_LEVELS[1]):
+        elif str(mem.power) == str(UVK5_POWER_LEVELS[2]):
             _mem.power = TXPOWER_LIST.index("Mid")
-        else:
+        elif str(mem.power) == str(UVK5_POWER_LEVELS[1]):
             _mem.power = TXPOWER_LIST.index("Low")
+        else:
+            _mem.power = TXPOWER_LIST.index("ULow")
 
         _mem.modulation = MODULATION_LIST_MAP.index(mem.mode)
 
@@ -2440,8 +2455,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         (_, _, has_patch, _) = get_mem_addrs_and_meta(EEPROM_SIZES[_mem.Settings.eepromType])
 
         basic = RadioSettingGroup("basic", "Basic Settings")
-        radio_settings = RadioSettingGroup("radio_settings", "Radio")
-        display_battery = RadioSettingGroup("display_battery", "Display & Battery")
+        display = RadioSettingGroup("Display", "Display")
         sql = RadioSettingGroup("sql", "SQL")
         patch = RadioSettingGroup("patches", "Patches")
 
@@ -2696,33 +2710,30 @@ class UVK5Radio(chirp_common.CloneModeRadio):
 
         tmpval = _mem.Settings.batsave
         rs = RadioSetting("battsave", "Battery Save", RadioSettingValueInteger(0, 15, tmpval))
-        display_battery.append(rs)
+        basic.append(rs)
 
         tmpval = _mem.Settings.txTime
         rs = RadioSetting("txTime", "Tx Time", RadioSettingValueInteger(0, 15, tmpval))
-        radio_settings.append(rs)
-
-        tmpval = _mem.Settings.scrambler
-        rs = RadioSetting("scrambler", "Scrambler", RadioSettingValueInteger(0, 15, tmpval))
-        radio_settings.append(rs)
+        basic.append(rs)
 
         tmpval = _mem.Settings.backlight
         rs = RadioSetting("backlight", "BLmode (TX/RX)",
                           RadioSettingValueList(BL_TIME_NAMES, BL_TIME_NAMES[tmpval])) 
-        display_battery.append(rs)
+        display.append(rs)
 
         tmpval = _mem.Settings.currentScanlist
         if tmpval >= 8:
             tmpval = 0
-        rs = RadioSetting("currentScanlist", "Current Scan List", RadioSettingValueInteger(1, 8, tmpval + 1))
-        basic.append(rs)
 
-        tmpval = _mem.Settings.chDisplayMode
-        rs = RadioSetting("chDisplayMode", "Channel Display Mode", RadioSettingValueInteger(0, 3, tmpval))
+        rs = RadioSetting("currentScanlist", "Current Scan List", RadioSettingValueInteger(1, 8, tmpval + 1))
         basic.append(rs)
 
         tmpval = _mem.Settings.micGain
         rs = RadioSetting("micGain", "Mic Gain", RadioSettingValueInteger(0, 15, tmpval))
+        basic.append(rs)
+
+        tmpval = _mem.Settings.chDisplayMode
+        rs = RadioSetting("chDisplayMode", "Channel Disply Mode", RadioSettingValueInteger(0, 3, tmpval))
         basic.append(rs)
 
         tmpval = _mem.Settings.scanmode
@@ -2730,30 +2741,30 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         basic.append(rs)
 
         tmpval = _mem.Settings.roger
-        rs = RadioSetting("roger", "Roger", RadioSettingValueList(ROGER_NAMES, ROGER_NAMES[tmpval]))
-        radio_settings.append(rs)
+        rs = RadioSetting("roger", "Roger", RadioSettingValueInteger(0, 3, tmpval))
+        basic.append(rs)
 
         tmpval = _mem.Settings.upconverter
         rs = RadioSetting("upconverter", "Upconverter",
                           RadioSettingValueList(UPCONVERTER_TYPES, UPCONVERTER_TYPES[tmpval]))
-        radio_settings.append(rs)
+        basic.append(rs)
 
         tmpval = _mem.Settings.dtmfdecode
         rs = RadioSetting("dtmfdecode", "DTMF Decode", RadioSettingValueBoolean(bool(tmpval)))
-        radio_settings.append(rs)
+        basic.append(rs)
 
         tmpval = _mem.Settings.repeaterSte
         rs = RadioSetting("repeaterSte", "RP-STE (Repeater Squelch Tail Eliminator)",
                           RadioSettingValueBoolean(bool(tmpval)))
-        radio_settings.append(rs)
+        basic.append(rs)
 
         tmpval = _mem.Settings.ste
         rs = RadioSetting("ste", "STE (Squelch Tail Eliminator)", RadioSettingValueBoolean(bool(tmpval)))
-        radio_settings.append(rs)
+        basic.append(rs)
 
         tmpval = _mem.Settings.busyChannelTxLock
         rs = RadioSetting("busyChannelTxLock", "Busy Channel Lock", RadioSettingValueBoolean(bool(tmpval)))
-        radio_settings.append(rs)
+        basic.append(rs)
 
         tmpval = _mem.Settings.keylock
         rs = RadioSetting("keylock", "Keylock", RadioSettingValueBoolean(bool(tmpval)))
@@ -2765,19 +2776,19 @@ class UVK5Radio(chirp_common.CloneModeRadio):
 
         tmpval = _mem.Settings.crossBand
         rs = RadioSetting("crossBand", "CrossBand", RadioSettingValueBoolean(bool(tmpval)))
-        radio_settings.append(rs)
+        basic.append(rs)
 
         tmpval = _mem.Settings.dw
         rs = RadioSetting("dw", "Dual Watch", RadioSettingValueBoolean(bool(tmpval)))
-        radio_settings.append(rs)
+        basic.append(rs)
 
         tmpval = _mem.Settings.contrast - 8
         rs = RadioSetting("contrast", "Contrast", RadioSettingValueInteger(-8, 7, tmpval))
-        display_battery.append(rs)
+        display.append(rs)
 
         tmpval = _mem.Settings.brightness
         rs = RadioSetting("brightness", "Brightness", RadioSettingValueInteger(0, 15, tmpval))
-        display_battery.append(rs)
+        display.append(rs)
 
         tmpval = _mem.Settings.mainApp
         rs = RadioSetting("mainApp", "Main App", RadioSettingValueList(APP_LIST, APP_LIST[tmpval]))
@@ -2800,17 +2811,17 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         tmpval = _mem.Settings.batteryStyle
         rs = RadioSetting("batteryStyle", "Battery Style Name",
                           RadioSettingValueList(BATTERY_STYLE_NAMES, BATTERY_STYLE_NAMES[tmpval]))
-        display_battery.append(rs)
+        basic.append(rs)
 
         tmpval = _mem.Settings.batteryType
         rs = RadioSetting("batteryType", "Battery Type",
                           RadioSettingValueList(BATTERY_TYPE_NAMES, BATTERY_TYPE_NAMES[tmpval]))
-        display_battery.append(rs)
+        basic.append(rs)
 
         tmpval = _mem.Settings.batteryCalibration
         rs = RadioSetting("batteryCalibration", "Battery Calibration",
                           RadioSettingValueInteger(0, math.pow(2, 12) - 1, tmpval))
-        display_battery.append(rs)
+        basic.append(rs)
 
         tmpval = _mem.Settings.sqOpenedTimeout
         rs = RadioSetting("sqOpenedTimeout", "SCAN listen time",
@@ -2825,7 +2836,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         tmpval = _mem.Settings.backlightOnSquelch
         rs = RadioSetting("backlightOnSquelch", "Backlight On Squelch",
                           RadioSettingValueList(BL_SQL_MODE_NAMES, BL_SQL_MODE_NAMES[tmpval]))
-        display_battery.append(rs)
+        display.append(rs)
 
         tmpval = _mem.Settings.noListen
         rs = RadioSetting("noListen", "No Listen", RadioSettingValueBoolean(bool(tmpval)))
@@ -2838,11 +2849,11 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         tmpval = _mem.Settings.bound_240_280
         rs = RadioSetting("bound_240_280", "Bound 240 / 280",
                           RadioSettingValueList(BOUND_240_280_NAMES, BOUND_240_280_NAMES[tmpval]))
-        radio_settings.append(rs)
+        basic.append(rs)
 
         tmpval = _mem.Settings.scanTimeout
         rs = RadioSetting("scanTimeout", "SCAN single freq Time", RadioSettingValueInteger(0, 255, tmpval))
-        radio_settings.append(rs)
+        basic.append(rs)
 
         tmpval = _mem.Settings.activeVFO
         rs = RadioSetting("activeVFO", "Active VFO", RadioSettingValueList(VFOs, VFOs[tmpval]))
@@ -2850,7 +2861,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
 
         tmpval = _mem.Settings.skipGarbageFrequencies
         rs = RadioSetting("skipGarbageFrequencies", "Skip Garbage Frequencies", RadioSettingValueBoolean(bool(tmpval)))
-        radio_settings.append(rs)
+        basic.append(rs)
 
         tmpval = _mem.Settings.sqlOpenTime
         if tmpval >= len(SQL_OPEN_NAMES):
@@ -2870,7 +2881,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
         rs = RadioSetting("nickName", "Nick Name", RadioSettingValueString(0, 10, str(tmpval).strip("\x20\x00\xff")))
         basic.append(rs)
 
-        top = RadioSettings(basic, radio_settings, display_battery, sql, patch, *vfo, *presets)
+        top = RadioSettings(basic, display, sql, patch, *vfo, *presets)
         return top
 
     # --------------------------------------------------------------------------------
@@ -2925,9 +2936,6 @@ class UVK5Radio(chirp_common.CloneModeRadio):
 
             if element.get_name() == "txTime":
                 _mem.Settings.txTime = int(element.value)
-                
-            if element.get_name() == "scrambler":
-                _mem.Settings.scrambler = int(element.value)
 
             if element.get_name() == "backlight":
                 _mem.Settings.backlight = BL_TIME_NAMES.index(element.value)
@@ -2945,7 +2953,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 _mem.Settings.scanmode = int(element.value)
 
             if element.get_name() == "roger":
-                _mem.Settings.roger = ROGER_NAMES.index(element.value)
+                _mem.Settings.roger = int(element.value)
 
             if element.get_name() == "upconverter":
                 _mem.Settings.upconverter = UPCONVERTER_TYPES.index(element.value)
