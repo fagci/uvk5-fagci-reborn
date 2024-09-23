@@ -63,6 +63,7 @@ typedef enum {
 } BatteryStyle;
 
 typedef enum {
+  TX_POW_ULOW,
   TX_POW_LOW,
   TX_POW_MID,
   TX_POW_HIGH,
@@ -243,7 +244,7 @@ extern Settings gSettings;
 extern uint8_t BL_TIME_VALUES[7];
 extern const char *BL_TIME_NAMES[7];
 extern const char *BL_SQL_MODE_NAMES[3];
-extern const char *TX_POWER_NAMES[3];
+extern const char *TX_POWER_NAMES[4];
 extern const char *TX_OFFSET_NAMES[3];
 extern const char *TX_CODE_TYPES[4];
 extern const char *rogerNames[4];

@@ -864,6 +864,7 @@ BATTERY_STYLE = [
 ]
 
 TX_OUTPUT_POWER = [
+    "TX_POW_ULOW",
     "TX_POW_LOW",
     "TX_POW_MID",
     "TX_POW_HIGH"
@@ -906,7 +907,7 @@ BL_TIME_NAMES = ["Off", "5s", "10s", "20s", "1min", "2min", "On"]
 BL_TIME_MAP = list(zip(BL_TIME_NAMES, BL_TIME_VALUES))
 
 BL_SQL_MODE_NAMES = ["Off", "On", "Open"]
-TX_POWER_NAMES = ["Low", "Mid", "High"]
+TX_POWER_NAMES = ["Ulow" ,"Low", "Mid", "High"]
 TX_OFFSET_NAMES = ["Unset", "+", "-"]
 
 TX_CODE_TYPES = RX_CODE_TYPES = ["None", "CTCSS", "DCS", "-DCS"]
