@@ -159,6 +159,9 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_SIDE1:
       APPS_run(APP_ANALYZER);
       return true;
+    case KEY_SIDE2:
+      APPS_run(APP_SPECTRUM);
+      return true;
     default:
       break;
     }
