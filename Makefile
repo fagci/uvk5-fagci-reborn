@@ -31,7 +31,7 @@ GIT_HASH := $(shell git rev-parse --short HEAD)
 
 ASFLAGS = -c -mcpu=cortex-m0
 # CFLAGS = -Os  -Wall -Wno-error -mcpu=cortex-m0 -fno-delete-null-pointer-checks -std=c11 -MMD -ffunction-sections -fdata-sections
-CFLAGS = -Os -Wall -Wno-error -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c2x -MMD -flto=auto -Wextra
+CFLAGS = -Os -Wall -Wno-error -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -Wno-error=incompatible-pointer-types -std=c2x -MMD -flto=auto -Wextra
 # CFLAGS = -Os -Wall -Wno-error -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c2x -MMD -ffunction-sections -fdata-sections -Wextra
 CFLAGS += -DPRINTF_INCLUDE_CONFIG_H
 CFLAGS += -DGIT_HASH=\"$(GIT_HASH)\"
@@ -68,7 +68,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(BSP_HEADERS) $(OBJ_DIR)
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.S | $(OBJ_DIR)
 	$(AS) $(ASFLAGS) $< -o $@
 
-$(BIN_DIR) $(OBJ_DIR) $(BIN_DIR):
+$(BIN_DIR) $(OBJ_DIR):
 	mkdir -p $@
 
 .FORCE:
