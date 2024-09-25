@@ -16,7 +16,6 @@ static uint8_t filledPoints;
 
 static uint16_t stepsCount;
 static uint16_t currentStep;
-static uint8_t exLen;
 
 static uint16_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
 
@@ -51,19 +50,22 @@ void SP_Next(void) {
 void SP_Init(uint16_t steps, uint8_t width) {
   stepsCount = steps;
   historySize = width;
-  exLen = ceilDiv(historySize, stepsCount);
   SP_ResetHistory();
   SP_Begin();
 }
 
+static uint8_t ox = U8_MAX;
 void SP_AddPoint(Loot *msm) {
-  uint8_t ox = U8_MAX;
-  for (uint8_t exIndex = 0; exIndex < exLen; ++exIndex) {
-    x = historySize * currentStep / stepsCount + exIndex;
+  uint8_t xs = historySize * currentStep / stepsCount;
+  uint8_t xe = historySize * (currentStep + 1) / stepsCount;
+  if (xe > MAX_POINTS) {
+    xe = MAX_POINTS;
+  }
+  for (x = xs; x < xe; ++x) {
     if (ox != x) {
+      ox = x;
       rssiHistory[x] = markers[x] = 0;
       noiseHistory[x] = U8_MAX;
-      ox = x;
     }
     if (msm->rssi > rssiHistory[x]) {
       rssiHistory[x] = msm->rssi;
@@ -75,8 +77,11 @@ void SP_AddPoint(Loot *msm) {
       markers[x] = msm->open;
     }
   }
-  if (x > filledPoints && x < historySize) {
+  if (x > filledPoints) {
     filledPoints = x + 1;
+  }
+  if (filledPoints > MAX_POINTS) {
+    filledPoints = MAX_POINTS;
   }
 }
 
@@ -89,7 +94,7 @@ void SP_Render(Preset *p, uint8_t sx, uint8_t sy, uint8_t sh) {
   /* const uint16_t vMax =
       rssiMax + Clamp((rssiMax - rssiMin), 15, rssiMax - rssiMin); */
   const uint16_t vMax =
-      rssiMax + Clamp((rssiMax - noiseFloor), 20, rssiMax - noiseFloor);
+      rssiMax + Clamp((rssiMax - noiseFloor), 35, rssiMax - noiseFloor);
 
   if (p) {
     UI_DrawTicks(sx, sx + historySize - 1, S_BOTTOM, &p->band);
