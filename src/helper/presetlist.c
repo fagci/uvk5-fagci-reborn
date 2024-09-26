@@ -19,13 +19,13 @@ Preset defaultPreset = {
             .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
         },
 };
-static const PowerCalibration POWER_CALIB_STD = {0x8C, 0x8C, 0x8C};
+//static const PowerCalibration POWER_CALIB_STD = {0x8C, 0x8C, 0x8C};
 Preset defaultPresets[33] = {
     (Preset){
         .band =
             {
-                .bounds = {1500000, 2999999},
-                .name = "15-30",
+                .bounds = {1500000, 2799999},
+                .name = "15-28",
                 .step = STEP_5_0kHz,
                 .modulation = MOD_AM,
                 .bw = BK4819_FILTER_BW_NARROW,
@@ -34,7 +34,7 @@ Preset defaultPresets[33] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
-        .lastUsedFreq = 2713500,
+        .lastUsedFreq = 1513500,
         //           50    100   140
         .powCalib = {0x32, 0x64, 0x8C},
         .radio = RADIO_BK4819,
@@ -143,8 +143,8 @@ Preset defaultPresets[33] = {
             },
         .allowTx = false,
         .lastUsedFreq = 13510000,
-                //           95    105   130
-                .powCalib = {0x5f, 0x67, 0x82},
+                //           38	   67	 130
+                .powCalib = {0x26, 0x43, 0x8b},
         .radio = RADIO_BK4819,
     },
     (Preset){
@@ -161,8 +161,8 @@ Preset defaultPresets[33] = {
             },
         .allowTx = false,
         .lastUsedFreq = 14550000,
-                //           95    105   130
-                .powCalib = {0x5f, 0x67, 0x82},
+                //           38	   63	 138
+                .powCalib = {0x26, 0x3f, 0x8a},
         .radio = RADIO_BK4819,
     },
     (Preset){
@@ -179,8 +179,8 @@ Preset defaultPresets[33] = {
             },
         .allowTx = false,
         .lastUsedFreq = 15300000,
-        //           95    105   130
-                .powCalib = {0x5f, 0x67, 0x82},
+        //                   37    60	 130
+                .powCalib = {0x25, 0x3c, 0x82},
         .radio = RADIO_BK4819,
     },
     (Preset){
@@ -197,8 +197,8 @@ Preset defaultPresets[33] = {
             },
         .allowTx = false,
         .lastUsedFreq = 20575000,
-        //           50    100   140
-        .powCalib = {0x32, 0x64, 0x8C},
+        //           46	   55    140
+        .powCalib = {0x2e, 0x37, 0x8C},
         .radio = RADIO_BK4819,
     },
     (Preset){
@@ -215,8 +215,8 @@ Preset defaultPresets[33] = {
             },
         .allowTx = false,
         .lastUsedFreq = 25355000,
-        //           50    100   140
-        .powCalib = {0x32, 0x64, 0x8C},
+        //           58	   80	 130
+        .powCalib = {0x3a, 0x50, 0x82},
         .radio = RADIO_BK4819,
     },
     (Preset){
@@ -233,8 +233,8 @@ Preset defaultPresets[33] = {
             },
         .allowTx = false,
         .lastUsedFreq = 33605000,
-        //           50    100   140
-        .powCalib = {0x32, 0x64, 0x8C},
+        //           77	   95    140
+        .powCalib = {0x4d, 0x5e, 0x8C},
         .radio = RADIO_BK4819,
     },
     (Preset){
@@ -251,8 +251,8 @@ Preset defaultPresets[33] = {
             },
         .allowTx = false,
         .lastUsedFreq = 42230000,
-        //           90    100   111
-        .powCalib = {0x5a, 0x64, 0x6f},
+        //           40	   65	 140
+        .powCalib = {0x28, 0x41, 0x8c},
         .radio = RADIO_BK4819,
     },
     (Preset){
@@ -269,7 +269,7 @@ Preset defaultPresets[33] = {
             },
         .allowTx = true,
         .lastUsedFreq = 43325000,
-        //           40    65   140
+        //           40    65    140
         .powCalib = {0x28, 0x41, 0x8C},
         .radio = RADIO_BK4819,
     },
@@ -287,8 +287,8 @@ Preset defaultPresets[33] = {
             },
         .allowTx = false,
         .lastUsedFreq = 43700000,
-        //           90    100   111
-        .powCalib = {0x5a, 0x64, 0x6f},
+        //           40    65    140
+        .powCalib = {0x28, 0x41, 0x8C},
         .radio = RADIO_BK4819,
     },
     (Preset){
@@ -323,8 +323,8 @@ Preset defaultPresets[33] = {
             },
         .allowTx = false,
         .lastUsedFreq = 46060000,
-        //           90    100   111
-        .powCalib = {0x5a, 0x64, 0x6f},
+        //           41	   65	 140
+        .powCalib = {0x29, 0x41, 0x8C},
         .radio = RADIO_BK4819,
     },
     (Preset){
@@ -341,8 +341,8 @@ Preset defaultPresets[33] = {
             },
         .allowTx = false,
         .lastUsedFreq = 46256250,
-        //           40    65   140
-        .powCalib = {0x28, 0x41, 0x8C},
+        //           41	   65	 140
+        .powCalib = {0x29, 0x41, 0x8C},
         .radio = RADIO_BK4819,
     },
     (Preset){
@@ -359,8 +359,8 @@ Preset defaultPresets[33] = {
             },
         .allowTx = false,
         .lastUsedFreq = 46302500,
-        //           90    100   111
-        .powCalib = {0x5a, 0x64, 0x6f},
+        //           41	   65	 140
+        .powCalib = {0x29, 0x41, 0x8C},
         .radio = RADIO_BK4819,
     },
     (Preset){
@@ -377,8 +377,8 @@ Preset defaultPresets[33] = {
             },
         .allowTx = false,
         .lastUsedFreq = 46756250,
-        //           40    65   140
-        .powCalib = {0x28, 0x41, 0x8C},
+        //           41	   65	 140
+        .powCalib = {0x29, 0x41, 0x8C},
         .radio = RADIO_BK4819,
     },
     (Preset){
@@ -395,8 +395,8 @@ Preset defaultPresets[33] = {
             },
         .allowTx = false,
         .lastUsedFreq = 46980000,
-        //           90    100   111
-        .powCalib = {0x5a, 0x64, 0x6f},
+        //           42	   65	 140
+        .powCalib = {0x2a, 0x41, 0x8C},
         .radio = RADIO_BK4819,
     },
     (Preset){
@@ -413,8 +413,8 @@ Preset defaultPresets[33] = {
             },
         .allowTx = false,
         .lastUsedFreq = 50975000,
-        //           50    100   140
-        .powCalib = {0x32, 0x64, 0x8c},
+        //           48	   70	 140
+        .powCalib = {0x30, 0x46, 0x8c},
         .radio = RADIO_BK4819,
     },
     (Preset){
@@ -581,7 +581,7 @@ Preset defaultPresets[33] = {
                 .bw = BK4819_FILTER_BW_NARROW,
                 .gainIndex = 18,
             },
-        .lastUsedFreq = 1400000,
+        .lastUsedFreq = 1410000,
         .radio = RADIO_SI4732,
     },
         (Preset){
@@ -594,7 +594,7 @@ Preset defaultPresets[33] = {
                 .bw = BK4819_FILTER_BW_NARROW,
                 .gainIndex = 18,
             },
-        .lastUsedFreq = 2800000,
+        .lastUsedFreq = 2810000,
         .radio = RADIO_SI4732,
      },
 };
