@@ -34,7 +34,7 @@ Preset defaultPresets[33] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
-        .lastUsedFreq = 1513500,
+        .lastUsedFreq = 1500000,
         //           50    100   140
         .powCalib = {0x32, 0x64, 0x8C},
         .radio = RADIO_BK4819,
