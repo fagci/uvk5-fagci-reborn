@@ -6,6 +6,8 @@ Based on [https://github.com/DualTachyon/uv-k5-firmware](https://github.com/Dual
 
 [Donations](https://t.me/uvk5_spectrum_talk/6032/6035)
 
+Chirp module by [Giorgio IU0WQJ](https://github.com/gpillon/)
+
 ## License
 
 To be clear, I don't like license preamble inside everu source file.

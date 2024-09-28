@@ -2,7 +2,6 @@
 #include "../helper/measurements.h"
 #include "../helper/presetlist.h"
 #include "../misc.h"
-#include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
 #include "finput.h"
@@ -14,21 +13,25 @@ static uint8_t subMenuIndex = 0;
 static bool isSubMenu = false;
 
 static MenuItem menu[] = {
-    {"Start freq", M_START},
-    {"End freq", M_END},
     {"Name", M_NAME},
+    {"F start", M_START},
+    {"F end", M_END},
     {"Step", M_STEP, ARRAY_SIZE(StepFrequencyTable)},
-    {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions)},
+    {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions) - 1},
     {"BW", M_BW, ARRAY_SIZE(bwNames)},
+    {"Gain", M_GAIN, ARRAY_SIZE(gainTable)},
     {"SQ level", M_SQ, 10},
     {"SQ type", M_SQ_TYPE, ARRAY_SIZE(sqTypeNames)},
-    {"Gain", M_GAIN, ARRAY_SIZE(gainTable)},
+    {"Radio", M_RADIO, ARRAY_SIZE(radioNames) - 1},
     {"Enable TX", M_TX, 2},
 };
 
 static void setInitialSubmenuIndex(void) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
+  case M_RADIO:
+    subMenuIndex = gCurrentPreset->radio;
+    break;
   case M_BW:
     subMenuIndex = gCurrentPreset->band.bw;
     break;
@@ -63,6 +66,9 @@ static void getMenuItemText(uint16_t index, char *name) {
 static void getSubmenuItemText(uint16_t index, char *name) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
+  case M_RADIO:
+    strncpy(name, radioNames[index], 31);
+    return;
   case M_MODULATION:
     strncpy(name, modulationTypeOptions[index], 31);
     return;
@@ -81,7 +87,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     return;
   case M_GAIN:
     sprintf(name, "%ddB%s", gainTable[index].gainDb,
-            index == 16 ? "(def)" : "");
+            index == 16 ? " #" : "");
     return;
   case M_TX:
     strncpy(name, yesNo[index], 31);
@@ -109,8 +115,10 @@ static void setLowerBound(uint32_t f) {
   PRESETS_SaveCurrent();
 }
 
-void PRESETCFG_init(void) { gRedrawScreen = true; }
+void PRESETCFG_init(void) {}
+
 void PRESETCFG_update(void) {}
+
 bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   const MenuItem *item = &menu[menuIndex];
   const uint8_t MENU_SIZE = ARRAY_SIZE(menu);

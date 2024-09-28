@@ -1,12 +1,14 @@
 #include "lootlist.h"
 #include "../dcs.h"
 #include "../driver/st7565.h"
-#include "../driver/uart.h"
 #include "../helper/channels.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
+#include "../helper/presetlist.h"
 #include "../radio.h"
 #include "../scheduler.h"
+#include "../svc.h"
+#include "../svc_render.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
 #include "../ui/statusline.h"
@@ -36,62 +38,67 @@ static char *sortNames[] = {
     "frequency",
 };
 
-Sort sortType = SORT_LOT;
+static Sort sortType = SORT_LOT;
 
 static bool shortList = true;
 static bool sortRev = false;
 
-static void exportLootList(void) {
-  UART_printf("--- 8< ---\n");
-  UART_printf("F,duration,ct,cd,rssi,noise\n");
-  for (uint8_t i = 0; i < LOOT_Size(); ++i) {
-    Loot *v = LOOT_Item(i);
-    if (!v->blacklist) {
-      UART_printf("%u.%05u,%u,%u,%u,%u\n", v->f / 100000, v->f % 100000,
-                  v->duration, v->ct, v->cd, v->rssi);
-    }
+void LOOTLIST_update() {
+  if (Now() - gLastRender >= 500) {
+    gRedrawScreen = true;
   }
-  UART_printf("--- >8 ---\n");
 }
 
 static void getLootItem(uint16_t i, uint16_t index, bool isCurrent) {
-  Loot *item = LOOT_Item(index);
-  uint32_t f = item->f;
+  const Loot *item = LOOT_Item(index);
   const uint8_t y = MENU_Y + i * MENU_ITEM_H_LARGER;
+  const uint32_t f = item->f;
+
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H_LARGER, C_FILL);
   }
+
   PrintMediumEx(8, y + 7, POS_L, C_INVERT, "%u.%05u", f / 100000, f % 100000);
+  if (gIsListening && item->f == radio->rx.f) {
+    PrintSymbolsEx(LCD_WIDTH - 24, y + 7, POS_R, C_INVERT, "%c", SYM_BEEP);
+  }
+
   PrintSmallEx(LCD_WIDTH - 6, y + 7, POS_R, C_INVERT, "%us",
                item->duration / 1000);
 
-  PrintSmallEx(6, y + 7 + 6, POS_L, C_INVERT, "R:%03u", item->rssi);
-  if (item->cd != 0xFF) {
-    PrintSmallEx(6 + 55, y + 7 + 6, POS_L, C_INVERT, "DCS:D%03oN",
+  PrintSmallEx(8, y + 7 + 6, POS_L, C_INVERT, "%03ddB", Rssi2DBm(item->rssi));
+  if (item->ct != 0xFF) {
+    PrintSmallEx(8 + 55, y + 7 + 6, POS_L, C_INVERT, "CT:%u.%uHz",
+                 CTCSS_Options[item->ct] / 10, CTCSS_Options[item->ct] % 10);
+  } else if (item->cd != 0xFF) {
+    PrintSmallEx(8 + 55, y + 7 + 6, POS_L, C_INVERT, "DCS:D%03oN",
                  DCS_Options[item->cd]);
   }
-  if (item->ct != 0xFF) {
-    PrintSmallEx(6 + 55, y + 7 + 6, POS_L, C_INVERT, "CT:%u.%uHz",
-                 CTCSS_Options[item->ct] / 10, CTCSS_Options[item->ct] % 10);
-  }
+
   if (item->blacklist) {
-    PrintSmallEx(1, y + 5, POS_L, C_INVERT, "X");
+    PrintMediumEx(1, y + 7, POS_L, C_INVERT, "-");
   }
   if (item->goodKnown) {
-    PrintSmallEx(1, y + 5, POS_L, C_INVERT, "*");
+    PrintMediumEx(1, y + 7, POS_L, C_INVERT, "+");
   }
 }
 
 static void getLootItemShort(uint16_t i, uint16_t index, bool isCurrent) {
-  Loot *item = LOOT_Item(index);
-  uint32_t f = item->f;
+  const Loot *item = LOOT_Item(index);
   const uint8_t x = LCD_WIDTH - 6;
   const uint8_t y = MENU_Y + i * MENU_ITEM_H;
+  const uint32_t f = item->f;
   const uint32_t ago = (Now() - item->lastTimeOpen) / 1000;
+
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
   }
+
   PrintMediumEx(8, y + 7, POS_L, C_INVERT, "%u.%05u", f / 100000, f % 100000);
+  if (gIsListening && item->f == radio->rx.f) {
+    PrintSymbolsEx(LCD_WIDTH - 24, y + 7, POS_R, C_INVERT, "%c", SYM_BEEP);
+  }
+
   switch (sortType) {
   case SORT_LOT:
     PrintSmallEx(x, y + 7, POS_R, C_INVERT, "%u:%02u", ago / 60, ago % 60);
@@ -102,6 +109,7 @@ static void getLootItemShort(uint16_t i, uint16_t index, bool isCurrent) {
     PrintSmallEx(x, y + 7, POS_R, C_INVERT, "%us", item->duration / 1000);
     break;
   }
+
   if (item->blacklist) {
     PrintMediumEx(1, y + 7, POS_L, C_INVERT, "-");
   }
@@ -118,7 +126,7 @@ static void sort(Sort type) {
   }
   LOOT_Sort(sortings[type], sortRev);
   sortType = type;
-  STATUSLINE_SetText("By %s %s", sortNames[sortType], sortRev ? "desc" : "asc");
+  STATUSLINE_SetText("By %s %s", sortNames[sortType], sortRev ? "v" : "^");
 }
 
 void LOOTLIST_render(void) {
@@ -128,33 +136,43 @@ void LOOTLIST_render(void) {
 }
 
 void LOOTLIST_init(void) {
-  gRedrawScreen = true;
   sortType = SORT_F;
   sort(SORT_LOT);
   if (LOOT_Size()) {
-    Loot *item = LOOT_Item(menuIndex);
-    RADIO_TuneTo(item->f);
+    RADIO_TuneTo(LOOT_Item(menuIndex)->f);
   }
 }
 
 static void saveAllToFreeChannels(void) {
-  uint16_t chnum = 0;
+  uint16_t chnum = CHANNELS_GetCountMax() - 1;
   for (uint8_t i = 0; i < LOOT_Size(); ++i) {
     Loot *loot = LOOT_Item(i);
-    if (!loot->blacklist) {
+    if (loot->goodKnown) {
       while (CHANNELS_Existing(chnum)) {
-        chnum++;
-        if (chnum >= CHANNELS_GetCountMax()) {
+        chnum--;
+        if (chnum == 0) {
           return;
         }
       }
-      CH ch;
+      CH ch = {0};
       ch.rx.f = loot->f;
+      ch.tx.f = 0;
+      if (loot->ct != 255) {
+        ch.tx.codeType = CODE_TYPE_CONTINUOUS_TONE;
+        ch.tx.code = loot->ct;
+      } else if (loot->cd != 255) {
+        ch.tx.codeType = CODE_TYPE_DIGITAL;
+        ch.tx.code = loot->cd;
+      }
+      ch.memoryBanks = 1 << 7;
       snprintf(ch.name, 9, "%lu.%05lu", ch.rx.f / 100000, ch.rx.f % 100000);
 
+      Preset *p = PRESET_ByFrequency(loot->f);
+      ch.radio = p->radio;
+      ch.modulation = p->band.modulation;
+
       CHANNELS_Save(chnum, &ch);
-      loot->blacklist = true;
-      chnum++;
+      chnum--;
     }
   }
 }
@@ -173,7 +191,9 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_5:
       saveAllToFreeChannels();
-      LOOT_RemoveBlacklisted();
+      return true;
+    case KEY_4: // freq catch
+      SVC_Toggle(SVC_FC, !SVC_Running(SVC_FC), 100);
       return true;
     default:
       break;
@@ -228,7 +248,6 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       shortList = !shortList;
       return true;
     case KEY_9:
-      exportLootList();
       return true;
     case KEY_5:
       radio->rx.f = item->f;
@@ -237,6 +256,12 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_0:
       LOOT_Remove(menuIndex);
+      if (menuIndex > LOOT_Size() - 1) {
+        menuIndex = LOOT_Size() - 1;
+      }
+      item = LOOT_Item(menuIndex);
+      RADIO_TuneTo(item->f);
+
       return true;
     case KEY_MENU:
       RADIO_TuneToSave(item->f);

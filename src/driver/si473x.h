@@ -543,6 +543,16 @@ typedef union {
 
 typedef union {
   struct {
+    uint8_t INTACK : 1; //!<  If set, clears the seek/tune complete interrupt
+                        //!<  status indicator.
+    uint8_t CANCEL : 1; //!<  If set, aborts a seek currently in progress.
+    uint8_t RESERVED2 : 6;
+  } arg;
+  uint8_t raw;
+} SI47XX_TuneStatus;
+
+typedef union {
+  struct {
     uint8_t AMCHFLT : 4; //!<  Selects the bandwidth of the AM channel filter.
     uint8_t DUMMY1 : 4;
     uint8_t AMPLFLT : 1; //!<  Enables the AM Power Line Noise Rejection Filter.
@@ -552,6 +562,7 @@ typedef union {
 } SI47XX_BW_Config; // AM_CHANNEL_FILTER
 
 void SI47XX_PowerUp();
+void SI47XX_PatchPowerUp();
 void SI47XX_PowerDown();
 void SI47XX_SetFreq(uint16_t freq);
 void SI47XX_ReadRDS(uint8_t buf[13]);
@@ -560,20 +571,24 @@ bool SI47XX_IsSSB();
 void RSQ_GET();
 void SI47XX_SetAutomaticGainControl(uint8_t AGCDIS, uint8_t AGCIDX);
 void SI47XX_Seek(bool up, bool wrap);
-uint16_t SI47XX_getFrequency(bool *valid);
+uint32_t SI47XX_getFrequency(bool *valid);
 void SI47XX_SetBandwidth(SI47XX_FilterBW AMCHFLT, bool AMPLFLT);
 void SI47XX_SetSsbBandwidth(SI47XX_SsbFilterBW bw);
-void SI47XX_SetSeekFmLimits(uint16_t bottom, uint16_t top);
-void SI47XX_SetSeekAmLimits(uint16_t bottom, uint16_t top);
-void SI47XX_SetSeekFmSpacing(uint16_t spacing);
-void SI47XX_SetSeekAmSpacing(uint16_t spacing);
+void SI47XX_SetSeekFmLimits(uint32_t bottom, uint32_t top);
+void SI47XX_SetSeekAmLimits(uint32_t bottom, uint32_t top);
+void SI47XX_SetSeekFmSpacing(uint32_t spacing);
+void SI47XX_SetSeekAmSpacing(uint32_t spacing);
 void SI47XX_SetSeekFmRssiThreshold(uint16_t value);
 void SI47XX_SetSeekAmRssiThreshold(uint16_t value);
 void SI47XX_SetBFO(int16_t bfo);
 void SI47XX_SetSsbCapacitor(uint16_t v);
+void SI47XX_TuneTo(uint32_t f);
+void SI47XX_SetVolume(uint8_t volume);
+void SI47xx_GetStatus(uint8_t intack, uint8_t cancel);
 
 extern SI47XX_MODE si4732mode;
 extern RSQStatus rsqStatus;
 extern uint16_t siCurrentFreq;
+extern bool isSi4732On;
 
 #endif /* end of include guard: SI473X_H */
