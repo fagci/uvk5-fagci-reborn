@@ -39,14 +39,16 @@ static VFO defaultVFOs[2] = {
 static EEPROMType determineEepromType() {
   const uint8_t A = 33;
   const uint8_t B = 55;
-  uint8_t bufr[1];
-  for (uint8_t i = 0; i < ARRAY_SIZE(EEPROM_SIZES); ++i) {
+  uint8_t bufA[1];
+  uint8_t bufB[1];
+  for (uint8_t i = ARRAY_SIZE(EEPROM_SIZES)-1; i >=0; --i) {
     gSettings.eepromType = i;
-    uint32_t sz = EEPROM_SIZES[i];
+    uint32_t sz = EEPROM_SIZES[i]-1;
     EEPROM_WriteBuffer(0, (uint8_t[]){A}, 1);
     EEPROM_WriteBuffer(sz, (uint8_t[]){B}, 1);
-    EEPROM_ReadBuffer(0, bufr, 1);
-    if (bufr[0] == B) {
+    EEPROM_ReadBuffer(0, bufA, 1);
+    EEPROM_ReadBuffer(sz, bufB, 1);
+    if (bufA[0] == A && bufB[0] == B) {
       return i;
     }
   }
