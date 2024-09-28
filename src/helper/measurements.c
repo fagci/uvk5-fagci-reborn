@@ -16,7 +16,7 @@ uint32_t ClampF(uint32_t v, uint32_t min, uint32_t max) {
   return v <= min ? min : (v >= max ? max : v);
 }
 
-static uint32_t ConvertDomainF(uint32_t aValue, uint32_t aMin, uint32_t aMax,
+uint32_t ConvertDomainF(uint32_t aValue, uint32_t aMin, uint32_t aMax,
                                uint32_t bMin, uint32_t bMax) {
   const uint64_t aRange = aMax - aMin;
   const uint64_t bRange = bMax - bMin;

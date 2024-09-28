@@ -113,8 +113,8 @@ bool SI47XX_GetRDS() {
       if (type == 0) {
         // Program Service
         char *ps = &rds.programService[segment * 2];
-        *ps++ = printable(rdsResponse.raw[Block_D_H]);
-        *ps = printable(rdsResponse.raw[Block_D_L]);
+        *ps++ = IsPrintable(rdsResponse.raw[Block_D_H]);
+        *ps = IsPrintable(rdsResponse.raw[Block_D_L]);
       }
       new_info = true;
     }
@@ -195,7 +195,7 @@ bool SI47XX_GetRDS() {
           rds.radioTextLen = rt - rds.radioText;
         }
         // Put next char in rds.radioText[]
-        *rt++ = printable(ch);
+        *rt++ = IsPrintable(ch);
       } while (--i);
       new_info = true;
     }
@@ -252,10 +252,10 @@ bool SI47XX_GetRDS() {
 
       // Get Program Type Name
       char *name = &rds.programTypeName[segment * 4];
-      *name++ = printable(rdsResponse.raw[Block_C_H]);
-      *name++ = printable(rdsResponse.raw[Block_C_L]);
-      *name++ = printable(rdsResponse.raw[Block_D_H]);
-      *name = printable(rdsResponse.raw[Block_D_L]);
+      *name++ = IsPrintable(rdsResponse.raw[Block_C_H]);
+      *name++ = IsPrintable(rdsResponse.raw[Block_C_L]);
+      *name++ = IsPrintable(rdsResponse.raw[Block_D_H]);
+      *name = IsPrintable(rdsResponse.raw[Block_D_L]);
       new_info = true;
     }
   }

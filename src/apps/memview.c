@@ -29,7 +29,7 @@ void MEMVIEW_Render(void) {
     }
 
     PrintSmall(16 + col * 9, rowYBL, "%02x", buf[i]);
-    PrintSmall(88 + col * 5, rowYBL, "%c", printable(buf[i]));
+    PrintSmall(88 + col * 5, rowYBL, "%c", IsPrintable(buf[i]));
   }
 }
 
