@@ -13,14 +13,14 @@ const char *TX_POWER_NAMES[3] = {"Low", "Mid", "High"};
 const char *TX_OFFSET_NAMES[3] = {"Unset", "+", "-"};
 const char *TX_CODE_TYPES[4] = {"None", "CTCSS", "DCS", "-DCS"};
 const char *EEPROM_TYPE_NAMES[8] = {
-    "none 1",          // 000
-    "none 2",          // 001
-    "BL24C64 (stock)", // 010
-    "BL24C128",        // 011
-    "BL24C256",        // 100
-    "BL24C512",        // 101
-    "BL24C1024",       // 110
-    "M24M02 (x1)",     // 111
+    "-",      // 000
+    "-",      // 001
+    "BL24C64 #",   // 010
+    "BL24C128",    // 011
+    "BL24C256",    // 100
+    "BL24C512",    // 101
+    "BL24C1024",   // 110
+    "M24M02", // 111
 };
 
 const uint32_t EEPROM_SIZES[8] = {
@@ -55,7 +55,7 @@ void SETTINGS_Load(void) {
 
 void SETTINGS_DelayedSave(void) {
   TaskRemove(SETTINGS_Save);
-  TaskAdd("Settings save", SETTINGS_Save, 5000, false, 0);
+  TaskAdd("SetSav", SETTINGS_Save, 5000, false, 0);
 }
 
 uint32_t SETTINGS_GetFilterBound(void) {

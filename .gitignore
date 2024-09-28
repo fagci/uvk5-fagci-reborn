@@ -2,3 +2,6 @@ obj/
 bin/
 src/external/
 .vsconfig/
+
+*.log
+*.log.bak
