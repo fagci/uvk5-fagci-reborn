@@ -19,7 +19,7 @@ Preset defaultPreset = {
             .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
         },
 };
-static const PowerCalibration POWER_CALIB_STD = {0x8C, 0x8C, 0x8C};
+
 Preset defaultPresets[33] = {
     (Preset){
         .band =
@@ -143,8 +143,8 @@ Preset defaultPresets[33] = {
             },
         .allowTx = false,
         .lastUsedFreq = 13510000,
-                //           95    105   130
-                .powCalib = {0x5f, 0x67, 0x82},
+        //           95    105   130
+        .powCalib = {0x5f, 0x67, 0x82},
         .radio = RADIO_BK4819,
     },
     (Preset){
@@ -161,8 +161,8 @@ Preset defaultPresets[33] = {
             },
         .allowTx = false,
         .lastUsedFreq = 14550000,
-                //           95    105   130
-                .powCalib = {0x5f, 0x67, 0x82},
+        //           95    105   130
+        .powCalib = {0x5f, 0x67, 0x82},
         .radio = RADIO_BK4819,
     },
     (Preset){
@@ -180,7 +180,7 @@ Preset defaultPresets[33] = {
         .allowTx = false,
         .lastUsedFreq = 15300000,
         //           95    105   130
-                .powCalib = {0x5f, 0x67, 0x82},
+        .powCalib = {0x5f, 0x67, 0x82},
         .radio = RADIO_BK4819,
     },
     (Preset){
@@ -571,7 +571,7 @@ Preset defaultPresets[33] = {
         .lastUsedFreq = 710000,
         .radio = RADIO_SI4732,
     },
-        (Preset){
+    (Preset){
         .band =
             {
                 .bounds = {1400000, 1435000},
@@ -584,7 +584,7 @@ Preset defaultPresets[33] = {
         .lastUsedFreq = 1400000,
         .radio = RADIO_SI4732,
     },
-        (Preset){
+    (Preset){
         .band =
             {
                 .bounds = {2800000, 2970000},

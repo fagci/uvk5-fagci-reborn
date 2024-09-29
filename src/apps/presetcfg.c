@@ -119,6 +119,7 @@ void PRESETCFG_init(void) {}
 
 void PRESETCFG_update(void) {}
 
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   const MenuItem *item = &menu[menuIndex];
   const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
