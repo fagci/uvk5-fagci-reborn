@@ -10,7 +10,8 @@ void ABOUT_Render() {
                "t.me/uvk5_spectrum_talk");
 }
 
-bool ABOUT_key(KEY_Code_t k, bool p, bool h) {
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+bool ABOUT_key(KEY_Code_t k, bool bKeyPressed, bool bKeyHeld) {
   switch (k) {
   case KEY_EXIT:
     APPS_exit();

@@ -19,7 +19,7 @@
 #include "../inc/dp32g030/aes.h"
 #include "../driver/aes.h"
 
-static void AES_Setup_ENC_CBC(bool IsDecrypt, const void *pKey, const void *pIv)
+static void AES_Setup_ENC_CBC(const void *pKey, const void *pIv)
 {
 	const uint32_t *pK = (const uint32_t *)pKey;
 	const uint32_t *pI = (const uint32_t *)pIv;
@@ -64,7 +64,7 @@ void AES_Encrypt(const void *pKey, const void *pIv, const void *pIn, void *pOut,
 	uint8_t *pO = (uint8_t *)pOut;
 	uint8_t i;
 
-	AES_Setup_ENC_CBC(0, pKey, pIv);
+	AES_Setup_ENC_CBC(pKey, pIv);
 	for (i = 0; i < NumBlocks; i++) {
 		AES_Transform(pI + (i * 16), pO + (i * 16));
 	}

@@ -70,7 +70,7 @@ const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
 };
 
 const App apps[APPS_COUNT] = {
-    {"None"},
+    {"None", NULL, NULL, NULL, NULL, NULL},
     {"EEPROM view", MEMVIEW_Init, MEMVIEW_Update, MEMVIEW_Render, MEMVIEW_key,
      NULL},
     {"Band scan", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render, SPECTRUM_key,

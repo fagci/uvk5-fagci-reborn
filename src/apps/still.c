@@ -85,6 +85,7 @@ void STILL_update(void) {
   }
 }
 
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (key == KEY_PTT) {
     RADIO_ToggleTX(bKeyHeld);

@@ -247,9 +247,8 @@ static void toggleBK1080SI4732(bool on) {
   }
 }
 
-static uint8_t calculateOutputPower(Preset *p, uint32_t Frequency) {
-    uint8_t power_bias = p->powCalib.s; 
-    if (power_bias>10) power_bias-=10; // 10mw if Low=500mw
+static uint8_t calculateOutputPower(Preset *p) {
+    uint8_t power_bias;
     
     switch (p->power) {
       case TX_POW_LOW:
@@ -263,6 +262,10 @@ static uint8_t calculateOutputPower(Preset *p, uint32_t Frequency) {
       case TX_POW_HIGH:
           power_bias = p->powCalib.e;
           break;
+
+      default:
+          power_bias = p->powCalib.s;
+          if (power_bias>10) power_bias-=10; // 10mw if Low=500mw
     }
     
     
@@ -464,7 +467,7 @@ TXState RADIO_GetTXState(uint32_t txF) {
 
 uint32_t RADIO_GetTxPower(uint32_t txF) {
   Preset *txPreset = PRESET_ByFrequency(txF);
-  uint8_t power = calculateOutputPower(txPreset, txF);
+  uint8_t power = calculateOutputPower(txPreset);
   if (power > 0x91) {
     power = 0x91;
   }

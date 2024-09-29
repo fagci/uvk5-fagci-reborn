@@ -59,7 +59,7 @@ bool GENERATOR_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   }
   // up-down keys
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
-    bool isSsb = RADIO_IsSSB();
+    // bool isSsb = RADIO_IsSSB();
     switch (key) {
     case KEY_UP:
       RADIO_NextFreqNoClicks(true);

@@ -41,8 +41,7 @@ static EEPROMType determineEepromType() {
   const uint8_t B = 55;
   uint8_t bufA[1];
   uint8_t bufB[1];
-  for (uint8_t i = ARRAY_SIZE(EEPROM_SIZES)-1; i >=0; --i) {
-    gSettings.eepromType = i;
+  for (uint8_t i = ARRAY_SIZE(EEPROM_SIZES)-1; i > 0; --i) {
     uint32_t sz = EEPROM_SIZES[i]-1;
     EEPROM_WriteBuffer(0, (uint8_t[]){A}, 1);
     EEPROM_WriteBuffer(sz, (uint8_t[]){B}, 1);
@@ -52,11 +51,12 @@ static EEPROMType determineEepromType() {
       return i;
     }
   }
-  return gSettings.eepromType;
+  return 0;
 }
 
 void RESET_Init(void) {
   eepromType = determineEepromType();
+  gSettings.eepromType = eepromType;
   presetsWrote = 0;
   vfosWrote = 0;
   bytesWrote = 0;
@@ -143,4 +143,5 @@ void RESET_Render(void) {
                 bytesWrote * 100 / bytesMax);
 }
 
-bool RESET_key(KEY_Code_t k, bool p, bool h) { return true; }
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+bool RESET_key(KEY_Code_t k, bool bKeyPressed, bool bKeyHeld) { return true; }

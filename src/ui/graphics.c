@@ -123,7 +123,7 @@ void FillRect(int16_t x, int16_t y, int16_t w, int16_t h, Color color) {
 }
 
 static void m_putchar(int16_t x, int16_t y, unsigned char c, Color color,
-                      uint16_t bg, uint8_t size_x, uint8_t size_y,
+                      uint8_t size_x, uint8_t size_y,
                       const GFXfont *gfxFont) {
   c -= gfxFont->first;
   GFXglyph *glyph = &gfxFont->glyph[c];
@@ -220,7 +220,7 @@ static void getTextBounds(const char *str, int16_t x, int16_t y, int16_t *x1,
 }
 
 void write(uint8_t c, uint8_t textsize_x, uint8_t textsize_y, bool wrap,
-           Color color, uint8_t bg, const GFXfont *gfxFont) {
+           Color color, const GFXfont *gfxFont) {
   if (c == '\n') {
     cursor.x = 0;
     cursor.y += (int16_t)textsize_y * gfxFont->yAdvance;
@@ -235,7 +235,7 @@ void write(uint8_t c, uint8_t textsize_x, uint8_t textsize_y, bool wrap,
           cursor.x = 0;
           cursor.y += (int16_t)textsize_y * gfxFont->yAdvance;
         }
-        m_putchar(cursor.x, cursor.y, c, color, bg, textsize_x, textsize_y,
+        m_putchar(cursor.x, cursor.y, c, color, textsize_x, textsize_y,
                   gfxFont);
       }
       cursor.x += glyph->xAdvance * (int16_t)textsize_x;
@@ -260,7 +260,7 @@ static void printString(const GFXfont *gfxFont, uint8_t x, uint8_t y,
   cursor.x = x;
   cursor.y = y;
   for (uint8_t i = 0; i < strlen(String); i++) {
-    write(String[i], 1, 1, true, color, false, gfxFont);
+    write(String[i], 1, 1, true, color, gfxFont);
   }
 }
 

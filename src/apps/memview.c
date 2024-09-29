@@ -19,7 +19,6 @@ void MEMVIEW_Render(void) {
 
   UI_ClearScreen();
   for (uint8_t i = 0; i < PAGE_SZ; ++i) {
-    uint32_t offset = i + page * PAGE_SZ;
     uint8_t col = i % 8;
     uint8_t row = i / 8;
     uint8_t rowYBL = row * 6 + 8 + 5;
@@ -33,7 +32,8 @@ void MEMVIEW_Render(void) {
   }
 }
 
-bool MEMVIEW_key(KEY_Code_t k, bool p, bool h) {
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+bool MEMVIEW_key(KEY_Code_t k, bool bKeyPressed, bool bKeyHeld) {
   switch (k) {
   case KEY_EXIT:
     APPS_exit();

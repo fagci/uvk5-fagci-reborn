@@ -2,6 +2,7 @@
 #include "../apps/textinput.h"
 #include "../driver/bk4819.h"
 #include "../helper/channels.h"
+#include "../helper/measurements.h"
 #include "../helper/lootlist.h"
 #include "../helper/numnav.h"
 #include "../helper/presetlist.h"

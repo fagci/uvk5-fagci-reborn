@@ -17,8 +17,6 @@ static uint8_t filledPoints;
 static uint16_t stepsCount;
 static uint16_t currentStep;
 
-static uint16_t ceilDiv(uint16_t a, uint16_t b) { return (a + b - 1) / b; }
-
 static uint16_t minRssi(uint16_t *array, uint8_t n) {
   uint16_t min = U16_MAX;
   for (uint8_t i = 0; i < n; ++i) {
