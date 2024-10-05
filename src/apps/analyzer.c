@@ -12,23 +12,25 @@
 #include "../ui/spectrum.h"
 #include "../ui/statusline.h"
 #include "apps.h"
+#include <stdint.h>
 
 static const uint8_t ANALYZER_Y = 16;
 static const uint8_t ANALYZER_HEIGHT = 40;
 static const uint8_t spectrumWidth = LCD_WIDTH;
-#pragma GCC diagnostic ignored "-Wunused-const-variable"
-static const uint16_t BK_RST_SOFT = 0xBFF1 & ~BK4819_REG_30_ENABLE_VCO_CALIB;
 
 static Loot msm;
 static uint32_t centerF = 0;
 static uint8_t initialScanInterval = 0;
 static uint8_t scanInterval = 2;
+static uint8_t stepsCount = 128;
 
 static bool isListening = false;
 
 static uint32_t peakF = 0;
 static uint32_t _peakF = 0;
 static uint16_t peakRssi = 0;
+
+static uint16_t squelchRssi = UINT16_MAX;
 
 static Preset opt = {
     .band =
@@ -41,9 +43,9 @@ static uint16_t step;
 static void startNewScan(bool reset) {
   _peakF = 0;
   peakRssi = 0;
+  squelchRssi = UINT16_MAX;
   if (reset) {
     LOOT_Standby();
-    // RADIO_TuneToPure(msm.f, true);
     msm.f = opt.band.bounds.start;
     BK4819_TuneTo(msm.f, true);
     BK4819_SetRegValue(afcDisableRegSpec, true);
@@ -76,6 +78,9 @@ static void scanFn(bool forward) {
     msm.f = opt.band.bounds.start;
     peakF = _peakF;
     gRedrawScreen = true;
+    if (squelchRssi == UINT16_MAX) {
+      squelchRssi = SP_GetRssiMax() + 2;
+    }
   } else {
     msm.f += step;
   }
@@ -91,16 +96,16 @@ static void scanFn(bool forward) {
 
 static void setCenterF(uint32_t f) {
   step = StepFrequencyTable[opt.band.step];
-  const uint32_t halfBW = step * 64;
+  const uint32_t halfBW = step * (stepsCount / 2);
   centerF = f;
   opt.band.bounds.start = centerF - halfBW;
   opt.band.bounds.end = centerF + halfBW;
+  startNewScan(true);
 }
 
-static void setup(void) {
-  setCenterF(radio->rx.f);
+static void setup(uint32_t f) {
+  setCenterF(f);
   gSettings.scanTimeout = scanInterval;
-  startNewScan(true);
 }
 
 void ANALYZER_init(void) {
@@ -114,7 +119,7 @@ void ANALYZER_init(void) {
   opt.band.step = gCurrentPreset->band.step;
   opt.band.squelch = 0;
 
-  setup();
+  setup(radio->rx.f);
   startNewScan(true);
 
   gScanFn = scanFn;
@@ -131,37 +136,37 @@ void ANALYZER_deinit(void) {
 }
 
 bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
-
+  // repeat or keyup
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (Key) {
     case KEY_1:
       IncDec8(&scanInterval, 1, 255, 1);
-      setup();
+      setup(centerF);
       return true;
     case KEY_7:
       IncDec8(&scanInterval, 1, 255, -1);
-      setup();
+      setup(centerF);
       return true;
     default:
       break;
     }
   }
 
+  // long press
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     switch (Key) {
     case KEY_UP:
       setCenterF(centerF + StepFrequencyTable[opt.band.step] * 64);
-      startNewScan(true);
       return true;
     case KEY_DOWN:
       setCenterF(centerF - StepFrequencyTable[opt.band.step] * 64);
-      startNewScan(true);
       return true;
     default:
       break;
     }
   }
 
+  // just pressed
   if (!bKeyPressed && !bKeyHeld) {
     switch (Key) {
     case KEY_EXIT:
@@ -169,14 +174,12 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_UP:
       setCenterF(centerF + StepFrequencyTable[opt.band.step]);
-      startNewScan(true);
       return true;
     case KEY_DOWN:
       setCenterF(centerF - StepFrequencyTable[opt.band.step]);
-      startNewScan(true);
       return true;
     case KEY_SIDE1:
-      isListening = !isListening;
+      isListening ^= 1;
       if (isListening) {
         RADIO_TuneToPure(centerF, true);
       }
@@ -191,19 +194,24 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       if (opt.band.step < STEP_200_0kHz) {
         opt.band.step++;
       }
-      setup();
+      setup(centerF);
       return true;
     case KEY_8:
       if (opt.band.step > 0) {
         opt.band.step--;
       }
-      setup();
+      setup(centerF);
       return true;
     case KEY_F:
       APPS_run(APP_PRESET_CFG);
       return true;
     case KEY_0:
-      APPS_run(APP_PRESETS_LIST);
+      if (stepsCount > 32) {
+        stepsCount >>= 1;
+      } else {
+        stepsCount = 128;
+      }
+      setCenterF(centerF);
       return true;
     case KEY_STAR:
       APPS_run(APP_LOOT_LIST);
@@ -242,6 +250,9 @@ void ANALYZER_render(void) {
   }
 
   SP_Render(&opt, 0, ANALYZER_Y, ANALYZER_HEIGHT);
+  if (squelchRssi != UINT16_MAX) {
+    SP_RenderRssi(squelchRssi, "SQ", true, 0, ANALYZER_Y, ANALYZER_HEIGHT);
+  }
 
   SP_RenderArrow(&opt, peakF, 0, ANALYZER_Y, ANALYZER_HEIGHT);
 

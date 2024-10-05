@@ -234,10 +234,7 @@ static void drawRDS() {
   if (rds.RDSSignal) {
     PrintSmallEx(LCD_WIDTH - 1, 12, POS_R, C_FILL, "RDS");
 
-    char genre[17];
     const char wd[8][3] = {"SU", "MO", "TU", "WE", "TH", "FR", "SA", "SU"};
-    SI47XX_GetProgramType(genre);
-    PrintSmallEx(LCD_XCENTER, 14, POS_C, C_FILL, "%s", genre);
 
     if (SI47XX_GetLocalDateTime(&dt)) {
       PrintSmallEx(LCD_XCENTER, LCD_HEIGHT - 16, POS_C, C_FILL,
