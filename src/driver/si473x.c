@@ -52,9 +52,7 @@ void waitToSend() {
 
 bool SI47XX_downloadPatch() {
   uint8_t buf[248];
-  // const uint8_t PAGE_SIZE = SETTINGS_GetPageSize();
-  const uint32_t EEPROM_SIZE = SETTINGS_GetEEPROMSize();
-  const uint32_t PATCH_START = EEPROM_SIZE - PATCH_SIZE;
+  const uint32_t PATCH_START = __EEPROM_SIZE - PATCH_SIZE;
   for (uint16_t offset = 0; offset < PATCH_SIZE; offset += 248) {
     uint32_t eepromN = PATCH_SIZE - offset > 248 ? 248 : PATCH_SIZE - offset;
     EEPROM_ReadBuffer(PATCH_START + offset, buf, eepromN);

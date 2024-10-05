@@ -44,17 +44,19 @@ void uartHandle() {
 }
 
 static void unreborn(void) {
-  uint8_t tpl[128];
-  const uint32_t EEPROM_SIZE = SETTINGS_GetEEPROMSize();
-  const uint8_t PAGE_SIZE = SETTINGS_GetPageSize();
+  uint8_t tpl[__EEPROM_PAGESIZE];
+//  const uint32_t EEPROM_SIZE = EEPROM_GetSize();
+//  const uint8_t PAGE_SIZE = EEPROM_GetPageSize();
 
-  memset(tpl, 0xFF, 128);
+  Log("mem %d %d %s", __EEPROM_SIZE, __EEPROM_PAGESIZE, __EEPROM);
 
-  for (uint16_t i = 0; i < EEPROM_SIZE; i += PAGE_SIZE) {
-    EEPROM_WriteBuffer(i, tpl, PAGE_SIZE);
+  memset(tpl, 0xFF, __EEPROM_PAGESIZE);
+
+  for (uint32_t i = 0; i < __EEPROM_SIZE; i += __EEPROM_PAGESIZE) {
+    EEPROM_WriteBuffer(i, tpl, __EEPROM_PAGESIZE);
     UI_ClearScreen();
     PrintMediumEx(LCD_XCENTER, LCD_YCENTER, POS_C, C_FILL, "0xFFing... %u",
-                  i * 100 / EEPROM_SIZE);
+                  i * 100 / __EEPROM_SIZE);
     ST7565_Blit();
   }
 

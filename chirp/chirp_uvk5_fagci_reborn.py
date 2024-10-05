@@ -793,12 +793,12 @@ CH_SIZE = 23
 EEPROM_SIZES = [
     8192,  # 000
     8192,  # 001
-    8192,  # 010
-    16384,  # 011
-    32768,  # 100
-    65536,  # 101
-    131072,  # 110
-    262144,  # 111
+    16384,  # 010
+    32768,  # 011
+    65536,  # 100
+    131072,  # 101
+    262144,  # 110
+    524288,  # 111
 ]
 
 RADIO_LIST = [
@@ -893,14 +893,14 @@ SCAN_TIMEOUT = [
 ]
 
 EEPROM_TYPE = [
-    "EEPROM_A",
-    "EEPROM_B",
+    "EEPROM_BL24C64",
     "EEPROM_BL24C64",
     "EEPROM_BL24C128",
     "EEPROM_BL24C256",
     "EEPROM_BL24C512",
     "EEPROM_BL24C1024",
-    "EEPROM_M24M02"
+    "EEPROM_M24M02",
+    "EEPROM_M24M02x2"
 ]
 
 BL_TIME_VALUES = [0, 5, 10, 20, 60, 120, 255]
@@ -915,13 +915,13 @@ TX_CODE_TYPES = RX_CODE_TYPES = ["None", "CTCSS", "DCS", "-DCS"]
 
 EEPROM_TYPE_NAMES = [
     "none 1",  # 000
-    "none 2",  # 001
-    "BL24C64 (stock)",  # 010
-    "BL24C128",  # 011
-    "BL24C256",  # 100
-    "BL24C512",  # 101
-    "BL24C1024",  # 110
-    "M24M02 (x1)",  # 111
+    "BL24C64 (stock)",  # 001
+    "BL24C128",  # 010
+    "BL24C256",  # 011
+    "BL24C512",  # 100
+    "BL24C1024",  # 101
+    "M24M02 (x1)",  # 110
+    "M24M02 (x2)",  # 111
 ]
 
 APP_LIST = [

@@ -17,7 +17,6 @@ static bool lastEepromWrite = false;
 static char statuslineText[32] = {0};
 
 static void eepromRWReset(void) {
-  lastEepromWrite = gEepromWrite = false;
   gRedrawScreen = true;
 }
 
@@ -46,12 +45,6 @@ void STATUSLINE_update(void) {
     previousBatteryLevel = level;
     gRedrawScreen = true;
   }
-
-  if (lastEepromWrite != gEepromWrite) {
-    lastEepromWrite = gEepromWrite;
-    gRedrawScreen = true;
-    TaskAdd("EEPROM RW-", eepromRWReset, 500, false, 0);
-  }
 }
 
 void STATUSLINE_render(void) {
@@ -78,10 +71,6 @@ void STATUSLINE_render(void) {
 
   char icons[8] = {'\0'};
   uint8_t idx = 0;
-
-  if (gEepromWrite) {
-    icons[idx++] = SYM_EEPROM_W;
-  }
 
   if (SVC_Running(SVC_BEACON)) {
     icons[idx++] = SYM_BEACON;

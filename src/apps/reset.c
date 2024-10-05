@@ -19,8 +19,6 @@ static uint8_t vfosWrote = 0;
 static bool settingsWrote = 0;
 static uint8_t buf[8];
 
-static EEPROMType eepromType;
-
 static VFO defaultVFOs[2] = {
     (VFO){
         .rx.f = 14550000,
@@ -36,27 +34,8 @@ static VFO defaultVFOs[2] = {
     },
 };
 
-static EEPROMType determineEepromType() {
-  const uint8_t A = 33;
-  const uint8_t B = 55;
-  uint8_t bufA[1];
-  uint8_t bufB[1];
-  for (uint8_t i = ARRAY_SIZE(EEPROM_SIZES)-1; i > 0; --i) {
-    uint32_t sz = EEPROM_SIZES[i]-1;
-    EEPROM_WriteBuffer(0, (uint8_t[]){A}, 1);
-    EEPROM_WriteBuffer(sz, (uint8_t[]){B}, 1);
-    EEPROM_ReadBuffer(0, bufA, 1);
-    EEPROM_ReadBuffer(sz, bufB, 1);
-    if (bufA[0] == A && bufB[0] == B) {
-      return i;
-    }
-  }
-  return 0;
-}
-
 void RESET_Init(void) {
-  eepromType = determineEepromType();
-  gSettings.eepromType = eepromType;
+  gSettings.eepromType = __EEPROM_CODE;
   presetsWrote = 0;
   vfosWrote = 0;
   bytesWrote = 0;
@@ -70,7 +49,7 @@ void RESET_Init(void) {
 void RESET_Update(void) {
   if (!settingsWrote) {
     gSettings = (Settings){
-        .eepromType = eepromType,
+        .eepromType = __EEPROM_CODE,
         .squelch = 4,
         .scrambler = 0,
         .batsave = 4,
@@ -138,7 +117,7 @@ void RESET_Render(void) {
   DrawRect(0, POS_Y, LCD_WIDTH, 10, C_FILL);
   FillRect(1, POS_Y, progressX, 10, C_FILL);
   PrintMedium(0, 16, "%u/%u", channelsWrote, channelsMax);
-  PrintMedium(0, 24, "%lu", bytesMax);
+  PrintMedium(0, 24, "%lu/%lu", __EEPROM_SIZE, bytesMax);
   PrintMediumEx(LCD_XCENTER, POS_Y + 8, POS_C, C_INVERT, "%u%",
                 bytesWrote * 100 / bytesMax);
 }

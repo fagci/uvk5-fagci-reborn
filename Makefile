@@ -1,3 +1,9 @@
+# Build settings
+# EEPROM
+# Values: 1-7 
+# See: src/driver/eeprom.h 1:BL24C64 / 2:BL24C128 / 3:BL24C256 / 4:BL24C512 / 5:BL24C1024 / 6:M24M02 / 7:M24M02x2
+EEPROM ?= 5
+
 SRC_DIR := src
 OBJ_DIR := obj
 BIN_DIR := bin
@@ -37,6 +43,7 @@ CFLAGS = -Os -Wall -Wno-error -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-de
 CFLAGS += -DPRINTF_INCLUDE_CONFIG_H
 CFLAGS += -DGIT_HASH=\"$(GIT_HASH)\"
 CFLAGS += -DTIME_STAMP=\"$(TS)\"
+CFLAGS += -D__EEPROM=$(EEPROM)
 LDFLAGS = -mcpu=cortex-m0 -nostartfiles -Wl,-T,firmware.ld
 
 INC =
@@ -70,7 +77,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(BSP_HEADERS) $(OBJ_DIR)
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.S | $(OBJ_DIR)
 	$(AS) $(ASFLAGS) $< -o $@
 
-$(BIN_DIR) $(OBJ_DIR) $(BIN_DIR):
+$(BIN_DIR) $(OBJ_DIR):
 	mkdir -p $@
 
 .FORCE:

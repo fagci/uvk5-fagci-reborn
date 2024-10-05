@@ -6,25 +6,24 @@
 #include "apps.h"
 
 static uint32_t page = 0;
-static const uint8_t PAGE_SZ = 64;
 static uint16_t pagesCount;
 
-void MEMVIEW_Init(void) { pagesCount = SETTINGS_GetEEPROMSize() / PAGE_SZ; }
+void MEMVIEW_Init(void) { pagesCount = __EEPROM_SIZE / __EEPROM_PAGESIZE; }
 
 void MEMVIEW_Update(void) {}
 
 void MEMVIEW_Render(void) {
-  uint8_t buf[64] = {0};
-  EEPROM_ReadBuffer(page * PAGE_SZ, buf, PAGE_SZ);
+  uint8_t buf[__EEPROM_PAGESIZE];
+  EEPROM_ReadBuffer(page * __EEPROM_PAGESIZE, buf, __EEPROM_PAGESIZE);
 
   UI_ClearScreen();
-  for (uint8_t i = 0; i < PAGE_SZ; ++i) {
+  for (uint8_t i = 0; i < __EEPROM_PAGESIZE; ++i) {
     uint8_t col = i % 8;
     uint8_t row = i / 8;
     uint8_t rowYBL = row * 6 + 8 + 5;
 
     if (i % 8 == 0) {
-      PrintSmall(0, rowYBL, "%u", page * PAGE_SZ + i);
+      PrintSmall(0, rowYBL, "%u", page * __EEPROM_PAGESIZE + i);
     }
 
     PrintSmall(16 + col * 9, rowYBL, "%02x", buf[i]);
@@ -45,10 +44,10 @@ bool MEMVIEW_key(KEY_Code_t k, bool bKeyPressed, bool bKeyHeld) {
     IncDec32(&page, 0, pagesCount, 1);
     return true;
   case KEY_3:
-    IncDec32(&page, 0, pagesCount, -8196 / PAGE_SZ);
+    IncDec32(&page, 0, pagesCount, -8196 / __EEPROM_PAGESIZE);
     return true;
   case KEY_9:
-    IncDec32(&page, 0, pagesCount, 8196 / PAGE_SZ);
+    IncDec32(&page, 0, pagesCount, 8196 / __EEPROM_PAGESIZE);
     return true;
   case KEY_MENU:
     return false;
