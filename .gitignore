@@ -5,3 +5,4 @@ src/external/
 
 *.log
 *.log.bak
+__pycache__/
