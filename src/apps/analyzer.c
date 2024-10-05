@@ -43,8 +43,8 @@ static uint16_t step;
 static void startNewScan(bool reset) {
   _peakF = 0;
   peakRssi = 0;
-  squelchRssi = UINT16_MAX;
   if (reset) {
+    squelchRssi = UINT16_MAX;
     LOOT_Standby();
     msm.f = opt.band.bounds.start;
     BK4819_TuneTo(msm.f, true);

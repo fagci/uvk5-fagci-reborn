@@ -66,7 +66,10 @@ static void startReset(EEPROMType t) {
   bytesMax = ARRAY_SIZE(defaultPresets) * PRESET_SIZE + channelsMax * CH_SIZE;
 }
 
-void RESET_Init(void) { eepromType = EEPROM_A; }
+void RESET_Init(void) {
+    gSettings.keylock = false;
+    eepromType = EEPROM_A;
+}
 
 void RESET_Update(void) {
   if (eepromType < EEPROM_BL24C64) {
