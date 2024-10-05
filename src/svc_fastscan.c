@@ -1,9 +1,7 @@
 #include "svc_fastscan.h"
 #include "driver/bk4819.h"
 #include "driver/st7565.h"
-#include "driver/uart.h"
 #include "helper/lootlist.h"
-#include "helper/presetlist.h"
 #include "radio.h"
 #include "scheduler.h"
 #include "settings.h"
@@ -34,8 +32,7 @@ void SVC_FC_Init(void) {
 }
 
 static void gotF(uint32_t f) {
-  Preset *p = PRESET_ByFrequency(f);
-  uint32_t step = StepFrequencyTable[p->band.step];
+  uint32_t step = 25;
   uint32_t sd = f % step;
   if (sd > step / 2) {
     f += step - sd;
@@ -54,7 +51,6 @@ static void gotF(uint32_t f) {
 
 static void switchBand() {
   lower = !lower;
-  Log("Switch lower:%u", lower);
   BK4819_SelectFilter(lower ? 14500000 : 43300000);
   SVC_FC_Init();
 }
@@ -73,7 +69,6 @@ void SVC_FC_Update(void) {
 
   uint32_t f = 0;
   if (scanning && !BK4819_GetFrequencyScanResult(&f)) {
-    Log("pass");
     return;
   }
 
@@ -81,7 +76,6 @@ void SVC_FC_Update(void) {
   BK4819_DisableFrequencyScan();
   BK4819_EnableFrequencyScanEx(T);
   scanning = true;
-  Log("recved %u, new scan", f);
 
   if (!f) {
     return;
@@ -105,7 +99,6 @@ void SVC_FC_Update(void) {
   } else {
     // new freq
     scanF = f;
-    Log("New f:%u", f);
   }
 }
 

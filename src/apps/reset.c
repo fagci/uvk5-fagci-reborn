@@ -39,23 +39,22 @@ static VFO defaultVFOs[2] = {
 static EEPROMType determineEepromType() {
   const uint8_t A = 33;
   const uint8_t B = 55;
-  uint8_t bufA[1];
-  uint8_t bufB[1];
-  for (uint8_t i = ARRAY_SIZE(EEPROM_SIZES)-1; i > 0; --i) {
-    uint32_t sz = EEPROM_SIZES[i]-1;
+  uint8_t bufr[1];
+  for (uint8_t i = 0; i < ARRAY_SIZE(EEPROM_SIZES); ++i) {
+    gSettings.eepromType = i;
+    uint32_t sz = EEPROM_SIZES[i];
     EEPROM_WriteBuffer(0, (uint8_t[]){A}, 1);
     EEPROM_WriteBuffer(sz, (uint8_t[]){B}, 1);
-    EEPROM_ReadBuffer(0, bufA, 1);
-    EEPROM_ReadBuffer(sz, bufB, 1);
-    if (bufA[0] == A && bufB[0] == B) {
+    EEPROM_ReadBuffer(0, bufr, 1);
+    if (bufr[0] == B) {
       return i;
     }
   }
-  return 0;
+  return gSettings.eepromType;
 }
 
-void RESET_Init(void) {
-  eepromType = determineEepromType();
+static void startReset(EEPROMType t) {
+  eepromType = t;
   gSettings.eepromType = eepromType;
   presetsWrote = 0;
   vfosWrote = 0;
@@ -67,7 +66,12 @@ void RESET_Init(void) {
   bytesMax = ARRAY_SIZE(defaultPresets) * PRESET_SIZE + channelsMax * CH_SIZE;
 }
 
+void RESET_Init(void) { eepromType = EEPROM_A; }
+
 void RESET_Update(void) {
+  if (eepromType < EEPROM_BL24C64) {
+    return;
+  }
   if (!settingsWrote) {
     gSettings = (Settings){
         .eepromType = eepromType,
@@ -135,6 +139,15 @@ void RESET_Render(void) {
   uint8_t POS_Y = LCD_HEIGHT / 2;
 
   UI_ClearScreen();
+
+  if (eepromType < EEPROM_BL24C64) {
+    for (uint8_t t = EEPROM_BL24C64; t <= EEPROM_M24M02; t++) {
+      uint8_t i = t - EEPROM_BL24C64;
+      PrintMedium(2, 18 + i * 8, "%u: %s", i + 1, EEPROM_TYPE_NAMES[t]);
+    }
+    return;
+  }
+
   DrawRect(0, POS_Y, LCD_WIDTH, 10, C_FILL);
   FillRect(1, POS_Y, progressX, 10, C_FILL);
   PrintMedium(0, 16, "%u/%u", channelsWrote, channelsMax);
@@ -143,5 +156,13 @@ void RESET_Render(void) {
                 bytesWrote * 100 / bytesMax);
 }
 
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-bool RESET_key(KEY_Code_t k, bool bKeyPressed, bool bKeyHeld) { return true; }
+bool RESET_key(KEY_Code_t k, bool bKeyPressed, bool bKeyHeld) {
+  if (!bKeyPressed && !bKeyHeld && k > KEY_0) {
+    uint8_t t = EEPROM_BL24C64 + k - 1;
+    if (t < ARRAY_SIZE(EEPROM_TYPE_NAMES)) {
+      startReset(t);
+      return true;
+    }
+  }
+  return false;
+}

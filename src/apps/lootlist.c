@@ -49,6 +49,23 @@ void LOOTLIST_update() {
   }
 }
 
+static void tuneToLoot(Loot *item, bool save) {
+  radio->rx.f = item->f;
+  radio->tx.codeType = CODE_TYPE_OFF;
+  if (item->cd != 0xFF) {
+    radio->tx.codeType = CODE_TYPE_DIGITAL;
+    radio->tx.code = item->cd;
+  } else if (item->ct != 0xFF) {
+    radio->tx.codeType = CODE_TYPE_CONTINUOUS_TONE;
+    radio->tx.code = item->ct;
+  }
+  if (save) {
+    RADIO_TuneToSave(item->f);
+  } else {
+    RADIO_TuneTo(item->f);
+  }
+}
+
 static void getLootItem(uint16_t i, uint16_t index, bool isCurrent) {
   const Loot *item = LOOT_Item(index);
   const uint8_t y = MENU_Y + i * MENU_ITEM_H_LARGER;
@@ -139,7 +156,7 @@ void LOOTLIST_init(void) {
   sortType = SORT_F;
   sort(SORT_LOT);
   if (LOOT_Size()) {
-    RADIO_TuneTo(LOOT_Item(menuIndex)->f);
+    tuneToLoot(LOOT_Item(menuIndex), false);
   }
 }
 
@@ -204,12 +221,12 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_UP:
     IncDec8(&menuIndex, 0, MENU_SIZE, -1);
     item = LOOT_Item(menuIndex);
-    RADIO_TuneTo(item->f);
+    tuneToLoot(item, false);
     return true;
   case KEY_DOWN:
     IncDec8(&menuIndex, 0, MENU_SIZE, 1);
     item = LOOT_Item(menuIndex);
-    RADIO_TuneTo(item->f);
+    tuneToLoot(item, false);
     return true;
   default:
     break;
@@ -221,7 +238,7 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       APPS_exit();
       return true;
     case KEY_PTT:
-      RADIO_TuneToSave(item->f);
+      tuneToLoot(item, true);
       APPS_run(APP_STILL);
       return true;
     case KEY_1:
@@ -250,8 +267,7 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_9:
       return true;
     case KEY_5:
-      radio->rx.f = item->f;
-      radio->tx.code = item->cd != 0xFF ? item->cd : item->ct;
+      tuneToLoot(item, false);
       APPS_run(APP_SAVECH);
       return true;
     case KEY_0:
@@ -260,11 +276,10 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         menuIndex = LOOT_Size() - 1;
       }
       item = LOOT_Item(menuIndex);
-      RADIO_TuneTo(item->f);
-
+      tuneToLoot(item, false);
       return true;
     case KEY_MENU:
-      RADIO_TuneToSave(item->f);
+      tuneToLoot(item, true);
       APPS_exit();
       return true;
     default:
