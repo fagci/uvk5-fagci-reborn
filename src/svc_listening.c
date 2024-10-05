@@ -7,6 +7,7 @@ void (*gListenFn)(void) = NULL;
 
 void SVC_LISTEN_Init(void) {
   if (!gListenFn) {
+    #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
     gListenFn = RADIO_UpdateMeasurements;
   }
 }
