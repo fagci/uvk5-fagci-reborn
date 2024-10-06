@@ -2,7 +2,8 @@
 #include "apps/apps.h"
 #include "driver/si473x.h"
 #include "driver/st7565.h"
-#include "driver/system.h"
+#include "external/printf/printf.h"
+#include "helper/presetlist.h"
 #include "radio.h"
 #include "scheduler.h"
 #include "settings.h"
@@ -106,6 +107,9 @@ void SVC_SCAN_Update(void) {
 void SVC_SCAN_Deinit(void) {
   gScanFn = NULL;
   gScanRedraw = true;
+  sprintf(defaultPreset.band.name, "default");
+  defaultPreset.band.bounds.start = 0;
+  defaultPreset.band.bounds.end = 130000000;
   if (RADIO_GetRadio() != RADIO_BK4819) {
     uint32_t f = radio->rx.f;
 

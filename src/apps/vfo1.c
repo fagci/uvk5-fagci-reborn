@@ -2,8 +2,8 @@
 #include "../apps/textinput.h"
 #include "../driver/bk4819.h"
 #include "../helper/channels.h"
-#include "../helper/measurements.h"
 #include "../helper/lootlist.h"
+#include "../helper/measurements.h"
 #include "../helper/numnav.h"
 #include "../helper/presetlist.h"
 #include "../helper/rds.h"
@@ -38,23 +38,48 @@ void VFO1_init(void) { RADIO_LoadCurrentVFO(); }
 
 void VFO1_update(void) {
 
-if (SSB_Seek_ON) {
-  if (RADIO_GetRadio() == RADIO_SI4732 && RADIO_IsSSB()) {
-   if (Now() - gLastRender  >= 250) {
-         if (SSB_Seek_UP) {
-            gScanForward = true;
-            RADIO_NextFreqNoClicks(true);
-         } else {
-            gScanForward = false;
-            RADIO_NextFreqNoClicks(false);
-         }
+  if (SSB_Seek_ON) {
+    if (RADIO_GetRadio() == RADIO_SI4732 && RADIO_IsSSB()) {
+      if (Now() - gLastRender >= 250) {
+        if (SSB_Seek_UP) {
+          gScanForward = true;
+          RADIO_NextFreqNoClicks(true);
+        } else {
+          gScanForward = false;
+          RADIO_NextFreqNoClicks(false);
+        }
         gRedrawScreen = true;
       }
+    }
   }
-}
 
   if (gIsListening && Now() - gLastRender >= 500) {
     gRedrawScreen = true;
+  }
+}
+
+static void prepareABScan() {
+  const uint32_t F1 = gVFO[0].rx.f;
+  const uint32_t F2 = gVFO[1].rx.f;
+  FRange *b = &defaultPreset.band.bounds;
+
+  if (F1 < F2) {
+    b->start = F1;
+    b->end = F2;
+  } else {
+    b->start = F2;
+    b->end = F1;
+  }
+  sprintf(defaultPreset.band.name, "%u-%u", b->start / 100000, b->end / 100000);
+  gCurrentPreset = &defaultPreset;
+}
+
+static void startScan() {
+  if (RADIO_GetRadio() == RADIO_SI4732 && RADIO_IsSSB()) {
+    SSB_Seek_ON = true;
+    // todo: scan by snr
+  } else {
+    SVC_Toggle(SVC_SCAN, true, 10);
   }
 }
 
@@ -79,16 +104,16 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     bool isSsb = RADIO_IsSSB();
     switch (key) {
     case KEY_UP:
-      SSB_Seek_ON=false;
-      SSB_Seek_UP=true;   
+      SSB_Seek_ON = false;
+      SSB_Seek_UP = true;
       if (SVC_Running(SVC_SCAN)) {
         gScanForward = true;
       }
       RADIO_NextFreqNoClicks(true);
       return true;
     case KEY_DOWN:
-      SSB_Seek_ON=false;
-      SSB_Seek_UP=false;
+      SSB_Seek_ON = false;
+      SSB_Seek_UP = false;
       if (SVC_Running(SVC_SCAN)) {
         gScanForward = false;
       }
@@ -114,9 +139,11 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   // long held
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     OffsetDirection offsetDirection = gCurrentPreset->offsetDir;
-    SSB_Seek_ON=false;
+    SSB_Seek_ON = false;
     switch (key) {
     case KEY_EXIT:
+      prepareABScan();
+      startScan();
       return true;
     case KEY_1:
       APPS_run(APP_PRESETS_LIST);
@@ -150,12 +177,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       RADIO_ToggleModulation();
       return true;
     case KEY_STAR:
-      if (RADIO_GetRadio() == RADIO_SI4732 && RADIO_IsSSB()) {
-        SSB_Seek_ON=true;
-        // todo: scan by snr
-      } else {
-        SVC_Toggle(SVC_SCAN, true, 10);
-      }
+      startScan();
       return true;
     case KEY_SIDE1:
       APPS_run(APP_ANALYZER);
@@ -170,7 +192,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
   // Simple keypress
   if (!bKeyPressed && !bKeyHeld) {
-    SSB_Seek_ON=false;
+    SSB_Seek_ON = false;
     switch (key) {
     case KEY_0:
     case KEY_1:
@@ -234,12 +256,10 @@ static void drawRDS() {
   if (rds.RDSSignal) {
     PrintSmallEx(LCD_WIDTH - 1, 12, POS_R, C_FILL, "RDS");
 
-    const char wd[8][3] = {"SU", "MO", "TU", "WE", "TH", "FR", "SA", "SU"};
-
     if (SI47XX_GetLocalDateTime(&dt)) {
       PrintSmallEx(LCD_XCENTER, LCD_HEIGHT - 16, POS_C, C_FILL,
-                   "%02u.%02u.%04u, %s %02u:%02u", dt.day, dt.month, dt.year,
-                   wd[dt.wday], dt.hour, dt.minute);
+                   "%02u.%02u.%04u %02u:%02u", dt.day, dt.month, dt.year,
+                   dt.hour, dt.minute);
     }
 
     PrintSmall(0, LCD_HEIGHT - 8, "%s", rds.radioText);
