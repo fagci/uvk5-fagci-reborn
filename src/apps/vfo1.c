@@ -73,6 +73,7 @@ static void prepareABScan() {
   sprintf(defaultPreset.band.name, "%u-%u", b->start / 100000, b->end / 100000);
   gCurrentPreset = &defaultPreset;
   defaultPreset.lastUsedFreq = radio->rx.f;
+  gSettings.crossBandScan = false;
   RADIO_TuneToPure(b->start, true);
 }
 

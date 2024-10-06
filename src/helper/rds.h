@@ -114,7 +114,6 @@ typedef struct DateTime {
   uint16_t year;
   uint8_t month;
   uint8_t day;
-  uint8_t wday; // Day of the week, Sunday = 0
   uint8_t hour;
   uint8_t minute;
 } DateTime;

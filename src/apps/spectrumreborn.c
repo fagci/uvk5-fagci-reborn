@@ -34,6 +34,7 @@ static uint16_t rssiO = U16_MAX;
 static uint16_t noiseO = 0;
 
 static uint8_t msmDelay = 5;
+static uint8_t msmDelayOld;
 static Loot msm = {0};
 
 static uint16_t oldPresetIndex = 255;
@@ -56,7 +57,7 @@ static void updateStats() {
   noiseO = noiseMax - noiseOpenDiff;
 }
 
-bool listening = false;
+static bool listening = false;
 
 static void updateMsm() {
   if (!gIsListening) {
@@ -139,6 +140,7 @@ static void startNewScan() {
 }
 
 void SPECTRUM_init(void) {
+  msmDelayOld = gSettings.scanTimeout;
   SVC_Toggle(SVC_LISTEN, false, 0);
   RADIO_LoadCurrentVFO();
   init();
@@ -146,6 +148,7 @@ void SPECTRUM_init(void) {
 }
 
 void SPECTRUM_deinit() {
+  gSettings.scanTimeout = msmDelayOld;
   SVC_Toggle(SVC_SCAN, false, msmDelay);
   BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
   RADIO_ToggleRX(false);
@@ -158,11 +161,13 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (Key) {
     case KEY_UP:
+      gSettings.scanTimeout = msmDelayOld;
       PRESETS_SelectPresetRelative(true);
       RADIO_SelectPresetSave(gSettings.activePreset);
       newScan = true;
       return true;
     case KEY_DOWN:
+      gSettings.scanTimeout = msmDelayOld;
       PRESETS_SelectPresetRelative(false);
       RADIO_SelectPresetSave(gSettings.activePreset);
       newScan = true;
@@ -193,6 +198,7 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     switch (Key) {
     case KEY_SIDE1:
       if (gLastActiveLoot) {
+        gSettings.scanTimeout = msmDelayOld;
         RADIO_TuneToSave(gLastActiveLoot->f);
         APPS_run(APP_ANALYZER);
       }
@@ -233,6 +239,7 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_PTT:
       if (gLastActiveLoot) {
+        gSettings.scanTimeout = msmDelayOld;
         RADIO_TuneToSave(gLastActiveLoot->f);
         APPS_run(APP_STILL);
       }

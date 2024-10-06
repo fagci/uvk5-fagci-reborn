@@ -26,7 +26,6 @@ enum {
 
 /* RDS and RBDS data */
 static ternary _abRadioText;       // Indicates new radioText[] string
-static ternary _abProgramTypeName; // Indicates new programTypeName[] string
 /* RDS data counters */
 static uint8_t _extendedCountryCode_count;
 static uint8_t _language_count;
@@ -237,27 +236,6 @@ bool SI47XX_GetRDS() {
         }
       }
     }
-    // Group 10A - Program Type Name
-    else if (type == 10 && version == 0) {
-      // Check A/B flag to see if Program Type Name has changed
-      uint8_t new_ab = (bool)(rdsResponse.raw[Block_B_L] & 0b00010000);
-      if (new_ab != _abProgramTypeName) {
-        // New name found - clear buffer
-        _abProgramTypeName = new_ab;
-        for (uint8_t i = 0; i < sizeof(rds.programTypeName) - 1; i++)
-          rds.programTypeName[i] = ' ';
-      }
-      // Get segment number
-      segment = rdsResponse.raw[Block_B_L] & 0x01;
-
-      // Get Program Type Name
-      char *name = &rds.programTypeName[segment * 4];
-      *name++ = IsPrintable(rdsResponse.raw[Block_C_H]);
-      *name++ = IsPrintable(rdsResponse.raw[Block_C_L]);
-      *name++ = IsPrintable(rdsResponse.raw[Block_D_H]);
-      *name = IsPrintable(rdsResponse.raw[Block_D_L]);
-      new_info = true;
-    }
   }
   return new_info;
 }
@@ -304,9 +282,6 @@ bool SI47XX_GetLocalDateTime(DateTime *time) {
   date_time /= 60;
   time->hour = date_time % 24;
   days = date_time / 24;
-
-  // Compute day of the week - Sunday = 0
-  time->wday = days % 7;
 
   // Compute year
   unsigned char leap_year = 0; /* 1 if leap year, else 0 */
@@ -381,4 +356,3 @@ bool SI47XX_GetLocalTime(Time *time) {
   time->minute = (rds.minute + rds.offset % 2 * 30 + 60) % 60;
   return true;
 }
-
