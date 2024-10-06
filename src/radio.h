@@ -67,8 +67,7 @@ void RADIO_SetupByCurrentVFO();
 void RADIO_NextVFO(void);
 void RADIO_NextCH(bool next);
 void RADIO_NextFreqNoClicks(bool next);
-void RADIO_NextPresetFreq(bool next);
-void RADIO_NextPresetFreqEx(bool next, bool precise);
+bool RADIO_NextPresetFreqXBandEx(bool next, bool tune, bool precise);
 void RADIO_NextPresetFreqXBand(bool next);
 void RADIO_ToggleVfoMR();
 

@@ -16,8 +16,6 @@
 #include "../ui/statusline.h"
 #include "apps.h"
 
-#define DATA_LEN 128
-
 static const uint16_t U16_MAX = 65535;
 
 static uint8_t noiseOpenDiff = 14;
@@ -40,9 +38,6 @@ static Loot msm = {0};
 
 static uint16_t oldPresetIndex = 255;
 
-static uint32_t timeout = 0;
-static bool lastListenState = false;
-
 static const uint16_t BK_RST_HARD = 0x0200;
 static const uint16_t BK_RST_SOFT = 0xBFF1 & ~BK4819_REG_30_ENABLE_VCO_CALIB;
 
@@ -53,18 +48,26 @@ static uint8_t rssiResetMethod = 0;
 static uint16_t resetBkVal = BK_RST_HARD;
 
 static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
-// static bool isSquelchOpen() { return msm.noise <= 50; }
 
-static void updateMeasurements() {
+static void updateStats() {
+  const uint16_t noiseFloor = SP_GetNoiseFloor();
+  const uint16_t noiseMax = SP_GetNoiseMax();
+  rssiO = noiseFloor;
+  noiseO = noiseMax - noiseOpenDiff;
+}
+
+bool listening = false;
+
+static void updateMsm() {
   if (!gIsListening) {
     BK4819_SetFrequency(msm.f);
     BK4819_WriteRegister(BK4819_REG_30, resetBkVal);
     BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
     SYSTEM_DelayMs(msmDelay); // (X_X)
   }
-  msm.blacklist = false;
   msm.rssi = BK4819_GetRSSI();
   msm.noise = BK4819_GetNoise();
+  msm.blacklist = false;
 
   if (gIsListening) {
     noiseO -= noiseOpenDiff;
@@ -74,31 +77,41 @@ static void updateMeasurements() {
     msm.open = isSquelchOpen();
   }
 
-  if (lastListenState != msm.open) {
-    lastListenState = msm.open;
-    SetTimeout(&timeout, msm.open ? SCAN_TIMEOUTS[gSettings.sqOpenedTimeout]
-                                  : SCAN_TIMEOUTS[gSettings.sqClosedTimeout]);
-  }
-
-  if (timeout && CheckTimeout(&timeout)) {
-    msm.open = false;
-  }
-
   SP_AddPoint(&msm);
   LOOT_Update(&msm);
   RADIO_ToggleRX(msm.open);
 }
 
-static void updateStats() {
-  const uint16_t noiseFloor = SP_GetNoiseFloor();
-  const uint16_t noiseMax = SP_GetNoiseMax();
-  rssiO = noiseFloor;
-  noiseO = noiseMax - noiseOpenDiff;
+static void scanFn(bool forward) {
+  updateMsm();
+  listening = gIsListening;
+  if (Now() - gLastRender >= 500) {
+    gRedrawScreen = true;
+  }
+  if (gIsListening) {
+    gRedrawScreen = true;
+    return;
+  }
+
+  radio->rx.f = msm.f;
+  if (RADIO_NextPresetFreqXBandEx(true, false, false)) {
+    if (noiseO > 0) {
+      // next band scan
+      msm.f = radio->rx.f;
+    } else {
+      // rewind
+      updateStats();
+      PRESET_Select(oldPresetIndex);
+    }
+    newScan = true;
+  } else {
+    msm.f = radio->rx.f;
+    SP_Next();
+  }
 }
 
 static void init() {
   newScan = true;
-  timeout = 0;
   oldPresetIndex = 0;
   rssiO = U16_MAX;
   noiseO = 0;
@@ -129,9 +142,11 @@ void SPECTRUM_init(void) {
   SVC_Toggle(SVC_LISTEN, false, 0);
   RADIO_LoadCurrentVFO();
   init();
+  // SVC_Toggle(SVC_SCAN, true, msmDelay);
 }
 
 void SPECTRUM_deinit() {
+  SVC_Toggle(SVC_SCAN, false, msmDelay);
   BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
   RADIO_ToggleRX(false);
   SVC_Toggle(SVC_LISTEN, true, gSettings.scanTimeout);
@@ -230,30 +245,16 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void SPECTRUM_update(void) {
-  if (Now() - gLastRender >= 500) {
-    gRedrawScreen = true;
-  }
-  if (newScan || gSettings.activePreset != oldPresetIndex) {
+  if (newScan) {
     newScan = false;
+    gSettings.scanTimeout = msmDelay;
+    SVC_Toggle(SVC_SCAN, false, msmDelay);
     startNewScan();
+    gScanFn = scanFn;
+    SVC_Toggle(SVC_SCAN, true, msmDelay);
   }
-  updateMeasurements();
-  if (gIsListening) {
-    gRedrawScreen = true;
-    return;
-  }
-  if (msm.f >= currentBand->bounds.end) {
-    updateStats();
-    gRedrawScreen = true;
-    newScan = true;
-    return;
-  }
-
-  msm.f += currentStepSize;
-  SP_Next();
-  if (gSettings.skipGarbageFrequencies && (msm.f % 1300000 == 0)) {
-    msm.f += currentStepSize;
-    SP_Next();
+  if (listening) {
+    updateMsm();
   }
 }
 
@@ -266,9 +267,9 @@ void SPECTRUM_render(void) {
   PrintSmallEx(0, SPECTRUM_Y - 3, POS_L, C_FILL, "%ums", msmDelay);
   PrintSmallEx(0, SPECTRUM_Y - 3 + 6, POS_L, C_FILL, "%s",
                RESET_METHOD_NAMES[rssiResetMethod]);
-  PrintSmallEx(DATA_LEN - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "SQ %u",
+  PrintSmallEx(LCD_WIDTH - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "SQ %u",
                noiseOpenDiff);
-  PrintSmallEx(DATA_LEN - 2, SPECTRUM_Y - 3 + 8, POS_R, C_FILL, "%s",
+  PrintSmallEx(LCD_WIDTH - 2, SPECTRUM_Y - 3 + 8, POS_R, C_FILL, "%s",
                modulationTypeOptions[currentBand->modulation]);
 
   if (gLastActiveLoot) {

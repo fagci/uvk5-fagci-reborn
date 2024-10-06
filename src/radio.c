@@ -882,36 +882,29 @@ void RADIO_NextFreqNoClicks(bool next) {
   onVfoUpdate();
 }
 
-void RADIO_NextPresetFreqEx(bool next, bool precise) {
-  uint32_t steps = PRESETS_GetSteps(gCurrentPreset);
-  uint32_t step = PRESETS_GetChannel(gCurrentPreset, radio->rx.f);
-  IncDec32(&step, 0, steps, next ? 1 : -1);
-  radio->rx.f = PRESETS_GetF(gCurrentPreset, step);
-  RADIO_TuneToPure(radio->rx.f, precise);
-}
-
-void RADIO_NextPresetFreq(bool next) { RADIO_NextPresetFreqEx(next, true); }
-
 static void selectPreset(bool next) {
-  uint8_t index = gSettings.activePreset;
-  uint8_t sl = gSettings.currentScanlist;
-  uint8_t scanlistMask = 1 << sl;
-  PRESETS_SelectPresetRelative(next);
-  while (gSettings.activePreset != index) {
-    Preset *p = gCurrentPreset;
-    if (sl == 15 || (p->memoryBanks & scanlistMask) == scanlistMask) {
-      return;
-    }
+  if (gSettings.crossBandScan) {
+    uint8_t index = gSettings.activePreset;
+    uint8_t sl = gSettings.currentScanlist;
+    uint8_t scanlistMask = 1 << sl;
     PRESETS_SelectPresetRelative(next);
+    while (gSettings.activePreset != index) {
+      if (sl == 15 ||
+          (gCurrentPreset->memoryBanks & scanlistMask) == scanlistMask) {
+        return;
+      }
+      PRESETS_SelectPresetRelative(next);
+    }
   }
 }
 
-void RADIO_NextPresetFreqXBandEx(bool next, bool precise) {
+bool RADIO_NextPresetFreqXBandEx(bool next, bool tune, bool precise) {
   uint8_t currentScanlist = gSettings.currentScanlist;
 
   uint32_t steps = PRESETS_GetSteps(gCurrentPreset);
   int64_t step = PRESETS_GetChannel(gCurrentPreset, radio->rx.f);
   int8_t presetIndex = gSettings.activePreset;
+  bool switchBand = false;
 
   if (next) {
     step++;
@@ -921,20 +914,25 @@ void RADIO_NextPresetFreqXBandEx(bool next, bool precise) {
 
   if (step < 0) {
     // get previous preset
+    switchBand = true;
     selectPreset(false);
     steps = PRESETS_GetSteps(gCurrentPreset);
     step = steps - 1;
-
   } else if (step >= steps) {
     // get next preset
+    switchBand = true;
     selectPreset(true);
     step = 0;
   }
   radio->rx.f = PRESETS_GetF(gCurrentPreset, step);
-  RADIO_TuneToPure(radio->rx.f, precise);
+  if (tune) {
+    RADIO_TuneToPure(radio->rx.f, precise);
+  }
+  return switchBand;
 }
+
 void RADIO_NextPresetFreqXBand(bool next) {
-  RADIO_NextPresetFreqXBandEx(next, true);
+  RADIO_NextPresetFreqXBandEx(next, true, true);
 }
 
 void RADIO_ToggleModulation(void) {

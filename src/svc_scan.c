@@ -2,6 +2,7 @@
 #include "apps/apps.h"
 #include "driver/si473x.h"
 #include "driver/st7565.h"
+#include "driver/uart.h"
 #include "external/printf/printf.h"
 #include "helper/presetlist.h"
 #include "radio.h"
@@ -38,7 +39,6 @@ static bool lastListenState = false;
 void (*gScanFn)(bool) = NULL;
 
 static void next(void) {
-  lastListenState = false;
   gScanFn(gScanForward);
   lastSettedF = radio->rx.f;
   SetTimeout(&timeout, gSettings.scanTimeout);
@@ -59,11 +59,7 @@ void SVC_SCAN_Init(void) {
     if (radio->channel >= 0) {
       gScanFn = RADIO_NextCH;
     } else {
-      if (gSettings.crossBandScan) {
-        gScanFn = RADIO_NextPresetFreqXBand;
-      } else {
-        gScanFn = RADIO_NextPresetFreq;
-      }
+      gScanFn = RADIO_NextPresetFreqXBand;
     }
   }
   next();
@@ -107,9 +103,12 @@ void SVC_SCAN_Update(void) {
 void SVC_SCAN_Deinit(void) {
   gScanFn = NULL;
   gScanRedraw = true;
-  sprintf(defaultPreset.band.name, "default");
-  defaultPreset.band.bounds.start = 0;
-  defaultPreset.band.bounds.end = 130000000;
+  if (&defaultPreset == gCurrentPreset && defaultPreset.band.name[0] != 'd') {
+    sprintf(defaultPreset.band.name, "default");
+    defaultPreset.band.bounds.start = 0;
+    defaultPreset.band.bounds.end = 134000000;
+    RADIO_TuneTo(defaultPreset.lastUsedFreq);
+  }
   if (RADIO_GetRadio() != RADIO_BK4819) {
     uint32_t f = radio->rx.f;
 
