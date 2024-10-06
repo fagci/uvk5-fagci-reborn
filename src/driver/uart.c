@@ -599,6 +599,7 @@ bool UART_IsCommandAvailable(void) {
 }
 
 void UART_HandleCommand(void) {
+  BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN, true);
   switch (UART_Command.Header.ID) {
   case 0x0514:
     CMD_0514(UART_Command.Buffer);
@@ -639,8 +640,8 @@ void UART_HandleCommand(void) {
   case 0x05DD:
     NVIC_SystemReset();
     break;
-
   }
+  BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN, false);
 }
 
 void UART_printf(const char *str, ...) {
