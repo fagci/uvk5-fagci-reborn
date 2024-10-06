@@ -84,16 +84,7 @@ static void updateMsm() {
 }
 
 static void scanFn(bool forward) {
-  updateMsm();
-  listening = gIsListening;
-  if (Now() - gLastRender >= 500) {
-    gRedrawScreen = true;
-  }
-  if (gIsListening) {
-    gRedrawScreen = true;
-    return;
-  }
-
+  RADIO_ToggleRX(false);
   radio->rx.f = msm.f;
   if (RADIO_NextPresetFreqXBandEx(true, false, false)) {
     if (noiseO > 0) {
@@ -123,6 +114,7 @@ static void init() {
   RADIO_SetupBandParams();
 
   SP_Init(PRESETS_GetSteps(gCurrentPreset), LCD_WIDTH);
+  updateMsm();
 }
 
 static void startNewScan() {
@@ -252,6 +244,9 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void SPECTRUM_update(void) {
+  if (Now() - gLastRender >= 500) {
+    gRedrawScreen = true;
+  }
   if (newScan) {
     newScan = false;
     gSettings.scanTimeout = msmDelay;
@@ -260,9 +255,7 @@ void SPECTRUM_update(void) {
     gScanFn = scanFn;
     SVC_Toggle(SVC_SCAN, true, msmDelay);
   }
-  if (listening) {
-    updateMsm();
-  }
+  updateMsm();
 }
 
 void SPECTRUM_render(void) {

@@ -33,6 +33,8 @@ char *SCAN_TIMEOUT_NAMES[11] = {
 };
 
 static uint32_t lastSettedF = 0;
+static uint32_t lastSavedF = 0;
+static bool lastScanForward = true;
 static uint32_t timeout = 0;
 static bool lastListenState = false;
 
@@ -64,9 +66,6 @@ void SVC_SCAN_Init(void) {
   }
   next();
 }
-
-uint32_t lastSavedF = 0;
-bool lastScanForward = true;
 
 void SVC_SCAN_Update(void) {
   if (RADIO_GetRadio() != RADIO_BK4819) {
