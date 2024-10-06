@@ -58,7 +58,11 @@ void SVC_SCAN_Init(void) {
     if (radio->channel >= 0) {
       gScanFn = RADIO_NextCH;
     } else {
-      gScanFn = RADIO_NextPresetFreq;
+      if (gSettings.crossBandScan) {
+        gScanFn = RADIO_NextPresetFreqXBand;
+      } else {
+        gScanFn = RADIO_NextPresetFreq;
+      }
     }
   }
   next();

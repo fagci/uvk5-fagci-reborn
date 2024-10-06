@@ -131,8 +131,8 @@ void SP_RenderRssi(uint16_t rssi, char *text, bool top, uint8_t sx, uint8_t sy,
 
   uint8_t yVal = ConvertDomain(rssi, vMin, vMax, 0, sh);
   DrawHLine(sx, S_BOTTOM - yVal, sx + filledPoints, C_FILL);
-  PrintSmallEx(sx, S_BOTTOM - yVal + (top ? -2 : 6), POS_L, C_FILL, "%s %u %d",
-               text, rssi, Rssi2DBm(rssi));
+  PrintSmallEx(sx, S_BOTTOM - yVal + (top ? -2 : 6), POS_L, C_FILL, "%s %d",
+               text, Rssi2DBm(rssi));
 }
 
 uint16_t SP_GetNoiseFloor() { return Std(rssiHistory, filledPoints); }

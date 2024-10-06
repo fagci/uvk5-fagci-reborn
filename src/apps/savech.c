@@ -109,6 +109,36 @@ static void toggleScanlist(uint16_t idx, uint8_t n) {
   CHANNELS_Save(chNum, &_ch);
 }
 
+bool SAVECH_SelectScanlist(KEY_Code_t key) {
+  switch (key) {
+  case KEY_1:
+  case KEY_2:
+  case KEY_3:
+  case KEY_4:
+  case KEY_5:
+  case KEY_6:
+  case KEY_7:
+  case KEY_8:
+    CHANNELS_LoadScanlist(key - KEY_1);
+    chCount = gScanlistSize;
+    currentChannelIndex = 0;
+    from = -1;
+    return true;
+  case KEY_9:
+    from = -1;
+    return true;
+  case KEY_0:
+    CHANNELS_LoadScanlist(15);
+    chCount = CHANNELS_GetCountMax();
+    currentChannelIndex = 0;
+    from = -1;
+    return true;
+  default:
+    break;
+  }
+  return false;
+}
+
 bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   chNum = gScanlist[currentChannelIndex];
   if (!bKeyPressed && !bKeyHeld) {
@@ -135,31 +165,8 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     }
   }
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
-    switch (key) {
-    case KEY_1:
-    case KEY_2:
-    case KEY_3:
-    case KEY_4:
-    case KEY_5:
-    case KEY_6:
-    case KEY_7:
-    case KEY_8:
-      CHANNELS_LoadScanlist(key - KEY_1);
-      chCount = gScanlistSize;
-      currentChannelIndex = 0;
-      from = -1;
+    if (SAVECH_SelectScanlist(key)) {
       return true;
-    case KEY_9:
-      from = -1;
-      return true;
-    case KEY_0:
-      CHANNELS_LoadScanlist(15);
-      chCount = CHANNELS_GetCountMax();
-      currentChannelIndex = 0;
-      from = -1;
-      return true;
-    default:
-      break;
     }
   }
   CH _ch;

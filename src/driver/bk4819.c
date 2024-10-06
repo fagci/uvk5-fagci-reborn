@@ -63,7 +63,7 @@ const Gain gainTable[19] = {
     {0x3E0, 0},   //
 };
 
-__inline uint16_t scale_freq(const uint16_t freq) {
+inline uint16_t scale_freq(const uint16_t freq) {
   return (((uint32_t)freq * 1353245u) + (1u << 16)) >> 17; // with rounding
 }
 

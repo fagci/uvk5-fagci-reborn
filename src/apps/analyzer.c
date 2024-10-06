@@ -74,6 +74,11 @@ static void scanFn(bool forward) {
     _peakF = msm.f;
   }
 
+  RADIO_ToggleRX(msm.rssi > squelchRssi);
+  if (gIsListening) {
+    return;
+  }
+
   if (msm.f + step > opt.band.bounds.end) {
     msm.f = opt.band.bounds.start;
     peakF = _peakF;
@@ -221,13 +226,13 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       APPS_run(APP_FINPUT);
       return true;
     case KEY_3:
-      if (opt.band.squelch < 9) {
-        opt.band.squelch++;
+      if (squelchRssi < 512) {
+        squelchRssi += 2;
       }
       return true;
     case KEY_9:
-      if (opt.band.squelch > 0) {
-        opt.band.squelch--;
+      if (squelchRssi > 1) {
+        squelchRssi -= 2;
       }
       return true;
     case KEY_PTT:

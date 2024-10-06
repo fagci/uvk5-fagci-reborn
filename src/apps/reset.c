@@ -91,7 +91,7 @@ void RESET_Update(void) {
         .scanmode = 0,
         .chDisplayMode = 0,
         .dw = false,
-        .crossBand = false,
+        .crossBandScan = false,
         .beep = false,
         .keylock = false,
         .busyChannelTxLock = false,

@@ -69,6 +69,7 @@ void RADIO_NextCH(bool next);
 void RADIO_NextFreqNoClicks(bool next);
 void RADIO_NextPresetFreq(bool next);
 void RADIO_NextPresetFreqEx(bool next, bool precise);
+void RADIO_NextPresetFreqXBand(bool next);
 void RADIO_ToggleVfoMR();
 
 void RADIO_SetSquelchPure(uint32_t f, uint8_t sql);

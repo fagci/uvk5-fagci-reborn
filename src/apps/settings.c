@@ -20,6 +20,7 @@ typedef enum {
   M_UPCONVERTER,
   M_MAIN_APP,
   M_SCAN_DELAY,
+  M_SCAN_X_BAND,
   M_SQL_OPEN_T,
   M_SQL_CLOSE_T,
   M_SQL_TO_OPEN,
@@ -63,6 +64,7 @@ static const MenuItem menu[] = {
     {"SQL open time", M_SQL_OPEN_T, 7},
     {"SQL close time", M_SQL_CLOSE_T, 3},
     {"SCAN single freq time", M_SCAN_DELAY, 255},
+    {"SCAN multiband", M_SCAN_X_BAND, 2},
     {"SCAN listen time", M_SQL_TO_OPEN, ARRAY_SIZE(SCAN_TIMEOUT_NAMES)},
     {"SCAN after close time", M_SQL_TO_CLOSE, ARRAY_SIZE(SCAN_TIMEOUT_NAMES)},
     {"Dual watch", M_DW, 3},
@@ -146,6 +148,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
   case M_PTT_LOCK:
   case M_SKIP_GARBAGE_FREQS:
   case M_SI4732_POWER_OFF:
+  case M_SCAN_X_BAND:
     strncpy(name, yesNo[index], 31);
     return;
   case M_DW:
@@ -262,6 +265,10 @@ static void accept(void) {
     gSettings.ste = subMenuIndex;
     SETTINGS_Save();
     break;
+  case M_SCAN_X_BAND:
+    gSettings.crossBandScan = subMenuIndex;
+    SETTINGS_Save();
+    break;
   case M_TONE_LOCAL:
     gSettings.toneLocal = subMenuIndex;
     SETTINGS_Save();
@@ -334,6 +341,8 @@ static const char *getValue(Menu type) {
     return onOff[gSettings.ste];
   case M_SKIP_GARBAGE_FREQS:
     return yesNo[gSettings.skipGarbageFrequencies];
+  case M_SCAN_X_BAND:
+    return yesNo[gSettings.crossBandScan];
   case M_SI4732_POWER_OFF:
     return yesNo[gSettings.si4732PowerOff];
   case M_DW:
@@ -439,6 +448,9 @@ static void setInitialSubmenuIndex(void) {
     break;
   case M_TONE_LOCAL:
     subMenuIndex = gSettings.toneLocal;
+    break;
+  case M_SCAN_X_BAND:
+    subMenuIndex = gSettings.crossBandScan;
     break;
   case M_STE:
     subMenuIndex = gSettings.ste;

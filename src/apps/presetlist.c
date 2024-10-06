@@ -1,20 +1,39 @@
 #include "presetlist.h"
+#include "../helper/channels.h"
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"
 #include "../helper/presetlist.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
 #include "apps.h"
+#include "savech.h"
 
 static uint8_t menuIndex = 0;
 
-static void getPresetText(uint16_t i, char *name) {
-  sprintf(name, "%s", PRESETS_Item(i)->band.name);
+static void getPresetItem(uint16_t i, uint16_t index, bool isCurrent) {
+  Preset *p = PRESETS_Item(index);
+  const uint8_t y = MENU_Y + i * MENU_ITEM_H;
+  if (isCurrent) {
+    FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
+  }
+  PrintMediumEx(8, y + 8, POS_L, C_INVERT, "%s", p->band.name);
+  char scanlistsStr[9] = "";
+  for (uint8_t i = 0; i < 8; ++i) {
+    scanlistsStr[i] = p->memoryBanks & (1 << i) ? '1' + i : '-';
+  }
+  PrintSmallEx(LCD_WIDTH - 5, y + 8, POS_R, C_INVERT, "%s", scanlistsStr);
+}
+
+static void toggleScanlist(uint16_t idx, uint8_t n) {
+  Preset *p = PRESETS_Item(menuIndex);
+  p->memoryBanks ^= 1 << n;
+  PRESETS_SavePreset(menuIndex, p);
 }
 
 void PRESETLIST_render(void) {
   UI_ClearScreen();
-  UI_ShowMenu(getPresetText, PRESETS_Size(), menuIndex);
+  UI_ShowMenuEx(getPresetItem, PRESETS_Size(), menuIndex,
+                MENU_LINES_TO_SHOW + 1);
 }
 
 void PRESETLIST_init(void) { menuIndex = gSettings.activePreset; }
@@ -28,12 +47,18 @@ static void setMenuIndexAndRun(uint16_t v) {
 bool PRESETLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   const uint8_t MENU_SIZE = PRESETS_Size();
   if (!bKeyPressed && !bKeyHeld) {
-    if (!gIsNumNavInput && key <= KEY_9) {
+    if (!gIsNumNavInput && key == KEY_STAR) {
       NUMNAV_Init(menuIndex + 1, 1, MENU_SIZE);
       gNumNavCallback = setMenuIndexAndRun;
+      return true;
     }
     if (gIsNumNavInput) {
       menuIndex = NUMNAV_Input(key) - 1;
+      return true;
+    }
+  }
+  if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
+    if (SAVECH_SelectScanlist(key)) {
       return true;
     }
   }
@@ -50,6 +75,16 @@ bool PRESETLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_F:
       PRESET_Select(menuIndex);
       APPS_run(APP_PRESET_CFG);
+      return true;
+    case KEY_1:
+    case KEY_2:
+    case KEY_3:
+    case KEY_4:
+    case KEY_5:
+    case KEY_6:
+    case KEY_7:
+    case KEY_8:
+      toggleScanlist(menuIndex, key - KEY_1);
       return true;
     default:
       break;

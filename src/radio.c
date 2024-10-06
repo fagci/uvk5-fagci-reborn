@@ -248,29 +248,28 @@ static void toggleBK1080SI4732(bool on) {
 }
 
 static uint8_t calculateOutputPower(Preset *p) {
-    uint8_t power_bias;
-    
-    switch (p->power) {
-      case TX_POW_LOW:
-          power_bias = p->powCalib.s;
-          break;
-          
-      case TX_POW_MID:
-          power_bias = p->powCalib.m;
-          break;
-          
-      case TX_POW_HIGH:
-          power_bias = p->powCalib.e;
-          break;
+  uint8_t power_bias;
 
-      default:
-          power_bias = p->powCalib.s;
-          if (power_bias>10) power_bias-=10; // 10mw if Low=500mw
-    }
-    
-    
-    return power_bias;
+  switch (p->power) {
+  case TX_POW_LOW:
+    power_bias = p->powCalib.s;
+    break;
 
+  case TX_POW_MID:
+    power_bias = p->powCalib.m;
+    break;
+
+  case TX_POW_HIGH:
+    power_bias = p->powCalib.e;
+    break;
+
+  default:
+    power_bias = p->powCalib.s;
+    if (power_bias > 10)
+      power_bias -= 10; // 10mw if Low=500mw
+  }
+
+  return power_bias;
 }
 
 /* static uint8_t calculateOutputPower(Preset *p, uint32_t Frequency) {
@@ -471,7 +470,7 @@ uint32_t RADIO_GetTxPower(uint32_t txF) {
   if (power > 0x91) {
     power = 0x91;
   }
-  //power >>= 2 - gCurrentPreset->power;
+  // power >>= 2 - gCurrentPreset->power;
   return power;
 }
 
@@ -892,6 +891,51 @@ void RADIO_NextPresetFreqEx(bool next, bool precise) {
 }
 
 void RADIO_NextPresetFreq(bool next) { RADIO_NextPresetFreqEx(next, true); }
+
+static void selectPreset(bool next) {
+  uint8_t index = gSettings.activePreset;
+  uint8_t sl = gSettings.currentScanlist;
+  uint8_t scanlistMask = 1 << sl;
+  PRESETS_SelectPresetRelative(next);
+  while (gSettings.activePreset != index) {
+    Preset *p = gCurrentPreset;
+    if (sl == 15 || (p->memoryBanks & scanlistMask) == scanlistMask) {
+      return;
+    }
+    PRESETS_SelectPresetRelative(next);
+  }
+}
+
+void RADIO_NextPresetFreqXBandEx(bool next, bool precise) {
+  uint8_t currentScanlist = gSettings.currentScanlist;
+
+  uint32_t steps = PRESETS_GetSteps(gCurrentPreset);
+  int64_t step = PRESETS_GetChannel(gCurrentPreset, radio->rx.f);
+  int8_t presetIndex = gSettings.activePreset;
+
+  if (next) {
+    step++;
+  } else {
+    step--;
+  }
+
+  if (step < 0) {
+    // get previous preset
+    selectPreset(false);
+    steps = PRESETS_GetSteps(gCurrentPreset);
+    step = steps - 1;
+
+  } else if (step >= steps) {
+    // get next preset
+    selectPreset(true);
+    step = 0;
+  }
+  radio->rx.f = PRESETS_GetF(gCurrentPreset, step);
+  RADIO_TuneToPure(radio->rx.f, precise);
+}
+void RADIO_NextPresetFreqXBand(bool next) {
+  RADIO_NextPresetFreqXBandEx(next, true);
+}
 
 void RADIO_ToggleModulation(void) {
   if (radio->modulation == MOD_PRST) {
