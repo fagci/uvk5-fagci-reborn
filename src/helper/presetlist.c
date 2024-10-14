@@ -251,8 +251,8 @@ Preset defaultPresets[33] = {
             },
         .allowTx = false,
         .lastUsedFreq = 43230000,
-        //           90    100   111
-        .powCalib = {0x5a, 0x64, 0x6f},
+         //           40    65   140
+        .powCalib = {0x28, 0x41, 0x8C},
         .radio = RADIO_BK4819,
     },
     (Preset){
