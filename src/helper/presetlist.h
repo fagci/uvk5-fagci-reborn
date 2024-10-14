@@ -4,7 +4,7 @@
 #include "../radio.h"
 #include <stdint.h>
 
-#define PRESETS_SIZE_MAX 32
+#define PRESETS_SIZE_MAX 33
 
 bool PRESETS_Load();
 int8_t PRESETS_Size();
