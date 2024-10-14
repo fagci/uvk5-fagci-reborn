@@ -1072,8 +1072,8 @@ TXPOWER_LIST = ["ULow", "Low", "Mid", "High"]
 MIN_FREQ = 153000
 MAX_FREQ = 1399999990
 
-## SETTINGS_VF0_PRESET_SIZE = 0x3d1  #  TERRIBLE hardcoding; should get sizeof(MEM_SETTINGS) ## add 20hex / Preset ##
-SETTINGS_VF0_PRESET_SIZE = 0x411  #  TERRIBLE hardcoding; should get sizeof(MEM_SETTINGS)
+## SETTINGS_VF0_PRESET_SIZE = 0x3d1  #  TERRIBLE hardcoding; should get sizeof(MEM_SETTINGS)
+SETTINGS_VF0_PRESET_SIZE = 0x455  #  TERRIBLE hardcoding; should get sizeof(MEM_SETTINGS)
 MEMORY_START_LOWER_LIMIT = SETTINGS_VF0_PRESET_SIZE
 
 BIT_MASK_NAMES = ["--------"]

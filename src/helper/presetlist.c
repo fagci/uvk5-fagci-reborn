@@ -222,8 +222,8 @@ Preset defaultPresets[33] = {
     (Preset){
         .band =
             {
-                .bounds = {27000000, 39999999},
-                .name = "270-400",
+                .bounds = {27000000, 42999999},
+                .name = "270-430",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,
@@ -240,8 +240,8 @@ Preset defaultPresets[33] = {
     (Preset){
         .band =
             {
-                .bounds = {40000000, 43307499},
-                .name = "400-433",
+                .bounds = {43000000, 44000000},
+                .name = "70cm HAM",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,
@@ -250,9 +250,9 @@ Preset defaultPresets[33] = {
                 .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
             },
         .allowTx = false,
-        .lastUsedFreq = 42230000,
-        //           90    100   111
-        .powCalib = {0x5a, 0x64, 0x6f},
+        .lastUsedFreq = 43230000,
+         //           40    65   140
+        .powCalib = {0x28, 0x41, 0x8C},
         .radio = RADIO_BK4819,
     },
     (Preset){
