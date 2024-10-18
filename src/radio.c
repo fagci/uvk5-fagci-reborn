@@ -47,9 +47,6 @@ const uint16_t StepFrequencyTable[15] = {
     250, 500, 625, 833, 1000, 1250, 2500, 5000, 10000, 12500, 20000,
 };
 
-const uint32_t upConverterValues[3] = {0, 5000000, 12500000};
-const char *upConverterFreqNames[3] = {"None", "50M", "125M"};
-
 const char *modulationTypeOptions[8] = {"FM",  "AM",  "LSB", "USB",
                                         "BYP", "RAW", "WFM", "Preset"};
 const char *powerNames[4] = {"ULOW, LOW", "MID", "HIGH"};
@@ -369,13 +366,9 @@ static void rxTurnOn(Radio r) {
   }
 }
 
-uint32_t GetScreenF(uint32_t f) {
-  return f - upConverterValues[gSettings.upconverter];
-}
+uint32_t GetScreenF(uint32_t f) { return f - gSettings.upconverter; }
 
-uint32_t GetTuneF(uint32_t f) {
-  return f + upConverterValues[gSettings.upconverter];
-}
+uint32_t GetTuneF(uint32_t f) { return f + gSettings.upconverter; }
 
 bool RADIO_IsSSB() {
   ModulationType mod = RADIO_GetModulation();
@@ -866,14 +859,16 @@ void RADIO_NextFreqNoClicks(bool next) {
   Band *nextBand = &nextPreset->band;
   uint32_t nextBandStep = StepFrequencyTable[nextBand->step];
 
-  if (nextPreset != gCurrentPreset && nextPreset != &defaultPreset) {
+  uint32_t f = radio->rx.f + nextBandStep * dir;
+  if (nextPreset != gCurrentPreset && nextPreset != &defaultPreset &&
+      !PRESET_InRange(f, nextPreset)) {
     if (next) {
       RADIO_TuneTo(nextBand->bounds.start);
     } else {
       RADIO_TuneTo(nextBand->bounds.end - nextBand->bounds.end % nextBandStep);
     }
   } else {
-    uint32_t f = radio->rx.f + nextBandStep * dir;
+    f = PRESETS_GetF(nextPreset, PRESETS_GetChannel(nextPreset, f));
     radio->channel = -1;
     radio->tx.f = 0;
     radio->rx.f = f;

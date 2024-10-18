@@ -267,7 +267,7 @@ void MSG_StorePacket(const uint16_t intBits) {
 void MSG_Send(const char *message) {
   MSG_ClearPacketBuffer();
   packet.data.header = MESSAGE_PACKET;
-  snprintf(packet.data.nick, 10, "%s", gSettings.nickName);
+  // snprintf(packet.data.nick, 10, "%s", gSettings.nickName);
   snprintf(packet.data.payload, 30, "%s", message);
   MSG_SendPacket();
 }

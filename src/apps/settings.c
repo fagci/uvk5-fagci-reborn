@@ -13,6 +13,7 @@
 #include "../ui/menu.h"
 #include "../ui/statusline.h"
 #include "apps.h"
+#include "finput.h"
 #include "textinput.h"
 #include <string.h>
 
@@ -37,7 +38,6 @@ typedef enum {
   M_BAT_CAL,
   M_BAT_TYPE,
   M_BAT_STYLE,
-  M_NICKNAME,
   M_SKIP_GARBAGE_FREQS,
   M_SI4732_POWER_OFF,
   M_ROGER,
@@ -60,7 +60,7 @@ static const uint16_t BAT_CAL_MIN = 1900;
 // static const uint16_t BAT_CAL_MAX = 2155;
 
 static const MenuItem menu[] = {
-    {"Upconv", M_UPCONVERTER, ARRAY_SIZE(upConverterFreqNames)},
+    {"Upconv", M_UPCONVERTER, 0},
     {"Main app", M_MAIN_APP, ARRAY_SIZE(appsAvailableToRun)},
     {"SQL open time", M_SQL_OPEN_T, 7},
     {"SQL close time", M_SQL_CLOSE_T, 3},
@@ -79,7 +79,6 @@ static const MenuItem menu[] = {
     {"BAT calibration", M_BAT_CAL, 255},
     {"BAT type", M_BAT_TYPE, ARRAY_SIZE(BATTERY_TYPE_NAMES)},
     {"BAT style", M_BAT_STYLE, ARRAY_SIZE(BATTERY_STYLE_NAMES)},
-    {"Nickname", M_NICKNAME, 0},
     {"Skip garbage freqs", M_SKIP_GARBAGE_FREQS, 2},
     {"SI4732 power off", M_SI4732_POWER_OFF, 2},
     {"Roger", M_ROGER, 4},
@@ -97,9 +96,6 @@ static void getSubmenuItemText(uint16_t index, char *name) {
   uint16_t v =
       gBatteryVoltage * gSettings.batteryCalibration / (index + BAT_CAL_MIN);
   switch (item->type) {
-  case M_UPCONVERTER:
-    strncpy(name, upConverterFreqNames[index], 31);
-    return;
   case M_MAIN_APP:
     strncpy(name, apps[appsAvailableToRun[index]].name, 31);
     return;
@@ -158,28 +154,14 @@ static void getSubmenuItemText(uint16_t index, char *name) {
   case M_ROGER:
     strncpy(name, rogerNames[index], 31);
     return;
-  case M_NICKNAME:
-    strncpy(name, gSettings.nickName, 31);
-    return;
   default:
     break;
   }
 }
 
-static void setNickname(void) {
-  strncpy(gSettings.nickName, gTextinputText, gTextInputSize);
-  SETTINGS_Save();
-}
-
 static void accept(void) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
-  case M_UPCONVERTER: {
-    uint32_t f = GetScreenF(radio->rx.f);
-    gSettings.upconverter = subMenuIndex;
-    RADIO_TuneToSave(GetTuneF(f));
-    SETTINGS_Save();
-  }; break;
   case M_MAIN_APP:
     gSettings.mainApp = appsAvailableToRun[subMenuIndex];
     SETTINGS_Save();
@@ -337,7 +319,9 @@ static const char *getValue(Menu type) {
     sprintf(Output, "%uMHz", SETTINGS_GetFilterBound() / 100000);
     return Output;
   case M_UPCONVERTER:
-    return upConverterFreqNames[gSettings.upconverter];
+    sprintf(Output, "%u.%05u", gSettings.upconverter / 100000,
+            gSettings.upconverter % 100000);
+    return Output;
   case M_BEEP:
     return onOff[gSettings.beep];
   case M_DTMF_DECODE:
@@ -358,8 +342,6 @@ static const char *getValue(Menu type) {
     return yesNo[gSettings.pttLock];
   case M_ROGER:
     return rogerNames[gSettings.roger];
-  case M_NICKNAME:
-    return gSettings.nickName;
   default:
     break;
   }
@@ -420,9 +402,6 @@ static void setInitialSubmenuIndex(void) {
     break;
   case M_FLT_BOUND:
     subMenuIndex = gSettings.bound_240_280;
-    break;
-  case M_UPCONVERTER:
-    subMenuIndex = gSettings.upconverter;
     break;
   case M_SCRAMBLER:
     subMenuIndex = gSettings.scrambler;
@@ -488,6 +467,13 @@ static void setMenuIndexAndRun(uint16_t v) {
   isSubMenu = true;
 }
 
+static void setUpconverterFreq(uint32_t f) {
+  uint32_t _f = GetScreenF(radio->rx.f);
+  gSettings.upconverter = f;
+  RADIO_TuneToSave(GetTuneF(_f));
+  SETTINGS_Save();
+}
+
 bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld) {
     if (!gIsNumNavInput && key <= KEY_9) {
@@ -518,32 +504,40 @@ bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       IncDec8(&menuIndex, 0, MENU_SIZE, 1);
     }
     return true;
-  case KEY_MENU:
-    if (item->type == M_NICKNAME) {
-      gTextInputSize = 9;
-      gTextinputText = gSettings.nickName;
-      gTextInputCallback = setNickname;
-      APPS_run(APP_TEXTINPUT);
-      return true;
-    }
-    if (isSubMenu) {
-      accept();
-      isSubMenu = false;
-    } else if (!bKeyHeld) {
-      isSubMenu = true;
-      setInitialSubmenuIndex();
-    }
-    return true;
-  case KEY_EXIT:
-    if (isSubMenu) {
-      isSubMenu = false;
-    } else {
-      APPS_exit();
-    }
-    return true;
   default:
     break;
   }
+
+  if (!bKeyPressed && !bKeyHeld) {
+    switch (key) {
+    case KEY_MENU:
+      if (item->type == M_UPCONVERTER) {
+        gTextInputSize = 9;
+        gFInputTempFreq = gSettings.upconverter;
+        gFInputCallback = setUpconverterFreq;
+        APPS_run(APP_FINPUT);
+        return true;
+      }
+      if (isSubMenu) {
+        accept();
+        isSubMenu = false;
+      } else if (!bKeyHeld) {
+        isSubMenu = true;
+        setInitialSubmenuIndex();
+      }
+      return true;
+    case KEY_EXIT:
+      if (isSubMenu) {
+        isSubMenu = false;
+      } else {
+        APPS_exit();
+      }
+      return true;
+    default:
+      break;
+    }
+  }
+
   return false;
 }
 

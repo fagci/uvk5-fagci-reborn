@@ -27,12 +27,6 @@ typedef enum {
 } Step;
 
 typedef enum {
-  UPCONVERTER_OFF,
-  UPCONVERTER_50M,
-  UPCONVERTER_125M,
-} UpconverterTypes;
-
-typedef enum {
   OFFSET_NONE,
   OFFSET_PLUS,
   OFFSET_MINUS,
@@ -115,7 +109,7 @@ typedef struct {
   uint8_t txTime : 4;
   uint8_t micGain : 4;
   uint8_t currentScanlist : 4;
-  UpconverterTypes upconverter : 2;
+  uint8_t reserved1 : 2;
   uint8_t roger : 2;
   uint8_t scanmode : 2;
   uint8_t chDisplayMode : 2;
@@ -149,7 +143,7 @@ typedef struct {
   uint8_t sqlCloseTime : 2;
   bool skipGarbageFrequencies : 1;
   uint8_t activeVFO : 2;
-  char nickName[10];
+  uint32_t upconverter : 27;
 } __attribute__((packed)) Settings;
 // getsize(Settings)
 

@@ -86,7 +86,7 @@ void RESET_Update(void) {
         .txTime = 0,
         .micGain = 15,
         .currentScanlist = 15,
-        .upconverter = UPCONVERTER_OFF,
+        .upconverter = 0,
         .roger = 0,
         .scanmode = 0,
         .chDisplayMode = 0,
@@ -114,7 +114,6 @@ void RESET_Update(void) {
         .batteryCalibration = 2000,
         .batteryType = BAT_1600,
         .batteryStyle = BAT_PERCENT,
-        .nickName = "Anonymous",
     };
     settingsWrote = true;
     bytesWrote += SETTINGS_SIZE;

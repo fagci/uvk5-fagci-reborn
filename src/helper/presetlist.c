@@ -20,583 +20,585 @@ Preset defaultPreset = {
         },
 };
 
-Preset defaultPresets[33] = {
-    (Preset){
-        .band =
-            {
-                .bounds = {1500000, 2999999},
-                .name = "15-30",
-                .step = STEP_5_0kHz,
-                .modulation = MOD_AM,
-                .bw = BK4819_FILTER_BW_NARROW,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+Preset
+    defaultPresets[33] =
+        {
+            (Preset){
+                .band =
+                    {
+                        .bounds = {1500000, 2999999},
+                        .name = "15-30",
+                        .step = STEP_5_0kHz,
+                        .modulation = MOD_AM,
+                        .bw = BK4819_FILTER_BW_NARROW,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 2713500,
+                //           50    100   140
+                .powCalib = {0x32, 0x64, 0x8C},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 2713500,
-        //           50    100   140
-        .powCalib = {0x32, 0x64, 0x8C},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {3000000, 6399999},
-                .name = "30-64",
-                .step = STEP_5_0kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_NARROW,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {3000000, 6399999},
+                        .name = "30-64",
+                        .step = STEP_5_0kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_NARROW,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 3000000,
+                //           50    100   140
+                .powCalib = {0x32, 0x64, 0x8C},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 3000000,
-        //           50    100   140
-        .powCalib = {0x32, 0x64, 0x8C},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {6400000, 8799999},
-                .name = "64-88",
-                .step = STEP_100_0kHz,
-                .modulation = MOD_WFM,
-                .bw = BK4819_FILTER_BW_NARROW,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {6400000, 8799999},
+                        .name = "64-88",
+                        .step = STEP_100_0kHz,
+                        .modulation = MOD_WFM,
+                        .bw = BK4819_FILTER_BW_NARROW,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 7100000,
+                //           50    100   140
+                .powCalib = {0x32, 0x64, 0x8C},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 7100000,
-        //           50    100   140
-        .powCalib = {0x32, 0x64, 0x8C},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {8800000, 10799999},
-                .name = "Bcast FM",
-                .step = STEP_100_0kHz,
-                .modulation = MOD_WFM,
-                .bw = BK4819_FILTER_BW_NARROW,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {8800000, 10799999},
+                        .name = "Bcast FM",
+                        .step = STEP_100_0kHz,
+                        .modulation = MOD_WFM,
+                        .bw = BK4819_FILTER_BW_NARROW,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 10320000,
+                //           50    100   140
+                .powCalib = {0x32, 0x64, 0x8C},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 10320000,
-        //           50    100   140
-        .powCalib = {0x32, 0x64, 0x8C},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {10800000, 11799999},
-                .name = "108-118",
-                .step = STEP_12_5kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_WIDE,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {10800000, 11799999},
+                        .name = "108-118",
+                        .step = STEP_12_5kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 10800000,
+                //           50    100   140
+                .powCalib = {0x32, 0x64, 0x8C},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 10800000,
-        //           50    100   140
-        .powCalib = {0x32, 0x64, 0x8C},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {11800000, 13499999},
-                .name = "Air",
-                .step = STEP_12_5kHz,
-                .modulation = MOD_AM,
-                .bw = BK4819_FILTER_BW_NARROW,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {11800000, 13499999},
+                        .name = "Air",
+                        .step = STEP_12_5kHz,
+                        .modulation = MOD_AM,
+                        .bw = BK4819_FILTER_BW_NARROW,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 13170000,
+                //           50    100   140
+                .powCalib = {0x32, 0x64, 0x8C},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 13170000,
-        //           50    100   140
-        .powCalib = {0x32, 0x64, 0x8C},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {13500000, 14399999},
-                .name = "135-144",
-                .step = STEP_12_5kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_NARROW,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {13500000, 14399999},
+                        .name = "135-144",
+                        .step = STEP_12_5kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_NARROW,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 13510000,
+                //           95    105   130
+                .powCalib = {0x5f, 0x67, 0x82},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 13510000,
-        //           95    105   130
-        .powCalib = {0x5f, 0x67, 0x82},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {14400000, 14799999},
-                .name = "2m HAM",
-                .step = STEP_25_0kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_WIDE,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {14400000, 14799999},
+                        .name = "2m HAM",
+                        .step = STEP_25_0kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 14550000,
+                //           95    105   130
+                .powCalib = {0x5f, 0x67, 0x82},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 14550000,
-        //           95    105   130
-        .powCalib = {0x5f, 0x67, 0x82},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {14800000, 17399999},
-                .name = "148-174",
-                .step = STEP_25_0kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_WIDE,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {14800000, 17399999},
+                        .name = "148-174",
+                        .step = STEP_25_0kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 15300000,
+                //           95    105   130
+                .powCalib = {0x5f, 0x67, 0x82},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 15300000,
-        //           95    105   130
-        .powCalib = {0x5f, 0x67, 0x82},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {17400000, 24499999},
-                .name = "174-245",
-                .step = STEP_25_0kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_WIDE,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {17400000, 24499999},
+                        .name = "174-245",
+                        .step = STEP_25_0kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 20575000,
+                //           50    100   140
+                .powCalib = {0x32, 0x64, 0x8C},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 20575000,
-        //           50    100   140
-        .powCalib = {0x32, 0x64, 0x8C},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {24500000, 26999999},
-                .name = "Satcom",
-                .step = STEP_25_0kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_WIDE,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {24500000, 26999999},
+                        .name = "Satcom",
+                        .step = STEP_25_0kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 25355000,
+                //           50    100   140
+                .powCalib = {0x32, 0x64, 0x8C},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 25355000,
-        //           50    100   140
-        .powCalib = {0x32, 0x64, 0x8C},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {27000000, 42999999},
-                .name = "270-430",
-                .step = STEP_25_0kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_WIDE,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {27000000, 42999999},
+                        .name = "270-430",
+                        .step = STEP_25_0kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 33605000,
+                //           50    100   140
+                .powCalib = {0x32, 0x64, 0x8C},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 33605000,
-        //           50    100   140
-        .powCalib = {0x32, 0x64, 0x8C},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {43000000, 44000000},
-                .name = "70cm HAM",
-                .step = STEP_25_0kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_WIDE,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {43000000, 44000000},
+                        .name = "70cm HAM",
+                        .step = STEP_25_0kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 43230000,
+                //           40    65   140
+                .powCalib = {0x28, 0x41, 0x8C},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 43230000,
-         //           40    65   140
-        .powCalib = {0x28, 0x41, 0x8C},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {43307500, 43479999},
-                .name = "LPD",
-                .step = STEP_25_0kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_WIDE,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {43307500, 43479999},
+                        .name = "LPD",
+                        .step = STEP_25_0kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = true,
+                .lastUsedFreq = 43325000,
+                //           40    65   140
+                .powCalib = {0x28, 0x41, 0x8C},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = true,
-        .lastUsedFreq = 43325000,
-        //           40    65   140
-        .powCalib = {0x28, 0x41, 0x8C},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {43480000, 44600624},
-                .name = "435-446",
-                .step = STEP_25_0kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_WIDE,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {43480000, 44600624},
+                        .name = "435-446",
+                        .step = STEP_25_0kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 43700000,
+                //           90    100   111
+                .powCalib = {0x5a, 0x64, 0x6f},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 43700000,
-        //           90    100   111
-        .powCalib = {0x5a, 0x64, 0x6f},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {44600625, 44619375},
-                .name = "PMR",
-                .step = STEP_6_25kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_WIDE,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {44600625, 44619375},
+                        .name = "PMR",
+                        .step = STEP_6_25kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = true,
+                .lastUsedFreq = 44609375,
+                //           40    65   140
+                .powCalib = {0x28, 0x41, 0x8C},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = true,
-        .lastUsedFreq = 44609375,
-        //           40    65   140
-        .powCalib = {0x28, 0x41, 0x8C},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {44620000, 46256249},
-                .name = "446-462",
-                .step = STEP_25_0kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_WIDE,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {44620000, 46256249},
+                        .name = "446-462",
+                        .step = STEP_25_0kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 46060000,
+                //           90    100   111
+                .powCalib = {0x5a, 0x64, 0x6f},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 46060000,
-        //           90    100   111
-        .powCalib = {0x5a, 0x64, 0x6f},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {46256250, 46273749},
-                .name = "FRS/G462",
-                .step = STEP_12_5kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_WIDE,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {46256250, 46273749},
+                        .name = "FRS/G462",
+                        .step = STEP_12_5kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 46256250,
+                //           40    65   140
+                .powCalib = {0x28, 0x41, 0x8C},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 46256250,
-        //           40    65   140
-        .powCalib = {0x28, 0x41, 0x8C},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {46273750, 46756249},
-                .name = "462-467",
-                .step = STEP_12_5kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_WIDE,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {46273750, 46756249},
+                        .name = "462-467",
+                        .step = STEP_12_5kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 46302500,
+                //           90    100   111
+                .powCalib = {0x5a, 0x64, 0x6f},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 46302500,
-        //           90    100   111
-        .powCalib = {0x5a, 0x64, 0x6f},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {46756250, 46774999},
-                .name = "FRS/G467",
-                .step = STEP_12_5kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_WIDE,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {46756250, 46774999},
+                        .name = "FRS/G467",
+                        .step = STEP_12_5kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 46756250,
+                //           40    65   140
+                .powCalib = {0x28, 0x41, 0x8C},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 46756250,
-        //           40    65   140
-        .powCalib = {0x28, 0x41, 0x8C},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {46775000, 46999999},
-                .name = "468-470",
-                .step = STEP_25_0kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_WIDE,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {46775000, 46999999},
+                        .name = "468-470",
+                        .step = STEP_25_0kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 46980000,
+                //           90    100   111
+                .powCalib = {0x5a, 0x64, 0x6f},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 46980000,
-        //           90    100   111
-        .powCalib = {0x5a, 0x64, 0x6f},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {47000000, 62000000},
-                .name = "470-620",
-                .step = STEP_25_0kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_WIDE,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {47000000, 62000000},
+                        .name = "470-620",
+                        .step = STEP_25_0kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 50975000,
+                //           50    100   140
+                .powCalib = {0x32, 0x64, 0x8c},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 50975000,
-        //           50    100   140
-        .powCalib = {0x32, 0x64, 0x8c},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {84000000, 86299999},
-                .name = "840-863",
-                .step = STEP_25_0kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_WIDE,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {84000000, 86299999},
+                        .name = "840-863",
+                        .step = STEP_25_0kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 85500000,
+                //           50    100   140
+                .powCalib = {0x32, 0x64, 0x8C},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 85500000,
-        //           50    100   140
-        .powCalib = {0x32, 0x64, 0x8C},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {86300000, 86999999},
-                .name = "LORA",
-                .step = STEP_125_0kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_WIDE,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {86300000, 86999999},
+                        .name = "LORA",
+                        .step = STEP_125_0kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 86400000,
+                //           50    100   140
+                .powCalib = {0x32, 0x64, 0x8C},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 86400000,
-        //           50    100   140
-        .powCalib = {0x32, 0x64, 0x8C},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {87000000, 88999999},
-                .name = "870-890",
-                .step = STEP_25_0kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_WIDE,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {87000000, 88999999},
+                        .name = "870-890",
+                        .step = STEP_25_0kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 87000000,
+                //           50    100   140
+                .powCalib = {0x32, 0x64, 0x8C},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 87000000,
-        //           50    100   140
-        .powCalib = {0x32, 0x64, 0x8C},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {89000000, 95999999},
-                .name = "GSM-900",
-                .step = STEP_200_0kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_WIDE,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {89000000, 95999999},
+                        .name = "GSM-900",
+                        .step = STEP_200_0kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 89000000,
+                //           50    100   140
+                .powCalib = {0x32, 0x64, 0x8C},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 89000000,
-        //           50    100   140
-        .powCalib = {0x32, 0x64, 0x8C},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {96000000, 125999999},
-                .name = "960-1260",
-                .step = STEP_25_0kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_WIDE,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {96000000, 125999999},
+                        .name = "960-1260",
+                        .step = STEP_25_0kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 96000000,
+                //           50    100   140
+                .powCalib = {0x32, 0x64, 0x8C},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 96000000,
-        //           50    100   140
-        .powCalib = {0x32, 0x64, 0x8C},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {126000000, 129999999},
-                .name = "23cm HAM",
-                .step = STEP_25_0kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_WIDE,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {126000000, 129999999},
+                        .name = "23cm HAM",
+                        .step = STEP_25_0kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 129750000,
+                //           50    100   140
+                .powCalib = {0x32, 0x64, 0x8C},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 129750000,
-        //           50    100   140
-        .powCalib = {0x32, 0x64, 0x8C},
-        .radio = RADIO_BK4819,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {126000000, 134000000},
-                .name = "1.3-1.34",
-                .step = STEP_25_0kHz,
-                .modulation = MOD_FM,
-                .bw = BK4819_FILTER_BW_WIDE,
-                .gainIndex = 18,
-                .squelch = 3,
-                .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {126000000, 134000000},
+                        .name = "1.3-1.34",
+                        .step = STEP_25_0kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                        .gainIndex = 18,
+                        .squelch = 3,
+                        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 126000000,
+                //           50    100   140
+                .powCalib = {0x32, 0x64, 0x8C},
+                .radio = RADIO_BK4819,
             },
-        .allowTx = false,
-        .lastUsedFreq = 126000000,
-        //           50    100   140
-        .powCalib = {0x32, 0x64, 0x8C},
-        .radio = RADIO_BK4819,
-    },
 
-    // si4732 presets
-    (Preset){
-        .band =
-            {
-                .bounds = {350000, 380000},
-                .name = "80m HAM",
-                .step = STEP_1_0kHz,
-                .modulation = MOD_LSB,
-                .bw = BK4819_FILTER_BW_NARROW,
-                .gainIndex = 18,
+            // si4732 presets
+            (Preset){
+                .band =
+                    {
+                        .bounds = {350000, 380000},
+                        .name = "80m HAM",
+                        .step = STEP_1_0kHz,
+                        .modulation = MOD_LSB,
+                        .bw = BK4819_FILTER_BW_NARROW,
+                        .gainIndex = 18,
+                    },
+                .lastUsedFreq = 364800,
+                .radio = RADIO_SI4732,
             },
-        .lastUsedFreq = 364800,
-        .radio = RADIO_SI4732,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {700000, 719999},
-                .name = "40m HAM",
-                .step = STEP_1_0kHz,
-                .modulation = MOD_LSB,
-                .bw = BK4819_FILTER_BW_NARROW,
-                .gainIndex = 18,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {700000, 719999},
+                        .name = "40m HAM",
+                        .step = STEP_1_0kHz,
+                        .modulation = MOD_LSB,
+                        .bw = BK4819_FILTER_BW_NARROW,
+                        .gainIndex = 18,
+                    },
+                .lastUsedFreq = 710000,
+                .radio = RADIO_SI4732,
             },
-        .lastUsedFreq = 710000,
-        .radio = RADIO_SI4732,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {1400000, 1435000},
-                .name = "20m HAM",
-                .step = STEP_1_0kHz,
-                .modulation = MOD_USB,
-                .bw = BK4819_FILTER_BW_NARROW,
-                .gainIndex = 18,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {1400000, 1435000},
+                        .name = "20m HAM",
+                        .step = STEP_1_0kHz,
+                        .modulation = MOD_USB,
+                        .bw = BK4819_FILTER_BW_NARROW,
+                        .gainIndex = 18,
+                    },
+                .lastUsedFreq = 1400000,
+                .radio = RADIO_SI4732,
             },
-        .lastUsedFreq = 1400000,
-        .radio = RADIO_SI4732,
-    },
-    (Preset){
-        .band =
-            {
-                .bounds = {2800000, 2970000},
-                .name = "10m HAM",
-                .step = STEP_1_0kHz,
-                .modulation = MOD_USB,
-                .bw = BK4819_FILTER_BW_NARROW,
-                .gainIndex = 18,
+            (Preset){
+                .band =
+                    {
+                        .bounds = {2800000, 2970000},
+                        .name = "10m HAM",
+                        .step = STEP_1_0kHz,
+                        .modulation = MOD_USB,
+                        .bw = BK4819_FILTER_BW_NARROW,
+                        .gainIndex = 18,
+                    },
+                .lastUsedFreq = 2800000,
+                .radio = RADIO_SI4732,
             },
-        .lastUsedFreq = 2800000,
-        .radio = RADIO_SI4732,
-     },
 };
 // char (*__defpres)[sizeof(defaultPresets)/sizeof(Preset)] = 1;
 
@@ -659,8 +661,29 @@ int8_t PRESET_IndexOf(Preset *p) {
   return -1;
 }
 
+Preset *PRESET_ByFrequency(uint32_t f) {
+  uint32_t smallerBW = 134000000;
+  Preset *p = 0;
+  for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
+    if (PRESET_InRange(f, &presets[i])) {
+      uint32_t bw = presets[i].band.bounds.end - presets[i].band.bounds.start;
+      if (bw < smallerBW) {
+        smallerBW = bw;
+        p = &presets[i];
+      }
+    }
+  }
+  if (p) {
+    return p;
+  }
+  return &defaultPreset;
+}
+
 int8_t PRESET_SelectByFrequency(uint32_t f) {
-  if (PRESET_InRange(f, gCurrentPreset)) {
+  Preset *p = PRESET_ByFrequency(f);
+  gCurrentPreset = p;
+  return PRESET_IndexOf(gCurrentPreset);
+  /* if (PRESET_InRange(f, gCurrentPreset)) {
     return gSettings.activePreset;
   }
   for (int8_t i = 0; i < PRESETS_Size(); ++i) {
@@ -670,16 +693,7 @@ int8_t PRESET_SelectByFrequency(uint32_t f) {
     }
   }
   gCurrentPreset = &defaultPreset; // TODO: make preset between near bands
-  return -1;
-}
-
-Preset *PRESET_ByFrequency(uint32_t f) {
-  for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
-    if (PRESET_InRange(f, &presets[i])) {
-      return &presets[i];
-    }
-  }
-  return &defaultPreset;
+  return -1; */
 }
 
 bool PRESETS_Load(void) {

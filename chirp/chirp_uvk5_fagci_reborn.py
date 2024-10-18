@@ -834,12 +834,6 @@ STEP_NAMES = [
     "200.0kHz"
 ]
 
-UPCONVERTER_TYPES = [
-    "UPCONVERTER_OFF",
-    "UPCONVERTER_50M",
-    "UPCONVERTER_125M"
-]
-
 OFFSET_DIRECTION = [
     "NONE",
     "+",
@@ -1114,7 +1108,7 @@ struct {
   u8 chDisplayMode : 2,
      scanmode : 2,
      roger : 2,
-     upconverter : 2;
+     reserved1 : 2;
   u8 dtmfdecode : 1,
      repeaterSte : 1,
      ste : 1,
@@ -1143,7 +1137,7 @@ struct {
      skipGarbageFrequencies : 1,
      sqlCloseTime : 2,
      sqlOpenTime : 3;
-  char nickName[10];
+  ul32 upconverter : 27;
 } Settings;
 """
 
@@ -2748,7 +2742,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
 
         tmpval = _mem.Settings.upconverter
         rs = RadioSetting("upconverter", "Upconverter",
-                          RadioSettingValueList(UPCONVERTER_TYPES, UPCONVERTER_TYPES[tmpval]))
+                          RadioSettingValueInteger(0, 134000000))
         radio_settings.append(rs)
 
         tmpval = _mem.Settings.dtmfdecode
@@ -2879,9 +2873,9 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                           RadioSettingValueList(SQL_CLOSE_NAMES, SQL_CLOSE_NAMES[tmpval]))
         sql.append(rs)
 
-        tmpval = sanitize_str(_mem.Settings.nickName)
-        rs = RadioSetting("nickName", "Nick Name", RadioSettingValueString(0, 10, str(tmpval).strip("\x20\x00\xff")))
-        basic.append(rs)
+        # tmpval = sanitize_str(_mem.Settings.nickName)
+        # rs = RadioSetting("nickName", "Nick Name", RadioSettingValueString(0, 10, str(tmpval).strip("\x20\x00\xff")))
+        # basic.append(rs)
 
         top = RadioSettings(basic, radio_settings, display_battery, sql, patch, *vfo, *presets)
         return top
@@ -2961,7 +2955,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
                 _mem.Settings.roger = ROGER_NAMES.index(element.value)
 
             if element.get_name() == "upconverter":
-                _mem.Settings.upconverter = UPCONVERTER_TYPES.index(element.value)
+                _mem.Settings.upconverter = element.value
 
             if element.get_name() == "dtmfdecode":
                 _mem.Settings.dtmfdecode = element.value and 1 or 0
@@ -3045,8 +3039,8 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             if element.get_name() == "sqlOpenTime":
                 _mem.Settings.sqlOpenTime = SQL_OPEN_NAMES.index(element.value)
 
-            if element.get_name() == "nickName":
-                _mem.Settings.nickName = element.value
+            # if element.get_name() == "nickName":
+                # _mem.Settings.nickName = element.value
 
             # VFO
             reg_patt = "^vfo(([0-9]){1,2})_"
