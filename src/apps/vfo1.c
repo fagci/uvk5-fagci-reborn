@@ -82,7 +82,7 @@ static void startScan() {
     SSB_Seek_ON = true;
     // todo: scan by snr
   } else {
-    SVC_Toggle(SVC_SCAN, true, 10);
+    SVC_Toggle(SVC_SCAN, true, gSettings.scanTimeout);
   }
 }
 

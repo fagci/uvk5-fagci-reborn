@@ -128,7 +128,7 @@ void ANALYZER_init(void) {
   startNewScan(true);
 
   gScanFn = scanFn;
-  SVC_Toggle(SVC_SCAN, true, 1);
+  SVC_Toggle(SVC_SCAN, true, scanInterval);
   gScanRedraw = false;
 }
 

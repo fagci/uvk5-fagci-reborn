@@ -59,7 +59,7 @@ void CHSCANNER_init(void) {
   } */
 
   gScanFn = scanFn;
-  SVC_Toggle(SVC_SCAN, true, 10);
+  SVC_Toggle(SVC_SCAN, true, gSettings.scanTimeout);
 }
 
 void CHSCANNER_deinit(void) { SVC_Toggle(SVC_SCAN, false, 0); }

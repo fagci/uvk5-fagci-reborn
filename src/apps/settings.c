@@ -7,6 +7,7 @@
 #include "../misc.h"
 #include "../radio.h"
 #include "../settings.h"
+#include "../svc.h"
 #include "../svc_scan.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
@@ -185,6 +186,10 @@ static void accept(void) {
     break;
   case M_SCAN_DELAY:
     gSettings.scanTimeout = subMenuIndex;
+    if (SVC_Running(SVC_SCAN)) {
+      SVC_Toggle(SVC_SCAN, false, 0);
+      SVC_Toggle(SVC_SCAN, true, gSettings.scanTimeout);
+    }
     SETTINGS_Save();
     break;
   case M_SQL_OPEN_T:

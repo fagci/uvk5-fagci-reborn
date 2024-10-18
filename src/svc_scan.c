@@ -9,7 +9,6 @@
 #include "scheduler.h"
 #include "settings.h"
 
-uint16_t gScanSwitchT = 10;
 bool gScanForward = true;
 bool gScanRedraw = true;
 
@@ -43,7 +42,7 @@ void (*gScanFn)(bool) = NULL;
 static void next(void) {
   gScanFn(gScanForward);
   lastSettedF = radio->rx.f;
-  SetTimeout(&timeout, gSettings.scanTimeout);
+  SetTimeout(&timeout, 0); // will be passed at next update
   if (gScanRedraw) {
     gRedrawScreen = true;
   }
