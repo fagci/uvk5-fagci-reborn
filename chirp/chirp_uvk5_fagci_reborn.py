@@ -1194,7 +1194,7 @@ struct {
      radio : 2,
      offsetDir : 2,
      power : 2;
-} Preset[33];
+} Preset[37];
 """
 
 MEM_CH = """struct {
