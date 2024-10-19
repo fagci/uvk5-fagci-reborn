@@ -2742,7 +2742,7 @@ class UVK5Radio(chirp_common.CloneModeRadio):
 
         tmpval = _mem.Settings.upconverter
         rs = RadioSetting("upconverter", "Upconverter",
-                          RadioSettingValueInteger(0, 134000000))
+                          RadioSettingValueInteger(0, 134000000, tmpval))
         radio_settings.append(rs)
 
         tmpval = _mem.Settings.dtmfdecode
