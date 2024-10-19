@@ -1066,7 +1066,7 @@ MIN_FREQ = 153000
 MAX_FREQ = 1399999990
 
 ## SETTINGS_VF0_PRESET_SIZE = 0x3d1  #  TERRIBLE hardcoding; should get sizeof(MEM_SETTINGS)
-SETTINGS_VF0_PRESET_SIZE = 0x455  #  TERRIBLE hardcoding; should get sizeof(MEM_SETTINGS)
+SETTINGS_VF0_PRESET_SIZE = 0x4d5  #  TERRIBLE hardcoding; should get sizeof(MEM_SETTINGS)
 MEMORY_START_LOWER_LIMIT = SETTINGS_VF0_PRESET_SIZE
 
 BIT_MASK_NAMES = ["--------"]
@@ -1119,8 +1119,8 @@ struct {
   u8 contrast : 4,
      brightness : 4;
   u8 mainApp : 8;
-  u8 presetsCount : 37;
-  u8 activePreset : 9;
+  u8 presetsCount : 8;
+  u8 activePreset : 8;
   ul16 batteryStyle : 2,
        batteryType : 2,
        batteryCalibration: 12;

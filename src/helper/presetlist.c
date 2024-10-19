@@ -289,7 +289,7 @@ Preset
                 .bw = BK4819_FILTER_BW_WIDE,
             },
         .allowTx = false,
-        .lastUsedFreq = 43700000,
+        .lastUsedFreq = 44000025,
         //           90    100   111
         .powCalib = {0x5a, 0x64, 0x6f},
         .radio = RADIO_BK4819,
@@ -319,7 +319,7 @@ Preset
                 .bw = BK4819_FILTER_BW_WIDE,
             },
         .allowTx = false,
-        .lastUsedFreq = 46060000,
+        .lastUsedFreq = 44620000,
         //           90    100   111
         .powCalib = {0x5a, 0x64, 0x6f},
         .radio = RADIO_BK4819,
@@ -387,7 +387,7 @@ Preset
     (Preset){
         .band =
             {
-                .bounds = {47000000, 62000000},
+                .bounds = {47000000, 61999999},
                 .name = "470-620",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
@@ -492,14 +492,14 @@ Preset
     (Preset){
         .band =
             {
-                .bounds = {126000000, 134000000},
+                .bounds = {130000000, 134000000},
                 .name = "1.3-1.34",
                 .step = STEP_25_0kHz,
                 .modulation = MOD_FM,
                 .bw = BK4819_FILTER_BW_WIDE,
             },
         .allowTx = false,
-        .lastUsedFreq = 126000000,
+        .lastUsedFreq = 130000000,
         //           50    100   140
         .powCalib = {0x32, 0x64, 0x8C},
         .radio = RADIO_BK4819,
@@ -647,10 +647,11 @@ Preset *PRESET_ByFrequency(uint32_t f) {
 }
 
 int8_t PRESET_SelectByFrequency(uint32_t f) {
-  Preset *p = PRESET_ByFrequency(f);
-  gCurrentPreset = p;
+  gCurrentPreset = PRESET_ByFrequency(f);
   int8_t i = PRESET_IndexOf(gCurrentPreset);
-  PRESET_Select(i);
+  if (i >= 0) {
+    gSettings.activePreset = i;
+  }
   return i;
   /* if (PRESET_InRange(f, gCurrentPreset)) {
     return gSettings.activePreset;
