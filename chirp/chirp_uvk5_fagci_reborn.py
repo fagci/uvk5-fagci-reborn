@@ -991,8 +991,10 @@ BANDS = {
 }
 
 # DEFAULT_BAND_NAMES = [
-#     "15-30",
-#     "30-64",
+#     "15-26",
+#     "CB EU",
+#     "CB UK",
+#     "28-64",
 #     "64-88",
 #     "Bcast FM",
 #     "108-118",
@@ -1000,12 +1002,13 @@ BANDS = {
 #     "135-144",
 #     "2m HAM",
 #     "148-174",
-#     "174-230",
-#     "230-320",
-#     "320-400",
-#     "400-433",
+#     "174-245",
+#     "Satcom",
+#     "270-430",
+#     "70cm HAM",
 #     "LPD",
-#     "435-446",
+#     "70cm HAM",
+#     "440-446",
 #     "PMR",
 #     "446-462",
 #     "FRS/G462",
@@ -1022,12 +1025,8 @@ BANDS = {
 #     "1.3-1.34",
 #     "160m HAM",
 #     "80m HAM",
-#     "60m HAM",
 #     "40m HAM",
 #     "20m HAM",
-#     "17m HAM",
-#     "15m HAM",
-#     "12m HAM",
 #     "10m HAM"
 # ]
 
@@ -1120,8 +1119,8 @@ struct {
   u8 contrast : 4,
      brightness : 4;
   u8 mainApp : 8;
-  u8 presetsCount : 8;
-  u8 activePreset : 8;
+  u8 presetsCount : 37;
+  u8 activePreset : 9;
   ul16 batteryStyle : 2,
        batteryType : 2,
        batteryCalibration: 12;

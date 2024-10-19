@@ -225,7 +225,7 @@ void BK4819_SetAGC(bool useDefault, uint8_t gainIndex) {
     // slow 25 45
     // fast 15 50
     low = 20;
-    high = 55;
+    high = 50;
   }
   BK4819_WriteRegister(BK4819_REG_49, (Lo << 14) | (high << 7) | (low << 0));
   BK4819_WriteRegister(BK4819_REG_7B, 0x8420);

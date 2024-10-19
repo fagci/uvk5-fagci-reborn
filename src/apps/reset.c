@@ -67,8 +67,8 @@ static void startReset(EEPROMType t) {
 }
 
 void RESET_Init(void) {
-    gSettings.keylock = false;
-    eepromType = EEPROM_A;
+  gSettings.keylock = false;
+  eepromType = EEPROM_A;
 }
 
 void RESET_Update(void) {
@@ -86,7 +86,6 @@ void RESET_Update(void) {
         .txTime = 0,
         .micGain = 15,
         .currentScanlist = 15,
-        .upconverter = 0,
         .roger = 0,
         .scanmode = 0,
         .chDisplayMode = 0,
@@ -108,12 +107,13 @@ void RESET_Update(void) {
         .skipGarbageFrequencies = true,
         .scanTimeout = 50,
         .activeVFO = 0,
-        .activePreset = 22,
+        .activePreset = 9,
         .presetsCount = ARRAY_SIZE(defaultPresets),
         .backlightOnSquelch = BL_SQL_ON,
         .batteryCalibration = 2000,
         .batteryType = BAT_1600,
         .batteryStyle = BAT_PERCENT,
+        .upconverter = 0,
     };
     settingsWrote = true;
     bytesWrote += SETTINGS_SIZE;
@@ -122,7 +122,11 @@ void RESET_Update(void) {
     vfosWrote++;
     bytesWrote += VFO_SIZE;
   } else if (presetsWrote < ARRAY_SIZE(defaultPresets)) {
-    PRESETS_SavePreset(presetsWrote, &defaultPresets[presetsWrote]);
+    Preset *p = &defaultPresets[presetsWrote];
+    p->band.gainIndex = 18;
+    p->band.squelch = 3;
+    p->band.squelchType = SQUELCH_RSSI_NOISE_GLITCH;
+    PRESETS_SavePreset(presetsWrote, p);
     presetsWrote++;
     bytesWrote += PRESET_SIZE;
   } else if (channelsWrote < channelsMax) {

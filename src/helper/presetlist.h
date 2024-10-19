@@ -4,7 +4,7 @@
 #include "../radio.h"
 #include <stdint.h>
 
-#define PRESETS_SIZE_MAX 33
+#define PRESETS_COUNT 37
 
 bool PRESETS_Load();
 int8_t PRESETS_Size();
@@ -26,7 +26,7 @@ uint32_t PRESETS_GetSteps(Preset *p);
 uint32_t PRESETS_GetF(Preset *p, uint32_t channel);
 uint32_t PRESETS_GetChannel(Preset *p, uint32_t f);
 
-extern Preset defaultPresets[33];
+extern Preset defaultPresets[PRESETS_COUNT];
 extern Preset defaultPreset;
 extern Preset *gCurrentPreset;
 
