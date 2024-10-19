@@ -834,9 +834,16 @@ void RADIO_NextVFO(void) {
 
 void RADIO_ToggleVfoMR(void) {
   if (radio->channel >= 0) {
-    radio->channel = -1;
+    radio->channel += 1; // 0 -> 1
+    radio->channel *= -1;
   } else {
-    RADIO_NextCH(true);
+    radio->channel *= -1;
+    radio->channel -= 1; // 1 -> 0
+    if (CHANNELS_Existing(radio->channel)) {
+      RADIO_TuneToCH(radio->channel);
+    } else {
+      RADIO_NextCH(true);
+    }
   }
   RADIO_SaveCurrentVFO();
 }

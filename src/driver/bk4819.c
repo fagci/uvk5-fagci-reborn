@@ -16,8 +16,15 @@ static uint16_t gBK4819_GpioOutState;
 static Filter selectedFilter = FILTER_OFF;
 
 static const uint16_t modTypeReg47Values[] = {
-    BK4819_AF_FM,  BK4819_AF_AM, BK4819_AF_USB, BK4819_AF_BYPASS,
-    BK4819_AF_RAW, BK4819_AF_FM, BK4819_AF_BEEP};
+    [MOD_FM] = BK4819_AF_FM,      //
+    [MOD_AM] = BK4819_AF_AM,      //
+    [MOD_LSB] = BK4819_AF_USB,    //
+    [MOD_USB] = BK4819_AF_USB,    //
+    [MOD_BYP] = BK4819_AF_BYPASS, //
+    [MOD_RAW] = BK4819_AF_RAW,    //
+    [MOD_WFM] = BK4819_AF_FM,     //
+    [MOD_PRST] = BK4819_AF_RAW,   // for some reason =)
+};
 static const uint8_t squelchTypeValues[4] = {0x88, 0xAA, 0xCC, 0xFF};
 static const uint8_t DTMF_COEFFS[] = {111, 107, 103, 98, 80,  71,  58,  44,
                                       65,  55,  37,  23, 228, 203, 181, 159};
