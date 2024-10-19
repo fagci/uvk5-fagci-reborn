@@ -627,13 +627,19 @@ void RADIO_SetSquelchType(SquelchType t) {
 
 void RADIO_SetGain(uint8_t gainIndex) {
   gCurrentPreset->band.gainIndex = gainIndex;
+  bool disableAGC = false;
   switch (RADIO_GetRadio()) {
   case RADIO_BK4819:
     BK4819_SetAGC(gCurrentPreset->band.modulation != MOD_AM, gainIndex);
     break;
   case RADIO_SI4732:
-    gainIndex = ARRAY_SIZE(gainTable) - 1 - gainIndex;
-    SI47XX_SetAutomaticGainControl(gainIndex > 0, gainIndex);
+    disableAGC = gainIndex > 0;
+    if (gainIndex > 1) {
+      gainIndex -= 1;
+    } else {
+      gainIndex = 0;
+    }
+    SI47XX_SetAutomaticGainControl(disableAGC, gainIndex);
     break;
   case RADIO_BK1080:
     break;
