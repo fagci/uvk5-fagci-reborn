@@ -781,7 +781,7 @@ CHAN_MAX = 1024
 READ_WRITE_CHANNELS = CHAN_MAX  # This val should be; CHAN_MAX For debbunging purposes,
 # this value can be changed to 10 for faster testing (? STILL TRUE??)
 
-SETTINGS_SIZE = 0x001b
+SETTINGS_SIZE = 21 #0x001b
 
 PATCH_SIZE = 15832
 
