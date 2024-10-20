@@ -106,8 +106,6 @@ static void setCenterF(uint32_t f) {
   startNewScan(true);
 }
 
-static void setup(uint32_t f) { setCenterF(f); }
-
 void ANALYZER_init(void) {
   SVC_Toggle(SVC_LISTEN, false, 0);
   RADIO_ToggleRX(false);
@@ -118,7 +116,7 @@ void ANALYZER_init(void) {
   opt.band.step = gCurrentPreset->band.step;
   opt.band.squelch = 0;
 
-  setup(radio->rx.f);
+  setCenterF(radio->rx.f);
   startNewScan(true);
   squelchRssi = UINT16_MAX;
 
@@ -209,13 +207,13 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       if (opt.band.step < STEP_200_0kHz) {
         opt.band.step++;
       }
-      setup(centerF);
+      setCenterF(centerF);
       return true;
     case KEY_8:
       if (opt.band.step > 0) {
         opt.band.step--;
       }
-      setup(centerF);
+      setCenterF(centerF);
       return true;
     case KEY_F:
       APPS_run(APP_PRESET_CFG);
