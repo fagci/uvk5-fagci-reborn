@@ -37,7 +37,10 @@ static void showItem(uint16_t i, uint16_t index, bool isCurrent) {
 
 static void scanFn(bool forward) {
   IncDecI32(&scanIndex, 0, gScanlistSize, forward ? 1 : -1);
-  RADIO_TuneToPure(LOOT_Item(scanIndex)->f, true);
+  int32_t chNum = gScanlist[scanIndex];
+  radio->channel = chNum;
+  RADIO_VfoLoadCH(gSettings.activeVFO);
+  RADIO_SetupByCurrentVFO();
 }
 
 void CHSCANNER_init(void) {
