@@ -20,7 +20,6 @@ static const uint8_t spectrumWidth = LCD_WIDTH;
 
 static Loot msm;
 static uint32_t centerF = 0;
-static uint8_t initialScanInterval = 0;
 static uint8_t scanInterval = 2;
 static uint8_t stepsCount = 128;
 
@@ -44,7 +43,6 @@ static void startNewScan(bool reset) {
   _peakF = 0;
   peakRssi = 0;
   if (reset) {
-    squelchRssi = UINT16_MAX;
     LOOT_Standby();
     msm.f = opt.band.bounds.start;
     BK4819_TuneTo(msm.f, true);
@@ -108,10 +106,7 @@ static void setCenterF(uint32_t f) {
   startNewScan(true);
 }
 
-static void setup(uint32_t f) {
-  setCenterF(f);
-  gSettings.scanTimeout = scanInterval;
-}
+static void setup(uint32_t f) { setCenterF(f); }
 
 void ANALYZER_init(void) {
   SVC_Toggle(SVC_LISTEN, false, 0);
@@ -120,37 +115,52 @@ void ANALYZER_init(void) {
 
   gMonitorMode = false;
 
-  initialScanInterval = gSettings.scanTimeout;
   opt.band.step = gCurrentPreset->band.step;
   opt.band.squelch = 0;
 
   setup(radio->rx.f);
   startNewScan(true);
+  squelchRssi = UINT16_MAX;
 
   gScanFn = scanFn;
   SVC_Toggle(SVC_SCAN, true, scanInterval);
   gScanRedraw = false;
 }
 
-void ANALYZER_update(void) {}
+void ANALYZER_update(void) {
+  if (gIsListening) {
+    scanFn(true);
+  }
+}
 
 void ANALYZER_deinit(void) {
   SVC_Toggle(SVC_SCAN, false, 0);
-  gSettings.scanTimeout = initialScanInterval;
   SVC_Toggle(SVC_LISTEN, true, 1);
 }
 
 bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
+  const uint32_t step = StepFrequencyTable[opt.band.step];
+
   // repeat or keyup
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (Key) {
     case KEY_1:
       IncDec8(&scanInterval, 1, 255, 1);
-      setup(centerF);
+      // setup(centerF);
       return true;
     case KEY_7:
       IncDec8(&scanInterval, 1, 255, -1);
-      setup(centerF);
+      // setup(centerF);
+      return true;
+    case KEY_3:
+      if (squelchRssi < 512) {
+        squelchRssi += 2;
+      }
+      return true;
+    case KEY_9:
+      if (squelchRssi > 1) {
+        squelchRssi -= 2;
+      }
       return true;
     default:
       break;
@@ -161,10 +171,10 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     switch (Key) {
     case KEY_UP:
-      setCenterF(centerF + StepFrequencyTable[opt.band.step] * 64);
+      setCenterF(centerF + step * 64);
       return true;
     case KEY_DOWN:
-      setCenterF(centerF - StepFrequencyTable[opt.band.step] * 64);
+      setCenterF(centerF - step * 64);
       return true;
     default:
       break;
@@ -178,10 +188,10 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       APPS_exit();
       return true;
     case KEY_UP:
-      setCenterF(centerF + StepFrequencyTable[opt.band.step]);
+      setCenterF(centerF + step);
       return true;
     case KEY_DOWN:
-      setCenterF(centerF - StepFrequencyTable[opt.band.step]);
+      setCenterF(centerF - step);
       return true;
     case KEY_SIDE1:
       isListening ^= 1;
@@ -225,19 +235,9 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       gFInputCallback = setCenterF;
       APPS_run(APP_FINPUT);
       return true;
-    case KEY_3:
-      if (squelchRssi < 512) {
-        squelchRssi += 2;
-      }
-      return true;
-    case KEY_9:
-      if (squelchRssi > 1) {
-        squelchRssi -= 2;
-      }
-      return true;
     case KEY_PTT:
       RADIO_TuneToSave(centerF);
-      APPS_run(APP_STILL);
+      APPS_run(APP_VFOPRO);
       return true;
     default:
       break;

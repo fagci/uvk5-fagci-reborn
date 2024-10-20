@@ -239,7 +239,7 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_PTT:
       tuneToLoot(item, true);
-      APPS_run(APP_STILL);
+      APPS_run(APP_VFOPRO);
       return true;
     case KEY_1:
       sort(SORT_LOT);

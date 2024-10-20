@@ -20,9 +20,9 @@ static const uint16_t U16_MAX = 65535;
 
 static uint8_t noiseOpenDiff = 14;
 
+static const uint8_t SPECTRUM_Y = 16;
 static const uint8_t SPECTRUM_H = 40;
 
-static const uint8_t SPECTRUM_Y = 16;
 
 static Band *currentBand;
 
@@ -229,7 +229,7 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_PTT:
       if (gLastActiveLoot) {
         RADIO_TuneToSave(gLastActiveLoot->f);
-        APPS_run(APP_STILL);
+        APPS_run(APP_VFOPRO);
       }
       return true;
     default:

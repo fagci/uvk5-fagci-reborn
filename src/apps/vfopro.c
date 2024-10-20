@@ -1,4 +1,4 @@
-#include "still.h"
+#include "vfopro.h"
 #include "../driver/bk4819.h"
 #include "../driver/st7565.h"
 #include "../helper/lootlist.h"
@@ -72,13 +72,11 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   }
 }
 
-void STILL_init(void) {
-  RADIO_LoadCurrentVFO();
-}
+void VFOPRO_init(void) { RADIO_LoadCurrentVFO(); }
 
-void STILL_deinit(void) { RADIO_ToggleRX(false); }
+void VFOPRO_deinit(void) { RADIO_ToggleRX(false); }
 
-void STILL_update(void) {
+void VFOPRO_update(void) {
   RADIO_UpdateMeasurementsEx(&gLoot[gSettings.activeVFO]);
 
   if (Now() - gLastRender >= 500) {
@@ -87,7 +85,7 @@ void STILL_update(void) {
 }
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-bool STILL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (key == KEY_PTT) {
     RADIO_ToggleTX(bKeyHeld);
     return true;
@@ -225,7 +223,7 @@ static void DrawRegs(void) {
   }
 }
 
-void STILL_render(void) {
+void VFOPRO_render(void) {
   UI_ClearScreen();
   STATUSLINE_SetText(gCurrentPreset->band.name);
   UI_FSmall(gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(radio->rx.f));

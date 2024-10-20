@@ -15,11 +15,11 @@
 #include "savech.h"
 #include "settings.h"
 #include "spectrumreborn.h"
-#include "still.h"
 #include "textinput.h"
 #include "vfo1.h"
 #include "vfo2.h"
 #include "vfocfg.h"
+#include "vfopro.h"
 
 #define APPS_STACK_SIZE 8
 
@@ -56,7 +56,7 @@ AppType_t APPS_Peek(void) {
 
 const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
     APP_VFO1,         //
-    APP_STILL,        //
+    APP_VFOPRO,       //
     APP_VFO2,         //
     APP_CH_SCANNER,   //
     APP_SAVECH,       //
@@ -80,8 +80,8 @@ const App apps[APPS_COUNT] = {
     {"CH Scan", CHSCANNER_init, CHSCANNER_update, CHSCANNER_render,
      CHSCANNER_key, CHSCANNER_deinit},
     {"Channels", SAVECH_init, SAVECH_update, SAVECH_render, SAVECH_key, NULL},
-    {"1 VFO pro", STILL_init, STILL_update, STILL_render, STILL_key,
-     STILL_deinit},
+    {"1 VFO pro", VFOPRO_init, VFOPRO_update, VFOPRO_render, VFOPRO_key,
+     VFOPRO_deinit},
     {"Freq input", FINPUT_init, NULL, FINPUT_render, FINPUT_key, FINPUT_deinit},
     {"Run app", APPSLIST_init, NULL, APPSLIST_render, APPSLIST_key, NULL},
     {"Loot", LOOTLIST_init, LOOTLIST_update, LOOTLIST_render, LOOTLIST_key,

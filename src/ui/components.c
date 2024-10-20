@@ -79,7 +79,20 @@ void drawTicks(uint8_t x1, uint8_t x2, uint8_t y, uint32_t fs, uint32_t fe,
 void UI_DrawTicks(uint8_t x1, uint8_t x2, uint8_t y, Band *band) {
   // TODO: automatic ticks size determination
 
-  uint32_t fs = band->bounds.start;
+  FRange *range = &band->bounds;
+  uint32_t fs = range->start;
+  uint32_t fe = range->end;
+  uint32_t bw = fe - fs;
+
+  for (uint32_t p = 100000000; p >= 10; p /= 10) {
+    if (p < bw) {
+      drawTicks(x1, x2, y, fs, fe, p / 2, 2);
+      drawTicks(x1, x2, y, fs, fe, p, 3);
+      return;
+    }
+  }
+
+  /* uint32_t fs = band->bounds.start;
   uint32_t fe = band->bounds.end;
   uint32_t bw = fe - fs;
 
@@ -95,5 +108,5 @@ void UI_DrawTicks(uint8_t x1, uint8_t x2, uint8_t y, Band *band) {
   } else {
     drawTicks(x1, x2, y, fs, fe, 100000, 3);
     drawTicks(x1, x2, y, fs, fe, 50000, 2);
-  }
+  } */
 }

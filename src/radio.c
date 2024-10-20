@@ -269,32 +269,6 @@ static uint8_t calculateOutputPower(Preset *p) {
   return power_bias;
 }
 
-/* static uint8_t calculateOutputPower(Preset *p, uint32_t Frequency) {
-  uint8_t TxpLow = p->powCalib.s;
-  uint8_t TxpMid = p->powCalib.m;
-  uint8_t TxpHigh = p->powCalib.e;
-  uint32_t LowerLimit = p->band.bounds.start;
-  uint32_t UpperLimit = p->band.bounds.end;
-  uint32_t Middle = LowerLimit + (UpperLimit - LowerLimit) / 2;
-
-  if (Frequency <= LowerLimit) {
-    return TxpLow;
-  }
-
-  if (UpperLimit <= Frequency) {
-    return TxpHigh;
-  }
-
-  if (Frequency <= Middle) {
-    TxpMid +=
-        ((TxpMid - TxpLow) * (Frequency - LowerLimit)) / (Middle - LowerLimit);
-    return TxpMid;
-  }
-
-  TxpMid += ((TxpHigh - TxpMid) * (Frequency - Middle)) / (UpperLimit - Middle);
-  return TxpMid;
-}
-*/
 static void sendEOT() {
   BK4819_ExitSubAu();
   switch (gSettings.roger) {
