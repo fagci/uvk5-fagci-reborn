@@ -569,7 +569,7 @@ void RADIO_SelectPresetSave(int8_t num) {
   radio->radio = RADIO_UNKNOWN;
   radio->modulation = MOD_PRST;
   PRESET_Select(num);
-  PRESETS_SaveCurrent();
+  // PRESETS_SaveCurrent();
   RADIO_TuneToSave(gCurrentPreset->lastUsedFreq);
 }
 
@@ -737,10 +737,10 @@ Loot *RADIO_UpdateMeasurements(void) {
         toneFound = true;
       }
 
-      if (intBits & BK4819_REG_02_DTMF_5TONE_FOUND) {
+      /* if (intBits & BK4819_REG_02_DTMF_5TONE_FOUND) {
         uint8_t code = BK4819_GetDTMF_5TONE_Code();
-        // Log("DTMF: %u", code);
-      }
+        Log("DTMF: %u", code);
+      } */
     }
     // else sql reopens
     if (!toneFound || (Now() - lastTailTone) < 250) {
@@ -880,11 +880,8 @@ static void selectPreset(bool next) {
 }
 
 bool RADIO_NextPresetFreqXBandEx(bool next, bool tune, bool precise) {
-  uint8_t currentScanlist = gSettings.currentScanlist;
-
   uint32_t steps = PRESETS_GetSteps(gCurrentPreset);
   int64_t step = PRESETS_GetChannel(gCurrentPreset, radio->rx.f);
-  int8_t presetIndex = gSettings.activePreset;
   bool switchBand = false;
 
   if (next) {

@@ -23,7 +23,6 @@ static uint8_t noiseOpenDiff = 14;
 static const uint8_t SPECTRUM_Y = 16;
 static const uint8_t SPECTRUM_H = 40;
 
-
 static Band *currentBand;
 
 static uint32_t currentStepSize;
@@ -153,12 +152,14 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_UP:
       PRESETS_SelectPresetRelative(true);
       RADIO_SelectPresetSave(gSettings.activePreset);
-      newScan = true;
+      // newScan = true;
+      startNewScan();
       return true;
     case KEY_DOWN:
       PRESETS_SelectPresetRelative(false);
       RADIO_SelectPresetSave(gSettings.activePreset);
-      newScan = true;
+      // newScan = true;
+      startNewScan();
       return true;
     case KEY_1:
       IncDec8(&msmDelay, 0, 20, 1);

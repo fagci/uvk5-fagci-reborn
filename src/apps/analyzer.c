@@ -107,6 +107,7 @@ static void setCenterF(uint32_t f) {
 }
 
 void ANALYZER_init(void) {
+  SVC_Toggle(SVC_SCAN, false, 0);
   SVC_Toggle(SVC_LISTEN, false, 0);
   RADIO_ToggleRX(false);
   RADIO_LoadCurrentVFO();
@@ -124,6 +125,8 @@ void ANALYZER_init(void) {
   SVC_Toggle(SVC_SCAN, true, scanInterval);
   gScanRedraw = false;
 }
+
+bool lastListenState = false;
 
 void ANALYZER_update(void) {
   if (gIsListening) {
