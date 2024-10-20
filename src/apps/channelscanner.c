@@ -31,8 +31,9 @@ static void showItem(uint16_t i, uint16_t index, bool isCurrent) {
     PrintSymbolsEx(LCD_WIDTH - 24, y + 8, POS_R, C_INVERT, "%c", SYM_BEEP);
   }
   PrintMediumEx(8, y + 8, POS_L, C_INVERT, "%s", ch.name);
-  PrintSmallEx(LCD_WIDTH - 5, y + 8, POS_R, C_INVERT, "R%u",
-               item->rssi); // TODO: antenna
+  /* PrintSmallEx(LCD_WIDTH - 5, y + 8, POS_R, C_INVERT, "R%u",
+               item->rssi); // TODO: antenna */
+  FillRect(LCD_WIDTH - 15, y + 2, Rssi2PX(item->rssi, 0, 10), 6, C_INVERT);
 }
 
 static void scanFn(bool forward) {

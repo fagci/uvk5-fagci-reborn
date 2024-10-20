@@ -171,14 +171,14 @@ static bool isSimpleSql() {
 }
 
 static bool isSqOpenSimple(uint16_t r) {
-  uint8_t band = radio->rx.f > SETTINGS_GetFilterBound() ? 1 : 0;
-  uint8_t sq = gCurrentPreset->band.squelch;
-  uint16_t ro = SQ[band][0][sq];
-  uint16_t rc = SQ[band][1][sq];
-  uint8_t no = SQ[band][2][sq];
-  uint8_t nc = SQ[band][3][sq];
-  uint8_t go = SQ[band][4][sq];
-  uint8_t gc = SQ[band][5][sq];
+  const uint8_t band = radio->rx.f > SETTINGS_GetFilterBound() ? 1 : 0;
+  const uint8_t sq = gCurrentPreset->band.squelch;
+  const uint16_t ro = SQ[band][0][sq];
+  const uint16_t rc = SQ[band][1][sq];
+  const uint8_t no = SQ[band][2][sq];
+  const uint8_t nc = SQ[band][3][sq];
+  const uint8_t go = SQ[band][4][sq];
+  const uint8_t gc = SQ[band][5][sq];
 
   uint8_t n, g;
 
@@ -834,7 +834,7 @@ void RADIO_UpdateSquelchLevel(bool next) {
 }
 
 void RADIO_NextFreqNoClicks(bool next) {
-  int8_t dir = next ? 1 : -1;
+  const int8_t dir = next ? 1 : -1;
 
   if (radio->channel >= 0) {
     RADIO_NextCH(next);
@@ -913,12 +913,70 @@ void RADIO_NextPresetFreqXBand(bool next) {
   RADIO_NextPresetFreqXBandEx(next, true, true);
 }
 
-void RADIO_ToggleModulation(void) {
-  if (radio->modulation == MOD_PRST) {
-    radio->modulation = MOD_FM;
-  } else {
-    ++radio->modulation;
+static ModulationType MODS_BK4819[] = {
+    MOD_FM, MOD_AM, MOD_USB, MOD_BYP, MOD_RAW, MOD_WFM,
+};
+
+static ModulationType MODS_BK1080[] = {
+    MOD_WFM,
+};
+
+static ModulationType MODS_SI4732_HF[] = {
+    MOD_AM,
+    MOD_LSB,
+    MOD_USB,
+};
+
+static ModulationType MODS_SI4732_WFM[] = {
+    MOD_WFM,
+};
+
+static int8_t indexOf(ModulationType *arr, uint8_t n, ModulationType t) {
+  for (uint8_t i = 0; i < n; ++i) {
+    if (arr[i] == t) {
+      return i;
+    }
   }
+  return 0;
+}
+
+static ModulationType getNextModulation() {
+  const Radio r = RADIO_GetRadio();
+  uint8_t sz;
+  ModulationType *items;
+
+  if (r == RADIO_BK4819) {
+    items = MODS_BK4819;
+    sz = ARRAY_SIZE(MODS_BK4819);
+  } else if (r == RADIO_BK1080) {
+    items = MODS_BK1080;
+    sz = ARRAY_SIZE(MODS_BK1080);
+  } else {
+    // si4732
+    if (radio->rx.f <= 3000000) {
+      items = MODS_SI4732_HF;
+      sz = ARRAY_SIZE(MODS_SI4732_HF);
+    } else {
+      items = MODS_SI4732_WFM;
+      sz = ARRAY_SIZE(MODS_SI4732_WFM);
+    }
+  }
+  int8_t curIndex =
+      indexOf(items, ARRAY_SIZE(MODS_BK4819), RADIO_GetModulation());
+  if (curIndex >= 0) {
+    IncDec8(&curIndex, 0, sz, 1);
+    if (items[curIndex] == gCurrentPreset->band.modulation) {
+      return MOD_PRST;
+    }
+  } else {
+    return items[0];
+  }
+  return items[curIndex];
+}
+
+void RADIO_ToggleModulation(void) {
+  radio->modulation = getNextModulation();
+
   // NOTE: for right BW after switching from WFM to another
   RADIO_SetupBandParams();
   onVfoUpdate();

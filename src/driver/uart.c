@@ -19,9 +19,7 @@ static const char Version[] = "R3b0rn";
 
 static uint8_t UART_DMA_Buffer[256];
 
-static bool bHasCustomAesKey = false;
 static bool bIsInLockScreen = false;
-static bool gIsLocked = false;
 static uint32_t gChallenge[4];
 
 void UART_Init(void) {
@@ -270,7 +268,7 @@ static void SendVersion(void) {
   Reply.Header.ID = 0x0515;
   Reply.Header.Size = sizeof(Reply.Data);
   strcpy(Reply.Data.Version, Version);
-  Reply.Data.bHasCustomAesKey = bHasCustomAesKey;
+  Reply.Data.bHasCustomAesKey = false;
   Reply.Data.bIsInLockScreen = bIsInLockScreen;
   Reply.Data.Challenge[0] = gChallenge[0];
   Reply.Data.Challenge[1] = gChallenge[1];
@@ -321,7 +319,6 @@ static void CMD_051B(const uint8_t *pBuffer) {
 static void CMD_051D(const uint8_t *pBuffer) {
   const CMD_051D_t *pCmd = (const CMD_051D_t *)pBuffer;
   REPLY_051D_t Reply;
-  bool bIsLocked;
 
   if (pCmd->Timestamp != Timestamp) {
     return;
@@ -331,21 +328,14 @@ static void CMD_051D(const uint8_t *pBuffer) {
   Reply.Header.Size = sizeof(Reply.Data);
   Reply.Data.Offset = pCmd->Offset;
 
-  bIsLocked = bHasCustomAesKey;
-  if (bHasCustomAesKey) {
-    bIsLocked = gIsLocked;
-  }
+  uint16_t i;
 
-  if (!bIsLocked) {
-    uint16_t i;
+  for (i = 0; i < (pCmd->Size / 8U); i++) {
+    uint32_t Offset = pCmd->Offset + (i * 8U);
 
-    for (i = 0; i < (pCmd->Size / 8U); i++) {
-      uint32_t Offset = pCmd->Offset + (i * 8U);
-
-      if ((Offset < 0x0E98 || Offset >= 0x0EA0) || !bIsInLockScreen ||
-          pCmd->bAllowPassword) {
-        EEPROM_WriteBuffer(Offset, &pCmd->Data[i * 8U], 8);
-      }
+    if ((Offset < 0x0E98 || Offset >= 0x0EA0) || !bIsInLockScreen ||
+        pCmd->bAllowPassword) {
+      EEPROM_WriteBuffer(Offset, &pCmd->Data[i * 8U], 8);
     }
   }
 

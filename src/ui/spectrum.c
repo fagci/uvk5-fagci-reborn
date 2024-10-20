@@ -9,7 +9,7 @@ static const uint16_t U16_MAX = 65535;
 
 static uint16_t rssiHistory[MAX_POINTS] = {0};
 static uint16_t noiseHistory[MAX_POINTS] = {0};
-static bool markers[MAX_POINTS] = {0};
+// static bool markers[MAX_POINTS] = {0};
 static uint8_t x;
 static uint8_t historySize;
 static uint8_t filledPoints;
@@ -31,7 +31,7 @@ void SP_ResetHistory(void) {
   for (uint8_t i = 0; i < MAX_POINTS; ++i) {
     rssiHistory[i] = 0;
     noiseHistory[x] = U8_MAX;
-    markers[i] = false;
+    // markers[i] = false;
   }
   filledPoints = 0;
   currentStep = 0;
@@ -62,7 +62,8 @@ void SP_AddPoint(Loot *msm) {
   for (x = xs; x < xe; ++x) {
     if (ox != x) {
       ox = x;
-      rssiHistory[x] = markers[x] = 0;
+      rssiHistory[x] = 0;
+      // markers[x] = 0;
       noiseHistory[x] = U8_MAX;
     }
     if (msm->rssi > rssiHistory[x]) {
@@ -71,9 +72,9 @@ void SP_AddPoint(Loot *msm) {
     if (msm->noise < noiseHistory[x]) {
       noiseHistory[x] = msm->noise;
     }
-    if (markers[x] == false && msm->open) {
+    /* if (markers[x] == false && msm->open) {
       markers[x] = msm->open;
-    }
+    } */
   }
   if (x > filledPoints) {
     filledPoints = x + 1;
@@ -112,9 +113,9 @@ void SP_Render(Preset *p, uint8_t sx, uint8_t sy, uint8_t sh) {
     uint8_t yVal =
         ConvertDomain(rssiHistory[i] * 2, v.vMin * 2, v.vMax * 2, 0, sh);
     DrawVLine(i, S_BOTTOM - yVal, yVal, C_FILL);
-    if (markers[i]) {
+    /* if (markers[i]) {
       DrawVLine(i, S_BOTTOM + 6, 2, C_FILL);
-    }
+    } */
   }
 }
 

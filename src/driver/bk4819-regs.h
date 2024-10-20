@@ -29,12 +29,12 @@ typedef struct RegisterSpec {
 static const RegisterSpec afcDisableRegSpec = {"AFC Dis", 0x73, 4, 1, 1};
 static const RegisterSpec afOutRegSpec = {"AF Out", 0x47, 8, 0xF, 1};
 static const RegisterSpec afDacGainRegSpec = {"AF DAC Gain", 0x48, 0, 0xF, 1};
-static const RegisterSpec RS_XTAL_MODE = {"XTAL F Mode", 0x3C, 6, 0b11, 1};
-static const RegisterSpec RS_RF_FILT_BW = {"RFflBW", 0x43, 12, 0b111, 1};
-static const RegisterSpec RS_RF_FILT_BW_WEAK = {"RFflBWw", 0x43, 9, 0b111,
+static const RegisterSpec RS_XTAL_MODE = {"XtalFMode", 0x3C, 6, 0b11, 1};
+static const RegisterSpec RS_RF_FILT_BW = {"RF BW", 0x43, 12, 0b111, 1};
+static const RegisterSpec RS_RF_FILT_BW_WEAK = {"RF BWw", 0x43, 9, 0b111,
                                                 1};
 static const RegisterSpec RS_BW_MODE = {"BW Mode", 0x43, 4, 0b11, 1};
-static const RegisterSpec RS_IF_F = {"IF step1x", 0x3D, 0, 0xFFFF, 1};
+static const RegisterSpec RS_IF_F = {"IF", 0x3D, 0, 0xFFFF, 1};
 static const RegisterSpec RS_SQ_TYPE = {"SQ type", 0x77, 8, 0xFF, 1};
 
 enum BK4819_REGISTER_t {

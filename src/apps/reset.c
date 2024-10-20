@@ -109,6 +109,10 @@ void RESET_Update(void) {
     p->band.gainIndex = 18;
     p->band.squelch = 3;
     p->band.squelchType = SQUELCH_RSSI_NOISE_GLITCH;
+    if (p->band.bounds.end < 3000000) {
+      p->radio = RADIO_SI4732; // TODO: if SI existing
+                               // default is RADIO_BK4819
+    }
     PRESETS_SavePreset(presetsWrote, p);
     presetsWrote++;
     bytesWrote += PRESET_SIZE;

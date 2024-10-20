@@ -11,8 +11,6 @@ static uint16_t pagesCount;
 
 void MEMVIEW_Init(void) { pagesCount = SETTINGS_GetEEPROMSize() / PAGE_SZ; }
 
-void MEMVIEW_Update(void) {}
-
 void MEMVIEW_Render(void) {
   uint8_t buf[64] = {0};
   EEPROM_ReadBuffer(page * PAGE_SZ, buf, PAGE_SZ);
