@@ -86,8 +86,8 @@ static void getSubmenuItemText(uint16_t index, char *name) {
             StepFrequencyTable[index] % 100);
     return;
   case M_GAIN:
-    sprintf(name, "%ddB%s", gainTable[index].gainDb,
-            index == 16 ? " #" : "");
+    sprintf(name, index == ARRAY_SIZE(gainTable) - 1 ? "auto" : "%ddB%s",
+            gainTable[index].gainDb, index == 16 ? " #" : "");
     return;
   case M_TX:
     strncpy(name, yesNo[index], 31);
@@ -124,6 +124,9 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   const MenuItem *item = &menu[menuIndex];
   const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
   const uint8_t SUBMENU_SIZE = item->size;
+  if ((key == KEY_UP || key == KEY_DOWN) && isSubMenu && item->type == M_GAIN) {
+    RADIO_SetGain(subMenuIndex);
+  }
   switch (key) {
   case KEY_UP:
     if (isSubMenu) {

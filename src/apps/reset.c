@@ -36,23 +36,6 @@ static VFO defaultVFOs[2] = {
     },
 };
 
-static EEPROMType determineEepromType() {
-  const uint8_t A = 33;
-  const uint8_t B = 55;
-  uint8_t bufr[1];
-  for (uint8_t i = 0; i < ARRAY_SIZE(EEPROM_SIZES); ++i) {
-    gSettings.eepromType = i;
-    uint32_t sz = EEPROM_SIZES[i];
-    EEPROM_WriteBuffer(0, (uint8_t[]){A}, 1);
-    EEPROM_WriteBuffer(sz, (uint8_t[]){B}, 1);
-    EEPROM_ReadBuffer(0, bufr, 1);
-    if (bufr[0] == B) {
-      return i;
-    }
-  }
-  return gSettings.eepromType;
-}
-
 static void startReset(EEPROMType t) {
   eepromType = t;
   gSettings.eepromType = eepromType;

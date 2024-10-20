@@ -32,10 +32,10 @@ bool (*sortings[])(Loot *a, Loot *b) = {
 };
 
 static char *sortNames[] = {
-    "last open time",
+    "last open",
     "duration",
     "blacklist",
-    "frequency",
+    "freq",
 };
 
 static Sort sortType = SORT_LOT;

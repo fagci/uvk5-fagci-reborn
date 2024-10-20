@@ -228,6 +228,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_SIDE1:
       if (SVC_Running(SVC_SCAN)) {
         LOOT_BlacklistLast();
+        RADIO_NextFreqNoClicks(true);
         return true;
       }
       gMonitorMode = !gMonitorMode;
@@ -235,6 +236,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_SIDE2:
       if (SVC_Running(SVC_SCAN)) {
         LOOT_GoodKnownLast();
+        RADIO_NextFreqNoClicks(true);
         return true;
       }
       break;

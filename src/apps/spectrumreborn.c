@@ -203,9 +203,11 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_SIDE1:
       LOOT_BlacklistLast();
+      RADIO_NextFreqNoClicks(true);
       return true;
     case KEY_SIDE2:
       LOOT_GoodKnownLast();
+      RADIO_NextFreqNoClicks(true);
       return true;
     case KEY_F:
       APPS_run(APP_PRESET_CFG);

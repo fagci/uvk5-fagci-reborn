@@ -633,12 +633,11 @@ void RADIO_SetGain(uint8_t gainIndex) {
     BK4819_SetAGC(gCurrentPreset->band.modulation != MOD_AM, gainIndex);
     break;
   case RADIO_SI4732:
-    disableAGC = gainIndex > 0;
-    if (gainIndex > 1) {
-      gainIndex -= 1;
-    } else {
-      gainIndex = 0;
-    }
+    // 0 - max gain
+    // 26 - min gain
+    gainIndex = ARRAY_SIZE(gainTable) - 1 - gainIndex;
+    disableAGC = gainIndex != 0;
+    gainIndex = ConvertDomain(gainIndex, 0, ARRAY_SIZE(gainTable) - 1, 0, 26);
     SI47XX_SetAutomaticGainControl(disableAGC, gainIndex);
     break;
   case RADIO_BK1080:
@@ -766,7 +765,7 @@ Loot *RADIO_UpdateMeasurements(void) {
 
       if (intBits & BK4819_REG_02_DTMF_5TONE_FOUND) {
         uint8_t code = BK4819_GetDTMF_5TONE_Code();
-        Log("DTMF: %u", code);
+        // Log("DTMF: %u", code);
       }
     }
     // else sql reopens
