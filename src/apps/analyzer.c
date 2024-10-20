@@ -141,6 +141,7 @@ void ANALYZER_deinit(void) {
 
 static void restartScan() {
   SVC_Toggle(SVC_SCAN, false, scanInterval);
+  gScanFn = scanFn;
   SVC_Toggle(SVC_SCAN, true, scanInterval);
 }
 
@@ -152,14 +153,12 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     switch (Key) {
     case KEY_1:
       IncDec8(&scanInterval, 1, 255, 1);
-      SVC_Toggle(SVC_SCAN, false, 0);
-      SVC_Toggle(SVC_SCAN, true, scanInterval);
+      restartScan();
       // setup(centerF);
       return true;
     case KEY_7:
       IncDec8(&scanInterval, 1, 255, -1);
-      SVC_Toggle(SVC_SCAN, false, 0);
-      SVC_Toggle(SVC_SCAN, true, scanInterval);
+      restartScan();
       // setup(centerF);
       return true;
     case KEY_3:
@@ -280,4 +279,11 @@ void ANALYZER_render(void) {
 
   PrintSmallEx(spectrumWidth / 2, LCD_HEIGHT - 1, POS_C, C_FILL, "%u.%05u",
                centerF / 100000, centerF % 100000);
+  uint32_t fs = opt.band.bounds.start;
+  uint32_t fe = opt.band.bounds.end;
+
+  PrintSmallEx(0, LCD_HEIGHT - 1, POS_L, C_FILL, "%u.%05u", fs / 100000,
+               fs % 100000);
+  PrintSmallEx(LCD_WIDTH, LCD_HEIGHT - 1, POS_R, C_FILL, "%u.%05u", fe / 100000,
+               fe % 100000);
 }
