@@ -6,8 +6,6 @@
 #include "../inc/dp32g030/gpio.h"
 #include "../inc/dp32g030/syscon.h"
 #include "../scheduler.h"
-#include "../settings.h"
-#include "aes.h"
 #include "bk4819-regs.h"
 #include "bk4819.h"
 #include "crc.h"
@@ -24,19 +22,6 @@ static uint8_t UART_DMA_Buffer[256];
 static bool bHasCustomAesKey = false;
 static bool bIsInLockScreen = false;
 static bool gIsLocked = false;
-static uint8_t gTryCount;
-static uint32_t gCustomAesKey[4] = {
-    0xFFFFFFFFU,
-    0xFFFFFFFFU,
-    0xFFFFFFFFU,
-    0xFFFFFFFFU,
-};
-static const uint32_t gDefaultAesKey[4] = {
-    0x4AA5CC60,
-    0x0312CC5F,
-    0xFFD2DABB,
-    0x6BBA7F92,
-};
 static uint32_t gChallenge[4];
 
 void UART_Init(void) {
@@ -295,25 +280,6 @@ static void SendVersion(void) {
   SendReply(&Reply, sizeof(Reply));
 }
 
-static bool IsBadChallenge(const uint32_t *pKey, const uint32_t *pIn,
-                           const uint32_t *pResponse) {
-  uint8_t i;
-  uint32_t IV[4];
-
-  IV[0] = 0;
-  IV[1] = 0;
-  IV[2] = 0;
-  IV[3] = 0;
-  AES_Encrypt(pKey, IV, pIn, IV, true);
-  for (i = 0; i < 4; i++) {
-    if (IV[i] != pResponse[i]) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 static void CMD_0514(const uint8_t *pBuffer) {
   const CMD_0514_t *pCmd = (const CMD_0514_t *)pBuffer;
 
@@ -409,87 +375,23 @@ static void CMD_0529(void) {
 }
 
 static void CMD_052D(const uint8_t *pBuffer) {
-  const CMD_052D_t *pCmd = (const CMD_052D_t *)pBuffer;
   REPLY_052D_t Reply;
-  bool bIsLocked;
 
   Reply.Header.ID = 0x052E;
   Reply.Header.Size = sizeof(Reply.Data);
 
-  bIsLocked = bHasCustomAesKey;
-
-  if (!bIsLocked) {
-    bIsLocked = IsBadChallenge(gCustomAesKey, gChallenge, pCmd->Response);
-  }
-  if (!bIsLocked) {
-    bIsLocked = IsBadChallenge(gDefaultAesKey, gChallenge, pCmd->Response);
-    if (bIsLocked) {
-      gTryCount++;
-    }
-  }
-  if (gTryCount < 3) {
-    if (!bIsLocked) {
-      gTryCount = 0;
-    }
-  } else {
-    gTryCount = 3;
-    bIsLocked = true;
-  }
-  gIsLocked = bIsLocked;
-  Reply.Data.bIsLocked = bIsLocked;
+  Reply.Data.bIsLocked = false;
   SendReply(&Reply, sizeof(Reply));
 }
 
 static void CMD_052F(const uint8_t *pBuffer) {
   const CMD_052F_t *pCmd = (const CMD_052F_t *)pBuffer;
 
-  /* gEeprom.DUAL_WATCH = DUAL_WATCH_OFF;
-  gEeprom.CROSS_BAND_RX_TX = CROSS_BAND_OFF;
-  gEeprom.RX_VFO = 0;
-  gEeprom.DTMF_SIDE_TONE = false;
-  gEeprom.VfoInfo[0].FrequencyReverse = false;
-  gEeprom.VfoInfo[0].pRX = &gEeprom.VfoInfo[0].ConfigRX;
-  gEeprom.VfoInfo[0].pTX = &gEeprom.VfoInfo[0].ConfigTX;
-  gEeprom.VfoInfo[0].OFFSET_DIR = FREQUENCY_DEVIATION_OFF;
-  gEeprom.VfoInfo[0].DTMF_PTT_ID_TX_MODE = PTT_ID_OFF;
-  gEeprom.VfoInfo[0].DTMF_DECODING_ENABLE = false;
-  if (gCurrentFunction == FUNCTION_POWER_SAVE) {
-    FUNCTION_Select(FUNCTION_FOREGROUND);
-  } */
   Timestamp = pCmd->Timestamp;
   GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
 
   SendVersion();
 }
-
-#ifdef ENABLE_UART_CAT
-
-static void CMD_0601(const uint8_t *pBuffer) {
-  const CMD_0601_t *pCmd = (const CMD_0601_t *)pBuffer;
-  REPLY_0601_t Reply;
-
-  Reply.Header.ID = 0x0601;
-  Reply.Header.Size = sizeof(Reply.Data);
-  Reply.Data.Val = BK4819_ReadRegister(pCmd->RegNum);
-  Reply.Data.v1 = pCmd->RegNum;
-
-  SendReply(&Reply, sizeof(Reply));
-}
-
-static void CMD_0602(const uint8_t *pBuffer) {
-  const CMD_0602_t *pCmd = (const CMD_0602_t *)pBuffer;
-  REPLY_0602_t Reply;
-
-  Reply.Header.ID = 0x0602;
-  Reply.Header.Size = sizeof(Reply.Data);
-  BK4819_WriteRegister(pCmd->RegNum, pCmd->RegValue);
-  Reply.Data.Val = BK4819_ReadRegister(pCmd->RegNum);
-  Reply.Data.v1 = pCmd->RegNum;
-
-  SendReply(&Reply, sizeof(Reply));
-}
-
-#endif
 
 uint64_t xtou64(const char *str) {
   uint64_t res = 0;

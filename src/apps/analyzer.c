@@ -139,6 +139,11 @@ void ANALYZER_deinit(void) {
   SVC_Toggle(SVC_LISTEN, true, 1);
 }
 
+static void restartScan() {
+  SVC_Toggle(SVC_SCAN, false, scanInterval);
+  SVC_Toggle(SVC_SCAN, true, scanInterval);
+}
+
 bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   const uint32_t step = StepFrequencyTable[opt.band.step];
 
@@ -147,10 +152,14 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     switch (Key) {
     case KEY_1:
       IncDec8(&scanInterval, 1, 255, 1);
+      SVC_Toggle(SVC_SCAN, false, 0);
+      SVC_Toggle(SVC_SCAN, true, scanInterval);
       // setup(centerF);
       return true;
     case KEY_7:
       IncDec8(&scanInterval, 1, 255, -1);
+      SVC_Toggle(SVC_SCAN, false, 0);
+      SVC_Toggle(SVC_SCAN, true, scanInterval);
       // setup(centerF);
       return true;
     case KEY_3:
