@@ -439,7 +439,6 @@ uint32_t BK4819_GetFrequency(void) {
 void BK4819_SetupSquelch(uint8_t ro, uint8_t rc, uint8_t no, uint8_t nc,
                          uint8_t gc, uint8_t go, uint8_t delayO,
                          uint8_t delayC) {
-  // BK4819_WriteRegister(BK4819_REG_70, 0); // for what??!
   BK4819_WriteRegister(BK4819_REG_4D, 0xA000 | gc);
   BK4819_WriteRegister(
       BK4819_REG_4E,
@@ -449,12 +448,6 @@ void BK4819_SetupSquelch(uint8_t ro, uint8_t rc, uint8_t no, uint8_t nc,
           go);
   BK4819_WriteRegister(BK4819_REG_4F, (nc << 8) | no);
   BK4819_WriteRegister(BK4819_REG_78, (ro << 8) | rc);
-
-  // note: mutes rx on tuning for some time
-  /* uint16_t r47 = BK4819_ReadRegister(BK4819_REG_47);
-  BK4819_SetAF(BK4819_AF_MUTE);
-  BK4819_RX_TurnOn();
-  BK4819_WriteRegister(BK4819_REG_47, r47); // revert AF */
 }
 
 void BK4819_Squelch(uint8_t sql, uint32_t f, uint8_t OpenDelay,
@@ -827,6 +820,8 @@ uint8_t BK4819_GetGlitch(void) {
 }
 
 uint8_t BK4819_GetSNR(void) { return BK4819_ReadRegister(0x61) & 0xFF; }
+
+uint16_t BK4819_GetVoiceAmplitude(void) { return BK4819_ReadRegister(0x64); }
 
 bool BK4819_GetFrequencyScanResult(uint32_t *pFrequency) {
   uint16_t High = BK4819_ReadRegister(BK4819_REG_0D);

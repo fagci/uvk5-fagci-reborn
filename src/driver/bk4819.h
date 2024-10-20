@@ -172,6 +172,7 @@ uint8_t BK4819_GetRSSIRelative(void);
 uint8_t BK4819_GetNoise(void);
 uint8_t BK4819_GetGlitch(void);
 uint8_t BK4819_GetSNR(void);
+uint16_t BK4819_GetVoiceAmplitude(void);
 
 bool BK4819_GetFrequencyScanResult(uint32_t *pFrequency);
 BK4819_CssScanResult_t BK4819_GetCxCSSScanResult(uint32_t *pCdcssFreq,

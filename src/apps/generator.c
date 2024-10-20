@@ -14,7 +14,12 @@ static void setTone1Freq(uint32_t f) { tone1Freq = f / 100; }
 
 static void calcPower() {
   paEnabled = power >= 26;
-  bkPower = power < 26 ? power * 255 / 26 : (power - 26) * 255 / (255 - 26);
+
+  if (power < 26) {
+    bkPower = power * 255 / 26;
+  } else {
+    bkPower = 1 + (power - 26) * 254 / (255 - 26);
+  }
 }
 
 static void updatePower(int8_t v) {
@@ -59,7 +64,6 @@ bool GENERATOR_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   }
   // up-down keys
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
-    // bool isSsb = RADIO_IsSSB();
     switch (key) {
     case KEY_UP:
       RADIO_NextFreqNoClicks(true);
