@@ -817,21 +817,21 @@ MODULATION_LIST_MAP = ["FM", "AM", "LSB", "USB",
                        "DV", "CW", "WFM", "Auto"]
 
 STEP_NAMES = [
-    "0.01kHz",
-    "0.1kHz",
-    "0.5kHz",
+    "0.02kHz",
+    "0.05kHz",
+    "0.25kHz",
     "1.0kHz",
     "2.5kHz",
     "5.0kHz",
     "6.25kHz",
     "8.33kHz",
+    "9.0kHz",
     "10.0kHz",
     "12.5kHz",
     "25.0kHz",
     "50.0kHz",
     "100.0kHz",
-    "125.0kHz",
-    "200.0kHz"
+    "500.0kHz"
 ]
 
 OFFSET_DIRECTION = [

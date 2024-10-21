@@ -41,9 +41,9 @@ static uint32_t lastMsmUpdate = 0;
 static bool toneFound = false;
 
 const uint16_t StepFrequencyTable[15] = {
-    1,   10,  50,  100,
+    2,   5,   25,  100,
 
-    250, 500, 625, 833, 1000, 1250, 2500, 5000, 10000, 12500, 20000,
+    250, 500, 625, 833, 900, 1000, 1250, 2500, 5000, 10000, 50000,
 };
 
 const char *modulationTypeOptions[8] = {"FM",  "AM",  "LSB", "USB",
@@ -975,7 +975,7 @@ void RADIO_ToggleModulation(void) {
 
 void RADIO_UpdateStep(bool inc) {
   uint8_t step = gCurrentPreset->band.step;
-  IncDec8(&step, 0, STEP_200_0kHz, inc ? 1 : -1);
+  IncDec8(&step, 0, STEP_500_0kHz, inc ? 1 : -1);
   gCurrentPreset->band.step = step;
   onPresetUpdate();
 }

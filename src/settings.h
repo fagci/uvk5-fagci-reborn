@@ -7,23 +7,24 @@
 
 #define getsize(V) char (*__ #V)(void)[sizeof(V)] = 1;
 
+
 typedef enum {
-  STEP_0_01kHz,
-  STEP_0_1kHz,
-  STEP_0_5kHz,
+  STEP_0_02kHz,
+  STEP_0_05kHz,
+  STEP_0_25kHz,
   STEP_1_0kHz,
 
   STEP_2_5kHz,
   STEP_5_0kHz,
   STEP_6_25kHz,
   STEP_8_33kHz,
+  STEP_9_0kHz,
   STEP_10_0kHz,
   STEP_12_5kHz,
   STEP_25_0kHz,
   STEP_50_0kHz,
   STEP_100_0kHz,
-  STEP_125_0kHz,
-  STEP_200_0kHz,
+  STEP_500_0kHz,
 } Step;
 
 typedef enum {

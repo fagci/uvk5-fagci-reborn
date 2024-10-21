@@ -367,7 +367,7 @@ Preset
                     {
                         .bounds = {86300000, 86999999},
                         .name = "LORA",
-                        .step = STEP_125_0kHz,
+                        .step = STEP_25_0kHz, // 125 actually
                         .modulation = MOD_FM,
                         .bw = BK4819_FILTER_BW_WIDE,
                     },
@@ -393,7 +393,7 @@ Preset
                     {
                         .bounds = {89000000, 95999999},
                         .name = "GSM-900",
-                        .step = STEP_200_0kHz,
+                        .step = STEP_100_0kHz, // 200 actually
                         .modulation = MOD_FM,
                         .bw = BK4819_FILTER_BW_WIDE,
                     },

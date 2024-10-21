@@ -52,9 +52,9 @@ static void startNewScan(bool reset) {
     BK4819_SetModulation(opt.band.modulation);
     if (step > 5000) {
       BK4819_SetModulation(MOD_WFM);
-    } else if (step >= 2400) {
-      BK4819_SetFilterBandwidth(BK4819_FILTER_BW_WIDE);
     } else if (step >= 1200) {
+      BK4819_SetFilterBandwidth(BK4819_FILTER_BW_WIDE);
+    } else if (step >= 625) {
       BK4819_SetFilterBandwidth(BK4819_FILTER_BW_NARROW);
     } else {
       BK4819_SetFilterBandwidth(BK4819_FILTER_BW_NARROWER);
@@ -67,8 +67,12 @@ static void startNewScan(bool reset) {
 
 static void scanFn(bool forward) {
   msm.rssi = RADIO_GetRSSI();
-  msm.open = msm.rssi > squelchRssi;
-  LOOT_Update(&msm);
+  if (gMonitorMode) {
+    msm.open = true;
+  } else {
+    msm.open = msm.rssi > squelchRssi;
+    LOOT_Update(&msm);
+  }
   SP_AddPoint(&msm);
 
   if (msm.rssi > peakRssi) {
@@ -158,12 +162,10 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_1:
       IncDec8(&scanInterval, 1, 255, 1);
       restartScan();
-      // setup(centerF);
       return true;
     case KEY_7:
       IncDec8(&scanInterval, 1, 255, -1);
       restartScan();
-      // setup(centerF);
       return true;
     case KEY_3:
       if (squelchRssi < 512) {
@@ -190,11 +192,11 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       setCenterF(centerF - step * 64);
       return true;
     case KEY_SIDE1:
-      isListening ^= 1;
-      if (isListening) {
+      gMonitorMode ^= 1;
+      if (gMonitorMode) {
         RADIO_TuneToPure(centerF, true);
       }
-      RADIO_ToggleRX(isListening);
+      RADIO_ToggleRX(gMonitorMode);
       return true;
     case KEY_SIDE2:
       if (useSquelch) {
@@ -223,14 +225,12 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_SIDE1:
       LOOT_BlacklistLast();
-      RADIO_NextFreqNoClicks(true);
       return true;
     case KEY_SIDE2:
       LOOT_GoodKnownLast();
-      RADIO_NextFreqNoClicks(true);
       return true;
     case KEY_2:
-      if (opt.band.step < STEP_200_0kHz) {
+      if (opt.band.step < STEP_500_0kHz) {
         opt.band.step++;
       }
       setCenterF(centerF);
