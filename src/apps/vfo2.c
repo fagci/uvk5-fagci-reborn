@@ -3,14 +3,12 @@
 #include "../helper/lootlist.h"
 #include "../helper/numnav.h"
 #include "../helper/presetlist.h"
-#include "../helper/rds.h"
 #include "../scheduler.h"
 #include "../settings.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/statusline.h"
 #include "vfo1.h"
-
 
 bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (VFO1_key(key, bKeyPressed, bKeyHeld)) {
@@ -58,9 +56,7 @@ static void render2VFOPart(uint8_t i) {
       PrintMedium(0, bl, "TX");
     }
     if (gIsListening) {
-      PrintMedium(0, bl,
-                  RADIO_GetRadio() == RADIO_SI4732 && rds.RDSSignal ? "RDS"
-                                                                    : "RX");
+      PrintMedium(0, bl, "RX");
       UI_RSSIBar(gLoot[i].rssi, vfo->rx.f, 31);
     }
   }

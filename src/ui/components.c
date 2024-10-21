@@ -3,6 +3,7 @@
 #include "../helper/measurements.h"
 #include "../helper/presetlist.h"
 #include "graphics.h"
+#include <stdint.h>
 
 void UI_Battery(uint8_t Level) {
   DrawRect(LCD_WIDTH - 13, 0, 12, 5, C_FILL);
@@ -109,4 +110,29 @@ void UI_DrawTicks(uint8_t x1, uint8_t x2, uint8_t y, Band *band) {
     drawTicks(x1, x2, y, fs, fe, 100000, 3);
     drawTicks(x1, x2, y, fs, fe, 50000, 2);
   } */
+}
+
+void UI_DrawSpectrumElements(const uint8_t sy, uint8_t msmDelay, int16_t sq,
+                             Band *currentBand) {
+  PrintSmallEx(0, sy - 3, POS_L, C_FILL, "%ums", msmDelay);
+  if (sq >= 255) {
+    PrintSmallEx(LCD_WIDTH - 2, sy - 3, POS_R, C_FILL, "SQ off");
+  } else {
+    PrintSmallEx(LCD_WIDTH - 2, sy - 3, POS_R, C_FILL, "SQ %d", sq);
+  }
+  PrintSmallEx(LCD_WIDTH - 2, sy - 3 + 6, POS_R, C_FILL, "%s",
+               modulationTypeOptions[currentBand->modulation]);
+
+  if (gLastActiveLoot) {
+    PrintMediumBoldEx(LCD_XCENTER, 14, POS_C, C_FILL, "%u.%05u",
+                      gLastActiveLoot->f / 100000, gLastActiveLoot->f % 100000);
+  }
+
+  uint32_t fs = currentBand->bounds.start;
+  uint32_t fe = currentBand->bounds.end;
+
+  PrintSmallEx(0, LCD_HEIGHT - 1, POS_L, C_FILL, "%u.%05u", fs / 100000,
+               fs % 100000);
+  PrintSmallEx(LCD_WIDTH, LCD_HEIGHT - 1, POS_R, C_FILL, "%u.%05u", fe / 100000,
+               fe % 100000);
 }

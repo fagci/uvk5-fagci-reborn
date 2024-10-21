@@ -8,6 +8,7 @@
 #include "../settings.h"
 #include "../svc.h"
 #include "../svc_scan.h"
+#include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/spectrum.h"
 #include "../ui/statusline.h"
@@ -30,6 +31,7 @@ static uint32_t _peakF = 0;
 static uint16_t peakRssi = 0;
 
 static uint16_t squelchRssi = UINT16_MAX;
+static bool useSquelch = false;
 
 static Preset opt = {
     .band =
@@ -65,6 +67,8 @@ static void startNewScan(bool reset) {
 
 static void scanFn(bool forward) {
   msm.rssi = RADIO_GetRSSI();
+  msm.open = msm.rssi > squelchRssi;
+  LOOT_Update(&msm);
   SP_AddPoint(&msm);
 
   if (msm.rssi > peakRssi) {
@@ -72,7 +76,7 @@ static void scanFn(bool forward) {
     _peakF = msm.f;
   }
 
-  RADIO_ToggleRX(msm.rssi > squelchRssi);
+  RADIO_ToggleRX(msm.open);
   if (gIsListening) {
     return;
   }
@@ -81,7 +85,7 @@ static void scanFn(bool forward) {
     msm.f = opt.band.bounds.start;
     peakF = _peakF;
     gRedrawScreen = true;
-    if (squelchRssi == UINT16_MAX) {
+    if (useSquelch && squelchRssi == UINT16_MAX) {
       squelchRssi = SP_GetRssiMax() + 2;
     }
   } else {
@@ -185,6 +189,21 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_DOWN:
       setCenterF(centerF - step * 64);
       return true;
+    case KEY_SIDE1:
+      isListening ^= 1;
+      if (isListening) {
+        RADIO_TuneToPure(centerF, true);
+      }
+      RADIO_ToggleRX(isListening);
+      return true;
+    case KEY_SIDE2:
+      if (useSquelch) {
+        useSquelch = false;
+        squelchRssi = UINT16_MAX;
+      } else {
+        useSquelch = true;
+      }
+      return true;
     default:
       break;
     }
@@ -203,16 +222,12 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       setCenterF(centerF - step);
       return true;
     case KEY_SIDE1:
-      isListening ^= 1;
-      if (isListening) {
-        RADIO_TuneToPure(centerF, true);
-      }
-      RADIO_ToggleRX(isListening);
+      LOOT_BlacklistLast();
+      RADIO_NextFreqNoClicks(true);
       return true;
     case KEY_SIDE2:
-      if (peakF) {
-        setCenterF(peakF);
-      }
+      LOOT_GoodKnownLast();
+      RADIO_NextFreqNoClicks(true);
       return true;
     case KEY_2:
       if (opt.band.step < STEP_200_0kHz) {
@@ -245,8 +260,12 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       APPS_run(APP_FINPUT);
       return true;
     case KEY_PTT:
-      RADIO_TuneToSave(centerF);
-      APPS_run(APP_VFOPRO);
+      if (centerF == peakF) {
+        RADIO_TuneToSave(centerF);
+        APPS_run(APP_VFOPRO);
+      } else if (peakF) {
+        setCenterF(peakF);
+      }
       return true;
     default:
       break;
@@ -264,26 +283,22 @@ void ANALYZER_render(void) {
   }
 
   SP_Render(&opt, 0, ANALYZER_Y, ANALYZER_HEIGHT);
-  if (squelchRssi != UINT16_MAX) {
-    SP_RenderRssi(squelchRssi, "SQ", true, 0, ANALYZER_Y, ANALYZER_HEIGHT);
-  }
+
+  UI_DrawSpectrumElements(ANALYZER_Y, scanInterval, Rssi2DBm(squelchRssi),
+                          &opt.band);
 
   SP_RenderArrow(&opt, peakF, 0, ANALYZER_Y, ANALYZER_HEIGHT);
 
-  PrintSmallEx(spectrumWidth - 2, ANALYZER_Y - 3, POS_R, C_FILL, "%04d/%04d",
-               Rssi2DBm(SP_GetNoiseFloor()), Rssi2DBm(SP_GetRssiMax()));
-  PrintSmallEx(0, ANALYZER_Y - 3, POS_L, C_FILL, "%ums", scanInterval);
-  PrintSmallEx(LCD_XCENTER, ANALYZER_Y - 3, POS_C, C_FILL, "Stp %u.%02uk",
+  if (squelchRssi != UINT16_MAX) {
+    SP_RenderLine(squelchRssi, 0, ANALYZER_Y, ANALYZER_HEIGHT);
+  }
+
+  PrintSmallEx(0, ANALYZER_Y - 3 + 6, POS_L, C_FILL, "%u.%02uk",
                StepFrequencyTable[opt.band.step] / 100,
                StepFrequencyTable[opt.band.step] % 100);
+  PrintSmallEx(LCD_XCENTER, 4, POS_C, C_FILL, "%04d/%04d",
+               Rssi2DBm(SP_GetNoiseFloor()), Rssi2DBm(SP_GetRssiMax()));
 
   PrintSmallEx(spectrumWidth / 2, LCD_HEIGHT - 1, POS_C, C_FILL, "%u.%05u",
                centerF / 100000, centerF % 100000);
-  uint32_t fs = opt.band.bounds.start;
-  uint32_t fe = opt.band.bounds.end;
-
-  PrintSmallEx(0, LCD_HEIGHT - 1, POS_L, C_FILL, "%u.%05u", fs / 100000,
-               fs % 100000);
-  PrintSmallEx(LCD_WIDTH, LCD_HEIGHT - 1, POS_R, C_FILL, "%u.%05u", fe / 100000,
-               fe % 100000);
 }

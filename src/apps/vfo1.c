@@ -6,7 +6,6 @@
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"
 #include "../helper/presetlist.h"
-#include "../helper/rds.h"
 #include "../radio.h"
 #include "../scheduler.h"
 #include "../svc.h"
@@ -17,7 +16,6 @@
 #include "apps.h"
 #include "finput.h"
 
-static DateTime dt;
 static void setChannel(uint16_t v) { RADIO_TuneToCH(v - 1); }
 static void tuneTo(uint32_t f) { RADIO_TuneToSave(GetTuneF(f)); }
 
@@ -257,20 +255,6 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-static void drawRDS() {
-  if (rds.RDSSignal) {
-    PrintSmallEx(LCD_WIDTH - 1, 12, POS_R, C_FILL, "RDS");
-
-    if (SI47XX_GetLocalDateTime(&dt)) {
-      PrintSmallEx(LCD_XCENTER, LCD_HEIGHT - 16, POS_C, C_FILL,
-                   "%02u.%02u.%04u %02u:%02u", dt.day, dt.month, dt.year,
-                   dt.hour, dt.minute);
-    }
-
-    PrintSmall(0, LCD_HEIGHT - 8, "%s", rds.radioText);
-  }
-}
-
 void VFO1_render(void) {
   UI_ClearScreen();
   const uint8_t BASE = 38;
@@ -303,6 +287,4 @@ void VFO1_render(void) {
     PrintBigDigitsEx(LCD_WIDTH - 1, BASE, POS_R, C_FILL, "%02u", fp3);
     PrintMediumEx(LCD_WIDTH - 1, BASE - 12, POS_R, C_FILL, mod);
   }
-
-  drawRDS();
 }

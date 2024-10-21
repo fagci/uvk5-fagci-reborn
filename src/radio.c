@@ -16,7 +16,6 @@
 #include "helper/lootlist.h"
 #include "helper/measurements.h"
 #include "helper/presetlist.h"
-#include "helper/rds.h"
 #include "helper/vfos.h"
 #include "misc.h"
 #include "scheduler.h"
@@ -507,7 +506,6 @@ void RADIO_TuneToPure(uint32_t f, bool precise) {
     break;
   case RADIO_SI4732:
     SI47XX_TuneTo(f);
-    SI47XX_ClearRDS();
     break;
   default:
     break;
@@ -745,13 +743,6 @@ Loot *RADIO_UpdateMeasurements(void) {
     // else sql reopens
     if (!toneFound || (Now() - lastTailTone) < 250) {
       msm->open = false;
-    }
-  }
-  if (RADIO_GetRadio() == RADIO_SI4732) {
-    if (RADIO_GetModulation() == MOD_FM || RADIO_GetModulation() == MOD_WFM) {
-      if (SI47XX_GetRDS()) {
-        gRedrawScreen = true;
-      }
     }
   }
   if (RADIO_GetRadio() == RADIO_BK4819) {

@@ -11,6 +11,7 @@
 #include "../svc.h"
 #include "../svc_render.h"
 #include "../svc_scan.h"
+#include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/spectrum.h"
 #include "../ui/statusline.h"
@@ -33,7 +34,6 @@ static uint16_t rssiO = U16_MAX;
 static uint16_t noiseO = 0;
 
 static uint8_t msmDelay = 5;
-static uint8_t msmDelayOld;
 static Loot msm = {0};
 
 static uint16_t oldPresetIndex = 255;
@@ -55,8 +55,6 @@ static void updateStats() {
   rssiO = noiseFloor;
   noiseO = noiseMax - noiseOpenDiff;
 }
-
-static bool listening = false;
 
 static void updateMsm() {
   if (!gIsListening) {
@@ -259,30 +257,15 @@ void SPECTRUM_render(void) {
   STATUSLINE_SetText(currentBand->name);
 
   SP_Render(gCurrentPreset, 0, SPECTRUM_Y, SPECTRUM_H);
+  UI_DrawSpectrumElements(SPECTRUM_Y, msmDelay, noiseOpenDiff, currentBand);
 
-  PrintSmallEx(0, SPECTRUM_Y - 3, POS_L, C_FILL, "%ums", msmDelay);
-  PrintSmallEx(0, SPECTRUM_Y - 3 + 6, POS_L, C_FILL, "%s",
-               RESET_METHOD_NAMES[rssiResetMethod]);
-  PrintSmallEx(LCD_WIDTH - 2, SPECTRUM_Y - 3, POS_R, C_FILL, "SQ %u",
-               noiseOpenDiff);
-  PrintSmallEx(LCD_WIDTH - 2, SPECTRUM_Y - 3 + 8, POS_R, C_FILL, "%s",
-               modulationTypeOptions[currentBand->modulation]);
-
-  if (gLastActiveLoot) {
-    PrintMediumBoldEx(LCD_XCENTER, 16, POS_C, C_FILL, "%u.%05u",
-                      gLastActiveLoot->f / 100000, gLastActiveLoot->f % 100000);
-    if (gLastActiveLoot->ct != 0xFF) {
-      PrintSmallEx(LCD_XCENTER, 16 + 6, POS_C, C_FILL, "CT %u.%u",
-                   CTCSS_Options[gLastActiveLoot->ct] / 10,
-                   CTCSS_Options[gLastActiveLoot->ct] % 10);
-    }
+  // todo: ct+cd
+  if (gLastActiveLoot->ct != 0xFF) {
+    PrintSmallEx(LCD_XCENTER, 16 + 6, POS_C, C_FILL, "CT %u.%u",
+                 CTCSS_Options[gLastActiveLoot->ct] / 10,
+                 CTCSS_Options[gLastActiveLoot->ct] % 10);
   }
 
-  uint32_t fs = currentBand->bounds.start;
-  uint32_t fe = currentBand->bounds.end;
-
-  PrintSmallEx(0, LCD_HEIGHT - 1, POS_L, C_FILL, "%u.%05u", fs / 100000,
-               fs % 100000);
-  PrintSmallEx(LCD_WIDTH, LCD_HEIGHT - 1, POS_R, C_FILL, "%u.%05u", fe / 100000,
-               fe % 100000);
+  PrintSmallEx(0, SPECTRUM_Y - 3 + 6, POS_L, C_FILL, "%s",
+               RESET_METHOD_NAMES[rssiResetMethod]);
 }

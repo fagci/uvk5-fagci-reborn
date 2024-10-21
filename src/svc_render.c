@@ -10,8 +10,8 @@ uint32_t gLastRender = 0;
 void SVC_RENDER_Init(void) {}
 void SVC_RENDER_Update(void) {
   if (gRedrawScreen && Now() - gLastRender >= RENDER_TIME) {
-    APPS_render();
     STATUSLINE_render();
+    APPS_render();
     ST7565_Render();
     gRedrawScreen = false;
     gLastRender = Now();

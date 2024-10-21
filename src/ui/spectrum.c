@@ -137,6 +137,14 @@ void SP_RenderRssi(uint16_t rssi, char *text, bool top, uint8_t sx, uint8_t sy,
                text, Rssi2DBm(rssi));
 }
 
+void SP_RenderLine(uint16_t rssi, uint8_t sx, uint8_t sy, uint8_t sh) {
+  const uint8_t S_BOTTOM = sy + sh;
+  const VMinMax v = getV();
+
+  uint8_t yVal = ConvertDomain(rssi, v.vMin, v.vMax, 0, sh);
+  DrawHLine(sx, S_BOTTOM - yVal, sx + filledPoints, C_FILL);
+}
+
 uint16_t SP_GetNoiseFloor() { return Std(rssiHistory, filledPoints); }
 uint16_t SP_GetNoiseMax() { return Max(noiseHistory, filledPoints); }
 uint16_t SP_GetRssiMax() { return Max(rssiHistory, filledPoints); }
