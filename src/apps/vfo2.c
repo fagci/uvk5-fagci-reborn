@@ -95,7 +95,7 @@ static void render2VFOPart(uint8_t i) {
   }
   PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %c SQ%u %c %s %s",
                p->allowTx ? TX_POWER_NAMES[p->power][0] : ' ',
-               "WNn"[p->band.bw], p -> band.squelch,
+               "WNnx"[p->band.bw], p -> band.squelch,
                RADIO_GetTXFEx(vfo, p) != vfo->rx.f
                    ? (p->offsetDir ? TX_OFFSET_NAMES[p->offsetDir][0] : '*')
                    : ' ',

@@ -18,7 +18,7 @@ static MenuItem menu[] = {
     {"F end", M_END, 0},
     {"Step", M_STEP, ARRAY_SIZE(StepFrequencyTable)},
     {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions) - 1},
-    {"BW", M_BW, ARRAY_SIZE(bwNames)},
+    {"BW", M_BW, 4},
     {"Gain", M_GAIN, ARRAY_SIZE(gainTable)},
     {"SQ level", M_SQ, 10},
     {"SQ type", M_SQ_TYPE, ARRAY_SIZE(sqTypeNames)},
@@ -73,7 +73,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     strncpy(name, modulationTypeOptions[index], 31);
     return;
   case M_BW:
-    strncpy(name, bwNames[index], 31);
+    strncpy(name, RADIO_GetBWName(index), 31);
     return;
   case M_SQ_TYPE:
     strncpy(name, sqTypeNames[index], 31);

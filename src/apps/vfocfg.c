@@ -19,7 +19,7 @@ static bool isSubMenu = false;
 static MenuItem menu[] = {
     {"Step", M_STEP, ARRAY_SIZE(StepFrequencyTable)},
     {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions)},
-    {"BW", M_BW, ARRAY_SIZE(bwNames)},
+    {"BW", M_BW, 4},
     {"SQ type", M_SQ_TYPE, ARRAY_SIZE(sqTypeNames)},
     {"SQ level", M_SQ, 10},
     {"RX freq", M_F_RX, 0},
@@ -116,7 +116,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     strncpy(name, modulationTypeOptions[index], 31);
     return;
   case M_BW:
-    strncpy(name, bwNames[index], 15);
+    strncpy(name, RADIO_GetBWName(index), 15);
     return;
   case M_RX_CODE_TYPE:
     strncpy(name, TX_CODE_TYPES[index], 15);

@@ -808,7 +808,7 @@ RADIO_LIST = [
     "Preset",
 ]
 
-BANDWIDTH_LIST = ["25k", "12.5k", "6.25k"]
+BANDWIDTH_LIST = ["25k", "12.5k", "6.25k", "25k+"]
 
 MODULATION_LIST = ["FM", "AM", "LSB", "USB",
                    "BYP", "RAW", "WFM", "Preset"]

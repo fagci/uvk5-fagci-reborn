@@ -50,7 +50,9 @@ const uint16_t StepFrequencyTable[15] = {
 const char *modulationTypeOptions[8] = {"FM",  "AM",  "LSB", "USB",
                                         "BYP", "RAW", "WFM", "Preset"};
 const char *powerNames[4] = {"ULOW, LOW", "MID", "HIGH"};
-const char *bwNames[3] = {"25k", "12.5k", "6.25k"};
+const char *bwNames[5] = {"25k", "12.5k", "6.25k", "25k+"};
+const char *bwNamesSiAMFM[5] = {"6k", "4k", "3k", "1k"};
+const char *bwNamesSiSSB[5] = {"4k", "3k", "2.2k", "0.5k"};
 const char *radioNames[4] = {"BK4819", "BK1080", "SI4732", "Preset"};
 const char *shortRadioNames[4] = {"BK", "BC", "SI", "PR"};
 const char *TX_STATE_NAMES[7] = {"TX Off",   "TX On",  "CHARGING", "BAT LOW",
@@ -65,6 +67,19 @@ const SquelchType sqTypeValues[4] = {
 const char *sqTypeNames[4] = {"RNG", "RG", "RN", "R"};
 const char *deviationNames[] = {"", "+", "-"};
 
+static const SI47XX_SsbFilterBW SI_BW_MAP_SSB[] = {
+    [BK4819_FILTER_BW_WIDE] = SI47XX_SSB_BW_4_kHz,
+    [BK4819_FILTER_BW_NARROW] = SI47XX_SSB_BW_3_kHz,
+    [BK4819_FILTER_BW_NARROWER] = SI47XX_SSB_BW_2_2_kHz,
+    [BK4819_FILTER_BW_SOMETHING] = SI47XX_SSB_BW_0_5_kHz,
+};
+static const SI47XX_FilterBW SI_BW_MAP_AMFM[] = {
+    [BK4819_FILTER_BW_WIDE] = SI47XX_BW_6_kHz,
+    [BK4819_FILTER_BW_NARROW] = SI47XX_BW_4_kHz,
+    [BK4819_FILTER_BW_NARROWER] = SI47XX_BW_3_kHz,
+    [BK4819_FILTER_BW_SOMETHING] = SI47XX_BW_1_kHz,
+};
+
 Radio RADIO_GetRadio() {
   return radio->radio == RADIO_UNKNOWN ? gCurrentPreset->radio : radio->radio;
 }
@@ -73,6 +88,18 @@ ModulationType RADIO_GetModulation() {
   // return gCurrentPreset->band.modulation;
   return radio->modulation == MOD_PRST ? gCurrentPreset->band.modulation
                                        : radio->modulation;
+}
+
+const char *RADIO_GetBWName(BK4819_FilterBandwidth_t i) {
+  switch (RADIO_GetRadio()) {
+  case RADIO_SI4732:
+    if (RADIO_IsSSB()) {
+      return bwNamesSiSSB[i];
+    }
+    return bwNamesSiAMFM[i];
+  default:
+    return bwNames[i];
+  }
 }
 
 void RADIO_SetupRegisters(void) {
@@ -647,9 +674,9 @@ void RADIO_SetupBandParams() {
       SI47XX_SetSeekFmSpacing(StepFrequencyTable[b->step]);
     } else {
       if (mod == MOD_USB || mod == MOD_LSB) {
-        SI47XX_SetSsbBandwidth(SI47XX_SSB_BW_3_kHz);
+        SI47XX_SetSsbBandwidth(SI_BW_MAP_SSB[b->bw]);
       } else {
-        SI47XX_SetBandwidth(SI47XX_BW_6_kHz, true);
+        SI47XX_SetBandwidth(SI_BW_MAP_AMFM[b->bw], true);
         SI47XX_SetSeekAmLimits(b->bounds.start, b->bounds.end);
         SI47XX_SetSeekAmSpacing(StepFrequencyTable[b->step]);
       }
@@ -979,7 +1006,7 @@ void RADIO_UpdateStep(bool inc) {
 }
 
 void RADIO_ToggleListeningBW(void) {
-  if (gCurrentPreset->band.bw == BK4819_FILTER_BW_NARROWER) {
+  if (gCurrentPreset->band.bw == BK4819_FILTER_BW_SOMETHING) {
     gCurrentPreset->band.bw = BK4819_FILTER_BW_WIDE;
   } else {
     ++gCurrentPreset->band.bw;

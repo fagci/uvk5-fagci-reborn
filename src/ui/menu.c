@@ -110,7 +110,7 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
     strncpy(Output, band->name, 31);
     break;
   case M_BW:
-    strncpy(Output, bwNames[band->bw], 31);
+    strncpy(Output, RADIO_GetBWName(band->bw), 31);
     break;
   case M_SQ_TYPE:
     strncpy(Output, sqTypeNames[band->squelchType], 31);
