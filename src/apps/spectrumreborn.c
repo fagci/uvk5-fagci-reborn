@@ -38,14 +38,7 @@ static Loot msm = {0};
 
 static uint16_t oldPresetIndex = 255;
 
-static const uint16_t BK_RST_HARD = 0x0200;
-static const uint16_t BK_RST_SOFT = 0xBFF1 & ~BK4819_REG_30_ENABLE_VCO_CALIB;
-
-static const uint16_t RESET_METHODS[] = {BK_RST_HARD, BK_RST_SOFT};
-static const char *RESET_METHOD_NAMES[] = {"Hard", "Soft"};
-
 static uint8_t rssiResetMethod = 0;
-static uint16_t resetBkVal = BK_RST_HARD;
 
 static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
 
@@ -59,7 +52,7 @@ static void updateStats() {
 static void updateMsm() {
   if (!gIsListening) {
     BK4819_SetFrequency(msm.f);
-    BK4819_WriteRegister(BK4819_REG_30, resetBkVal);
+    BK4819_WriteRegister(BK4819_REG_30, 0x0200);
     BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
     SYSTEM_DelayMs(msmDelay); // (X_X)
   }
@@ -220,10 +213,6 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_5:
       return true;
     case KEY_4:
-      rssiResetMethod = !rssiResetMethod;
-      resetBkVal = RESET_METHODS[rssiResetMethod];
-      SP_ResetHistory();
-      newScan = true;
       return true;
     case KEY_PTT:
       if (gLastActiveLoot) {
@@ -265,7 +254,4 @@ void SPECTRUM_render(void) {
                  CTCSS_Options[gLastActiveLoot->ct] / 10,
                  CTCSS_Options[gLastActiveLoot->ct] % 10);
   }
-
-  PrintSmallEx(0, SPECTRUM_Y - 3 + 6, POS_L, C_FILL, "%s",
-               RESET_METHOD_NAMES[rssiResetMethod]);
 }
