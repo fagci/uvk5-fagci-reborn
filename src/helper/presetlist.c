@@ -27,7 +27,7 @@ Preset
                 .band =
                     {
                         .bounds = {1500000, 2696499},
-                        .name = "15-26",
+                        .name = "Military1",
                         .step = STEP_5_0kHz,
                         .modulation = MOD_AM,
                         .bw = BK4819_FILTER_BW_NARROW,
@@ -66,9 +66,9 @@ Preset
                 .band =
                     {
                         .bounds = {2799130, 6399999},
-                        .name = "28-64",
-                        .step = STEP_5_0kHz,
-                        .modulation = MOD_FM,
+                        .name = "Military2",
+                        .step = STEP_12_5kHz,
+                        .modulation = MOD_AM,
                         .bw = BK4819_FILTER_BW_NARROW,
                     },
                 .allowTx = false,
@@ -79,9 +79,9 @@ Preset
                 .band =
                     {
                         .bounds = {6400000, 8799999},
-                        .name = "64-88",
-                        .step = STEP_100_0kHz,
-                        .modulation = MOD_WFM,
+                        .name = "Military3",
+                        .step = STEP_12_5kHz,
+                        .modulation = MOD_AM,
                         .bw = BK4819_FILTER_BW_NARROW,
                     },
                 .allowTx = false,
@@ -131,14 +131,14 @@ Preset
                 .band =
                     {
                         .bounds = {13500000, 14399999},
-                        .name = "135-144",
+                        .name = "Business1",
                         .step = STEP_12_5kHz,
                         .modulation = MOD_FM,
                         .bw = BK4819_FILTER_BW_NARROW,
                     },
                 .allowTx = false,
                 .lastUsedFreq = 13510000,
-                .powCalib = {95, 105, 130},
+                .powCalib = {38, 67, 130},
             },
             (Preset){
                 .band =
@@ -151,59 +151,88 @@ Preset
                     },
                 .allowTx = false,
                 .lastUsedFreq = 14550000,
-                .powCalib = {95, 105, 130},
+                .powCalib = {38, 63, 138},
+            },
+            (Preset){
+                 .band =
+                   {
+                        .bounds = {14800000, 15549999},
+                        .name = "Business2",
+                        .step = STEP_12_5kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 14810000,
+                .powCalib = {37, 60, 130},
+                .radio = RADIO_BK4819,
             },
             (Preset){
                 .band =
                     {
-                        .bounds = {14800000, 17399999},
-                        .name = "148-174",
+                        .bounds = {15550000, 16199999},
+                        .name = "Marine",
                         .step = STEP_25_0kHz,
                         .modulation = MOD_FM,
                         .bw = BK4819_FILTER_BW_WIDE,
                     },
                 .allowTx = false,
-                .lastUsedFreq = 15300000,
-                .powCalib = {95, 105, 130},
+                .lastUsedFreq = 15650000,
+                .powCalib = {37, 60, 130},
+                .radio = RADIO_BK4819,
+            },
+            (Preset){
+                .band =
+                    {
+                    .bounds = {16200000, 17399999},
+                    .name = "Business3",
+                    .step = STEP_12_5kHz,
+                    .modulation = MOD_FM,
+                    .bw = BK4819_FILTER_BW_WIDE,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 16300000,
+                .powCalib = {37, 60, 130},
+                .radio = RADIO_BK4819,
             },
             (Preset){
                 .band =
                     {
                         .bounds = {17400000, 24499999},
-                        .name = "174-245",
+                        .name = "MSatcom1",
                         .step = STEP_25_0kHz,
-                        .modulation = MOD_FM,
+                        .modulation = MOD_AM,
                         .bw = BK4819_FILTER_BW_WIDE,
                     },
                 .allowTx = false,
                 .lastUsedFreq = 20575000,
-                .powCalib = {50, 100, 140},
+                .powCalib = {46, 55, 140},
             },
             (Preset){
                 .band =
                     {
                         .bounds = {24500000, 26999999},
-                        .name = "Satcom",
+                        .name = "MSatcom2",
                         .step = STEP_25_0kHz,
-                        .modulation = MOD_FM,
+                        .modulation = MOD_AM,
                         .bw = BK4819_FILTER_BW_WIDE,
                     },
                 .allowTx = false,
                 .lastUsedFreq = 25355000,
-                .powCalib = {50, 100, 140},
+                .powCalib = {58, 80, 140},
             },
             (Preset){
                 .band =
                     {
                         .bounds = {27000000, 42999999},
-                        .name = "270-430",
-                        .step = STEP_25_0kHz,
-                        .modulation = MOD_FM,
+                        .name = "Military4",
+                        .step = STEP_12_5kHz,
+                        .modulation = MOD_AM,
                         .bw = BK4819_FILTER_BW_WIDE,
                     },
                 .allowTx = false,
                 .lastUsedFreq = 33605000,
-                .powCalib = {50, 100, 140},
+                .powCalib = {77, 95, 140},
             },
             (Preset){
                 .band =
@@ -249,14 +278,14 @@ Preset
                 .band =
                     {
                         .bounds = {44000000, 44600624},
-                        .name = "440-446",
-                        .step = STEP_25_0kHz,
+                        .name = "Business4",
+                        .step = STEP_12_5kHz,
                         .modulation = MOD_FM,
                         .bw = BK4819_FILTER_BW_WIDE,
                     },
                 .allowTx = false,
                 .lastUsedFreq = 44000000,
-                .powCalib = {90, 100, 111},
+                .powCalib = {40, 65, 140},
             },
             (Preset){
                 .band =
@@ -275,14 +304,14 @@ Preset
                 .band =
                     {
                         .bounds = {44620000, 46256249},
-                        .name = "446-462",
-                        .step = STEP_25_0kHz,
+                        .name = "Business5",
+                        .step = STEP_12_5kHz,
                         .modulation = MOD_FM,
                         .bw = BK4819_FILTER_BW_WIDE,
                     },
                 .allowTx = false,
                 .lastUsedFreq = 44620000,
-                .powCalib = {90, 100, 111},
+                .powCalib = {40, 65, 140},
             },
             (Preset){
                 .band =
@@ -301,14 +330,14 @@ Preset
                 .band =
                     {
                         .bounds = {46273750, 46756249},
-                        .name = "462-467",
+                        .name = "Business6",
                         .step = STEP_12_5kHz,
                         .modulation = MOD_FM,
                         .bw = BK4819_FILTER_BW_WIDE,
                     },
                 .allowTx = false,
                 .lastUsedFreq = 46302500,
-                .powCalib = {90, 100, 111},
+                .powCalib = {40, 65, 140},
             },
             (Preset){
                 .band =
@@ -327,14 +356,14 @@ Preset
                 .band =
                     {
                         .bounds = {46775000, 46999999},
-                        .name = "468-470",
-                        .step = STEP_25_0kHz,
+                        .name = "Business7",
+                        .step = STEP_12_5kHz,
                         .modulation = MOD_FM,
                         .bw = BK4819_FILTER_BW_WIDE,
                     },
                 .allowTx = false,
                 .lastUsedFreq = 46980000,
-                .powCalib = {90, 100, 111},
+                .powCalib = {40, 64, 140},
             },
             (Preset){
                 .band =
