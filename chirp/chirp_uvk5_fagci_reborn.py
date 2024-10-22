@@ -923,7 +923,6 @@ APP_LIST = [
     "EEPROM view",
     "Spectrum band",
     "Spectrum analyzer",
-    "CH Scan",
     "Channels",
     "1 VFO pro",
     "Frequency input",

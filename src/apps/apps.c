@@ -4,7 +4,6 @@
 #include "about.h"
 #include "analyzer.h"
 #include "appslist.h"
-#include "channelscanner.h"
 #include "finput.h"
 #include "generator.h"
 #include "lootlist.h"
@@ -58,7 +57,6 @@ const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
     APP_VFO1,         //
     APP_VFOPRO,       //
     APP_VFO2,         //
-    APP_CH_SCANNER,   //
     APP_SAVECH,       //
     APP_SPECTRUM,     //
     APP_ANALYZER,     //
@@ -76,8 +74,6 @@ const App apps[APPS_COUNT] = {
      SPECTRUM_deinit},
     {"Analyzer", ANALYZER_init, ANALYZER_update, ANALYZER_render, ANALYZER_key,
      ANALYZER_deinit},
-    {"CH Scan", CHSCANNER_init, CHSCANNER_update, CHSCANNER_render,
-     CHSCANNER_key, CHSCANNER_deinit},
     {"Channels", SAVECH_init, SAVECH_update, SAVECH_render, SAVECH_key, NULL},
     {"1 VFO pro", VFOPRO_init, VFOPRO_update, VFOPRO_render, VFOPRO_key,
      VFOPRO_deinit},

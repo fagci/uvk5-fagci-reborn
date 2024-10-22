@@ -22,6 +22,8 @@ static void tuneTo(uint32_t f) { RADIO_TuneToSave(GetTuneF(f)); }
 static bool SSB_Seek_ON = false;
 static bool SSB_Seek_UP = true;
 
+static int32_t scanIndex = 0;
+
 static char message[16] = {'\0'};
 static void sendDtmf() {
   RADIO_ToggleTX(true);
@@ -32,10 +34,17 @@ static void sendDtmf() {
   }
 }
 
+static void channelScanFn(bool forward) {
+  IncDecI32(&scanIndex, 0, gScanlistSize, forward ? 1 : -1);
+  int32_t chNum = gScanlist[scanIndex];
+  radio->channel = chNum;
+  RADIO_VfoLoadCH(gSettings.activeVFO);
+  RADIO_SetupByCurrentVFO();
+}
+
 void VFO1_init(void) { RADIO_LoadCurrentVFO(); }
 
 void VFO1_update(void) {
-
   if (SSB_Seek_ON) {
     if (RADIO_GetRadio() == RADIO_SI4732 && RADIO_IsSSB()) {
       if (Now() - gLastRender >= 250) {
@@ -75,17 +84,41 @@ static void prepareABScan() {
   RADIO_TuneToPure(b->start, true);
 }
 
+static void initChannelScan() {
+  scanIndex = 0;
+  LOOT_Clear();
+  CHANNELS_LoadScanlist(gSettings.currentScanlist);
+  for (uint16_t i = 0; i < gScanlistSize; ++i) {
+    CH ch;
+    int32_t num = gScanlist[i];
+    CHANNELS_Load(num, &ch);
+    Loot *loot = LOOT_AddEx(ch.rx.f, false);
+    loot->open = false;
+    loot->lastTimeOpen = 0;
+  }
+
+  gScanFn = channelScanFn;
+}
+
 static void startScan() {
   if (RADIO_GetRadio() == RADIO_SI4732 && RADIO_IsSSB()) {
     SSB_Seek_ON = true;
     // todo: scan by snr
   } else {
+    if (radio->channel >= 0 && gScanlistSize == 0) {
+      SVC_Toggle(SVC_SCAN, false, 0);
+      return;
+    }
+    if (radio->channel >= 0) {
+      initChannelScan();
+    }
     SVC_Toggle(SVC_SCAN, true, gSettings.scanTimeout);
   }
 }
 
 bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  if (!bKeyPressed && !bKeyHeld && radio->channel >= 0) {
+  if (!SVC_Running(SVC_SCAN) && !bKeyPressed && !bKeyHeld &&
+      radio->channel >= 0) {
     if (!gIsNumNavInput && key <= KEY_9) {
       NUMNAV_Init(radio->channel + 1, 1, CHANNELS_GetCountMax());
       gNumNavCallback = setChannel;
@@ -209,7 +242,13 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         if (radio->channel == -1) {
           RADIO_SelectPresetSave(key + 5);
         } else {
-          // todo: switch scanlist
+          if (key >= KEY_1 && key <= KEY_8) {
+            gSettings.currentScanlist = key - 1;
+          } else {
+            gSettings.currentScanlist = 15;
+          }
+          initChannelScan();
+          SETTINGS_DelayedSave();
         }
       } else {
         gFInputCallback = tuneTo;

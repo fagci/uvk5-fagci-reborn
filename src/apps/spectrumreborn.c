@@ -260,7 +260,7 @@ void SPECTRUM_render(void) {
   UI_DrawSpectrumElements(SPECTRUM_Y, msmDelay, noiseOpenDiff, currentBand);
 
   // todo: ct+cd
-  if (gLastActiveLoot->ct != 0xFF) {
+  if (gLastActiveLoot && gLastActiveLoot->ct != 0xFF) {
     PrintSmallEx(LCD_XCENTER, 16 + 6, POS_C, C_FILL, "CT %u.%u",
                  CTCSS_Options[gLastActiveLoot->ct] / 10,
                  CTCSS_Options[gLastActiveLoot->ct] % 10);

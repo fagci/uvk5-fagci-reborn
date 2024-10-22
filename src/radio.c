@@ -1,5 +1,6 @@
 #include "radio.h"
 #include "apps/apps.h"
+#include "board.h"
 #include "dcs.h"
 #include "driver/audio.h"
 #include "driver/backlight.h"
@@ -356,9 +357,6 @@ void RADIO_ToggleRX(bool on) {
 
   gIsListening = on;
 
-  BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN,
-                       gSettings.brightness > 1 && on);
-
   if (on) {
     if (gSettings.backlightOnSquelch != BL_SQL_OFF) {
       BACKLIGHT_On();
@@ -462,7 +460,7 @@ void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power, bool paEnabled) {
 
     BK4819_TuneTo(txF, true);
 
-    BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, gSettings.brightness > 1);
+    BOARD_ToggleRed(gSettings.brightness > 1);
     BK4819_PrepareTransmit();
 
     SYSTEM_DelayMs(10);
@@ -477,7 +475,7 @@ void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power, bool paEnabled) {
 
     sendEOT();
     toggleBK1080SI4732(false);
-    BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
+    BOARD_ToggleRed(false);
     BK4819_TurnsOffTones_TurnsOnRX();
 
     BK4819_SetupPowerAmplifier(0, 0);

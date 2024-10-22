@@ -29,6 +29,7 @@ void BOARD_Init(void);
 void BOARD_EEPROM_Init(void);
 void BOARD_EEPROM_LoadCalibration(void);
 void BOARD_FactoryReset(bool bIsAll);
+void BOARD_ToggleGreen(bool on);
+void BOARD_ToggleRed(bool on);
 
 #endif
-

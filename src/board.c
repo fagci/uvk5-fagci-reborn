@@ -19,6 +19,7 @@
 #include "driver/adc.h"
 #include "driver/backlight.h"
 // #include "driver/bk1080.h"
+#include "driver/bk4819-regs.h"
 #include "driver/bk4819.h"
 #include "driver/crc.h"
 #include "driver/gpio.h"
@@ -422,6 +423,14 @@ void BOARD_ADC_GetBatteryInfo(uint16_t *pVoltage, uint16_t *pCurrent) {
   }
   *pVoltage = ADC_GetValue(ADC_CH4);
   *pCurrent = ADC_GetValue(ADC_CH9);
+}
+
+void BOARD_ToggleGreen(bool on) {
+  BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN, on);
+}
+
+void BOARD_ToggleRed(bool on) {
+  BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, on);
 }
 
 void BOARD_Init(void) {
