@@ -288,6 +288,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         return true;
       }
       if (!APPS_exit()) {
+        SVC_Toggle(SVC_SCAN, false, 0);
         LOOT_Standby();
         RADIO_NextVFO();
       }
