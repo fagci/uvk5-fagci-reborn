@@ -20,4 +20,8 @@ uint16_t SP_GetNoiseFloor();
 uint16_t SP_GetNoiseMax();
 uint16_t SP_GetRssiMax();
 
+void SP_RenderGraph(uint8_t sx, uint8_t sy, uint8_t sh);
+void SP_AddGraphPoint(Loot *msm);
+void SP_Shift(int16_t n);
+
 #endif /* end of include guard: UI_SPECTRUM_H */

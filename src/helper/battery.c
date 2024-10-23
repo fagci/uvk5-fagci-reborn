@@ -90,3 +90,7 @@ void BATTERY_UpdateBatteryInfo() {
   gChargingWithTypeC = charg;
   gBatteryPercent = BATTERY_VoltsToPercent(gBatteryVoltage);
 }
+
+uint32_t BATTERY_GetPreciseVoltage(uint16_t cal) {
+  return batAvgV * 76000 / cal;
+}

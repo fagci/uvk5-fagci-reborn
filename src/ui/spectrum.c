@@ -148,3 +148,49 @@ void SP_RenderLine(uint16_t rssi, uint8_t sx, uint8_t sy, uint8_t sh) {
 uint16_t SP_GetNoiseFloor() { return Std(rssiHistory, filledPoints); }
 uint16_t SP_GetNoiseMax() { return Max(noiseHistory, filledPoints); }
 uint16_t SP_GetRssiMax() { return Max(rssiHistory, filledPoints); }
+
+void SP_RenderGraph(uint8_t sx, uint8_t sy, uint8_t sh) {
+  const uint8_t S_BOTTOM = sy + sh;
+  const VMinMax v = getV();
+
+  uint8_t oVal =
+      ConvertDomain(rssiHistory[0] * 2, v.vMin * 2, v.vMax * 2, 0, sh);
+
+  for (uint8_t i = 1; i < MAX_POINTS; ++i) {
+    uint8_t yVal =
+        ConvertDomain(rssiHistory[i] * 2, v.vMin * 2, v.vMax * 2, 0, sh);
+    DrawLine(i - 1, S_BOTTOM - oVal, i, S_BOTTOM - yVal, C_FILL);
+    oVal = yVal;
+  }
+}
+
+void SP_AddGraphPoint(Loot *msm) {
+  rssiHistory[MAX_POINTS - 1] = msm->rssi;
+  noiseHistory[MAX_POINTS - 1] = msm->noise;
+  historySize = filledPoints = MAX_POINTS;
+}
+
+void SP_Shift(int16_t n) {
+  if (n == 0) {
+    return;
+  }
+  if (n > 0) {
+    while (n-- > 0) {
+      for (int16_t i = MAX_POINTS - 2; i >= 0; --i) {
+        rssiHistory[i + 1] = rssiHistory[i];
+        noiseHistory[i + 1] = noiseHistory[i];
+      }
+      rssiHistory[0] = 0;
+      noiseHistory[0] = U8_MAX;
+    }
+  } else {
+    while (n++ < 0) {
+      for (int16_t i = 0; i < MAX_POINTS - 1; ++i) {
+        rssiHistory[i] = rssiHistory[i + 1];
+        noiseHistory[i] = noiseHistory[i + 1];
+      }
+      rssiHistory[MAX_POINTS - 1] = 0;
+      noiseHistory[MAX_POINTS - 1] = U8_MAX;
+    }
+  }
+}

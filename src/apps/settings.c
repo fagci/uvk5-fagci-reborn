@@ -93,8 +93,7 @@ static const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
 
 static void getSubmenuItemText(uint16_t index, char *name) {
   const MenuItem *item = &menu[menuIndex];
-  uint16_t v =
-      gBatteryVoltage * gSettings.batteryCalibration / (index + BAT_CAL_MIN);
+  uint32_t v = BATTERY_GetPreciseVoltage(index + BAT_CAL_MIN);
   switch (item->type) {
   case M_MAIN_APP:
     strncpy(name, apps[appsAvailableToRun[index]].name, 31);
@@ -132,7 +131,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     strncpy(name, onOff[index], 31);
     return;
   case M_BAT_CAL:
-    sprintf(name, "%u.%02u (%u)", v / 100, v % 100, index + BAT_CAL_MIN);
+    sprintf(name, "%u.%04u (%u)", v / 10000, v % 10000, index + BAT_CAL_MIN);
     return;
   case M_BAT_TYPE:
     sprintf(name, BATTERY_TYPE_NAMES[index], 31);

@@ -88,6 +88,11 @@ static void initChannelScan() {
   scanIndex = 0;
   LOOT_Clear();
   CHANNELS_LoadScanlist(gSettings.currentScanlist);
+  if (gScanlistSize == 0) {
+    gSettings.currentScanlist = 15;
+    CHANNELS_LoadScanlist(gSettings.currentScanlist);
+    SETTINGS_DelayedSave();
+  }
   for (uint16_t i = 0; i < gScanlistSize; ++i) {
     CH ch;
     int32_t num = gScanlist[i];
@@ -105,12 +110,12 @@ static void startScan() {
     SSB_Seek_ON = true;
     // todo: scan by snr
   } else {
+    if (radio->channel >= 0) {
+      initChannelScan();
+    }
     if (radio->channel >= 0 && gScanlistSize == 0) {
       SVC_Toggle(SVC_SCAN, false, 0);
       return;
-    }
-    if (radio->channel >= 0) {
-      initChannelScan();
     }
     SVC_Toggle(SVC_SCAN, true, gSettings.scanTimeout);
   }
