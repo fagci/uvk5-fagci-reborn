@@ -45,6 +45,7 @@ typedef enum {
   M_STE,
   M_PTT_LOCK,
   M_DTMF_DECODE,
+  M_CH_DISP_MODE,
   M_RESET,
 } Menu;
 
@@ -86,6 +87,7 @@ static const MenuItem menu[] = {
     {"STE", M_STE, 2},
     {"Lock PTT", M_PTT_LOCK, 2},
     {"DTMF decode", M_PTT_LOCK, 2},
+    {"CH Display", M_CH_DISP_MODE, ARRAY_SIZE(CH_DISPLAY_MODE_NAMES)},
     {"EEPROM reset", M_RESET, 2},
 };
 
@@ -149,6 +151,9 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     return;
   case M_DW:
     strncpy(name, dwNames[index], 31);
+    return;
+  case M_CH_DISP_MODE:
+    strncpy(name, CH_DISPLAY_MODE_NAMES[index], 31);
     return;
   case M_ROGER:
     strncpy(name, rogerNames[index], 31);
@@ -267,6 +272,10 @@ static void accept(void) {
     gSettings.dtmfdecode = subMenuIndex;
     SETTINGS_Save();
     break;
+  case M_CH_DISP_MODE:
+    gSettings.chDisplayMode = subMenuIndex;
+    SETTINGS_Save();
+    break;
   case M_RESET:
     if (subMenuIndex) {
       APPS_run(APP_RESET);
@@ -341,6 +350,8 @@ static const char *getValue(Menu type) {
     return yesNo[gSettings.pttLock];
   case M_ROGER:
     return rogerNames[gSettings.roger];
+  case M_CH_DISP_MODE:
+    return CH_DISPLAY_MODE_NAMES[gSettings.chDisplayMode];
   default:
     break;
   }
@@ -443,6 +454,9 @@ static void setInitialSubmenuIndex(void) {
     break;
   case M_PTT_LOCK:
     subMenuIndex = gSettings.pttLock;
+    break;
+  case M_CH_DISP_MODE:
+    subMenuIndex = gSettings.chDisplayMode;
     break;
   case M_MAIN_APP:
     for (i = 0; i < ARRAY_SIZE(appsAvailableToRun); ++i) {

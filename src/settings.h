@@ -7,7 +7,6 @@
 
 #define getsize(V) char (*__ #V)(void)[sizeof(V)] = 1;
 
-
 typedef enum {
   STEP_0_02kHz,
   STEP_0_05kHz,
@@ -38,6 +37,12 @@ typedef enum {
   BL_SQL_ON,
   BL_SQL_OPEN,
 } BacklightOnSquelchMode;
+
+typedef enum {
+  CH_DISPLAY_MODE_NF,
+  CH_DISPLAY_MODE_F,
+  CH_DISPLAY_MODE_N,
+} CHDisplayMode;
 
 typedef enum {
   DW_OFF,
@@ -113,7 +118,7 @@ typedef struct {
   uint8_t reserved1 : 2;
   uint8_t roger : 2;
   uint8_t scanmode : 2;
-  uint8_t chDisplayMode : 2;
+  CHDisplayMode chDisplayMode : 2;
   uint8_t pttLock : 1;
   uint8_t crossBandScan : 1;
   uint8_t beep : 1;
@@ -239,6 +244,7 @@ extern Settings gSettings;
 extern uint8_t BL_TIME_VALUES[7];
 extern const char *BL_TIME_NAMES[7];
 extern const char *BL_SQL_MODE_NAMES[3];
+extern const char *CH_DISPLAY_MODE_NAMES[3];
 extern const char *TX_POWER_NAMES[4];
 extern const char *TX_OFFSET_NAMES[3];
 extern const char *TX_CODE_TYPES[4];

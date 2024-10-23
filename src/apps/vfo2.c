@@ -67,8 +67,15 @@ static void render2VFOPart(uint8_t i) {
     PrintSmallEx(LCD_XCENTER, bl - 8 + 6, POS_C, C_FILL, "%u", RADIO_GetTXF());
   } else {
     if (vfo->channel >= 0) {
-      PrintMediumBoldEx(LCD_XCENTER, bl - 8, POS_C, C_FILL, gVFONames[i]);
-      PrintMediumEx(LCD_XCENTER, bl, POS_C, C_FILL, "%4u.%03u", fp1, fp2);
+      if (gSettings.chDisplayMode == CH_DISPLAY_MODE_F) {
+        PrintBigDigitsEx(LCD_WIDTH - 19, bl, POS_R, C_FILL, "%4u.%03u", fp1,
+                         fp2);
+      } else if (gSettings.chDisplayMode == CH_DISPLAY_MODE_N) {
+        PrintMediumBoldEx(LCD_XCENTER, bl - 4, POS_C, C_FILL, gVFONames[i]);
+      } else {
+        PrintMediumBoldEx(LCD_XCENTER, bl - 8, POS_C, C_FILL, gVFONames[i]);
+        PrintMediumEx(LCD_XCENTER, bl, POS_C, C_FILL, "%4u.%03u", fp1, fp2);
+      }
       PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "MR %03u", vfo->channel + 1);
     } else {
       PrintBigDigitsEx(LCD_WIDTH - 19, bl, POS_R, C_FILL, "%4u.%03u", fp1, fp2);
