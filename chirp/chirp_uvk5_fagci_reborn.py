@@ -1000,6 +1000,7 @@ BANDS = {
 #     "Air",
 #     "135-144",
 #     "2m HAM",
+#     "146-148",
 #     "148-155",
 #     "155-162",
 #     "162-174",
@@ -1066,7 +1067,7 @@ TXPOWER_LIST = ["ULow", "Low", "Mid", "High"]
 MIN_FREQ = 153000
 MAX_FREQ = 1399999990
 
-SETTINGS_VF0_PRESET_SIZE = 0x50F  #  TERRIBLE hardcoding; settings+2xVFO+presets
+SETTINGS_VF0_PRESET_SIZE = 0x52F  #  TERRIBLE hardcoding; settings+2xVFO+presets
 MEMORY_START_LOWER_LIMIT = SETTINGS_VF0_PRESET_SIZE
 
 BIT_MASK_NAMES = ["--------"]
@@ -1194,7 +1195,7 @@ struct {
      radio : 2,
      offsetDir : 2,
      power : 2;
-} Preset[39];
+} Preset[40];
 """
 
 MEM_CH = """struct {

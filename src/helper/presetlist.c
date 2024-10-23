@@ -143,7 +143,7 @@ Preset
             (Preset){
                 .band =
                     {
-                        .bounds = {14400000, 14799999},
+                        .bounds = {14400000, 14599999},
                         .name = "2m HAM",
                         .step = STEP_25_0kHz,
                         .modulation = MOD_FM,
@@ -151,6 +151,19 @@ Preset
                     },
                 .allowTx = false,
                 .lastUsedFreq = 14550000,
+                .powCalib = {38, 63, 138},
+            },
+            (Preset){
+                .band =
+                    {
+                        .bounds = {14600000, 14799999},
+                        .name = "146-148",
+                        .step = STEP_25_0kHz,
+                        .modulation = MOD_FM,
+                        .bw = BK4819_FILTER_BW_WIDE,
+                    },
+                .allowTx = false,
+                .lastUsedFreq = 14600000,
                 .powCalib = {38, 63, 138},
             },
             (Preset){

@@ -4,7 +4,7 @@
 #include "../radio.h"
 #include <stdint.h>
 
-#define PRESETS_COUNT 39
+#define PRESETS_COUNT 40
 
 bool PRESETS_Load();
 int8_t PRESETS_Size();
