@@ -2582,13 +2582,13 @@ class UVK5Radio(chirp_common.CloneModeRadio):
             # lastUsedFreq_offset_1
             freq1 = curr_pr.lastUsedFreq_rx
             lastUsedFreq_offset_1 = RadioSettingValueInteger(0, MAX_FREQ, freq1 * 10)
-            lastUsedFreq_offset_1.set_mutable(False)
+            lastUsedFreq_offset_1.set_mutable(True)
             pr.append(RadioSetting(f"preset{i}_lastUsedFreq_rx", "Last Used Freq Rx", lastUsedFreq_offset_1))
 
             # lastUsedFreq_offset_2
             freq2 = curr_pr.lastUsedFreq_tx_msb << 5 | curr_pr.lastUsedFreq_tx_lsb
             lastUsedFreq_offset_2 = RadioSettingValueInteger(0, MAX_FREQ, freq2 * 10)
-            lastUsedFreq_offset_2.set_mutable(False)
+            lastUsedFreq_offset_2.set_mutable(True)
             pr.append(RadioSetting(f"preset{i}_lastUsedFreq_tx", "Last Used Freq Tx", lastUsedFreq_offset_2))
 
             # name
