@@ -46,6 +46,7 @@ static const RegisterSpec registerSpecs[] = {
 
     {"AGCL", 0x49, 0, 0b1111111, 1},
     {"AGCH", 0x49, 7, 0b1111111, 1},
+    {"AFC", 0x73, 11, 0b111, 1},
 };
 
 static void UpdateRegMenuValue(RegisterSpec s, bool add) {
