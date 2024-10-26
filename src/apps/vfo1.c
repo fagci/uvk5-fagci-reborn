@@ -121,6 +121,26 @@ static void startScan() {
   }
 }
 
+static void scanlistByKey(KEY_Code_t key) {
+  if (key >= KEY_1 && key <= KEY_8) {
+    gSettings.currentScanlist = key - 1;
+  } else {
+    gSettings.currentScanlist = 15;
+  }
+}
+
+static void selectFirstPresetFromScanlist() {
+  uint8_t sl = gSettings.currentScanlist;
+  uint8_t scanlistMask = 1 << sl;
+  for (uint8_t i = 0; i < PRESETS_COUNT; ++i) {
+    if (sl == 15 ||
+        (PRESETS_Item(i)->memoryBanks & scanlistMask) == scanlistMask) {
+      PRESET_Select(i);
+      return;
+    }
+  }
+}
+
 bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!SVC_Running(SVC_SCAN) && !bKeyPressed && !bKeyHeld &&
       radio->channel >= 0) {
@@ -216,6 +236,9 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       RADIO_ToggleModulation();
       return true;
     case KEY_STAR:
+      if (gSettings.crossBandScan) {
+        selectFirstPresetFromScanlist();
+      }
       startScan();
       return true;
     case KEY_SIDE1:
@@ -245,13 +268,14 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_9:
       if (SVC_Running(SVC_SCAN)) {
         if (radio->channel == -1) {
-          RADIO_SelectPresetSave(key + 5);
-        } else {
-          if (key >= KEY_1 && key <= KEY_8) {
-            gSettings.currentScanlist = key - 1;
+          if (gSettings.crossBandScan) {
+            scanlistByKey(key);
+            selectFirstPresetFromScanlist();
           } else {
-            gSettings.currentScanlist = 15;
+            RADIO_SelectPresetSave(key + 5);
           }
+        } else {
+          scanlistByKey(key);
           initChannelScan();
           SETTINGS_DelayedSave();
         }

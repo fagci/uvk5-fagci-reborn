@@ -41,12 +41,13 @@ static const RegisterSpec registerSpecs[] = {
     RS_RF_FILT_BW,
     // {"AFTxfl", 0x43, 6, 0b111, 1}, // 7 is widest
     // {"3kAFrsp", 0x74, 0, 0xFFFF, 100},
-    {"CMP", 0x31, 3, 1, 1},
+    // {"CMP", 0x31, 3, 1, 1},
     {"MIC", 0x7D, 0, 0xF, 1},
 
     {"AGCL", 0x49, 0, 0b1111111, 1},
     {"AGCH", 0x49, 7, 0b1111111, 1},
     {"AFC", 0x73, 11, 0b111, 1},
+    afcDisableRegSpec,
 };
 
 static void UpdateRegMenuValue(RegisterSpec s, bool add) {
