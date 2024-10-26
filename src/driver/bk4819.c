@@ -492,6 +492,26 @@ void BK4819_SetRegValue(RegisterSpec s, uint16_t v) {
   BK4819_WriteRegister(s.num, reg | (v << s.offset));
 }
 
+void BK4819_SetAFC(uint8_t level) {
+  if (level > 8) {
+    level = 8;
+  }
+
+  if (level) {
+    BK4819_WriteRegister(0x73, (8 - level) << 11);
+  } else {
+    BK4819_WriteRegister(0x73, BK4819_ReadRegister(0x73) | (1 << 4));
+  }
+}
+
+uint8_t BK4819_GetAFC() {
+  uint16_t afc = BK4819_ReadRegister(0x73);
+  if (((afc >> 4) & 1) == 0) {
+    return 8 - ((afc >> 11) & 0b111);
+  }
+  return 0;
+}
+
 void BK4819_SetModulation(ModulationType type) {
   bool isSsb = type == MOD_LSB || type == MOD_USB;
   bool isFm = type == MOD_FM || type == MOD_WFM;

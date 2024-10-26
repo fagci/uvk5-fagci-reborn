@@ -46,8 +46,7 @@ static const RegisterSpec registerSpecs[] = {
 
     {"AGCL", 0x49, 0, 0b1111111, 1},
     {"AGCH", 0x49, 7, 0b1111111, 1},
-    {"AFC", 0x73, 11, 0b111, 1},
-    afcDisableRegSpec,
+    {"AFC", 0x73, 0, 0xFF, 1},
 };
 
 static void UpdateRegMenuValue(RegisterSpec s, bool add) {
@@ -56,6 +55,9 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   if (s.num == BK4819_REG_13) {
     v = gCurrentPreset->band.gainIndex;
     maxValue = ARRAY_SIZE(gainTable) - 1;
+  } else if (s.num == 0x73) {
+    v = BK4819_GetAFC();
+    maxValue = 8;
   } else {
     v = BK4819_GetRegValue(s);
     maxValue = s.mask;
@@ -69,6 +71,8 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
 
   if (s.num == BK4819_REG_13) {
     RADIO_SetGain(v);
+  } else if (s.num == 0x73) {
+    BK4819_SetAFC(v);
   } else {
     BK4819_SetRegValue(s, v);
   }
@@ -215,6 +219,13 @@ static void DrawRegs(void) {
       } else {
         sprintf(String, "%ddB",
                 gainTable[gCurrentPreset->band.gainIndex].gainDb);
+      }
+    } else if (rs.num == 0x73) {
+      uint8_t afc = BK4819_GetAFC();
+      if (afc) {
+        sprintf(String, "%u", afc);
+      } else {
+        sprintf(String, "off");
       }
     } else {
       sprintf(String, "%u", BK4819_GetRegValue(rs));
