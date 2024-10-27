@@ -58,7 +58,7 @@ void UI_FSmall(uint32_t f) {
     UI_FSmallest(radio->rx.f, 32, 21);
   }
 
-  PrintSmallEx(32, 21, POS_C, C_FILL, "S:%u", BK4819_GetSNR());
+  PrintSmallEx(32, 21, POS_C, C_FILL, "S:%u", RADIO_GetSNR());
   PrintSmallEx(52, 21, POS_C, C_FILL, "N:%u", BK4819_GetNoise());
   PrintSmallEx(72, 21, POS_C, C_FILL, "G:%u", BK4819_GetGlitch());
   PrintSmallEx(92, 21, POS_C, C_FILL, "SQ:%u", gCurrentPreset->band.squelch);

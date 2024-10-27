@@ -12,8 +12,10 @@
 bool gScanForward = true;
 bool gScanRedraw = true;
 
-uint32_t SCAN_TIMEOUTS[11] = {
+uint32_t SCAN_TIMEOUTS[13] = {
     0,
+    100,
+    250,
     500,
     1000 * 1,
     1000 * 3,
@@ -26,9 +28,9 @@ uint32_t SCAN_TIMEOUTS[11] = {
     ((uint32_t)0) - 1,
 };
 
-char *SCAN_TIMEOUT_NAMES[11] = {
-    "0",   "500ms", "1s",   "3s",   "5s",   "10s",
-    "30s", "1min",  "2min", "5min", "None",
+char *SCAN_TIMEOUT_NAMES[13] = {
+    "0",   "100ms", "250ms", "500ms", "1s",   "3s",   "5s",
+    "10s", "30s",   "1min",  "2min",  "5min", "None",
 };
 
 static uint32_t lastSettedF = 0;

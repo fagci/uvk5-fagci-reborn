@@ -943,7 +943,7 @@ BATTERY_TYPE_NAMES = ["1600mAh", "2200mAh", "3500mAh"]
 BATTERY_STYLE_NAMES = ["Plain", "Percent", "Voltage"]
 
 SCAN_TIMEOUT_NAMES = [
-    "0", "500ms", "1s", "3s", "5s", "10s",
+    "0", "100ms", "250ms", "500ms", "1s", "3s", "5s", "10s",
     "30s", "1min", "2min", "5min", "None"
 ]
 

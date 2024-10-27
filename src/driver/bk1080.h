@@ -41,5 +41,6 @@ void BK1080_Mute(bool Mute);
 void BK1080_SetFrequency(uint32_t Frequency);
 uint16_t BK1080_GetFrequencyDeviation();
 uint16_t BK1080_GetRSSI();
+uint8_t BK1080_GetSNR();
 
 #endif

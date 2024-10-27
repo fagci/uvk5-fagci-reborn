@@ -99,6 +99,8 @@ uint16_t BK1080_GetFrequencyDeviation() {
   return BK1080_ReadRegister(BK1080_REG_07) >> 4;
 }
 
+uint8_t BK1080_GetSNR() { return BK1080_ReadRegister(BK1080_REG_07) & 0b1111; }
+
 uint16_t BK1080_GetRSSI() {
   return (BK1080_ReadRegister(BK1080_REG_10) & 0xFF) << 1;
 }

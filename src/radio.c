@@ -705,11 +705,28 @@ uint16_t RADIO_GetRSSI(void) {
   case RADIO_SI4732:
     if (gShowAllRSSI) {
       RSQ_GET();
-      return (160 + (rsqStatus.resp.RSSI - 107)) << 1;
+      return (160 + (rsqStatus.resp.RSSI - 107));
     }
     return 0;
   default:
     return 128;
+  }
+}
+
+uint16_t RADIO_GetSNR(void) {
+  switch (RADIO_GetRadio()) {
+  case RADIO_BK4819:
+    return BK4819_GetSNR();
+  case RADIO_BK1080:
+    return gShowAllRSSI ? BK1080_GetSNR() : 0;
+  case RADIO_SI4732:
+    if (gShowAllRSSI) {
+      RSQ_GET();
+      return rsqStatus.resp.SNR;
+    }
+    return 0;
+  default:
+    return 0;
   }
 }
 

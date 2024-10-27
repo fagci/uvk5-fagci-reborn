@@ -78,6 +78,8 @@ typedef enum {
 
 typedef enum {
   SCAN_TO_0,
+  SCAN_TO_100ms,
+  SCAN_TO_250ms,
   SCAN_TO_500ms,
   SCAN_TO_1s,
   SCAN_TO_2s,

@@ -85,6 +85,7 @@ bool RADIO_IsSSB();
 uint32_t GetScreenF(uint32_t f);
 uint32_t GetTuneF(uint32_t f);
 uint16_t RADIO_GetRSSI(void);
+uint16_t RADIO_GetSNR(void);
 uint32_t RADIO_GetTXF(void);
 uint32_t RADIO_GetTXFEx(VFO *vfo, Preset *p);
 void RADIO_ToggleBK1080(bool on);
