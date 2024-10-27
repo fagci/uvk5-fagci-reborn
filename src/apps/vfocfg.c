@@ -20,6 +20,7 @@ static MenuItem menu[] = {
     {"Step", M_STEP, ARRAY_SIZE(StepFrequencyTable)},
     {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions)},
     {"BW", M_BW, 4},
+    {"Gain", M_GAIN, ARRAY_SIZE(gainTable)},
     {"SQ type", M_SQ_TYPE, ARRAY_SIZE(sqTypeNames)},
     {"SQ level", M_SQ, 10},
     {"RX freq", M_F_RX, 0},
@@ -74,6 +75,9 @@ static void setInitialSubmenuIndex(void) {
     break;
   case M_SQ:
     subMenuIndex = gCurrentPreset->band.squelch;
+    break;
+  case M_GAIN:
+    subMenuIndex = gCurrentPreset->band.gainIndex;
     break;
   default:
     subMenuIndex = 0;
@@ -145,6 +149,10 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     return;
   case M_SQ:
     sprintf(name, "%u", index);
+    return;
+  case M_GAIN:
+    sprintf(name, index == ARRAY_SIZE(gainTable) - 1 ? "auto" : "%ddB%s",
+            gainTable[index].gainDb, index == 16 ? " #" : "");
     return;
   default:
     break;
@@ -228,6 +236,9 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   }
   MenuItem *item = &menu[menuIndex];
   uint8_t SUBMENU_SIZE = item->size;
+  if ((key == KEY_UP || key == KEY_DOWN) && isSubMenu && item->type == M_GAIN) {
+    RADIO_SetGain(subMenuIndex);
+  }
   switch (key) {
   case KEY_UP:
     if (isSubMenu) {

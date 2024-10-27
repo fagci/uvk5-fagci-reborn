@@ -16,13 +16,9 @@
 #include "../ui/spectrum.h"
 #include "../ui/statusline.h"
 #include "apps.h"
-
-static const uint16_t U16_MAX = 65535;
+#include <stdint.h>
 
 static uint8_t noiseOpenDiff = 14;
-
-static const uint8_t SPECTRUM_Y = 16;
-static const uint8_t SPECTRUM_H = 40;
 
 static Band *currentBand;
 
@@ -30,7 +26,7 @@ static uint32_t currentStepSize;
 
 static bool newScan = true;
 
-static uint16_t rssiO = U16_MAX;
+static uint16_t rssiO = UINT16_MAX;
 static uint8_t noiseO = 0;
 
 static uint8_t msmDelay = 5;
@@ -95,7 +91,7 @@ static void scanFn(bool forward) {
 static void init() {
   newScan = true;
   oldPresetIndex = 0;
-  rssiO = U16_MAX;
+  rssiO = UINT16_MAX;
   noiseO = 0;
 
   radio->radio = RADIO_BK4819;
@@ -103,7 +99,7 @@ static void init() {
   LOOT_Standby();
   RADIO_SetupBandParams();
 
-  SP_Init(PRESETS_GetSteps(gCurrentPreset), LCD_WIDTH);
+  SP_Init(PRESETS_GetSteps(gCurrentPreset));
   updateMsm();
 }
 
@@ -245,13 +241,18 @@ void SPECTRUM_render(void) {
   UI_ClearScreen();
   STATUSLINE_SetText(currentBand->name);
 
-  SP_Render(gCurrentPreset, 0, SPECTRUM_Y, SPECTRUM_H);
+  SP_Render(gCurrentPreset);
   UI_DrawSpectrumElements(SPECTRUM_Y, msmDelay, noiseOpenDiff, currentBand);
 
-  // todo: ct+cd
-  if (gLastActiveLoot && gLastActiveLoot->ct != 0xFF) {
-    PrintSmallEx(LCD_XCENTER, 16 + 6, POS_C, C_FILL, "CT %u.%u",
-                 CTCSS_Options[gLastActiveLoot->ct] / 10,
-                 CTCSS_Options[gLastActiveLoot->ct] % 10);
+  const uint8_t bl = 16 + 6;
+  if (gLastActiveLoot) {
+    if (gLastActiveLoot->ct != 0xFF) {
+      PrintSmallEx(LCD_XCENTER, bl, POS_C, C_FILL, "CT %u.%u",
+                   CTCSS_Options[gLastActiveLoot->ct] / 10,
+                   CTCSS_Options[gLastActiveLoot->ct] % 10);
+    } else if (gLastActiveLoot->cd != 0xFF) {
+      PrintSmallEx(LCD_XCENTER, bl, POS_C, C_FILL, "D%03oN",
+                   DCS_Options[gLastActiveLoot->cd]);
+    }
   }
 }

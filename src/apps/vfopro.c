@@ -118,6 +118,17 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       break;
     }
   }
+  if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
+    switch (key) {
+    case KEY_4: // freq catch
+      if (RADIO_GetRadio() != RADIO_BK4819) {
+        gShowAllRSSI = !gShowAllRSSI;
+      }
+      return true;
+    default:
+      break;
+    }
+  }
 
   if (!bKeyHeld) {
     switch (key) {

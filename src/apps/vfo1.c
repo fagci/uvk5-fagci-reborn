@@ -211,7 +211,11 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       RADIO_ToggleVfoMR();
       return true;
     case KEY_4: // freq catch
-      SVC_Toggle(SVC_FC, !SVC_Running(SVC_FC), 100);
+      if (RADIO_GetRadio() == RADIO_BK4819) {
+        SVC_Toggle(SVC_FC, !SVC_Running(SVC_FC), 100);
+      } else {
+        gShowAllRSSI = !gShowAllRSSI;
+      }
       return true;
     case KEY_5: // noaa
       SVC_Toggle(SVC_BEACON, !SVC_Running(SVC_BEACON), 15000);

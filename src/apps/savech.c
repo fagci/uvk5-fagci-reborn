@@ -21,7 +21,7 @@ static int16_t from = -1;
 static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
   uint16_t chNum = gScanlist[index];
   CH _ch;
-  CHANNELS_Load(index, &_ch);
+  CHANNELS_Load(chNum, &_ch);
   const uint8_t y = MENU_Y + i * MENU_ITEM_H;
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
@@ -217,7 +217,7 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
 void SAVECH_render(void) {
   UI_ClearScreen();
-  UI_ShowMenuEx(getChItem, chCount, currentChannelIndex,
+  UI_ShowMenuEx(getChItem, gScanlistSize, currentChannelIndex,
                 MENU_LINES_TO_SHOW + 1);
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);

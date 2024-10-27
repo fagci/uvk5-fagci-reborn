@@ -35,6 +35,7 @@ char gVFONames[2][10] = {0};
 bool gIsListening = false;
 bool gMonitorMode = false;
 TXState gTxState = TX_UNKNOWN;
+bool gShowAllRSSI = false;
 
 static Radio oldRadio = RADIO_UNKNOWN;
 static uint32_t lastTailTone = 0;
@@ -52,7 +53,7 @@ const char *modulationTypeOptions[8] = {"FM",  "AM",  "LSB", "USB",
 const char *powerNames[4] = {"ULOW, LOW", "MID", "HIGH"};
 const char *bwNames[5] = {"25k", "12.5k", "6.25k", "25k+"};
 const char *bwNamesSiAMFM[5] = {"6k", "4k", "3k", "1k"};
-const char *bwNamesSiSSB[5] = {"4k", "3k", "1.2k", "0.5k"};
+const char *bwNamesSiSSB[5] = {"4k", "3k", "2.2k", "0.5k"};
 const char *radioNames[4] = {"BK4819", "BK1080", "SI4732", "Preset"};
 const char *shortRadioNames[4] = {"BK", "BC", "SI", "PR"};
 const char *TX_STATE_NAMES[7] = {"TX Off",   "TX On",  "CHARGING", "BAT LOW",
@@ -70,7 +71,7 @@ const char *deviationNames[] = {"", "+", "-"};
 static const SI47XX_SsbFilterBW SI_BW_MAP_SSB[] = {
     [BK4819_FILTER_BW_WIDE] = SI47XX_SSB_BW_4_kHz,
     [BK4819_FILTER_BW_NARROW] = SI47XX_SSB_BW_3_kHz,
-    [BK4819_FILTER_BW_NARROWER] = SI47XX_SSB_BW_1_2_kHz,
+    [BK4819_FILTER_BW_NARROWER] = SI47XX_SSB_BW_2_2_kHz,
     [BK4819_FILTER_BW_SOMETHING] = SI47XX_SSB_BW_0_5_kHz,
 };
 static const SI47XX_FilterBW SI_BW_MAP_AMFM[] = {
@@ -700,12 +701,13 @@ uint16_t RADIO_GetRSSI(void) {
   case RADIO_BK4819:
     return BK4819_GetRSSI();
   case RADIO_BK1080:
-    return 0;
-    return BK1080_GetRSSI();
+    return gShowAllRSSI ? BK1080_GetRSSI() : 0;
   case RADIO_SI4732:
+    if (gShowAllRSSI) {
+      RSQ_GET();
+      return (160 + (rsqStatus.resp.RSSI - 107)) << 1;
+    }
     return 0;
-    RSQ_GET();
-    return (160 + (rsqStatus.resp.RSSI - 107)) << 1;
   default:
     return 128;
   }

@@ -70,15 +70,14 @@ void UI_FSmallest(uint32_t f, uint8_t x, uint8_t y) {
   PrintSmall(x, y, "%u.%05u", f / 100000, f % 100000);
 }
 
-void drawTicks(uint8_t x1, uint8_t x2, uint8_t y, uint32_t fs, uint32_t fe,
-               uint32_t div, uint8_t h) {
+void drawTicks(uint8_t y, uint32_t fs, uint32_t fe, uint32_t div, uint8_t h) {
   for (uint32_t f = fs - (fs % div) + div; f < fe; f += div) {
-    uint8_t x = ConvertDomain(f, fs, fe, x1, x2);
+    uint8_t x = ConvertDomain(f, fs, fe, 0, LCD_WIDTH - 1);
     DrawVLine(x, y, h, C_FILL);
   }
 }
 
-void UI_DrawTicks(uint8_t x1, uint8_t x2, uint8_t y, Band *band) {
+void UI_DrawTicks(uint8_t y, Band *band) {
   // TODO: automatic ticks size determination
 
   FRange *range = &band->bounds;
@@ -88,8 +87,8 @@ void UI_DrawTicks(uint8_t x1, uint8_t x2, uint8_t y, Band *band) {
 
   for (uint32_t p = 100000000; p >= 10; p /= 10) {
     if (p < bw) {
-      drawTicks(x1, x2, y, fs, fe, p / 2, 2);
-      drawTicks(x1, x2, y, fs, fe, p, 3);
+      drawTicks(y, fs, fe, p / 2, 2);
+      drawTicks(y, fs, fe, p, 3);
       return;
     }
   }

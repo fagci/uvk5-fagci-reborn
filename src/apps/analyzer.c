@@ -15,8 +15,6 @@
 #include "apps.h"
 #include <stdint.h>
 
-static const uint8_t ANALYZER_Y = 16;
-static const uint8_t ANALYZER_HEIGHT = 40;
 static const uint8_t spectrumWidth = LCD_WIDTH;
 
 static Loot msm;
@@ -59,7 +57,7 @@ static void startNewScan(bool reset) {
     } else {
       BK4819_SetFilterBandwidth(BK4819_FILTER_BW_NARROWER);
     }
-    SP_Init(PRESETS_GetSteps(&opt), spectrumWidth);
+    SP_Init(PRESETS_GetSteps(&opt));
   } else {
     SP_Begin();
   }
@@ -278,22 +276,22 @@ void ANALYZER_render(void) {
   UI_ClearScreen();
   STATUSLINE_SetText(opt.band.name);
 
-  for (uint8_t i = ANALYZER_Y; i < ANALYZER_Y + ANALYZER_HEIGHT; i += 4) {
+  for (uint8_t i = SPECTRUM_Y; i < SPECTRUM_Y + SPECTRUM_H; i += 4) {
     PutPixel(spectrumWidth / 2, i, C_FILL);
   }
 
-  SP_Render(&opt, 0, ANALYZER_Y, ANALYZER_HEIGHT);
+  SP_Render(&opt);
 
-  UI_DrawSpectrumElements(ANALYZER_Y, scanInterval, Rssi2DBm(squelchRssi),
+  UI_DrawSpectrumElements(SPECTRUM_Y, scanInterval, Rssi2DBm(squelchRssi),
                           &opt.band);
 
-  SP_RenderArrow(&opt, peakF, 0, ANALYZER_Y, ANALYZER_HEIGHT);
+  SP_RenderArrow(&opt, peakF);
 
   if (squelchRssi != UINT16_MAX) {
-    SP_RenderLine(squelchRssi, 0, ANALYZER_Y, ANALYZER_HEIGHT);
+    SP_RenderLine(squelchRssi);
   }
 
-  PrintSmallEx(0, ANALYZER_Y - 3 + 6, POS_L, C_FILL, "%u.%02uk",
+  PrintSmallEx(0, SPECTRUM_Y - 3 + 6, POS_L, C_FILL, "%u.%02uk",
                StepFrequencyTable[opt.band.step] / 100,
                StepFrequencyTable[opt.band.step] % 100);
   PrintSmallEx(LCD_XCENTER, 4, POS_C, C_FILL, "%04d/%04d",

@@ -28,6 +28,7 @@ extern char gVFONames[2][10];
 extern bool gIsListening;
 extern bool gMonitorMode;
 extern TXState gTxState;
+extern bool gShowAllRSSI;
 
 extern const uint16_t StepFrequencyTable[15];
 extern const char *modulationTypeOptions[8];
