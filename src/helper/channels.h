@@ -17,7 +17,7 @@ bool CHANNELS_Existing(int32_t i);
 uint8_t CHANNELS_Scanlists(int32_t i);
 void CHANNELS_LoadScanlist(uint8_t n);
 
-extern int32_t gScanlistSize;
+extern int16_t gScanlistSize;
 extern uint16_t gScanlist[SCANLIST_MAX];
 
 #endif /* end of include guard: CHANNELS_H */

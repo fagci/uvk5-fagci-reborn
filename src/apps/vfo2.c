@@ -96,8 +96,7 @@ static void render2VFOPart(uint8_t i) {
       PrintSmallEx(0, bl + 6, POS_L, C_FILL, "CT %u.%u",
                    CTCSS_Options[loot->ct] / 10, CTCSS_Options[loot->ct] % 10);
     } else if (loot->cd != 0xFF) {
-      PrintSmallEx(0, bl + 6, POS_L, C_FILL, "D%03oN(fake)",
-                   DCS_Options[loot->cd]);
+      PrintSmallEx(0, bl + 6, POS_L, C_FILL, "D%03oN", DCS_Options[loot->cd]);
     }
   }
   PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %c SQ%u %c %s %s",

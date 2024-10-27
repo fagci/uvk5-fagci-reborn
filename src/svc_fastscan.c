@@ -1,6 +1,7 @@
 #include "svc_fastscan.h"
 #include "driver/bk4819.h"
 #include "driver/st7565.h"
+#include "driver/uart.h"
 #include "helper/lootlist.h"
 #include "radio.h"
 #include "scheduler.h"
@@ -32,7 +33,7 @@ void SVC_FC_Init(void) {
 }
 
 static void gotF(uint32_t f) {
-  uint32_t step = 25;
+  uint32_t step = 100;
   uint32_t sd = f % step;
   if (sd > step / 2) {
     f += step - sd;
@@ -93,6 +94,8 @@ void SVC_FC_Update(void) {
   if (loot && (loot->blacklist || loot->goodKnown)) {
     return;
   }
+
+  Log("%u0", f);
 
   if (delta(f, scanF) < 100) {
     gotF(f);

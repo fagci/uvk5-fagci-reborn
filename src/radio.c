@@ -42,7 +42,7 @@ static uint32_t lastMsmUpdate = 0;
 static bool toneFound = false;
 
 const uint16_t StepFrequencyTable[15] = {
-    2,   5,   25,  100,
+    2,   5,   50,  100,
 
     250, 500, 625, 833, 900, 1000, 1250, 2500, 5000, 10000, 50000,
 };
@@ -52,7 +52,7 @@ const char *modulationTypeOptions[8] = {"FM",  "AM",  "LSB", "USB",
 const char *powerNames[4] = {"ULOW, LOW", "MID", "HIGH"};
 const char *bwNames[5] = {"25k", "12.5k", "6.25k", "25k+"};
 const char *bwNamesSiAMFM[5] = {"6k", "4k", "3k", "1k"};
-const char *bwNamesSiSSB[5] = {"4k", "3k", "2.2k", "0.5k"};
+const char *bwNamesSiSSB[5] = {"4k", "3k", "1.2k", "0.5k"};
 const char *radioNames[4] = {"BK4819", "BK1080", "SI4732", "Preset"};
 const char *shortRadioNames[4] = {"BK", "BC", "SI", "PR"};
 const char *TX_STATE_NAMES[7] = {"TX Off",   "TX On",  "CHARGING", "BAT LOW",
@@ -70,7 +70,7 @@ const char *deviationNames[] = {"", "+", "-"};
 static const SI47XX_SsbFilterBW SI_BW_MAP_SSB[] = {
     [BK4819_FILTER_BW_WIDE] = SI47XX_SSB_BW_4_kHz,
     [BK4819_FILTER_BW_NARROW] = SI47XX_SSB_BW_3_kHz,
-    [BK4819_FILTER_BW_NARROWER] = SI47XX_SSB_BW_2_2_kHz,
+    [BK4819_FILTER_BW_NARROWER] = SI47XX_SSB_BW_1_2_kHz,
     [BK4819_FILTER_BW_SOMETHING] = SI47XX_SSB_BW_0_5_kHz,
 };
 static const SI47XX_FilterBW SI_BW_MAP_AMFM[] = {
@@ -593,7 +593,11 @@ void RADIO_SelectPresetSave(int8_t num) {
   radio->modulation = MOD_PRST;
   PRESET_Select(num);
   // PRESETS_SaveCurrent();
-  RADIO_TuneToSave(gCurrentPreset->lastUsedFreq);
+  if (PRESET_InRange(gCurrentPreset->lastUsedFreq, gCurrentPreset)) {
+    RADIO_TuneToSave(gCurrentPreset->lastUsedFreq);
+  } else {
+    RADIO_TuneToSave(gCurrentPreset->band.bounds.start);
+  }
 }
 
 void RADIO_LoadCurrentVFO(void) {

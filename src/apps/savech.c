@@ -19,6 +19,7 @@ static CH ch;
 static int16_t from = -1;
 
 static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
+  uint16_t chNum = gScanlist[index];
   CH _ch;
   CHANNELS_Load(index, &_ch);
   const uint8_t y = MENU_Y + i * MENU_ITEM_H;
@@ -36,27 +37,6 @@ static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
     scanlistsStr[i] = _ch.memoryBanks & (1 << i) ? '1' + i : '-';
   }
   PrintSmallEx(LCD_WIDTH - 5, y + 8, POS_R, C_INVERT, "%s", scanlistsStr);
-}
-
-static void getScanlistItem(uint16_t i, uint16_t index, bool isCurrent) {
-  uint16_t chNum = gScanlist[index];
-  CH _ch;
-  const uint8_t y = MENU_Y + i * MENU_ITEM_H;
-  CHANNELS_Load(chNum, &_ch);
-  if (isCurrent) {
-    FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
-  }
-  if (IsReadable(_ch.name)) {
-    PrintMediumEx(8, y + 8, POS_L, C_INVERT, "%s", _ch.name);
-  } else {
-    PrintMediumEx(8, y + 8, POS_L, C_INVERT, "CH-%u", index + 1);
-    return;
-  }
-  char scanlistsStr[9] = "";
-  for (uint8_t i = 0; i < 8; ++i) {
-    scanlistsStr[i] = _ch.memoryBanks & (1 << i) ? '1' + i : '-';
-  }
-  PrintSmallEx(LCD_WIDTH - 1 - 3, y + 8, POS_R, C_INVERT, "%s", scanlistsStr);
 }
 
 static void saveNamed(void) {
@@ -140,7 +120,6 @@ bool SAVECH_SelectScanlist(KEY_Code_t key) {
 }
 
 bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  chNum = gScanlist[currentChannelIndex];
   if (!bKeyPressed && !bKeyHeld) {
     if (!gIsNumNavInput && key == KEY_STAR) {
       NUMNAV_Init(currentChannelIndex + 1, 1, chCount);
@@ -152,6 +131,7 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     }
   }
+  chNum = gScanlist[currentChannelIndex];
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (key) {
     case KEY_UP:
@@ -205,13 +185,13 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         from = -1;
         return true;
       }
-      CHANNELS_Delete(currentChannelIndex);
+      CHANNELS_Delete(chNum);
       return true;
     case KEY_9:
       from = currentChannelIndex;
       return true;
     case KEY_PTT:
-      CHANNELS_Load(currentChannelIndex, &_ch);
+      CHANNELS_Load(chNum, &_ch);
       RADIO_TuneToSave(_ch.rx.f);
       APPS_run(APP_VFOPRO);
       from = -1;
@@ -237,15 +217,8 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
 void SAVECH_render(void) {
   UI_ClearScreen();
-  if (gSettings.currentScanlist == 15) {
-    STATUSLINE_SetText(apps[APP_SAVECH].name);
-    UI_ShowMenuEx(getChItem, chCount, currentChannelIndex,
-                  MENU_LINES_TO_SHOW + 1);
-  } else {
-    STATUSLINE_SetText("Current scanlist: %u", gSettings.currentScanlist + 1);
-    UI_ShowMenuEx(getScanlistItem, chCount, currentChannelIndex,
-                  MENU_LINES_TO_SHOW + 1);
-  }
+  UI_ShowMenuEx(getChItem, chCount, currentChannelIndex,
+                MENU_LINES_TO_SHOW + 1);
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
   } else if (from != -1) {

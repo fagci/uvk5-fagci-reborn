@@ -195,7 +195,12 @@ static void saveAllToFreeChannels(void) {
 }
 
 bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  Loot *item = LOOT_Item(menuIndex);
+  Loot *item;
+  if (SVC_Running(SVC_FC)) {
+    item = gLastActiveLoot;
+  } else {
+    item = LOOT_Item(menuIndex);
+  }
   const uint8_t MENU_SIZE = LOOT_Size();
 
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {

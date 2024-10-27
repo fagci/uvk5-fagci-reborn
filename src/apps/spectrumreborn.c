@@ -31,7 +31,7 @@ static uint32_t currentStepSize;
 static bool newScan = true;
 
 static uint16_t rssiO = U16_MAX;
-static uint16_t noiseO = 0;
+static uint8_t noiseO = 0;
 
 static uint8_t msmDelay = 5;
 static Loot msm = {0};
@@ -44,7 +44,7 @@ static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
 
 static void updateStats() {
   const uint16_t noiseFloor = SP_GetNoiseFloor();
-  const uint16_t noiseMax = SP_GetNoiseMax();
+  const uint8_t noiseMax = SP_GetNoiseMax();
   rssiO = noiseFloor;
   noiseO = noiseMax - noiseOpenDiff;
 }

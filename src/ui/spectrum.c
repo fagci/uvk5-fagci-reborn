@@ -8,7 +8,7 @@ static const uint8_t U8_MAX = 255;
 static const uint16_t U16_MAX = 65535;
 
 static uint16_t rssiHistory[MAX_POINTS] = {0};
-static uint16_t noiseHistory[MAX_POINTS] = {0};
+static uint8_t noiseHistory[MAX_POINTS] = {0};
 // static bool markers[MAX_POINTS] = {0};
 static uint8_t x;
 static uint8_t historySize;
@@ -25,6 +25,16 @@ static uint16_t minRssi(uint16_t *array, uint8_t n) {
     }
   }
   return min;
+}
+
+static uint8_t maxNoise(uint8_t *array, uint8_t n) {
+  uint16_t max = 0;
+  for (uint8_t i = 0; i < n; ++i) {
+    if (array[i] > max) {
+      max = array[i];
+    }
+  }
+  return max;
 }
 
 void SP_ResetHistory(void) {
@@ -146,7 +156,7 @@ void SP_RenderLine(uint16_t rssi, uint8_t sx, uint8_t sy, uint8_t sh) {
 }
 
 uint16_t SP_GetNoiseFloor() { return Std(rssiHistory, filledPoints); }
-uint16_t SP_GetNoiseMax() { return Max(noiseHistory, filledPoints); }
+uint8_t SP_GetNoiseMax() { return maxNoise(noiseHistory, filledPoints); }
 uint16_t SP_GetRssiMax() { return Max(rssiHistory, filledPoints); }
 
 void SP_RenderGraph(uint8_t sx, uint8_t sy, uint8_t sh) {

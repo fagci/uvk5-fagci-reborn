@@ -22,6 +22,7 @@ static void onKey(KEY_Code_t key, bool pressed, bool hold) {
   }
   if (hold && pressed && !gRepeatHeld && key == KEY_F) {
     gSettings.keylock = !gSettings.keylock;
+    SETTINGS_Save();
     gRedrawScreen = true;
     return;
   }

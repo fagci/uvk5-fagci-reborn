@@ -17,7 +17,7 @@ void SP_RenderRssi(uint16_t rssi, char *text, bool top, uint8_t sx, uint8_t sy,
 void SP_RenderLine(uint16_t rssi, uint8_t sx, uint8_t sy, uint8_t sh);
 void SP_RenderArrow(Preset *p, uint32_t f, uint8_t sx, uint8_t sy, uint8_t sh);
 uint16_t SP_GetNoiseFloor();
-uint16_t SP_GetNoiseMax();
+uint8_t SP_GetNoiseMax();
 uint16_t SP_GetRssiMax();
 
 void SP_RenderGraph(uint8_t sx, uint8_t sy, uint8_t sh);

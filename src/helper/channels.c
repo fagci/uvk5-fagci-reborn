@@ -4,7 +4,7 @@
 #include "../helper/presetlist.h"
 #include <stddef.h>
 
-int32_t gScanlistSize = 0;
+int16_t gScanlistSize = 0;
 uint16_t gScanlist[SCANLIST_MAX] = {0};
 
 static const uint8_t CH_NAME_OFFSET = offsetof(CH, name);

@@ -17,7 +17,6 @@ static uint16_t channelsWrote = 0;
 static uint8_t presetsWrote = 0;
 static uint8_t vfosWrote = 0;
 static bool settingsWrote = 0;
-static uint8_t buf[8];
 
 static EEPROMType eepromType;
 
@@ -44,7 +43,6 @@ static void startReset(EEPROMType t) {
   bytesWrote = 0;
   channelsWrote = 0;
   settingsWrote = false;
-  memset(buf, 0xFF, sizeof(buf));
   channelsMax = CHANNELS_GetCountMax();
   bytesMax = ARRAY_SIZE(defaultPresets) * PRESET_SIZE + channelsMax * CH_SIZE;
 }

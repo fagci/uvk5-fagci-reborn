@@ -819,7 +819,7 @@ MODULATION_LIST_MAP = ["FM", "AM", "LSB", "USB",
 STEP_NAMES = [
     "0.02kHz",
     "0.05kHz",
-    "0.25kHz",
+    "0.5kHz",
     "1.0kHz",
     "2.5kHz",
     "5.0kHz",

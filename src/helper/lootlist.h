@@ -15,8 +15,8 @@ typedef struct {
   uint16_t duration;
   uint16_t rssi;
   uint8_t noise;
-  uint16_t cd; // 8 bit actually, but ROM mem usage gains
-  uint16_t ct; // same
+  uint8_t cd;
+  uint8_t ct;
   bool open;
   bool blacklist;
   bool goodKnown;
