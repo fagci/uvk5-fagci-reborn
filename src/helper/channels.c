@@ -51,7 +51,9 @@ void CHANNELS_Save(int32_t num, CH *p) {
 void CHANNELS_Delete(int32_t num) {
   char name[1] = {0};
   uint32_t addr = GetChannelOffset(num) + CH_NAME_OFFSET;
+  uint32_t addrBanks = GetChannelOffset(num) + CH_BANKS_OFFSET;
   EEPROM_WriteBuffer(addr, name, 1);
+  EEPROM_WriteBuffer(addrBanks, (uint8_t[]){1 << 6}, 1);
 }
 
 bool CHANNELS_Existing(int32_t num) {

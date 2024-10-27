@@ -19,9 +19,11 @@ static CH ch;
 static int16_t from = -1;
 
 static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
-  uint16_t chNum = gScanlist[index];
+  if (gSettings.currentScanlist != 15) {
+    index = gScanlist[index];
+  }
   CH _ch;
-  CHANNELS_Load(chNum, &_ch);
+  CHANNELS_Load(index, &_ch);
   const uint8_t y = MENU_Y + i * MENU_ITEM_H;
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
@@ -30,11 +32,11 @@ static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
     PrintMediumEx(8, y + 8, POS_L, C_INVERT, "%s", _ch.name);
   } else {
     PrintMediumEx(8, y + 8, POS_L, C_INVERT, "CH-%u", index + 1);
-    return;
   }
   char scanlistsStr[9] = "";
   for (uint8_t i = 0; i < 8; ++i) {
-    scanlistsStr[i] = _ch.memoryBanks & (1 << i) ? '1' + i : '-';
+    scanlistsStr[i] =
+        _ch.memoryBanks & (1 << i) ? (i == 8 ? 'X' : '1' + i) : '-';
   }
   PrintSmallEx(LCD_WIDTH - 5, y + 8, POS_R, C_INVERT, "%s", scanlistsStr);
 }
@@ -217,8 +219,10 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
 void SAVECH_render(void) {
   UI_ClearScreen();
-  UI_ShowMenuEx(getChItem, gScanlistSize, currentChannelIndex,
-                MENU_LINES_TO_SHOW + 1);
+  UI_ShowMenuEx(getChItem,
+                gSettings.currentScanlist == 15 ? CHANNELS_GetCountMax()
+                                                : gScanlistSize,
+                currentChannelIndex, MENU_LINES_TO_SHOW + 1);
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
   } else if (from != -1) {

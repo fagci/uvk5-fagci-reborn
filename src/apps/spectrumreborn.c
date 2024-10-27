@@ -3,6 +3,7 @@
 #include "../driver/bk4819.h"
 #include "../driver/st7565.h"
 #include "../driver/system.h"
+#include "../helper/channels.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
 #include "../helper/presetlist.h"
@@ -118,6 +119,20 @@ static void startNewScan() {
 }
 
 void SPECTRUM_init(void) {
+  // --- LOAD BLACKLIST ---
+  uint8_t oldScanlist = gSettings.currentScanlist;
+  CHANNELS_LoadScanlist(8);
+  for (uint16_t i = 0; i < gScanlistSize; ++i) {
+    CH ch;
+    CHANNELS_Load(gScanlist[i], &ch);
+    Loot *loot = LOOT_AddEx(ch.rx.f, false);
+    loot->open = false;
+    loot->blacklist = true;
+    loot->lastTimeOpen = 0;
+  }
+  CHANNELS_LoadScanlist(oldScanlist);
+  // --- LOAD BLACKLIST END ---
+
   SVC_Toggle(SVC_LISTEN, false, 0);
   RADIO_LoadCurrentVFO();
   init();

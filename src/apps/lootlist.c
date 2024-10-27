@@ -181,7 +181,7 @@ static void saveAllToFreeChannels(void) {
         ch.tx.codeType = CODE_TYPE_DIGITAL;
         ch.tx.code = loot->cd;
       }
-      ch.memoryBanks = 1 << 7;
+      ch.memoryBanks = 1 << gSettings.currentScanlist;
       snprintf(ch.name, 9, "%lu.%05lu", ch.rx.f / 100000, ch.rx.f % 100000);
 
       Preset *p = PRESET_ByFrequency(loot->f);
