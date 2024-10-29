@@ -61,33 +61,33 @@ static const uint16_t BAT_CAL_MIN = 1900;
 // static const uint16_t BAT_CAL_MAX = 2155;
 
 static const MenuItem menu[] = {
-    {"Upconv", M_UPCONVERTER, 0},
     {"Main app", M_MAIN_APP, ARRAY_SIZE(appsAvailableToRun)},
-    {"SQL open time", M_SQL_OPEN_T, 7},
-    {"SQL close time", M_SQL_CLOSE_T, 3},
-    {"SCAN single freq time", M_SCAN_DELAY, 255},
+    {"SQL open t", M_SQL_OPEN_T, 7},
+    {"SQL close t", M_SQL_CLOSE_T, 3},
+    {"SCAN measure t", M_SCAN_DELAY, 255},
     {"SCAN multiband", M_SCAN_X_BAND, 2},
-    {"SCAN listen time", M_SQL_TO_OPEN, ARRAY_SIZE(SCAN_TIMEOUT_NAMES)},
-    {"SCAN after close time", M_SQL_TO_CLOSE, ARRAY_SIZE(SCAN_TIMEOUT_NAMES)},
-    {"Dual watch", M_DW, 3},
-    {"Brightness", M_BRIGHTNESS, 16},
-    {"Contrast", M_CONTRAST, 16},
+    {"SCAN listen t/o", M_SQL_TO_OPEN, ARRAY_SIZE(SCAN_TIMEOUT_NAMES)},
+    {"SCAN stay t", M_SQL_TO_CLOSE, ARRAY_SIZE(SCAN_TIMEOUT_NAMES)},
+    {"SCAN skip X_X", M_SKIP_GARBAGE_FREQS, 2},
+    {"DW", M_DW, 3},
+    {"Backlight", M_BRIGHTNESS, 16},
     {"BL time", M_BL_TIME, ARRAY_SIZE(BL_TIME_VALUES)},
     {"BL SQL mode", M_BL_SQL, ARRAY_SIZE(BL_SQL_MODE_NAMES)},
-    {"Filter bound", M_FLT_BOUND, 2},
+    {"Contrast", M_CONTRAST, 16},
     {"Scrambler", M_SCRAMBLER, 16},
-    {"Beep", M_BEEP, 2},
-    {"BAT calibration", M_BAT_CAL, 255},
+    {"DTMF decode", M_PTT_LOCK, 2},
+    {"Upconv", M_UPCONVERTER, 0},
+    {"SI power off", M_SI4732_POWER_OFF, 2},
+    {"Filter bound", M_FLT_BOUND, 2},
+    {"BAT cal", M_BAT_CAL, 255},
     {"BAT type", M_BAT_TYPE, ARRAY_SIZE(BATTERY_TYPE_NAMES)},
     {"BAT style", M_BAT_STYLE, ARRAY_SIZE(BATTERY_STYLE_NAMES)},
-    {"Skip garbage freqs", M_SKIP_GARBAGE_FREQS, 2},
-    {"SI4732 power off", M_SI4732_POWER_OFF, 2},
+    {"CH Display", M_CH_DISP_MODE, ARRAY_SIZE(CH_DISPLAY_MODE_NAMES)},
+    {"Beep", M_BEEP, 2},
+    {"STE", M_STE, 2},
     {"Roger", M_ROGER, 4},
     {"Tone local", M_TONE_LOCAL, 2},
-    {"STE", M_STE, 2},
     {"Lock PTT", M_PTT_LOCK, 2},
-    {"DTMF decode", M_PTT_LOCK, 2},
-    {"CH Display", M_CH_DISP_MODE, ARRAY_SIZE(CH_DISPLAY_MODE_NAMES)},
     {"EEPROM reset", M_RESET, 2},
 };
 
@@ -487,6 +487,15 @@ static void setUpconverterFreq(uint32_t f) {
   SETTINGS_Save();
 }
 
+static void upDown(uint8_t inc) {
+  if (isSubMenu) {
+    IncDec8(&subMenuIndex, 0, menu[menuIndex].size, inc);
+    onSubChange();
+  } else {
+    IncDec8(&menuIndex, 0, MENU_SIZE, inc);
+  }
+}
+
 bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld) {
     if (!gIsNumNavInput && key <= KEY_9) {
@@ -499,23 +508,12 @@ bool SETTINGS_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     }
   }
   const MenuItem *item = &menu[menuIndex];
-  const uint8_t SUBMENU_SIZE = item->size;
   switch (key) {
   case KEY_UP:
-    if (isSubMenu) {
-      IncDec8(&subMenuIndex, 0, SUBMENU_SIZE, -1);
-      onSubChange();
-    } else {
-      IncDec8(&menuIndex, 0, MENU_SIZE, -1);
-    }
+    upDown(-1);
     return true;
   case KEY_DOWN:
-    if (isSubMenu) {
-      IncDec8(&subMenuIndex, 0, SUBMENU_SIZE, 1);
-      onSubChange();
-    } else {
-      IncDec8(&menuIndex, 0, MENU_SIZE, 1);
-    }
+    upDown(1);
     return true;
   default:
     break;

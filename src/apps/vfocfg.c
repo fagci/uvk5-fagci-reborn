@@ -218,6 +218,15 @@ static void setMenuIndexAndRun(uint16_t v) {
   accept();
 }
 
+static void upDown(uint8_t inc) {
+  if (isSubMenu) {
+    IncDec8(&subMenuIndex, 0, menu[menuIndex].size, inc);
+    OnRadioSubmenuChange(&menu[menuIndex], subMenuIndex);
+  } else {
+    IncDec8(&menuIndex, 0, MENU_SIZE, inc);
+  }
+}
+
 bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld) {
     if (!gIsNumNavInput && key <= KEY_9) {
@@ -238,20 +247,10 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   uint8_t SUBMENU_SIZE = item->size;
   switch (key) {
   case KEY_UP:
-    if (isSubMenu) {
-      IncDec8(&subMenuIndex, 0, SUBMENU_SIZE, -1);
-      OnRadioSubmenuChange(item, subMenuIndex);
-    } else {
-      IncDec8(&menuIndex, 0, MENU_SIZE, -1);
-    }
+    upDown(-1);
     return true;
   case KEY_DOWN:
-    if (isSubMenu) {
-      IncDec8(&subMenuIndex, 0, SUBMENU_SIZE, 1);
-      OnRadioSubmenuChange(item, subMenuIndex);
-    } else {
-      IncDec8(&menuIndex, 0, MENU_SIZE, 1);
-    }
+    upDown(1);
     return true;
   case KEY_MENU:
     return accept();

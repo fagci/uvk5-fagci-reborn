@@ -705,7 +705,7 @@ uint16_t RADIO_GetRSSI(void) {
   case RADIO_SI4732:
     if (gShowAllRSSI) {
       RSQ_GET();
-      return (160 + (rsqStatus.resp.RSSI - 107));
+      return ConvertDomain(rsqStatus.resp.RSSI, 0, 64, 30, 346);
     }
     return 0;
   default:
@@ -1003,7 +1003,7 @@ static ModulationType getNextModulation() {
   int8_t curIndex =
       indexOf(items, ARRAY_SIZE(MODS_BK4819), RADIO_GetModulation());
   if (curIndex >= 0) {
-    IncDec8(&curIndex, 0, sz, 1);
+    IncDecI8(&curIndex, 0, sz, 1);
     if (items[curIndex] == gCurrentPreset->band.modulation) {
       return MOD_PRST;
     }

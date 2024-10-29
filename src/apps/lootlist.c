@@ -160,35 +160,75 @@ void LOOTLIST_init(void) {
   }
 }
 
+static void saveLootToCh(const Loot *loot, int16_t chnum, uint8_t scanlist) {
+  CH ch;
+  ch.rx.f = loot->f;
+  if (loot->ct != 255) {
+    ch.tx.codeType = CODE_TYPE_CONTINUOUS_TONE;
+    ch.tx.code = loot->ct;
+  } else if (loot->cd != 255) {
+    ch.tx.codeType = CODE_TYPE_DIGITAL;
+    ch.tx.code = loot->cd;
+  }
+  ch.memoryBanks = 1 << scanlist;
+  snprintf(ch.name, 9, "%lu.%05lu", ch.rx.f / 100000, ch.rx.f % 100000);
+
+  Preset *p = PRESET_ByFrequency(loot->f);
+  ch.radio = p->radio;
+  ch.modulation = p->band.modulation;
+
+  CHANNELS_Save(chnum, &ch);
+}
+
 static void saveAllToFreeChannels(void) {
   uint16_t chnum = CHANNELS_GetCountMax() - 1;
-  for (uint8_t i = 0; i < LOOT_Size(); ++i) {
-    Loot *loot = LOOT_Item(i);
-    if (loot->goodKnown) {
-      while (CHANNELS_Existing(chnum)) {
-        chnum--;
-        if (chnum == 0) {
-          return;
+  for (uint16_t i = 0; i < LOOT_Size(); ++i) {
+    const Loot *loot = LOOT_Item(i);
+    if (!loot->goodKnown) {
+      continue;
+    }
+
+    while (chnum) {
+      if (CHANNELS_Existing(chnum)) {
+        CH ch;
+        CHANNELS_Load(chnum, &ch);
+        if (ch.rx.f == loot->f) {
+          chnum--;
+          break;
         }
+      } else {
+        // save new
+        saveLootToCh(loot, chnum, gSettings.currentScanlist);
+        chnum--;
+        break;
       }
-      CH ch = {0};
-      ch.rx.f = loot->f;
-      ch.tx.f = 0;
-      if (loot->ct != 255) {
-        ch.tx.codeType = CODE_TYPE_CONTINUOUS_TONE;
-        ch.tx.code = loot->ct;
-      } else if (loot->cd != 255) {
-        ch.tx.codeType = CODE_TYPE_DIGITAL;
-        ch.tx.code = loot->cd;
+      chnum--;
+    }
+  }
+}
+
+static void saveBlacklistToSL8() {
+  uint16_t chnum = CHANNELS_GetCountMax() - 1;
+  for (uint16_t i = 0; i < LOOT_Size(); ++i) {
+    const Loot *loot = LOOT_Item(i);
+    if (!loot->blacklist) {
+      continue;
+    }
+
+    while (chnum) {
+      if (CHANNELS_Existing(chnum)) {
+        CH ch;
+        CHANNELS_Load(chnum, &ch);
+        if (ch.rx.f == loot->f) {
+          chnum--;
+          break;
+        }
+      } else {
+        // save new
+        saveLootToCh(loot, chnum, 7);
+        chnum--;
+        break;
       }
-      ch.memoryBanks = 1 << gSettings.currentScanlist;
-      snprintf(ch.name, 9, "%lu.%05lu", ch.rx.f / 100000, ch.rx.f % 100000);
-
-      Preset *p = PRESET_ByFrequency(loot->f);
-      ch.radio = p->radio;
-      ch.modulation = p->band.modulation;
-
-      CHANNELS_Save(chnum, &ch);
       chnum--;
     }
   }
@@ -210,6 +250,9 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_SIDE1:
       gMonitorMode = !gMonitorMode;
+      return true;
+    case KEY_8:
+      saveBlacklistToSL8();
       return true;
     case KEY_5:
       saveAllToFreeChannels();

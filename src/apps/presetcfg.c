@@ -26,6 +26,8 @@ static MenuItem menu[] = {
     {"Enable TX", M_TX, 2},
 };
 
+static const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
+
 static void setInitialSubmenuIndex(void) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
@@ -119,30 +121,28 @@ void PRESETCFG_init(void) {}
 
 void PRESETCFG_update(void) {}
 
+static void upDown(uint8_t inc) {
+  if (isSubMenu) {
+    IncDec8(&subMenuIndex, 0, menu[menuIndex].size, inc);
+    OnRadioSubmenuChange(&menu[menuIndex], subMenuIndex);
+  } else {
+    IncDec8(&menuIndex, 0, MENU_SIZE, inc);
+  }
+}
+
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   const MenuItem *item = &menu[menuIndex];
-  const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
   const uint8_t SUBMENU_SIZE = item->size;
   if ((key == KEY_UP || key == KEY_DOWN) && isSubMenu && item->type == M_GAIN) {
     RADIO_SetGain(subMenuIndex);
   }
   switch (key) {
   case KEY_UP:
-    if (isSubMenu) {
-      IncDec8(&subMenuIndex, 0, SUBMENU_SIZE, -1);
-      OnRadioSubmenuChange(item, subMenuIndex);
-    } else {
-      IncDec8(&menuIndex, 0, MENU_SIZE, -1);
-    }
+    upDown(-1);
     return true;
   case KEY_DOWN:
-    if (isSubMenu) {
-      IncDec8(&subMenuIndex, 0, SUBMENU_SIZE, 1);
-      OnRadioSubmenuChange(item, subMenuIndex);
-    } else {
-      IncDec8(&menuIndex, 0, MENU_SIZE, 1);
-    }
+    upDown(1);
     return true;
   case KEY_MENU:
     // RUN APPS HERE
