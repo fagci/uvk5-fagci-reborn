@@ -49,7 +49,7 @@ void LOOTLIST_update() {
   }
 }
 
-static void tuneToLoot(Loot *item, bool save) {
+static void tuneToLoot(const Loot *item, bool save) {
   radio->rx.f = item->f;
   radio->tx.codeType = CODE_TYPE_OFF;
   if (item->cd != 0xFF) {

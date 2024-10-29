@@ -155,7 +155,7 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   const uint32_t step = StepFrequencyTable[opt.band.step];
 
   // repeat or keyup
-  if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
+  if (bKeyPressed || !bKeyHeld) {
     switch (Key) {
     case KEY_1:
       IncDec8(&scanInterval, 1, 255, 1);

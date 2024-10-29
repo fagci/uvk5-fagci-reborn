@@ -126,7 +126,7 @@ static void m_putchar(int16_t x, int16_t y, unsigned char c, Color color,
                       uint8_t size_x, uint8_t size_y,
                       const GFXfont *gfxFont) {
   c -= gfxFont->first;
-  GFXglyph *glyph = &gfxFont->glyph[c];
+  const GFXglyph *glyph = &gfxFont->glyph[c];
   const uint8_t *bitmap = gfxFont->bitmap;
 
   uint16_t bo = glyph->bitmapOffset;
@@ -168,7 +168,7 @@ void charBounds(unsigned char c, int16_t *x, int16_t *y, int16_t *minx,
   } else if (c != '\r') { // Not a carriage return; is normal char
     uint8_t first = gfxFont->first, last = gfxFont->last;
     if ((c >= first) && (c <= last)) { // Char present in this font?
-      GFXglyph *glyph = &gfxFont->glyph[c - first];
+      const GFXglyph *glyph = &gfxFont->glyph[c - first];
       uint8_t gw = glyph->width, gh = glyph->height, xa = glyph->xAdvance;
       int8_t xo = glyph->xOffset, yo = glyph->yOffset;
       if (wrap && ((*x + (((int16_t)xo + gw) * textsize_x)) > LCD_WIDTH)) {

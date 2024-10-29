@@ -172,7 +172,7 @@ void FINPUT_render(void) {
   }
 
   // decimal point
-  if (freqInputDotIndex || (!freqInputDotIndex && dotBlink)) {
+  if (freqInputDotIndex || dotBlink) {
     PrintBigDigits(BASE_X + i * charWidth, BASE_Y, "%c", '.');
     i++;
   }

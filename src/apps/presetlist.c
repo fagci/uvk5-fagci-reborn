@@ -18,13 +18,13 @@ static void getPresetItem(uint16_t i, uint16_t index, bool isCurrent) {
   }
   PrintMediumEx(8, y + 8, POS_L, C_INVERT, "%s", p->band.name);
   char scanlistsStr[9] = "";
-  for (uint8_t i = 0; i < 8; ++i) {
-    scanlistsStr[i] = p->memoryBanks & (1 << i) ? '1' + i : '-';
+  for (uint8_t n = 0; n < 8; ++n) {
+    scanlistsStr[n] = p->memoryBanks & (1 << n) ? '1' + n : '-';
   }
   PrintSmallEx(LCD_WIDTH - 5, y + 8, POS_R, C_INVERT, "%s", scanlistsStr);
 }
 
-static void toggleScanlist(uint16_t idx, uint8_t n) {
+static void toggleScanlist(uint8_t n) {
   Preset *p = PRESETS_Item(menuIndex);
   p->memoryBanks ^= 1 << n;
   PRESETS_SavePreset(menuIndex, p);
@@ -84,7 +84,7 @@ bool PRESETLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_6:
     case KEY_7:
     case KEY_8:
-      toggleScanlist(menuIndex, key - KEY_1);
+      toggleScanlist(key - KEY_1);
       return true;
     default:
       break;

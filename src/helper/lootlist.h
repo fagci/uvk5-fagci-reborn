@@ -39,10 +39,10 @@ void LOOT_ReplaceItem(uint16_t i, uint32_t f);
 
 void LOOT_Sort(bool (*compare)(Loot *a, Loot *b), bool reverse);
 
-bool LOOT_SortByLastOpenTime(Loot *a, Loot *b);
-bool LOOT_SortByDuration(Loot *a, Loot *b);
-bool LOOT_SortByF(Loot *a, Loot *b);
-bool LOOT_SortByBlacklist(Loot *a, Loot *b);
+bool LOOT_SortByLastOpenTime(const Loot *a, const Loot *b);
+bool LOOT_SortByDuration(const Loot *a, const Loot *b);
+bool LOOT_SortByF(const Loot *a, const Loot *b);
+bool LOOT_SortByBlacklist(const Loot *a, const Loot *b);
 
 void LOOT_RemoveBlacklisted(void);
 

@@ -440,7 +440,7 @@ TXState RADIO_GetTXState(uint32_t txF) {
     return TX_DISABLED_UPCONVERTER;
   }
 
-  Preset *txPreset = PRESET_ByFrequency(txF);
+  const Preset *txPreset = PRESET_ByFrequency(txF);
 
   if (!txPreset->allowTx || RADIO_GetRadio() != RADIO_BK4819 ||
       SVC_Running(SVC_FC)) {
@@ -730,7 +730,7 @@ uint16_t RADIO_GetSNR(void) {
   }
 }
 
-bool RADIO_IsSquelchOpen(Loot *msm) {
+bool RADIO_IsSquelchOpen(const Loot *msm) {
   if (RADIO_GetRadio() == RADIO_BK4819) {
     if (isSimpleSql()) {
       return isSqOpenSimple(msm->rssi);
@@ -881,7 +881,7 @@ void RADIO_NextFreqNoClicks(bool next) {
   }
 
   Preset *nextPreset = PRESET_ByFrequency(radio->rx.f + dir);
-  Band *nextBand = &nextPreset->band;
+  const Band *nextBand = &nextPreset->band;
   uint32_t nextBandStep = StepFrequencyTable[nextBand->step];
 
   uint32_t f = radio->rx.f + nextBandStep * dir;

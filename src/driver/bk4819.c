@@ -257,7 +257,7 @@ void BK4819_SetCDCSSCodeWord(uint32_t CodeWord) {
                            (2775U << BK4819_REG_07_SHIFT_FREQUENCY));
 
   // Set the code word
-  BK4819_WriteRegister(BK4819_REG_08, 0x0000 | ((CodeWord >> 0) & 0xFFF));
+  BK4819_WriteRegister(BK4819_REG_08, (CodeWord >> 0) & 0xFFF);
   BK4819_WriteRegister(BK4819_REG_08, 0x8000 | ((CodeWord >> 12) & 0xFFF));
 }
 

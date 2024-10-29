@@ -9,7 +9,7 @@ char *gTextinputText = "";
 uint8_t gTextInputSize = 15;
 void (*gTextInputCallback)(void);
 
-static char *letters[9] = {
+static const char *letters[9] = {
     "",
     "abc",  // 2
     "def",  // 3

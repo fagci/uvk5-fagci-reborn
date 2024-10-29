@@ -25,7 +25,7 @@
 
 AppType_t gCurrentApp = APP_NONE;
 
-static AppType_t appsStack[APPS_STACK_SIZE] = {0};
+static AppType_t appsStack[APPS_STACK_SIZE] = {APP_NONE};
 static int8_t stackIndex = -1;
 
 static bool pushApp(AppType_t app) {

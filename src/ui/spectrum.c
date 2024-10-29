@@ -25,7 +25,7 @@ static uint8_t filledPoints;
 static uint16_t stepsCount;
 static uint16_t currentStep;
 
-static uint16_t minRssi(uint16_t *array, uint8_t n) {
+static uint16_t minRssi(const uint16_t *array, uint8_t n) {
   uint16_t min = UINT16_MAX;
   for (uint8_t i = 0; i < n; ++i) {
     if (array[i] && array[i] < min) {
@@ -35,7 +35,7 @@ static uint16_t minRssi(uint16_t *array, uint8_t n) {
   return min;
 }
 
-static uint8_t maxNoise(uint8_t *array, uint8_t n) {
+static uint8_t maxNoise(const uint8_t *array, uint8_t n) {
   uint16_t max = 0;
   for (uint8_t i = 0; i < n; ++i) {
     if (array[i] > max) {
@@ -69,7 +69,7 @@ void SP_Init(uint16_t steps) {
 }
 
 static uint8_t ox = UINT8_MAX;
-void SP_AddPoint(Loot *msm) {
+void SP_AddPoint(const Loot *msm) {
   uint8_t xs = MAX_POINTS * currentStep / stepsCount;
   uint8_t xe = MAX_POINTS * (currentStep + 1) / stepsCount;
   if (xe > MAX_POINTS) {
@@ -106,7 +106,7 @@ static VMinMax getV() {
   return (VMinMax){vMin, vMax};
 }
 
-void SP_Render(Preset *p) {
+void SP_Render(const Preset *p) {
   const VMinMax v = getV();
 
   if (p) {
@@ -122,7 +122,7 @@ void SP_Render(Preset *p) {
   }
 }
 
-void SP_RenderArrow(Preset *p, uint32_t f) {
+void SP_RenderArrow(const Preset *p, uint32_t f) {
   uint8_t cx = ConvertDomain(f, p->band.bounds.start, p->band.bounds.end, 0,
                              MAX_POINTS - 1);
   DrawVLine(cx, SPECTRUM_Y, 4, C_FILL);
@@ -149,22 +149,21 @@ uint16_t SP_GetNoiseFloor() { return Std(rssiHistory, filledPoints); }
 uint8_t SP_GetNoiseMax() { return maxNoise(noiseHistory, filledPoints); }
 uint16_t SP_GetRssiMax() { return Max(rssiHistory, filledPoints); }
 
-void SP_RenderGraph(uint8_t sx, uint8_t sy, uint8_t sh) {
-  const uint8_t S_BOTTOM = sy + sh;
+void SP_RenderGraph() {
   const VMinMax v = getV();
 
   uint8_t oVal =
-      ConvertDomain(rssiHistory[0] * 2, v.vMin * 2, v.vMax * 2, 0, sh);
+      ConvertDomain(rssiHistory[0] * 2, v.vMin * 2, v.vMax * 2, 0, SPECTRUM_H);
 
   for (uint8_t i = 1; i < MAX_POINTS; ++i) {
     uint8_t yVal =
-        ConvertDomain(rssiHistory[i] * 2, v.vMin * 2, v.vMax * 2, 0, sh);
+        ConvertDomain(rssiHistory[i] * 2, v.vMin * 2, v.vMax * 2, 0, SPECTRUM_H);
     DrawLine(i - 1, S_BOTTOM - oVal, i, S_BOTTOM - yVal, C_FILL);
     oVal = yVal;
   }
 }
 
-void SP_AddGraphPoint(Loot *msm) {
+void SP_AddGraphPoint(const Loot *msm) {
   rssiHistory[MAX_POINTS - 1] = msm->rssi;
   noiseHistory[MAX_POINTS - 1] = msm->noise;
   filledPoints = MAX_POINTS;

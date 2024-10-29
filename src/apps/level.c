@@ -65,9 +65,9 @@ void LEVEL_render(void) {
 
   UI_FSmall(radio->rx.f);
 
-  SP_RenderGraph(0, 32, 16);
-  DrawHLine(0, 32, 2, C_FILL);
-  DrawHLine(0, 32 + 16, 2, C_FILL);
+  SP_RenderGraph();
+  DrawHLine(0, SPECTRUM_Y, 2, C_FILL);
+  DrawHLine(0, SPECTRUM_Y + SPECTRUM_H, 2, C_FILL);
   PrintSmallEx(LCD_XCENTER, LCD_HEIGHT - 2, POS_C, C_FILL, "%d",
                Rssi2DBm(msm.rssi));
 }

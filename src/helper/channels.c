@@ -53,9 +53,9 @@ void CHANNELS_Delete(int16_t num) {
       .rx = {0},
       .tx = {0},
       .name = {'\0'},
-      .bw = BK4819_FILTER_BW_WIDE,
       .memoryBanks = 0,
       .modulation = MOD_FM,
+      .bw = BK4819_FILTER_BW_WIDE,
       .power = TX_POW_LOW,
       .radio = RADIO_UNKNOWN,
   };

@@ -92,7 +92,7 @@ static void getMenuItemText(uint16_t index, char *name) {
 static void updateTxCodeListSize() {
   for (uint8_t i = 0; i < ARRAY_SIZE(menu); ++i) {
     MenuItem *item = &menu[i];
-    F *f = NULL;
+    const F *f = NULL;
     if (item->type == M_TX_CODE) {
       f = &radio->tx;
     } else if (item->type == M_RX_CODE) {
@@ -174,7 +174,7 @@ void VFOCFG_init(void) { updateTxCodeListSize(); }
 void VFOCFG_update(void) {}
 
 static bool accept(void) {
-  MenuItem *item = &menu[menuIndex];
+  const MenuItem *item = &menu[menuIndex];
   // RUN APPS HERE
   switch (item->type) {
   case M_F_RX:

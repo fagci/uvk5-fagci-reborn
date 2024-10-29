@@ -35,8 +35,6 @@ static Loot msm = {0};
 
 static uint16_t oldPresetIndex = 255;
 
-static uint8_t rssiResetMethod = 0;
-
 static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
 
 static void updateStats() {
@@ -70,7 +68,7 @@ static void updateMsm() {
   RADIO_ToggleRX(msm.open);
 }
 
-static void scanFn(bool forward) {
+static void scanFn(bool _) {
   RADIO_ToggleRX(false);
   radio->rx.f = msm.f;
   if (RADIO_NextPresetFreqXBandEx(true, false, false)) {
@@ -120,8 +118,6 @@ static void startNewScan() {
 
 void SPECTRUM_init(void) {
   // --- LOAD BLACKLIST ---
-
-  uint8_t n = gSettings.currentScanlist;
   uint8_t scanlistMask = 1 << 7;
   for (int16_t i = 0; i < CHANNELS_GetCountMax(); ++i) {
     if (!CHANNELS_Existing(i)) {

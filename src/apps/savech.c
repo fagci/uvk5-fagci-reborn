@@ -34,9 +34,9 @@ static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
     PrintMediumEx(8, y + 8, POS_L, C_INVERT, "CH-%u", index + 1);
   }
   char scanlistsStr[9] = "";
-  for (uint8_t i = 0; i < 8; ++i) {
-    scanlistsStr[i] =
-        _ch.memoryBanks & (1 << i) ? (i == 8 ? 'X' : '1' + i) : '-';
+  for (uint8_t n = 0; n < 8; ++n) {
+    scanlistsStr[n] =
+        _ch.memoryBanks & (1 << n) ? (n == 7 ? 'X' : '1' + n) : '-';
   }
   PrintSmallEx(LCD_WIDTH - 5, y + 8, POS_R, C_INVERT, "%s", scanlistsStr);
 }
@@ -82,13 +82,13 @@ static void setMenuIndexAndRun(uint16_t v) {
 }
 static void toggleScanlist(uint16_t idx, uint8_t n) {
   CH _ch;
-  uint16_t chNum = gScanlist[idx];
+  uint16_t _chNum = gScanlist[idx];
   if (gSettings.currentScanlist == 15) {
-    chNum = idx;
+    _chNum = idx;
   }
-  CHANNELS_Load(chNum, &_ch);
+  CHANNELS_Load(_chNum, &_ch);
   _ch.memoryBanks ^= 1 << n;
-  CHANNELS_Save(chNum, &_ch);
+  CHANNELS_Save(_chNum, &_ch);
 }
 
 bool SAVECH_SelectScanlist(KEY_Code_t key) {
@@ -138,7 +138,7 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   } else {
     chNum = currentChannelIndex;
   }
-  if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
+  if (bKeyPressed || !bKeyHeld) {
     switch (key) {
     case KEY_UP:
       IncDec16(&currentChannelIndex, 0, chCount, -1);

@@ -18,11 +18,11 @@ uint32_t ConvertDomainF(uint32_t aValue, uint32_t aMin, uint32_t aMax,
 uint8_t Rssi2PX(uint16_t rssi, uint8_t pxMin, uint8_t pxMax);
 uint8_t DBm2S(int dbm, bool isVHF);
 int Rssi2DBm(uint16_t rssi);
-uint16_t Mid(uint16_t *array, uint8_t n);
-uint16_t Min(uint16_t *array, uint8_t n);
-uint16_t Max(uint16_t *array, uint8_t n);
-uint16_t Mean(uint16_t *array, uint8_t n);
-uint16_t Std(uint16_t *data, uint8_t n);
+uint16_t Mid(const uint16_t *array, uint8_t n);
+uint16_t Min(const uint16_t *array, uint8_t n);
+uint16_t Max(const uint16_t *array, uint8_t n);
+uint16_t Mean(const uint16_t *array, uint8_t n);
+uint16_t Std(const uint16_t *data, uint8_t n);
 void IncDec8(uint8_t *val, uint8_t min, uint8_t max, int8_t inc);
 void IncDecI8(int8_t *val, int8_t min, int8_t max, int8_t inc);
 void IncDec16(uint16_t *val, uint16_t min, uint16_t max, int16_t inc);

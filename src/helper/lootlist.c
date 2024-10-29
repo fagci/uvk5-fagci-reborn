@@ -60,9 +60,9 @@ Loot *LOOT_AddEx(uint32_t f, bool reuse) {
       .lastTimeOpen = Now(),
       .duration = 0,
       .rssi = 0,
-      .open = true, // as we add it when open
-      .ct = 0xFF,
       .cd = 0xFF,
+      .ct = 0xFF,
+      .open = true, // as we add it when open
   };
   return &loot[lootIndex];
 }
@@ -96,15 +96,15 @@ static void swap(Loot *a, Loot *b) {
   *b = tmp;
 }
 
-bool LOOT_SortByLastOpenTime(Loot *a, Loot *b) {
+bool LOOT_SortByLastOpenTime(const Loot *a, const Loot *b) {
   return a->lastTimeOpen < b->lastTimeOpen;
 }
 
-bool LOOT_SortByDuration(Loot *a, Loot *b) { return a->duration > b->duration; }
+bool LOOT_SortByDuration(const Loot *a, const Loot *b) { return a->duration > b->duration; }
 
-bool LOOT_SortByF(Loot *a, Loot *b) { return a->f > b->f; }
+bool LOOT_SortByF(const Loot *a, const Loot *b) { return a->f > b->f; }
 
-bool LOOT_SortByBlacklist(Loot *a, Loot *b) {
+bool LOOT_SortByBlacklist(const Loot *a, const Loot *b) {
   return a->blacklist > b->blacklist;
 }
 
