@@ -131,6 +131,7 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_UP:
     if (isSubMenu) {
       IncDec8(&subMenuIndex, 0, SUBMENU_SIZE, -1);
+      OnRadioSubmenuChange(item, subMenuIndex);
     } else {
       IncDec8(&menuIndex, 0, MENU_SIZE, -1);
     }
@@ -138,6 +139,7 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_DOWN:
     if (isSubMenu) {
       IncDec8(&subMenuIndex, 0, SUBMENU_SIZE, 1);
+      OnRadioSubmenuChange(item, subMenuIndex);
     } else {
       IncDec8(&menuIndex, 0, MENU_SIZE, 1);
     }

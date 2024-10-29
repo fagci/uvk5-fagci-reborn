@@ -249,3 +249,17 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
     break;
   }
 }
+
+void OnRadioSubmenuChange(const MenuItem *item, uint8_t subMenuIndex) {
+  switch (item->type) {
+  case M_GAIN:
+    RADIO_SetGain(subMenuIndex);
+    break;
+  case M_BW:
+    gCurrentPreset->band.bw = subMenuIndex;
+    RADIO_SetupBandParams();
+    break;
+  default:
+    break;
+  }
+}

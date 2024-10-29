@@ -133,7 +133,11 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     }
   }
-  chNum = gScanlist[currentChannelIndex];
+  if (gSettings.currentScanlist != 15) {
+    chNum = gScanlist[currentChannelIndex];
+  } else {
+    chNum = currentChannelIndex;
+  }
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (key) {
     case KEY_UP:

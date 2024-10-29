@@ -120,17 +120,22 @@ static void startNewScan() {
 
 void SPECTRUM_init(void) {
   // --- LOAD BLACKLIST ---
-  uint8_t oldScanlist = gSettings.currentScanlist;
-  CHANNELS_LoadScanlist(8);
-  for (uint16_t i = 0; i < gScanlistSize; ++i) {
-    CH ch;
-    CHANNELS_Load(gScanlist[i], &ch);
-    Loot *loot = LOOT_AddEx(ch.rx.f, false);
-    loot->open = false;
-    loot->blacklist = true;
-    loot->lastTimeOpen = 0;
+
+  uint8_t n = gSettings.currentScanlist;
+  uint8_t scanlistMask = 1 << 7;
+  for (int16_t i = 0; i < CHANNELS_GetCountMax(); ++i) {
+    if (!CHANNELS_Existing(i)) {
+      continue;
+    }
+    if ((CHANNELS_Scanlists(i) & scanlistMask) == scanlistMask) {
+      CH ch;
+      CHANNELS_Load(i, &ch);
+      Loot *loot = LOOT_AddEx(ch.rx.f, false);
+      loot->open = false;
+      loot->blacklist = true;
+      loot->lastTimeOpen = 0;
+    }
   }
-  CHANNELS_LoadScanlist(oldScanlist);
   // --- LOAD BLACKLIST END ---
 
   SVC_Toggle(SVC_LISTEN, false, 0);

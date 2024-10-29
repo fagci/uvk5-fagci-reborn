@@ -234,15 +234,13 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     }
   }
-  MenuItem *item = &menu[menuIndex];
+  const MenuItem *item = &menu[menuIndex];
   uint8_t SUBMENU_SIZE = item->size;
-  if ((key == KEY_UP || key == KEY_DOWN) && isSubMenu && item->type == M_GAIN) {
-    RADIO_SetGain(subMenuIndex);
-  }
   switch (key) {
   case KEY_UP:
     if (isSubMenu) {
       IncDec8(&subMenuIndex, 0, SUBMENU_SIZE, -1);
+      OnRadioSubmenuChange(item, subMenuIndex);
     } else {
       IncDec8(&menuIndex, 0, MENU_SIZE, -1);
     }
@@ -250,6 +248,7 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_DOWN:
     if (isSubMenu) {
       IncDec8(&subMenuIndex, 0, SUBMENU_SIZE, 1);
+      OnRadioSubmenuChange(item, subMenuIndex);
     } else {
       IncDec8(&menuIndex, 0, MENU_SIZE, 1);
     }

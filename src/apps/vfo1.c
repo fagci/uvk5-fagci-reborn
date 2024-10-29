@@ -136,6 +136,7 @@ static void selectFirstPresetFromScanlist() {
     if (sl == 15 ||
         (PRESETS_Item(i)->memoryBanks & scanlistMask) == scanlistMask) {
       PRESET_Select(i);
+      RADIO_TuneTo(gCurrentPreset->band.bounds.start);
       return;
     }
   }
@@ -240,7 +241,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       RADIO_ToggleModulation();
       return true;
     case KEY_STAR:
-      if (gSettings.crossBandScan) {
+      if (gSettings.crossBandScan && radio->channel <= -1) {
         selectFirstPresetFromScanlist();
       }
       startScan();
@@ -271,12 +272,12 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_8:
     case KEY_9:
       if (SVC_Running(SVC_SCAN)) {
-        if (radio->channel == -1) {
+        if (radio->channel <= -1) {
           if (gSettings.crossBandScan) {
             scanlistByKey(key);
             selectFirstPresetFromScanlist();
           } else {
-            RADIO_SelectPresetSave(key + 5);
+            RADIO_SelectPresetSave(key + 6);
           }
         } else {
           scanlistByKey(key);

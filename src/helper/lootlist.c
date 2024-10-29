@@ -6,6 +6,7 @@
 
 static Loot loot[LOOT_SIZE_MAX] = {0};
 static int16_t lootIndex = -1;
+static uint32_t lastTimeCheck = 0;
 
 Loot *gLastActiveLoot = NULL;
 int16_t gLastActiveLootIndex = -1;
@@ -25,7 +26,7 @@ void LOOT_GoodKnownLast(void) {
 }
 
 Loot *LOOT_Get(uint32_t f) {
-  for (uint8_t i = 0; i < LOOT_Size(); ++i) {
+  for (uint16_t i = 0; i < LOOT_Size(); ++i) {
     if ((&loot[i])->f == f) {
       return &loot[i];
     }
@@ -34,7 +35,7 @@ Loot *LOOT_Get(uint32_t f) {
 }
 
 int16_t LOOT_IndexOf(Loot *item) {
-  for (uint8_t i = 0; i < LOOT_Size(); ++i) {
+  for (uint16_t i = 0; i < LOOT_Size(); ++i) {
     if (&item[i] == item) {
       return i;
     }
@@ -51,27 +52,26 @@ Loot *LOOT_AddEx(uint32_t f, bool reuse) {
   }
   if (LOOT_Size() < LOOT_SIZE_MAX) {
     lootIndex++;
-    loot[lootIndex] = (Loot){
-        .f = f,
-        .firstTime = Now(),
-        .lastTimeCheck = Now(),
-        .lastTimeOpen = Now(),
-        .duration = 0,
-        .rssi = 0,
-        .open = true, // as we add it when open
-        .ct = 0xFF,
-        .cd = 0xFF,
-    };
-    return &loot[lootIndex];
   }
-  return NULL;
+  lastTimeCheck = Now();
+  loot[lootIndex] = (Loot){
+      .f = f,
+      .firstTime = Now(),
+      .lastTimeOpen = Now(),
+      .duration = 0,
+      .rssi = 0,
+      .open = true, // as we add it when open
+      .ct = 0xFF,
+      .cd = 0xFF,
+  };
+  return &loot[lootIndex];
 }
 
 Loot *LOOT_Add(uint32_t f) { return LOOT_AddEx(f, true); }
 
-void LOOT_Remove(uint8_t i) {
+void LOOT_Remove(uint16_t i) {
   if (LOOT_Size()) {
-    for (uint8_t _i = i; _i < LOOT_Size() - 1; ++_i) {
+    for (uint16_t _i = i; _i < LOOT_Size() - 1; ++_i) {
       loot[_i] = loot[_i + 1];
     }
     lootIndex--;
@@ -80,14 +80,14 @@ void LOOT_Remove(uint8_t i) {
 
 void LOOT_Clear(void) { lootIndex = -1; }
 
-uint8_t LOOT_Size(void) { return lootIndex + 1; }
+uint16_t LOOT_Size(void) { return lootIndex + 1; }
 
 void LOOT_Standby(void) {
-  for (uint8_t i = 0; i < LOOT_Size(); ++i) {
+  for (uint16_t i = 0; i < LOOT_Size(); ++i) {
     Loot *p = &loot[i];
     p->open = false;
-    p->lastTimeCheck = Now();
   }
+  lastTimeCheck = Now();
 }
 
 static void swap(Loot *a, Loot *b) {
@@ -128,21 +128,21 @@ void LOOT_Sort(bool (*compare)(Loot *a, Loot *b), bool reverse) {
   Sort(loot, LOOT_Size(), compare, reverse);
 }
 
-Loot *LOOT_Item(uint8_t i) { return &loot[i]; }
+Loot *LOOT_Item(uint16_t i) { return &loot[i]; }
 
 void LOOT_Replace(Loot *item, uint32_t f) {
   item->f = f;
   item->open = false;
   item->firstTime = Now();
-  item->lastTimeCheck = Now();
   item->lastTimeOpen = 0;
   item->duration = 0;
   item->rssi = 0;
   item->ct = 0xFF;
   item->cd = 0xFF;
+  lastTimeCheck = Now();
 }
 
-void LOOT_ReplaceItem(uint8_t i, uint32_t f) {
+void LOOT_ReplaceItem(uint16_t i, uint32_t f) {
   Loot *item = LOOT_Item(i);
   LOOT_Replace(item, f);
 }
@@ -159,7 +159,7 @@ void LOOT_UpdateEx(Loot *item, Loot *msm) {
   item->rssi = msm->rssi;
 
   if (item->open) {
-    item->duration += Now() - item->lastTimeCheck;
+    item->duration += Now() - lastTimeCheck;
     gLastActiveLoot = item;
     gLastActiveLootIndex = LOOT_IndexOf(item);
   }
@@ -186,7 +186,7 @@ void LOOT_UpdateEx(Loot *item, Loot *msm) {
     }
     item->lastTimeOpen = Now();
   }
-  item->lastTimeCheck = Now();
+  lastTimeCheck = Now();
   item->open = msm->open;
   msm->ct = item->ct;
   msm->cd = item->cd;
@@ -207,7 +207,7 @@ void LOOT_Update(Loot *msm) {
 }
 void LOOT_RemoveBlacklisted(void) {
   LOOT_Sort(LOOT_SortByBlacklist, true);
-  for (uint8_t i = 0; i < LOOT_Size(); ++i) {
+  for (uint16_t i = 0; i < LOOT_Size(); ++i) {
     if (loot[i].blacklist) {
       lootIndex = i;
       return;
