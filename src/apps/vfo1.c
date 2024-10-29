@@ -97,7 +97,7 @@ static void initChannelScan() {
     CH ch;
     int32_t num = gScanlist[i];
     CHANNELS_Load(num, &ch);
-    Loot *loot = LOOT_AddEx(ch.rx.f, false);
+    Loot *loot = LOOT_AddEx(ch.rx.f, true);
     loot->open = false;
     loot->lastTimeOpen = 0;
   }

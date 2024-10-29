@@ -37,7 +37,7 @@ void LOOT_Update(Loot *msm);
 void LOOT_Replace(Loot *loot, uint32_t f);
 void LOOT_ReplaceItem(uint16_t i, uint32_t f);
 
-void LOOT_Sort(bool (*compare)(Loot *a, Loot *b), bool reverse);
+void LOOT_Sort(bool (*compare)(const Loot *a, const Loot *b), bool reverse);
 
 bool LOOT_SortByLastOpenTime(const Loot *a, const Loot *b);
 bool LOOT_SortByDuration(const Loot *a, const Loot *b);

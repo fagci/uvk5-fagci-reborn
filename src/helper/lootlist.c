@@ -108,7 +108,7 @@ bool LOOT_SortByBlacklist(const Loot *a, const Loot *b) {
   return a->blacklist > b->blacklist;
 }
 
-static void Sort(Loot *items, uint16_t n, bool (*compare)(Loot *a, Loot *b),
+static void Sort(Loot *items, uint16_t n, bool (*compare)(const Loot *a, const Loot *b),
                  bool reverse) {
   for (uint16_t i = 0; i < n - 1; i++) {
     bool swapped = false;
@@ -124,7 +124,7 @@ static void Sort(Loot *items, uint16_t n, bool (*compare)(Loot *a, Loot *b),
   }
 }
 
-void LOOT_Sort(bool (*compare)(Loot *a, Loot *b), bool reverse) {
+void LOOT_Sort(bool (*compare)(const Loot *a, const Loot *b), bool reverse) {
   Sort(loot, LOOT_Size(), compare, reverse);
 }
 

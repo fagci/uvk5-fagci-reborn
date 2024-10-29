@@ -126,7 +126,7 @@ void SPECTRUM_init(void) {
     if ((CHANNELS_Scanlists(i) & scanlistMask) == scanlistMask) {
       CH ch;
       CHANNELS_Load(i, &ch);
-      Loot *loot = LOOT_AddEx(ch.rx.f, false);
+      Loot *loot = LOOT_AddEx(ch.rx.f, true);
       loot->open = false;
       loot->blacklist = true;
       loot->lastTimeOpen = 0;

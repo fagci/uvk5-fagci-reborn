@@ -24,7 +24,7 @@ typedef enum {
   SORT_F,
 } Sort;
 
-bool (*sortings[])(Loot *a, Loot *b) = {
+bool (*sortings[])(const Loot *a, const Loot *b) = {
     LOOT_SortByLastOpenTime,
     LOOT_SortByDuration,
     LOOT_SortByBlacklist,
@@ -181,55 +181,56 @@ static void saveLootToCh(const Loot *loot, int16_t chnum, uint8_t scanlist) {
 }
 
 static void saveAllToFreeChannels(void) {
-  uint16_t chnum = CHANNELS_GetCountMax() - 1;
   for (uint16_t i = 0; i < LOOT_Size(); ++i) {
+    uint16_t chnum = CHANNELS_GetCountMax();
     const Loot *loot = LOOT_Item(i);
     if (!loot->goodKnown) {
       continue;
     }
 
     while (chnum) {
+      chnum--;
       if (CHANNELS_Existing(chnum)) {
         CH ch;
         CHANNELS_Load(chnum, &ch);
         if (ch.rx.f == loot->f) {
-          chnum--;
           break;
         }
       } else {
         // save new
         saveLootToCh(loot, chnum, gSettings.currentScanlist);
-        chnum--;
         break;
       }
-      chnum--;
     }
   }
 }
 
+// #include "../driver/uart.h"
+
 static void saveBlacklistToSL8() {
-  uint16_t chnum = CHANNELS_GetCountMax() - 1;
   for (uint16_t i = 0; i < LOOT_Size(); ++i) {
+    uint16_t chnum = CHANNELS_GetCountMax();
     const Loot *loot = LOOT_Item(i);
     if (!loot->blacklist) {
       continue;
     }
+    // Log("loot new");
 
     while (chnum) {
+      chnum--;
       if (CHANNELS_Existing(chnum)) {
         CH ch;
         CHANNELS_Load(chnum, &ch);
         if (ch.rx.f == loot->f) {
-          chnum--;
+          // Log("exists");
           break;
         }
       } else {
         // save new
+        // Log("ch new");
         saveLootToCh(loot, chnum, 7);
-        chnum--;
         break;
       }
-      chnum--;
     }
   }
 }
