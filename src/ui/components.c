@@ -136,3 +136,9 @@ void UI_DrawSpectrumElements(const uint8_t sy, uint8_t msmDelay, int16_t sq,
   PrintSmallEx(LCD_WIDTH, LCD_HEIGHT - 1, POS_R, C_FILL, "%u.%05u", fe / 100000,
                fe % 100000);
 }
+
+void UI_ShowWait() {
+  FillRect(0, 32 - 5, 128, 9, C_FILL);
+  PrintMediumBoldEx(64, 32 + 2, POS_C, C_CLEAR, "WAIT");
+  ST7565_Blit();
+}

@@ -16,5 +16,6 @@ void UI_DrawScrollBar(const uint16_t size, const uint16_t currentIndex,
 void UI_DrawTicks(uint8_t y, Band *band);
 void UI_DrawSpectrumElements(const uint8_t sy, uint8_t msmDelay, int16_t sq,
                              Band *currentBand);
+void UI_ShowWait();
 
 #endif /* end of include guard: COMPONENTS_H */

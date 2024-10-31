@@ -306,7 +306,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_SIDE2:
       if (SVC_Running(SVC_SCAN)) {
-        LOOT_GoodKnownLast();
+        LOOT_WhitelistLast();
         RADIO_NextFreqNoClicks(true);
         return true;
       }

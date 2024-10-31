@@ -50,12 +50,10 @@ void waitToSend() {
   }
 }
 
-#include "../ui/graphics.h" // HACK: \(X_X)/
+#include "../ui/components.h" // HACK: \(X_X)/
 
 bool SI47XX_downloadPatch() {
-  FillRect(0, 32 - 5, 128, 9, C_FILL);
-  PrintMediumBoldEx(64, 32 + 2, POS_C, C_CLEAR, "WAIT");
-  ST7565_Blit();
+  UI_ShowWait();
 
   uint8_t buf[248];
   // const uint8_t PAGE_SIZE = SETTINGS_GetPageSize();

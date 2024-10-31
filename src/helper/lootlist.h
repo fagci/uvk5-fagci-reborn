@@ -18,12 +18,12 @@ typedef struct {
   uint8_t ct;
   bool open;
   bool blacklist;
-  bool goodKnown;
+  bool whitelist;
 } Loot;
 
 int16_t LOOT_IndexOf(Loot *loot);
 void LOOT_BlacklistLast();
-void LOOT_GoodKnownLast();
+void LOOT_WhitelistLast();
 Loot *LOOT_Get(uint32_t f);
 Loot *LOOT_AddEx(uint32_t f, bool reuse);
 Loot *LOOT_Add(uint32_t f);

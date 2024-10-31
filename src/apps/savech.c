@@ -4,6 +4,7 @@
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"
 #include "../helper/presetlist.h"
+#include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
 #include "../ui/statusline.h"
@@ -17,6 +18,7 @@ static uint16_t chNum = 0;
 static CH ch;
 
 static int16_t from = -1;
+static int16_t to = -1;
 
 static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
   if (gSettings.currentScanlist != 15) {
@@ -54,7 +56,28 @@ static void saveNamed(void) {
     }
   }
 }
+
 static void saveRenamed() { CHANNELS_Save(chNum, &ch); }
+
+static void moveRange() {
+  UI_ShowWait();
+  int16_t f = from;
+  int16_t t = to;
+  if (f > t) {
+    swap_int16_t(f, t);
+  }
+
+  CH _ch;
+  uint16_t offset = 0;
+  for (uint16_t i = f; i <= t; i++) {
+    CHANNELS_Load(i, &_ch);
+    CHANNELS_Save(currentChannelIndex + offset, &_ch);
+    CHANNELS_Delete(i);
+    offset++;
+  }
+
+  from = to = -1;
+}
 
 void SAVECH_init(void) {
   CHANNELS_LoadScanlist(gSettings.currentScanlist);
@@ -62,6 +85,9 @@ void SAVECH_init(void) {
     chCount = CHANNELS_GetCountMax();
   } else {
     chCount = gScanlistSize;
+  }
+  if (currentChannelIndex > chCount) {
+    currentChannelIndex = chCount;
   }
 }
 
@@ -76,10 +102,8 @@ static void save(void) {
   APPS_run(APP_TEXTINPUT);
 }
 
-static void setMenuIndexAndRun(uint16_t v) {
-  currentChannelIndex = v - 1;
-  save();
-}
+static void setMenuIndex(uint16_t v) { currentChannelIndex = v - 1; }
+
 static void toggleScanlist(uint16_t idx, uint8_t n) {
   CH _ch;
   uint16_t _chNum = gScanlist[idx];
@@ -125,7 +149,7 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld) {
     if (!gIsNumNavInput && key == KEY_STAR) {
       NUMNAV_Init(currentChannelIndex + 1, 1, chCount);
-      gNumNavCallback = setMenuIndexAndRun;
+      gNumNavCallback = setMenuIndex;
       return true;
     }
     if (gIsNumNavInput) {
@@ -155,6 +179,11 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     }
   }
+  int16_t f = from;
+  int16_t t = currentChannelIndex;
+  if (f > t) {
+    swap_int16_t(f, t);
+  }
   CH _ch;
   if (!bKeyPressed && !bKeyHeld) {
     switch (key) {
@@ -167,10 +196,8 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_7:
     case KEY_8:
       if (from != -1) {
-        if (from < currentChannelIndex) {
-          for (uint16_t i = from; i <= currentChannelIndex; i++) {
-            toggleScanlist(i, key - KEY_1);
-          }
+        for (uint16_t i = f; i <= t; i++) {
+          toggleScanlist(i, key - KEY_1);
         }
         from = -1;
         return true;
@@ -183,10 +210,8 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_0:
       if (from != -1) {
-        if (from < currentChannelIndex) {
-          for (uint16_t i = from; i <= currentChannelIndex; i++) {
-            CHANNELS_Delete(i);
-          }
+        for (uint16_t i = f; i <= t; i++) {
+          CHANNELS_Delete(i);
         }
         from = -1;
         return true;
@@ -203,6 +228,14 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       from = -1;
       return true;
     case KEY_F:
+      if (from != -1) {
+        if (to != -1) {
+          moveRange();
+          return true;
+        }
+        to = currentChannelIndex;
+        return true;
+      }
       CHANNELS_Load(chNum, &_ch);
       gTextinputText = _ch.name;
       gTextInputSize = 9;
@@ -230,6 +263,15 @@ void SAVECH_render(void) {
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
   } else if (from != -1) {
-    STATUSLINE_SetText("%d-%d", from + 1, currentChannelIndex + 1);
+    int16_t f = from + 1;
+    int16_t t = to == -1 ? currentChannelIndex + 1 : to + 1;
+    if (f > t) {
+      swap_int16_t(f, t);
+    }
+    if (to == -1) {
+      STATUSLINE_SetText("%d-%d", f, t);
+    } else {
+      STATUSLINE_SetText("M%d-%d", f, t);
+    }
   }
 }

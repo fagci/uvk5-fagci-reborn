@@ -13,15 +13,15 @@ int16_t gLastActiveLootIndex = -1;
 
 void LOOT_BlacklistLast(void) {
   if (gLastActiveLoot) {
-    gLastActiveLoot->goodKnown = false;
+    gLastActiveLoot->whitelist = false;
     gLastActiveLoot->blacklist = true;
   }
 }
 
-void LOOT_GoodKnownLast(void) {
+void LOOT_WhitelistLast(void) {
   if (gLastActiveLoot) {
     gLastActiveLoot->blacklist = false;
-    gLastActiveLoot->goodKnown = true;
+    gLastActiveLoot->whitelist = true;
   }
 }
 
@@ -100,7 +100,9 @@ bool LOOT_SortByLastOpenTime(const Loot *a, const Loot *b) {
   return a->lastTimeOpen < b->lastTimeOpen;
 }
 
-bool LOOT_SortByDuration(const Loot *a, const Loot *b) { return a->duration > b->duration; }
+bool LOOT_SortByDuration(const Loot *a, const Loot *b) {
+  return a->duration > b->duration;
+}
 
 bool LOOT_SortByF(const Loot *a, const Loot *b) { return a->f > b->f; }
 
@@ -108,8 +110,8 @@ bool LOOT_SortByBlacklist(const Loot *a, const Loot *b) {
   return a->blacklist > b->blacklist;
 }
 
-static void Sort(Loot *items, uint16_t n, bool (*compare)(const Loot *a, const Loot *b),
-                 bool reverse) {
+static void Sort(Loot *items, uint16_t n,
+                 bool (*compare)(const Loot *a, const Loot *b), bool reverse) {
   for (uint16_t i = 0; i < n - 1; i++) {
     bool swapped = false;
     for (uint16_t j = 0; j < n - i - 1; j++) {
@@ -152,7 +154,7 @@ void LOOT_UpdateEx(Loot *item, Loot *msm) {
     return;
   }
 
-  if (item->blacklist || (item->goodKnown && !gMonitorMode)) {
+  if (item->blacklist || (item->whitelist && !gMonitorMode)) {
     msm->open = false;
   }
 

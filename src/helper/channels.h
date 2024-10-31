@@ -16,6 +16,7 @@ void CHANNELS_Delete(int16_t i);
 bool CHANNELS_Existing(int16_t i);
 uint8_t CHANNELS_Scanlists(int16_t i);
 void CHANNELS_LoadScanlist(uint8_t n);
+F CHANNELS_GetRX(int16_t num);
 
 extern int16_t gScanlistSize;
 extern uint16_t gScanlist[SCANLIST_MAX];

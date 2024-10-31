@@ -8,6 +8,7 @@ int16_t gScanlistSize = 0;
 uint16_t gScanlist[SCANLIST_MAX] = {0};
 
 static const uint8_t CH_NAME_OFFSET = offsetof(CH, name);
+static const uint8_t CH_RX_OFFSET = offsetof(CH, rx);
 static const uint8_t CH_BANKS_OFFSET = offsetof(CH, memoryBanks);
 
 static uint32_t presetsSizeBytes(void) {
@@ -34,6 +35,14 @@ static uint32_t GetChannelOffset(int16_t num) {
 uint16_t CHANNELS_GetCountMax(void) {
   uint16_t n = (getChannelsEnd() - getChannelsStart()) / CH_SIZE;
   return n < SCANLIST_MAX ? n : SCANLIST_MAX;
+}
+
+F CHANNELS_GetRX(int16_t num) {
+  F f;
+  if (num >= 0) {
+    EEPROM_ReadBuffer(GetChannelOffset(num) + CH_RX_OFFSET, &f, sizeof(F));
+  }
+  return f;
 }
 
 void CHANNELS_Load(int16_t num, CH *p) {

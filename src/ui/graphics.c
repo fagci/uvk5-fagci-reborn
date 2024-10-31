@@ -1,4 +1,5 @@
 #include "graphics.h"
+#include "../misc.h"
 #include "fonts/NumbersStepanv3.h"
 #include "fonts/NumbersStepanv4.h"
 #include "fonts/TomThumb.h"
@@ -6,15 +7,6 @@
 #include "fonts/muMatrix8ptRegular.h"
 #include "fonts/symbols.h"
 #include <stdlib.h>
-
-#ifndef _swap_int16_t
-#define _swap_int16_t(a, b)                                                    \
-  {                                                                            \
-    int16_t t = a;                                                             \
-    a = b;                                                                     \
-    b = t;                                                                     \
-  }
-#endif
 
 static Cursor cursor = {0, 0};
 
@@ -51,13 +43,13 @@ static void DrawALine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
                       int16_t color) {
   int16_t steep = abs(y1 - y0) > abs(x1 - x0);
   if (steep) {
-    _swap_int16_t(x0, y0);
-    _swap_int16_t(x1, y1);
+    swap_int16_t(x0, y0);
+    swap_int16_t(x1, y1);
   }
 
   if (x0 > x1) {
-    _swap_int16_t(x0, x1);
-    _swap_int16_t(y0, y1);
+    swap_int16_t(x0, x1);
+    swap_int16_t(y0, y1);
   }
 
   int16_t dx, dy;
@@ -98,11 +90,11 @@ void DrawHLine(int16_t x, int16_t y, int16_t w, Color color) {
 void DrawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, Color color) {
   if (x0 == x1) {
     if (y0 > y1)
-      _swap_int16_t(y0, y1);
+      swap_int16_t(y0, y1);
     DrawVLine(x0, y0, y1 - y0 + 1, color);
   } else if (y0 == y1) {
     if (x0 > x1)
-      _swap_int16_t(x0, x1);
+      swap_int16_t(x0, x1);
     DrawHLine(x0, y0, x1 - x0 + 1, color);
   } else {
     DrawALine(x0, y0, x1, y1, color);
@@ -123,8 +115,7 @@ void FillRect(int16_t x, int16_t y, int16_t w, int16_t h, Color color) {
 }
 
 static void m_putchar(int16_t x, int16_t y, unsigned char c, Color color,
-                      uint8_t size_x, uint8_t size_y,
-                      const GFXfont *gfxFont) {
+                      uint8_t size_x, uint8_t size_y, const GFXfont *gfxFont) {
   c -= gfxFont->first;
   const GFXglyph *glyph = &gfxFont->glyph[c];
   const uint8_t *bitmap = gfxFont->bitmap;

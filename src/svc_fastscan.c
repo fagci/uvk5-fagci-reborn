@@ -91,7 +91,7 @@ void SVC_FC_Update(void) {
   }
 
   Loot *loot = LOOT_Get(f);
-  if (loot && (loot->blacklist || loot->goodKnown)) {
+  if (loot && (loot->blacklist || loot->whitelist)) {
     return;
   }
 

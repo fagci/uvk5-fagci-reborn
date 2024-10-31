@@ -1,4 +1,5 @@
 #include "spectrumreborn.h"
+#include "../board.h"
 #include "../dcs.h"
 #include "../driver/bk4819.h"
 #include "../driver/st7565.h"
@@ -111,6 +112,7 @@ static void startNewScan() {
   if (gSettings.activePreset != oldPresetIndex) {
     init();
     oldPresetIndex = gSettings.activePreset;
+    gLastActiveLoot = NULL;
   } else {
     SP_Begin();
   }
@@ -210,7 +212,7 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       RADIO_NextFreqNoClicks(true);
       return true;
     case KEY_SIDE2:
-      LOOT_GoodKnownLast();
+      LOOT_WhitelistLast();
       RADIO_NextFreqNoClicks(true);
       return true;
     case KEY_F:
@@ -240,6 +242,7 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void SPECTRUM_update(void) {
+  BOARD_ToggleGreen(gIsListening);
   if (Now() - gLastRender >= 500) {
     gRedrawScreen = true;
   }

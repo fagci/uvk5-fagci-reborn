@@ -1,6 +1,7 @@
 #include "lootlist.h"
 #include "../dcs.h"
 #include "../driver/st7565.h"
+#include "../driver/uart.h"
 #include "../helper/channels.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
@@ -9,6 +10,7 @@
 #include "../scheduler.h"
 #include "../svc.h"
 #include "../svc_render.h"
+#include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
 #include "../ui/statusline.h"
@@ -66,19 +68,28 @@ static void tuneToLoot(const Loot *item, bool save) {
   }
 }
 
+static void displayFreqBlWl(uint8_t y, const Loot *item) {
+  if (item->blacklist) {
+    PrintMediumEx(1, y + 7, POS_L, C_INVERT, "-");
+  }
+  if (item->whitelist) {
+    PrintMediumEx(1, y + 7, POS_L, C_INVERT, "+");
+  }
+  PrintMediumEx(8, y + 7, POS_L, C_INVERT, "%u.%05u", item->f / 100000,
+                item->f % 100000);
+  if (gIsListening && item->f == radio->rx.f) {
+    PrintSymbolsEx(LCD_WIDTH - 24, y + 7, POS_R, C_INVERT, "%c", SYM_BEEP);
+  }
+}
+
 static void getLootItem(uint16_t i, uint16_t index, bool isCurrent) {
   const Loot *item = LOOT_Item(index);
   const uint8_t y = MENU_Y + i * MENU_ITEM_H_LARGER;
-  const uint32_t f = item->f;
 
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H_LARGER, C_FILL);
   }
-
-  PrintMediumEx(8, y + 7, POS_L, C_INVERT, "%u.%05u", f / 100000, f % 100000);
-  if (gIsListening && item->f == radio->rx.f) {
-    PrintSymbolsEx(LCD_WIDTH - 24, y + 7, POS_R, C_INVERT, "%c", SYM_BEEP);
-  }
+  displayFreqBlWl(y, item);
 
   PrintSmallEx(LCD_WIDTH - 6, y + 7, POS_R, C_INVERT, "%us",
                item->duration / 1000);
@@ -91,30 +102,18 @@ static void getLootItem(uint16_t i, uint16_t index, bool isCurrent) {
     PrintSmallEx(8 + 55, y + 7 + 6, POS_L, C_INVERT, "DCS:D%03oN",
                  DCS_Options[item->cd]);
   }
-
-  if (item->blacklist) {
-    PrintMediumEx(1, y + 7, POS_L, C_INVERT, "-");
-  }
-  if (item->goodKnown) {
-    PrintMediumEx(1, y + 7, POS_L, C_INVERT, "+");
-  }
 }
 
 static void getLootItemShort(uint16_t i, uint16_t index, bool isCurrent) {
   const Loot *item = LOOT_Item(index);
   const uint8_t x = LCD_WIDTH - 6;
   const uint8_t y = MENU_Y + i * MENU_ITEM_H;
-  const uint32_t f = item->f;
   const uint32_t ago = (Now() - item->lastTimeOpen) / 1000;
 
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
   }
-
-  PrintMediumEx(8, y + 7, POS_L, C_INVERT, "%u.%05u", f / 100000, f % 100000);
-  if (gIsListening && item->f == radio->rx.f) {
-    PrintSymbolsEx(LCD_WIDTH - 24, y + 7, POS_R, C_INVERT, "%c", SYM_BEEP);
-  }
+  displayFreqBlWl(y, item);
 
   switch (sortType) {
   case SORT_LOT:
@@ -125,13 +124,6 @@ static void getLootItemShort(uint16_t i, uint16_t index, bool isCurrent) {
   case SORT_F:
     PrintSmallEx(x, y + 7, POS_R, C_INVERT, "%us", item->duration / 1000);
     break;
-  }
-
-  if (item->blacklist) {
-    PrintMediumEx(1, y + 7, POS_L, C_INVERT, "-");
-  }
-  if (item->goodKnown) {
-    PrintMediumEx(1, y + 7, POS_L, C_INVERT, "+");
   }
 }
 
@@ -180,55 +172,27 @@ static void saveLootToCh(const Loot *loot, int16_t chnum, uint8_t scanlist) {
   CHANNELS_Save(chnum, &ch);
 }
 
-static void saveAllToFreeChannels(void) {
+static void saveToFreeChannels(bool saveWhitelist, uint8_t scanlist) {
+  UI_ShowWait();
   for (uint16_t i = 0; i < LOOT_Size(); ++i) {
     uint16_t chnum = CHANNELS_GetCountMax();
     const Loot *loot = LOOT_Item(i);
-    if (!loot->goodKnown) {
+    if (saveWhitelist && !loot->whitelist) {
+      continue;
+    }
+    if (!saveWhitelist && !loot->blacklist) {
       continue;
     }
 
     while (chnum) {
       chnum--;
       if (CHANNELS_Existing(chnum)) {
-        CH ch;
-        CHANNELS_Load(chnum, &ch);
-        if (ch.rx.f == loot->f) {
+        if (CHANNELS_GetRX(chnum).f == loot->f) {
           break;
         }
       } else {
         // save new
-        saveLootToCh(loot, chnum, gSettings.currentScanlist);
-        break;
-      }
-    }
-  }
-}
-
-// #include "../driver/uart.h"
-
-static void saveBlacklistToSL8() {
-  for (uint16_t i = 0; i < LOOT_Size(); ++i) {
-    uint16_t chnum = CHANNELS_GetCountMax();
-    const Loot *loot = LOOT_Item(i);
-    if (!loot->blacklist) {
-      continue;
-    }
-    // Log("loot new");
-
-    while (chnum) {
-      chnum--;
-      if (CHANNELS_Existing(chnum)) {
-        CH ch;
-        CHANNELS_Load(chnum, &ch);
-        if (ch.rx.f == loot->f) {
-          // Log("exists");
-          break;
-        }
-      } else {
-        // save new
-        // Log("ch new");
-        saveLootToCh(loot, chnum, 7);
+        saveLootToCh(loot, chnum, scanlist);
         break;
       }
     }
@@ -253,10 +217,10 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       gMonitorMode = !gMonitorMode;
       return true;
     case KEY_8:
-      saveBlacklistToSL8();
+      saveToFreeChannels(false, 7);
       return true;
     case KEY_5:
-      saveAllToFreeChannels();
+      saveToFreeChannels(true, gSettings.currentScanlist);
       return true;
     case KEY_4: // freq catch
       SVC_Toggle(SVC_FC, !SVC_Running(SVC_FC), 100);
@@ -303,12 +267,12 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       sort(SORT_F);
       return true;
     case KEY_SIDE1:
-      item->goodKnown = false;
+      item->whitelist = false;
       item->blacklist = !item->blacklist;
       return true;
     case KEY_SIDE2:
       item->blacklist = false;
-      item->goodKnown = !item->goodKnown;
+      item->whitelist = !item->whitelist;
       return true;
     case KEY_7:
       shortList = !shortList;

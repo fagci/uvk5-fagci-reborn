@@ -109,6 +109,7 @@ static void setCenterF(uint32_t f) {
   centerF = f;
   opt.band.bounds.start = centerF - halfBW;
   opt.band.bounds.end = centerF + halfBW;
+  opt.band.modulation = RADIO_GetModulation();
   startNewScan(true);
 }
 
@@ -225,7 +226,7 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       LOOT_BlacklistLast();
       return true;
     case KEY_SIDE2:
-      LOOT_GoodKnownLast();
+      LOOT_WhitelistLast();
       return true;
     case KEY_2:
       if (opt.band.step < STEP_500_0kHz) {
