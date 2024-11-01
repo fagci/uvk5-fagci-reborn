@@ -110,9 +110,8 @@ jobs:
           token: ${{ secrets.TELEGRAM_TOKEN }}
           document: k5-fagci-r3b0rn-nightly-${{ steps.version_date.outputs.date }}.bin
           message: |
-            ${{ github.event.release.name }}
-  
-            ${{ github.event.release.body }}
+            ${{ steps.version_date.outputs.date }}:
+            ${{ steps.changelog.outputs.content }}
   
       - name: send telegram message on push
         uses: appleboy/telegram-action@master
