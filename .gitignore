@@ -2,6 +2,7 @@ obj/
 bin/
 src/external/
 .vsconfig/
+.vscode/
 
 *.log
 *.log.bak
