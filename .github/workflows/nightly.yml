@@ -92,26 +92,26 @@ jobs:
       - name: 'Add unpacked FW to release'
         uses: svenstaro/upload-release-action@v2
         with:
+          tag: nightly-tag-${{ steps.date.outputs.date }}
           file: k5-fagci-r3b0rn-nightly-${{ steps.version_date.outputs.date }}.raw.bin
   
       - name: 'Add packed FW to release'
         uses: svenstaro/upload-release-action@v2
         with:
+          tag: nightly-tag-${{ steps.date.outputs.date }}
           file: k5-fagci-r3b0rn-nightly-${{ steps.version_date.outputs.date }}.bin
   
       - name: 'Add chirp module to release'
         uses: svenstaro/upload-release-action@v2
         with:
+          tag: nightly-tag-${{ steps.date.outputs.date }}
           file: k5-fagci-r3b0rn-nightly-${{ steps.version_date.outputs.date }}-chirp-module.py
 
       - name: send msg
         run: |
           curl --url "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMediaGroup" \
           -F "chat_id=${{ secrets.TELEGRAM_TO }}" \
-          -F 'media=[{"type": "document", "media": "attach://file1"}, {"type": "document", "media": "attach://file2" }]' \
+          -F 'media=[{"type": "document", "media": "attach://file1", "caption": "https://github.com/fagci/uvk5-fagci-reborn/releases/tag/nightly-tag-${{ steps.date.outputs.date }}"}, {"type": "document", "media": "attach://file2" }]' \
           -F "file1=@k5-fagci-r3b0rn-nightly-${{ steps.version_date.outputs.date }}.bin" \
-          -F "file2=@k5-fagci-r3b0rn-nightly-${{ steps.version_date.outputs.date }}-chirp-module.py" \
-          -F caption=<< EOF
-          ${{ steps.changelog.outputs.content }}
-          EOF
+          -F "file2=@k5-fagci-r3b0rn-nightly-${{ steps.version_date.outputs.date }}-chirp-module.py"
       
