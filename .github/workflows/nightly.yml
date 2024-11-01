@@ -37,6 +37,15 @@ jobs:
         with:
           release: '13.3.Rel1'
 
+      - name: Install Python dependencies
+        run: python3 -m pip install --upgrade pip crcmod
+  
+      - name: Checkout
+        uses: actions/checkout@v3
+  
+      - name: Submodules
+        run: git submodule update --init --recursive --depth 1
+
       - name: Create changelog
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -63,15 +72,6 @@ jobs:
             ${{ steps.changelog.outputs.content }}
           draft: false
           prerelease: true
-  
-      - name: Install Python dependencies
-        run: python3 -m pip install --upgrade pip crcmod
-  
-      - name: Checkout
-        uses: actions/checkout@v3
-  
-      - name: Submodules
-        run: git submodule update --init --recursive --depth 1
   
       - name: Make
         run:  make
