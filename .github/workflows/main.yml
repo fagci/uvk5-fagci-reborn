@@ -5,13 +5,13 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
     - name: arm-none-eabi-gcc
       uses: carlosperate/arm-none-eabi-gcc-action@v1
       with:
-        release: '10.3-2021.10'
+        release: '13.2.rel1-2'
 
     - name: Install Python dependencies
       run: python3 -m pip install --upgrade pip crcmod
