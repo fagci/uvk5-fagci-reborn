@@ -28,16 +28,40 @@ jobs:
     - name: size
       run:  arm-none-eabi-size firmware
 
-    - name: rename
-      run: mv firmware.packed.bin uv-k5-firmware-fagci-mod-${{ github.event.release.tag_name }}.bin
-
     - name: 'Add unpacked FW to release'
       uses: svenstaro/upload-release-action@v2
       with:
-        file: firmware.bin
-        asset_name: firmware.raw.bin
+        file: bin/firmware.bin
+        asset_name: k5-fagci-r3b0rn-${{ github.event.release.tag_name }}.raw.bin
 
     - name: 'Add packed FW to release'
       uses: svenstaro/upload-release-action@v2
       with:
-        file: k5-fagci-r3b0rn-${{ github.event.release.tag_name }}.bin
+        file: bin/firmware.packed.bin
+        asset_name: k5-fagci-r3b0rn-${{ github.event.release.tag_name }}.bin
+
+commented:
+  items:
+    - name: send telegram message on push
+      uses: appleboy/telegram-action@master
+      if: 'github.event.release.prerelease'
+      with:
+        to: ${{ secrets.TELEGRAM_TO }}
+        token: ${{ secrets.TELEGRAM_TOKEN }}
+        document: k5-fagci-r3b0rn-${{ github.event.release.tag_name }}.bin
+        message: |
+          ${{ github.event.release.name }}
+
+          ${{ github.event.release.body }}
+          
+    - name: send telegram message on push
+      uses: appleboy/telegram-action@master
+      if: '!github.event.release.prerelease'
+      with:
+        to: ${{ secrets.TELEGRAM_TO_RELEASE }}
+        token: ${{ secrets.TELEGRAM_TOKEN }}
+        document: k5-fagci-r3b0rn-${{ github.event.release.tag_name }}.bin
+        message: |
+          ${{ github.event.release.name }}
+
+          ${{ github.event.release.body }}
