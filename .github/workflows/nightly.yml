@@ -26,6 +26,9 @@ jobs:
     if: ${{ needs.check_date.outputs.should_run != 'false' }}
     runs-on: ubuntu-latest
     steps:
+      - name: Get current date
+        id: date
+        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
       - name: Get version date
         id: version_date
         run: echo "date=n_$(date +'%y%m%d')" >> $GITHUB_OUTPUT
@@ -33,6 +36,33 @@ jobs:
         uses: carlosperate/arm-none-eabi-gcc-action@v1
         with:
           release: '13.3.Rel1'
+
+      - name: Create changelog
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          {
+            echo 'content<<EOF'
+            python3 .github/workflows/changelog.py
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+        id: changelog
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: nightly-tag-${{ steps.date.outputs.date }}
+          release_name: Nightly Release - ${{ steps.date.outputs.date }}
+          body: |
+            **Nightly release - ${{ steps.date.outputs.date }}**
+            This build is the latest and greatest, although may not be the most stable as this is a nightly release.
+            ## Release notes
+            ###  Revision (${{ steps.version_date.outputs.date }}):
+            ${{ steps.changelog.outputs.content }}
+          draft: false
+          prerelease: true
   
       - name: Install Python dependencies
         run: python3 -m pip install --upgrade pip crcmod
@@ -50,35 +80,35 @@ jobs:
         run:  arm-none-eabi-size bin/firmware
   
       - name: rename
-        run: mv bin/firmware.bin k5-fagci-r3b0rn-${{ steps.version_date.outputs.date }}.raw.bin
+        run: mv bin/firmware.bin k5-fagci-r3b0rn-nightly-${{ steps.version_date.outputs.date }}.raw.bin
   
       - name: rename
-        run: mv bin/firmware.packed.bin k5-fagci-r3b0rn-${{ steps.version_date.outputs.date }}.bin
+        run: mv bin/firmware.packed.bin k5-fagci-r3b0rn-nightly-${{ steps.version_date.outputs.date }}.bin
   
       - name: rename
-        run: mv chirp/chirp_uvk5_fagci_reborn.py k5-fagci-r3b0rn-${{ steps.version_date.outputs.date }}-chirp-module.py
+        run: mv chirp/chirp_uvk5_fagci_reborn.py k5-fagci-r3b0rn-nightly-${{ steps.version_date.outputs.date }}-chirp-module.py
   
       - name: 'Add unpacked FW to release'
         uses: svenstaro/upload-release-action@v2
         with:
-          file: k5-fagci-r3b0rn-${{ steps.version_date.outputs.date }}.raw.bin
+          file: k5-fagci-r3b0rn-nightly-${{ steps.version_date.outputs.date }}.raw.bin
   
       - name: 'Add packed FW to release'
         uses: svenstaro/upload-release-action@v2
         with:
-          file: k5-fagci-r3b0rn-${{ steps.version_date.outputs.date }}.bin
+          file: k5-fagci-r3b0rn-nightly-${{ steps.version_date.outputs.date }}.bin
   
       - name: 'Add chirp module to release'
         uses: svenstaro/upload-release-action@v2
         with:
-          file: k5-fagci-r3b0rn-${{ steps.version_date.outputs.date }}-chirp-module.py
+          file: k5-fagci-r3b0rn-nightly-${{ steps.version_date.outputs.date }}-chirp-module.py
   
       - name: send telegram message on push
         uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
-          document: k5-fagci-r3b0rn-${{ steps.version_date.outputs.date }}.bin
+          document: k5-fagci-r3b0rn-nightly-${{ steps.version_date.outputs.date }}.bin
           message: |
             ${{ github.event.release.name }}
   
@@ -89,5 +119,5 @@ jobs:
         with:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
-          document: k5-fagci-r3b0rn-${{ steps.version_date.outputs.date }}-chirp-module.py
+          document: k5-fagci-r3b0rn-nightly-${{ steps.version_date.outputs.date }}-chirp-module.py
           message: " "
