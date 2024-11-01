@@ -11,7 +11,7 @@ jobs:
     - name: arm-none-eabi-gcc
       uses: carlosperate/arm-none-eabi-gcc-action@v1
       with:
-        release: '13.2.rel1-2'
+        release: '13.3.Rel1'
 
     - name: Install Python dependencies
       run: python3 -m pip install --upgrade pip crcmod
