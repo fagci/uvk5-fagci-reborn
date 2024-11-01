@@ -45,12 +45,6 @@ static Sort sortType = SORT_LOT;
 static bool shortList = true;
 static bool sortRev = false;
 
-void LOOTLIST_update() {
-  if (Now() - gLastRender >= 500) {
-    gRedrawScreen = true;
-  }
-}
-
 static void tuneToLoot(const Loot *item, bool save) {
   radio->rx.f = item->f;
   radio->tx.codeType = CODE_TYPE_OFF;
@@ -136,6 +130,12 @@ static void sort(Sort type) {
   LOOT_Sort(sortings[type], sortRev);
   sortType = type;
   STATUSLINE_SetText("By %s %s", sortNames[sortType], sortRev ? "v" : "^");
+}
+
+void LOOTLIST_update() {
+  if (Now() - gLastRender >= 500) {
+    gRedrawScreen = true;
+  }
 }
 
 void LOOTLIST_render(void) {
