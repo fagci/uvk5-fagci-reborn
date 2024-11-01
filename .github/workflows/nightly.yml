@@ -102,21 +102,15 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           file: k5-fagci-r3b0rn-nightly-${{ steps.version_date.outputs.date }}-chirp-module.py
+
+      - name: send msg
+        run: >
+          curl -F "chat_id=13245679" \
+            -F 'media=[{"type": "document", "media": "attach://file1"}, {"type": "document", "media": "attach://file2" }]' \
+            -F "file1=@k5-fagci-r3b0rn-nightly-${{ steps.version_date.outputs.date }}.bin" \
+            -F "file2=@k5-fagci-r3b0rn-nightly-${{ steps.version_date.outputs.date }}-chirp-module.py" \
+            -F caption=<< EOF
+              ${{ steps.changelog.outputs.content }}
+            EOF \
+             "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMediaGroup"
   
-      - name: send telegram message on push
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          document: k5-fagci-r3b0rn-nightly-${{ steps.version_date.outputs.date }}.bin
-          message: |
-            ${{ steps.version_date.outputs.date }}:
-            ${{ steps.changelog.outputs.content }}
-  
-      - name: send telegram message on push
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          document: k5-fagci-r3b0rn-nightly-${{ steps.version_date.outputs.date }}-chirp-module.py
-          message: " "
