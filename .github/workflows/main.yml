@@ -26,7 +26,7 @@ jobs:
       run:  make
 
     - name: size
-      run:  arm-none-eabi-size firmware
+      run:  arm-none-eabi-size bin/firmware
 
     - name: rename
       run: mv bin/firmware.bin k5-fagci-r3b0rn-${{ github.event.release.tag_name }}.raw.bin
