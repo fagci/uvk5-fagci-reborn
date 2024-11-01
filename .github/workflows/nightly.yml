@@ -1,0 +1,93 @@
+name: Nightly Release
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+    
+  workflow_dispatch:
+
+jobs:
+  check_date:
+    runs-on: ubuntu-latest
+    name: Check latest commit
+    outputs:
+      should_run: ${{ steps.should_run.outputs.should_run }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: print latest_commit
+        run: echo ${{ github.sha }}
+
+      - name: check latest commit is less than a day
+        id: should_run
+        continue-on-error: true
+        run: test -z $(git rev-list  --after="24 hours" ${{ github.sha }}) && echo "should_run=false" >> $GITHUB_OUTPUT
+  build:
+    needs: check_date
+    if: ${{ needs.check_date.outputs.should_run != 'false' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get version date
+        id: version_date
+        run: echo "date=n_$(date +'%y%m%d')" >> $GITHUB_OUTPUT
+      - name: arm-none-eabi-gcc
+        uses: carlosperate/arm-none-eabi-gcc-action@v1
+        with:
+          release: '13.3.Rel1'
+  
+      - name: Install Python dependencies
+        run: python3 -m pip install --upgrade pip crcmod
+  
+      - name: Checkout
+        uses: actions/checkout@v3
+  
+      - name: Submodules
+        run: git submodule update --init --recursive --depth 1
+  
+      - name: Make
+        run:  make
+  
+      - name: size
+        run:  arm-none-eabi-size bin/firmware
+  
+      - name: rename
+        run: mv bin/firmware.bin k5-fagci-r3b0rn-${{ steps.version_date.outputs.date }}.raw.bin
+  
+      - name: rename
+        run: mv bin/firmware.packed.bin k5-fagci-r3b0rn-${{ steps.version_date.outputs.date }}.bin
+  
+      - name: rename
+        run: mv chirp/chirp_uvk5_fagci_reborn.py k5-fagci-r3b0rn-${{ steps.version_date.outputs.date }}-chirp-module.py
+  
+      - name: 'Add unpacked FW to release'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file: k5-fagci-r3b0rn-${{ steps.version_date.outputs.date }}.raw.bin
+  
+      - name: 'Add packed FW to release'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file: k5-fagci-r3b0rn-${{ steps.version_date.outputs.date }}.bin
+  
+      - name: 'Add chirp module to release'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file: k5-fagci-r3b0rn-${{ steps.version_date.outputs.date }}-chirp-module.py
+  
+      - name: send telegram message on push
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          document: k5-fagci-r3b0rn-${{ steps.version_date.outputs.date }}.bin
+          message: |
+            ${{ github.event.release.name }}
+  
+            ${{ github.event.release.body }}
+  
+      - name: send telegram message on push
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          document: k5-fagci-r3b0rn-${{ steps.version_date.outputs.date }}-chirp-module.py
+          message: " "
