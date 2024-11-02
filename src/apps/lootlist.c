@@ -45,33 +45,42 @@ static Sort sortType = SORT_LOT;
 static bool shortList = true;
 static bool sortRev = false;
 
-static void tuneToLoot(const Loot *item, bool save) {
-  radio->rx.f = item->f;
-  radio->tx.codeType = CODE_TYPE_OFF;
-  if (item->cd != 0xFF) {
+static void tuneToLoot(const Loot *loot, bool save) {
+  Preset *p = PRESET_ByFrequency(loot->f);
+  radio->rx.f = loot->f;
+  radio->tx.f = 0;
+  radio->rx.codeType = radio->tx.codeType = CODE_TYPE_OFF;
+  radio->rx.code = radio->tx.code = 0;
+
+  radio->radio = p->radio;
+  radio->modulation = p->band.modulation;
+  radio->power = p->power;
+
+  if (loot->cd != 0xFF) {
     radio->tx.codeType = CODE_TYPE_DIGITAL;
-    radio->tx.code = item->cd;
-  } else if (item->ct != 0xFF) {
+    radio->tx.code = loot->cd;
+  } else if (loot->ct != 0xFF) {
     radio->tx.codeType = CODE_TYPE_CONTINUOUS_TONE;
-    radio->tx.code = item->ct;
+    radio->tx.code = loot->ct;
   }
+
   if (save) {
-    RADIO_TuneToSave(item->f);
+    RADIO_TuneToSave(loot->f);
   } else {
-    RADIO_TuneTo(item->f);
+    RADIO_TuneTo(loot->f);
   }
 }
 
-static void displayFreqBlWl(uint8_t y, const Loot *item) {
-  if (item->blacklist) {
+static void displayFreqBlWl(uint8_t y, const Loot *loot) {
+  if (loot->blacklist) {
     PrintMediumEx(1, y + 7, POS_L, C_INVERT, "-");
   }
-  if (item->whitelist) {
+  if (loot->whitelist) {
     PrintMediumEx(1, y + 7, POS_L, C_INVERT, "+");
   }
-  PrintMediumEx(8, y + 7, POS_L, C_INVERT, "%u.%05u", item->f / 100000,
-                item->f % 100000);
-  if (gIsListening && item->f == radio->rx.f) {
+  PrintMediumEx(8, y + 7, POS_L, C_INVERT, "%u.%05u", loot->f / 100000,
+                loot->f % 100000);
+  if (gIsListening && loot->f == radio->rx.f) {
     PrintSymbolsEx(LCD_WIDTH - 24, y + 7, POS_R, C_INVERT, "%c", SYM_BEEP);
   }
 }
@@ -99,15 +108,15 @@ static void getLootItem(uint16_t i, uint16_t index, bool isCurrent) {
 }
 
 static void getLootItemShort(uint16_t i, uint16_t index, bool isCurrent) {
-  const Loot *item = LOOT_Item(index);
+  const Loot *loot = LOOT_Item(index);
   const uint8_t x = LCD_WIDTH - 6;
   const uint8_t y = MENU_Y + i * MENU_ITEM_H;
-  const uint32_t ago = (Now() - item->lastTimeOpen) / 1000;
+  const uint32_t ago = (Now() - loot->lastTimeOpen) / 1000;
 
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
   }
-  displayFreqBlWl(y, item);
+  displayFreqBlWl(y, loot);
 
   switch (sortType) {
   case SORT_LOT:
@@ -116,7 +125,7 @@ static void getLootItemShort(uint16_t i, uint16_t index, bool isCurrent) {
   case SORT_DUR:
   case SORT_BL:
   case SORT_F:
-    PrintSmallEx(x, y + 7, POS_R, C_INVERT, "%us", item->duration / 1000);
+    PrintSmallEx(x, y + 7, POS_R, C_INVERT, "%us", loot->duration / 1000);
     break;
   }
 }
@@ -153,8 +162,19 @@ void LOOTLIST_init(void) {
 }
 
 static void saveLootToCh(const Loot *loot, int16_t chnum, uint8_t scanlist) {
-  CH ch;
-  ch.rx.f = loot->f;
+  Preset *p = PRESET_ByFrequency(loot->f);
+  CH ch = {
+      .rx = {loot->f, CODE_TYPE_OFF, 0},
+      .tx = {0, CODE_TYPE_OFF, 0},
+      .radio = p->radio,
+      .modulation = p->band.modulation,
+      .memoryBanks = 1 << scanlist,
+      .power = p->power,
+      .bw = p->band.bw,
+  };
+
+  snprintf(ch.name, 9, "%lu.%05lu", ch.rx.f / 100000, ch.rx.f % 100000);
+
   if (loot->ct != 255) {
     ch.tx.codeType = CODE_TYPE_CONTINUOUS_TONE;
     ch.tx.code = loot->ct;
@@ -162,12 +182,6 @@ static void saveLootToCh(const Loot *loot, int16_t chnum, uint8_t scanlist) {
     ch.tx.codeType = CODE_TYPE_DIGITAL;
     ch.tx.code = loot->cd;
   }
-  ch.memoryBanks = 1 << scanlist;
-  snprintf(ch.name, 9, "%lu.%05lu", ch.rx.f / 100000, ch.rx.f % 100000);
-
-  Preset *p = PRESET_ByFrequency(loot->f);
-  ch.radio = p->radio;
-  ch.modulation = p->band.modulation;
 
   CHANNELS_Save(chnum, &ch);
 }
@@ -200,11 +214,11 @@ static void saveToFreeChannels(bool saveWhitelist, uint8_t scanlist) {
 }
 
 bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  Loot *item;
+  Loot *loot;
   if (SVC_Running(SVC_FC)) {
-    item = gLastActiveLoot;
+    loot = gLastActiveLoot;
   } else {
-    item = LOOT_Item(menuIndex);
+    loot = LOOT_Item(menuIndex);
   }
   const uint8_t MENU_SIZE = LOOT_Size();
 
@@ -233,13 +247,13 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   switch (key) {
   case KEY_UP:
     IncDec8(&menuIndex, 0, MENU_SIZE, -1);
-    item = LOOT_Item(menuIndex);
-    tuneToLoot(item, false);
+    loot = LOOT_Item(menuIndex);
+    tuneToLoot(loot, false);
     return true;
   case KEY_DOWN:
     IncDec8(&menuIndex, 0, MENU_SIZE, 1);
-    item = LOOT_Item(menuIndex);
-    tuneToLoot(item, false);
+    loot = LOOT_Item(menuIndex);
+    tuneToLoot(loot, false);
     return true;
   default:
     break;
@@ -251,7 +265,7 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       APPS_exit();
       return true;
     case KEY_PTT:
-      tuneToLoot(item, true);
+      tuneToLoot(loot, true);
       APPS_run(APP_VFOPRO);
       return true;
     case KEY_1:
@@ -267,12 +281,12 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       sort(SORT_F);
       return true;
     case KEY_SIDE1:
-      item->whitelist = false;
-      item->blacklist = !item->blacklist;
+      loot->whitelist = false;
+      loot->blacklist = !loot->blacklist;
       return true;
     case KEY_SIDE2:
-      item->blacklist = false;
-      item->whitelist = !item->whitelist;
+      loot->blacklist = false;
+      loot->whitelist = !loot->whitelist;
       return true;
     case KEY_7:
       shortList = !shortList;
@@ -280,7 +294,7 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_9:
       return true;
     case KEY_5:
-      tuneToLoot(item, false);
+      tuneToLoot(loot, false);
       APPS_run(APP_SAVECH);
       return true;
     case KEY_0:
@@ -288,11 +302,11 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       if (menuIndex > LOOT_Size() - 1) {
         menuIndex = LOOT_Size() - 1;
       }
-      item = LOOT_Item(menuIndex);
-      tuneToLoot(item, false);
+      loot = LOOT_Item(menuIndex);
+      tuneToLoot(loot, false);
       return true;
     case KEY_MENU:
-      tuneToLoot(item, true);
+      tuneToLoot(loot, true);
       APPS_exit();
       return true;
     default:
