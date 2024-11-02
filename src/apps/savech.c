@@ -222,8 +222,8 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       from = currentChannelIndex;
       return true;
     case KEY_PTT:
-      CHANNELS_Load(chNum, &_ch);
-      RADIO_TuneToSave(_ch.rx.f);
+      RADIO_TuneToCH(chNum);
+      RADIO_SaveCurrentVFO();
       APPS_run(APP_VFOPRO);
       from = -1;
       return true;
