@@ -143,10 +143,11 @@ void SPECTRUM_init(void) {
 }
 
 void SPECTRUM_deinit() {
+  BOARD_ToggleGreen(false);
   SVC_Toggle(SVC_SCAN, false, msmDelay);
   BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
   RADIO_ToggleRX(false);
-  SVC_Toggle(SVC_LISTEN, true, msmDelay);
+  SVC_Toggle(SVC_LISTEN, true, 10);
   RADIO_SetupBandParams();
 }
 
