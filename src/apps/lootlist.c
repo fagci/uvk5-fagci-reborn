@@ -303,7 +303,11 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         menuIndex = LOOT_Size() - 1;
       }
       loot = LOOT_Item(menuIndex);
-      tuneToLoot(loot, false);
+      if (loot) {
+        tuneToLoot(loot, false);
+      } else {
+        RADIO_TuneToPure(0, true);
+      }
       return true;
     case KEY_MENU:
       tuneToLoot(loot, true);
