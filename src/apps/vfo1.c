@@ -50,7 +50,7 @@ void VFO1_init(void) {
 void VFO1_update(void) {
   if (SSB_Seek_ON) {
     if (RADIO_GetRadio() == RADIO_SI4732 && RADIO_IsSSB()) {
-      if (Now() - gLastRender >= 250) {
+      if (Now() - gLastRender >= 150) {
         if (SSB_Seek_UP) {
           gScanForward = true;
           RADIO_NextFreqNoClicks(true);
