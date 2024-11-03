@@ -3,6 +3,7 @@
 #include "../driver/bk4819.h"
 #include "../radio.h"
 #include "../scheduler.h"
+#include "../svc.h"
 
 static Loot loot[LOOT_SIZE_MAX] = {0};
 static int16_t lootIndex = -1;
@@ -154,7 +155,8 @@ void LOOT_UpdateEx(Loot *item, Loot *msm) {
     return;
   }
 
-  if (item->blacklist || (item->whitelist && !gMonitorMode)) {
+  if (SVC_Running(SVC_SCAN) && item->blacklist ||
+      (item->whitelist && !gMonitorMode)) {
     msm->open = false;
   }
 
