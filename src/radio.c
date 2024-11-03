@@ -108,7 +108,7 @@ void RADIO_SetupRegisters(void) {
   BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN, false);
   BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false); */
   BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, false);
-  BK4819_SetupPowerAmplifier(0, 0);
+  // BK4819_SetupPowerAmplifier(0, 0); // 0 is default
 
   // BK4819_SetFilterBandwidth(BK4819_FILTER_BW_WIDE);
 
@@ -130,8 +130,8 @@ void RADIO_SetupRegisters(void) {
           (56 << 4) |  // AF Rx Gain-2
           (8 << 0));   // AF DAC Gain (after Gain-1 and Gain-2)
 
-  BK4819_DisableScramble();
-  BK4819_DisableVox();
+  // BK4819_DisableScramble(); // default is off
+  // BK4819_DisableVox() // default is off;
   BK4819_DisableDTMF();
 
   // BK4819_WriteRegister(BK4819_REG_3F, 0);

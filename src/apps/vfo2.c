@@ -10,26 +10,6 @@
 #include "../ui/statusline.h"
 #include "vfo1.h"
 
-bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  if (VFO1_key(key, bKeyPressed, bKeyHeld)) {
-    return true;
-  }
-
-  // long held
-  if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
-    switch (key) {
-    case KEY_2:
-      LOOT_Standby();
-      RADIO_NextVFO();
-      return true;
-    default:
-      break;
-    }
-  }
-
-  return false;
-}
-
 static void render2VFOPart(uint8_t i) {
   const uint8_t BASE = 22;
   const uint8_t bl = BASE + 34 * i;
@@ -55,10 +35,15 @@ static void render2VFOPart(uint8_t i) {
     if (gTxState == TX_ON) {
       PrintMedium(0, bl, "TX");
     }
-    if (gIsListening) {
-      PrintMedium(0, bl, "RX");
-      UI_RSSIBar(gLoot[i].rssi, vfo->rx.f, 31);
-    }
+  }
+
+  if (gIsListening && (gDW.activityOnVFO == i || (!gSettings.dw && isActive))) {
+    PrintMedium(0, bl, "RX");
+    UI_RSSIBar(gLoot[i].rssi, f, 31);
+  }
+
+  if (gSettings.dw && gDW.lastActiveVFO == i) {
+    PrintMedium(13, bl, ">>");
   }
 
   if (gTxState && gTxState != TX_ON && isActive) {
@@ -116,6 +101,28 @@ static void render2VFOPart(uint8_t i) {
                  step % 100);
   }
 }
+
+bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  if (VFO1_key(key, bKeyPressed, bKeyHeld)) {
+    return true;
+  }
+
+  // long held
+  if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
+    switch (key) {
+    case KEY_2:
+      LOOT_Standby();
+      RADIO_NextVFO();
+      return true;
+    default:
+      break;
+    }
+  }
+
+  return false;
+}
+
+void VFO2_update(void) { VFO1_update(); }
 
 void VFO2_render(void) {
   UI_ClearScreen();

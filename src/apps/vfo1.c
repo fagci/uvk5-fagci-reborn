@@ -42,7 +42,10 @@ static void channelScanFn(bool forward) {
   RADIO_SetupByCurrentVFO();
 }
 
-void VFO1_init(void) { RADIO_LoadCurrentVFO(); }
+void VFO1_init(void) {
+  gDW.activityOnVFO = -1;
+  RADIO_LoadCurrentVFO();
+}
 
 void VFO1_update(void) {
   if (SSB_Seek_ON) {
