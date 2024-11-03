@@ -63,7 +63,7 @@ void ANTENNA_render(void) {
 
   UI_ClearScreen();
   PrintMediumBoldEx(LCD_XCENTER, LCD_YCENTER - 9 * 2, POS_C, C_FILL,
-                    "f=%u.%05uMHz", f / 100000, f % 100000);
+                    "f=%u.%05uMHz", f / MHZ, f % MHZ);
   PrintMediumBoldEx(LCD_XCENTER, LCD_YCENTER - 9, POS_C, C_FILL, "L=%u.%02um",
                     lambda / 100, lambda % 100);
   PrintMediumBoldEx(LCD_XCENTER, LCD_YCENTER, POS_C, C_FILL, "1/4=%ucm",

@@ -47,13 +47,13 @@ static void DrawALine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
                       int16_t color) {
   int16_t steep = abs(y1 - y0) > abs(x1 - x0);
   if (steep) {
-    swap_int16_t(x0, y0);
-    swap_int16_t(x1, y1);
+    SWAP(x0, y0);
+    SWAP(x1, y1);
   }
 
   if (x0 > x1) {
-    swap_int16_t(x0, x1);
-    swap_int16_t(y0, y1);
+    SWAP(x0, x1);
+    SWAP(y0, y1);
   }
 
   int16_t dx, dy;
@@ -94,11 +94,11 @@ void DrawHLine(int16_t x, int16_t y, int16_t w, Color color) {
 void DrawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, Color color) {
   if (x0 == x1) {
     if (y0 > y1)
-      swap_int16_t(y0, y1);
+      SWAP(y0, y1);
     DrawVLine(x0, y0, y1 - y0 + 1, color);
   } else if (y0 == y1) {
     if (x0 > x1)
-      swap_int16_t(x0, x1);
+      SWAP(x0, x1);
     DrawHLine(x0, y0, x1 - x0 + 1, color);
   } else {
     DrawALine(x0, y0, x1, y1, color);

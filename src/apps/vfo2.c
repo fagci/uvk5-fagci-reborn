@@ -3,6 +3,7 @@
 #include "../helper/lootlist.h"
 #include "../helper/numnav.h"
 #include "../helper/presetlist.h"
+#include "../misc.h"
 #include "../scheduler.h"
 #include "../settings.h"
 #include "../ui/components.h"
@@ -22,7 +23,7 @@ static void render2VFOPart(uint8_t i) {
   uint32_t f =
       gTxState == TX_ON && isActive ? RADIO_GetTXF() : GetScreenF(vfo->rx.f);
 
-  const uint16_t fp1 = f / 100000;
+  const uint16_t fp1 = f / MHZ;
   const uint16_t fp2 = f / 100 % 1000;
   const uint8_t fp3 = f % 100;
   const char *mod =
@@ -39,7 +40,7 @@ static void render2VFOPart(uint8_t i) {
 
   if (gIsListening && (gDW.activityOnVFO == i || (!gSettings.dw && isActive))) {
     PrintMedium(0, bl, "RX");
-    UI_RSSIBar(gLoot[i].rssi, f, 31);
+    UI_RSSIBar(gLoot[i].rssi, RADIO_GetS(), f, 31);
   }
 
   if (gSettings.dw && gDW.lastActiveVFO == i) {

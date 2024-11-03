@@ -131,6 +131,7 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   }
 
   if (!bKeyHeld) {
+    bool isSsb = RADIO_IsSSB();
     switch (key) {
     case KEY_1:
       RADIO_UpdateStep(true);
@@ -151,6 +152,10 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       RADIO_ToggleListeningBW();
       return true;
     case KEY_SIDE1:
+      if (RADIO_GetRadio() == RADIO_SI4732 && isSsb) {
+        RADIO_TuneToSave(radio->rx.f + 1);
+        return true;
+      }
       gMonitorMode = !gMonitorMode;
       return true;
     case KEY_F:
@@ -161,7 +166,11 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       APPS_run(APP_FINPUT);
       return true;
     case KEY_SIDE2:
-      return true;
+      if (RADIO_GetRadio() == RADIO_SI4732 && isSsb) {
+        RADIO_TuneToSave(radio->rx.f - 1);
+        return true;
+      }
+      break;
     case KEY_8:
       if (RADIO_GetRadio() == RADIO_BK4819) {
         IncDec8(&menuState, 1, ARRAY_SIZE(registerSpecs), 1);
@@ -251,7 +260,7 @@ void VFOPRO_render(void) {
   UI_ClearScreen();
   STATUSLINE_SetText(gCurrentPreset->band.name);
   UI_FSmall(gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(radio->rx.f));
-  UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, radio->rx.f, 23);
+  UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, RADIO_GetS(), radio->rx.f, 23);
 
   if (RADIO_GetRadio() == RADIO_BK4819) {
     DrawRegs();

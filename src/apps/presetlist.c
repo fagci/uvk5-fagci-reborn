@@ -1,5 +1,4 @@
 #include "presetlist.h"
-#include "../helper/channels.h"
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"
 #include "../helper/presetlist.h"
@@ -18,8 +17,8 @@ static void getPresetItem(uint16_t i, uint16_t index, bool isCurrent) {
   }
   PrintMediumEx(8, y + 8, POS_L, C_INVERT, "%s", p->band.name);
   char scanlistsStr[9] = "";
-  for (uint8_t n = 0; n < 8; ++n) {
-    scanlistsStr[n] = p->memoryBanks & (1 << n) ? '1' + n : '-';
+  for (i = 0; i < 8; ++i) {
+    scanlistsStr[i] = p->memoryBanks & (1 << i) ? '1' + i : '-';
   }
   PrintSmallEx(LCD_WIDTH - 5, y + 8, POS_R, C_INVERT, "%s", scanlistsStr);
 }

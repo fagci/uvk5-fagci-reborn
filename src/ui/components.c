@@ -17,23 +17,23 @@ void UI_Battery(uint8_t Level) {
   }
 }
 
-void UI_RSSIBar(uint16_t rssi, uint32_t f, uint8_t y) {
+void UI_RSSIBar(uint16_t rssi, int8_t s, uint32_t f, uint8_t y) {
   if (rssi == 0)
     return;
   const uint8_t BAR_LEFT_MARGIN = 32;
   const uint8_t BAR_BASE = y + 7;
 
   int dBm = Rssi2DBm(rssi);
-  uint8_t s = DBm2S(dBm, f >= 3000000);
+  // uint8_t s = DBm2S(dBm, f >= 3000000);
 
   FillRect(0, y, LCD_WIDTH, 8, C_CLEAR);
 
   for (uint8_t i = 0; i < s; ++i) {
-    if (i >= 9) {
+    /* if (i >= 9) {
       FillRect(BAR_LEFT_MARGIN + i * 5, y + 2, 4, 6, C_FILL);
-    } else {
-      FillRect(BAR_LEFT_MARGIN + i * 5, y + 3, 4, 4, C_FILL);
-    }
+    } else { */
+    FillRect(BAR_LEFT_MARGIN + i * 5, y + 3, 4, 4, C_FILL);
+    // }
   }
 
   PrintMediumEx(LCD_WIDTH - 1, BAR_BASE, 2, true, "%d", dBm);
@@ -54,20 +54,20 @@ void UI_FSmall(uint32_t f) {
 
   PrintSmall(0, 21, "%u.%02uk", step / 100, step % 100);
 
-  if (gSettings.upconverter) {
+  /* if (gSettings.upconverter) {
     UI_FSmallest(radio->rx.f, 32, 21);
-  }
+  } */
 
   PrintSmallEx(32, 21, POS_C, C_FILL, "S:%u", RADIO_GetSNR());
   PrintSmallEx(52, 21, POS_C, C_FILL, "N:%u", BK4819_GetNoise());
   PrintSmallEx(72, 21, POS_C, C_FILL, "G:%u", BK4819_GetGlitch());
   PrintSmallEx(92, 21, POS_C, C_FILL, "SQ:%u", gCurrentPreset->band.squelch);
 
-  PrintMediumEx(64, 15, POS_C, C_FILL, "%u.%05u", f / 100000, f % 100000);
+  PrintMediumEx(64, 15, POS_C, C_FILL, "%u.%05u", f / MHZ, f % MHZ);
 }
 
 void UI_FSmallest(uint32_t f, uint8_t x, uint8_t y) {
-  PrintSmall(x, y, "%u.%05u", f / 100000, f % 100000);
+  PrintSmall(x, y, "%u.%05u", f / MHZ, f % MHZ);
 }
 
 void drawTicks(uint8_t y, uint32_t fs, uint32_t fe, uint32_t div, uint8_t h) {
@@ -78,8 +78,6 @@ void drawTicks(uint8_t y, uint32_t fs, uint32_t fe, uint32_t div, uint8_t h) {
 }
 
 void UI_DrawTicks(uint8_t y, Band *band) {
-  // TODO: automatic ticks size determination
-
   FRange *range = &band->bounds;
   uint32_t fs = range->start;
   uint32_t fe = range->end;
@@ -92,24 +90,6 @@ void UI_DrawTicks(uint8_t y, Band *band) {
       return;
     }
   }
-
-  /* uint32_t fs = band->bounds.start;
-  uint32_t fe = band->bounds.end;
-  uint32_t bw = fe - fs;
-
-  if (bw > 5000000) {
-    drawTicks(x1, x2, y, fs, fe, 1000000, 3);
-    drawTicks(x1, x2, y, fs, fe, 500000, 2);
-  } else if (bw > 1000000) {
-    drawTicks(x1, x2, y, fs, fe, 500000, 3);
-    drawTicks(x1, x2, y, fs, fe, 100000, 2);
-  } else if (bw > 500000) {
-    drawTicks(x1, x2, y, fs, fe, 500000, 3);
-    drawTicks(x1, x2, y, fs, fe, 100000, 2);
-  } else {
-    drawTicks(x1, x2, y, fs, fe, 100000, 3);
-    drawTicks(x1, x2, y, fs, fe, 50000, 2);
-  } */
 }
 
 void UI_DrawSpectrumElements(const uint8_t sy, uint8_t msmDelay, int16_t sq,
@@ -125,16 +105,15 @@ void UI_DrawSpectrumElements(const uint8_t sy, uint8_t msmDelay, int16_t sq,
 
   if (gLastActiveLoot) {
     PrintMediumBoldEx(LCD_XCENTER, 14, POS_C, C_FILL, "%u.%05u",
-                      gLastActiveLoot->f / 100000, gLastActiveLoot->f % 100000);
+                      gLastActiveLoot->f / MHZ, gLastActiveLoot->f % MHZ);
   }
 
   uint32_t fs = currentBand->bounds.start;
   uint32_t fe = currentBand->bounds.end;
 
-  PrintSmallEx(0, LCD_HEIGHT - 1, POS_L, C_FILL, "%u.%05u", fs / 100000,
-               fs % 100000);
-  PrintSmallEx(LCD_WIDTH, LCD_HEIGHT - 1, POS_R, C_FILL, "%u.%05u", fe / 100000,
-               fe % 100000);
+  PrintSmallEx(0, LCD_HEIGHT - 1, POS_L, C_FILL, "%u.%05u", fs / MHZ, fs % MHZ);
+  PrintSmallEx(LCD_WIDTH, LCD_HEIGHT - 1, POS_R, C_FILL, "%u.%05u", fe / MHZ,
+               fe % MHZ);
 }
 
 void UI_ShowWait() {

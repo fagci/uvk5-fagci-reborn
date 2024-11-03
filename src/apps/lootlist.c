@@ -78,8 +78,8 @@ static void displayFreqBlWl(uint8_t y, const Loot *loot) {
   if (loot->whitelist) {
     PrintMediumEx(1, y + 7, POS_L, C_INVERT, "+");
   }
-  PrintMediumEx(8, y + 7, POS_L, C_INVERT, "%u.%05u", loot->f / 100000,
-                loot->f % 100000);
+  PrintMediumEx(8, y + 7, POS_L, C_INVERT, "%u.%05u", loot->f / MHZ,
+                loot->f % MHZ);
   if (gIsListening && loot->f == radio->rx.f) {
     PrintSymbolsEx(LCD_WIDTH - 24, y + 7, POS_R, C_INVERT, "%c", SYM_BEEP);
   }
@@ -173,7 +173,7 @@ static void saveLootToCh(const Loot *loot, int16_t chnum, uint8_t scanlist) {
       .bw = p->band.bw,
   };
 
-  snprintf(ch.name, 9, "%lu.%05lu", ch.rx.f / 100000, ch.rx.f % 100000);
+  snprintf(ch.name, 9, "%lu.%05lu", ch.rx.f / MHZ, ch.rx.f % MHZ);
 
   if (loot->ct != 255) {
     ch.tx.codeType = CODE_TYPE_CONTINUOUS_TONE;

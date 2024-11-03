@@ -336,11 +336,11 @@ static const char *getValue(Menu type) {
   case M_BL_SQL:
     return BL_SQL_MODE_NAMES[gSettings.backlightOnSquelch];
   case M_FLT_BOUND:
-    sprintf(Output, "%uMHz", SETTINGS_GetFilterBound() / 100000);
+    sprintf(Output, "%uMHz", SETTINGS_GetFilterBound() / MHZ);
     return Output;
   case M_UPCONVERTER:
-    sprintf(Output, "%u.%05u", gSettings.upconverter / 100000,
-            gSettings.upconverter % 100000);
+    sprintf(Output, "%u.%05u", gSettings.upconverter / MHZ,
+            gSettings.upconverter % MHZ);
     return Output;
   case M_BEEP:
     return onOff[gSettings.beep];

@@ -4,7 +4,7 @@
 #include "../scheduler.h"
 #include "../ui/graphics.h"
 #include "apps.h"
-#include <string.h>
+// #include <string.h>
 
 uint32_t gFInputTempFreq;
 void (*gFInputCallback)(uint32_t f);

@@ -8,7 +8,6 @@
 #include "../settings.h"
 #include "../ui/graphics.h"
 #include "ARMCM0.h"
-#include <string.h>
 
 static uint32_t bytesMax = 0;
 static uint32_t bytesWrote = 0;

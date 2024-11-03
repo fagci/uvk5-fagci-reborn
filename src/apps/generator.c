@@ -1,5 +1,6 @@
 #include "generator.h"
 #include "../driver/bk4819.h"
+#include "../misc.h"
 #include "../radio.h"
 #include "../ui/graphics.h"
 #include "apps.h"
@@ -87,8 +88,8 @@ bool GENERATOR_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 void GENERATOR_render() {
   UI_ClearScreen();
   uint32_t txf = RADIO_GetTXF();
-  PrintMediumEx(LCD_XCENTER, 15, POS_C, C_FILL, "%u.%05u", txf / 100000,
-                txf % 100000);
+  PrintMediumEx(LCD_XCENTER, 15, POS_C, C_FILL, "%u.%05u", txf / MHZ,
+                txf % MHZ);
   PrintMediumEx(LCD_XCENTER, 15 + 12, POS_C, C_FILL, "F: %uHz", tone1Freq);
   PrintMediumEx(LCD_XCENTER, 15 + 28, POS_C, C_FILL, "Pow: %u%s", power,
                 (bkPower >= 0x91 && paEnabled) ? "!!!" : "");

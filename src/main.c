@@ -10,7 +10,6 @@
 #include "driver/uart.h"
 #include "external/CMSIS_5/Device/ARM/ARMCM0/Include/ARMCM0.h"
 #include "helper/battery.h"
-#include "helper/channels.h"
 #include "helper/presetlist.h"
 #include "radio.h"
 #include "scheduler.h"
@@ -19,7 +18,6 @@
 #include "ui/graphics.h"
 #include <stdbool.h>
 #include <stdint.h>
-#include <string.h>
 
 static void Boot(AppType_t appToRun) {
   RADIO_SetupRegisters();

@@ -20,7 +20,6 @@ static const char Version[] = "R3b0rn";
 static uint8_t UART_DMA_Buffer[256];
 
 static bool bIsInLockScreen = false;
-static uint32_t gChallenge[4];
 
 void UART_Init(void) {
   uint32_t Delta;
@@ -270,10 +269,6 @@ static void SendVersion(void) {
   strcpy(Reply.Data.Version, Version);
   Reply.Data.bHasCustomAesKey = false;
   Reply.Data.bIsInLockScreen = bIsInLockScreen;
-  Reply.Data.Challenge[0] = gChallenge[0];
-  Reply.Data.Challenge[1] = gChallenge[1];
-  Reply.Data.Challenge[2] = gChallenge[2];
-  Reply.Data.Challenge[3] = gChallenge[3];
 
   SendReply(&Reply, sizeof(Reply));
 }
@@ -505,14 +500,6 @@ void UART_HandleCommand(void) {
     CMD_051D(UART_Command.Buffer);
     break;
 
-  case 0x051F:
-    // Not implementing non-authentic command
-    break;
-
-  case 0x0521:
-    // Not implementing non-authentic command
-    break;
-
   case 0x0527:
     CMD_0527();
     break;
@@ -536,23 +523,14 @@ void UART_HandleCommand(void) {
   BOARD_ToggleGreen(false);
 }
 
-void UART_printf(const char *str, ...) {
-  char text[128];
-  int len;
-
-  va_list va;
-  va_start(va, str);
-  len = vsnprintf(text, sizeof(text), str, va);
-  va_end(va);
-
-  UART_Send(text, len);
-}
-
 void Log(const char *pattern, ...) {
   char text[128];
   va_list args;
   va_start(args, pattern);
   vsnprintf(text, sizeof(text), pattern, args);
   va_end(args);
-  UART_printf("%u %s\n", Now(), text);
+  sprintf(text, "%u %s\n", Now(), text);
+  UART_Send(text, strlen(text));
 }
+
+void LogUart(const char *const str) { UART_Send(str, strlen(str)); }

@@ -80,7 +80,7 @@ static void prepareABScan() {
     b->start = F2;
     b->end = F1;
   }
-  sprintf(defaultPreset.band.name, "%u-%u", b->start / 100000, b->end / 100000);
+  sprintf(defaultPreset.band.name, "%u-%u", b->start / MHZ, b->end / MHZ);
   gCurrentPreset = &defaultPreset;
   defaultPreset.lastUsedFreq = radio->rx.f;
   gSettings.crossBandScan = false;
@@ -340,14 +340,14 @@ void VFO1_render(void) {
   Preset *p = gVFOPresets[gSettings.activeVFO];
   uint32_t f = gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(vfo->rx.f);
 
-  uint16_t fp1 = f / 100000;
+  uint16_t fp1 = f / MHZ;
   uint16_t fp2 = f / 100 % 1000;
   uint8_t fp3 = f % 100;
   const char *mod =
       modulationTypeOptions[vfo->modulation == MOD_PRST ? p->band.modulation
                                                         : vfo->modulation];
   if (gIsListening) {
-    UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, vfo->rx.f, BASE + 2);
+    UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, RADIO_GetS(), vfo->rx.f, BASE + 2);
   }
 
   if (radio->channel >= 0) {

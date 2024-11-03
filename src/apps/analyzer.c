@@ -299,5 +299,5 @@ void ANALYZER_render(void) {
                Rssi2DBm(SP_GetNoiseFloor()), Rssi2DBm(SP_GetRssiMax()));
 
   PrintSmallEx(spectrumWidth / 2, LCD_HEIGHT - 1, POS_C, C_FILL, "%u.%05u",
-               centerF / 100000, centerF % 100000);
+               centerF / MHZ, centerF % MHZ);
 }

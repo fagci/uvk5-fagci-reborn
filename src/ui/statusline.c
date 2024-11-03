@@ -62,8 +62,7 @@ void STATUSLINE_render(void) {
   DrawHLine(0, 6, LCD_WIDTH, C_FILL);
 
   if (showBattery) {
-    if (gSettings.batteryStyle == BAT_PERCENT ||
-        gSettings.batteryStyle == BAT_VOLTAGE) {
+    if (gSettings.batteryStyle) {
       PrintSmallEx(LCD_WIDTH - 1, BASE_Y, POS_R, C_INVERT, "%u%%",
                    gBatteryPercent);
     } else {
@@ -132,6 +131,4 @@ void STATUSLINE_render(void) {
                  BASE_Y, POS_R, C_FILL, "%s", icons);
 
   PrintSmall(0, BASE_Y, statuslineText);
-
-  // FillRect(0, 0, LCD_WIDTH, 7, C_INVERT);
 }

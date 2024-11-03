@@ -593,7 +593,7 @@ bool PRESET_InRangeOffset(const uint32_t f, const Preset *p) {
 }
 
 int8_t PRESET_IndexOf(Preset *p) {
-  for (int8_t i = 0; i < PRESETS_Size(); ++i) {
+  for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
     if (PRESETS_Item(i) == p) {
       return i;
     }
@@ -626,17 +626,6 @@ int8_t PRESET_SelectByFrequency(uint32_t f) {
     gSettings.activePreset = i;
   }
   return i;
-  /* if (PRESET_InRange(f, gCurrentPreset)) {
-    return gSettings.activePreset;
-  }
-  for (int8_t i = 0; i < PRESETS_Size(); ++i) {
-    if (PRESET_InRange(f, &presets[i])) {
-      PRESET_Select(i);
-      return i;
-    }
-  }
-  gCurrentPreset = &defaultPreset; // TODO: make preset between near bands
-  return -1; */
 }
 
 bool PRESETS_Load(void) {

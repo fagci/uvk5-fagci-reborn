@@ -440,7 +440,7 @@ void BOARD_Init(void) {
 
   CRC_Init();
   UART_Init();
-  UART_printf("fagci R3b0rn\n");
+  LogUart("fagci R3b0rn\n");
 
   ST7565_Init();
   // BK1080_Init(0, false);

@@ -101,10 +101,10 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
             31);
     break;
   case M_START:
-    sprintf(Output, "%lu.%03lu", fs / 100000, fs / 100 % 1000);
+    sprintf(Output, "%lu.%03lu", fs / MHZ, fs / 100 % 1000);
     break;
   case M_END:
-    sprintf(Output, "%lu.%03lu", fe / 100000, fe / 100 % 1000);
+    sprintf(Output, "%lu.%03lu", fe / MHZ, fe / 100 % 1000);
     break;
   case M_NAME:
     strncpy(Output, band->name, 31);
@@ -135,10 +135,10 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
     strncpy(Output, yesNo[gCurrentPreset->allowTx], 31);
     break;
   case M_F_RX:
-    sprintf(Output, "%u.%05u", radio->rx.f / 100000, radio->rx.f % 100000);
+    sprintf(Output, "%u.%05u", radio->rx.f / MHZ, radio->rx.f % MHZ);
     break;
   case M_F_TX:
-    sprintf(Output, "%u.%05u", radio->tx.f / 100000, radio->tx.f % 100000);
+    sprintf(Output, "%u.%05u", radio->tx.f / MHZ, radio->tx.f % MHZ);
     break;
   case M_RX_CODE_TYPE:
     strncpy(Output, TX_CODE_TYPES[radio->rx.codeType], 31);
@@ -153,8 +153,8 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
     PrintRTXCode(Output, radio->tx.codeType, radio->tx.code);
     break;
   case M_TX_OFFSET:
-    sprintf(Output, "%u.%05u", gCurrentPreset->offset / 100000,
-            gCurrentPreset->offset % 100000);
+    sprintf(Output, "%u.%05u", gCurrentPreset->offset / MHZ,
+            gCurrentPreset->offset % MHZ);
     break;
   case M_TX_OFFSET_DIR:
     snprintf(Output, 15, TX_OFFSET_NAMES[gCurrentPreset->offsetDir]);

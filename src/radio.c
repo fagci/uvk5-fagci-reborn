@@ -747,6 +747,20 @@ uint16_t RADIO_GetSNR(void) {
   }
 }
 
+uint16_t RADIO_GetS() {
+    uint8_t snr = RADIO_GetSNR();
+  switch (RADIO_GetRadio()) {
+  case RADIO_BK4819:
+    return ConvertDomain(snr, 0, 137, 0, 13);
+  case RADIO_BK1080:
+    return ConvertDomain(snr, 0, 137, 0, 13);
+  case RADIO_SI4732:
+    return ConvertDomain(snr, 0, 30, 0, 13);
+  default:
+    return 0;
+  }
+}
+
 bool RADIO_IsSquelchOpen(const Loot *msm) {
   if (RADIO_GetRadio() == RADIO_BK4819) {
     if (isSimpleSql()) {

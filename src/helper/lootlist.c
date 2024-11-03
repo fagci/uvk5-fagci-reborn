@@ -72,8 +72,8 @@ Loot *LOOT_Add(uint32_t f) { return LOOT_AddEx(f, true); }
 
 void LOOT_Remove(uint16_t i) {
   if (LOOT_Size()) {
-    for (uint16_t _i = i; _i < LOOT_Size() - 1; ++_i) {
-      loot[_i] = loot[_i + 1];
+    for (; i < LOOT_Size() - 1; ++i) {
+      loot[i] = loot[i + 1];
     }
     lootIndex--;
   }
@@ -145,10 +145,7 @@ void LOOT_Replace(Loot *item, uint32_t f) {
   lastTimeCheck = Now();
 }
 
-void LOOT_ReplaceItem(uint16_t i, uint32_t f) {
-  Loot *item = LOOT_Item(i);
-  LOOT_Replace(item, f);
-}
+void LOOT_ReplaceItem(uint16_t i, uint32_t f) { LOOT_Replace(LOOT_Item(i), f); }
 
 void LOOT_UpdateEx(Loot *item, Loot *msm) {
   if (item == NULL) {

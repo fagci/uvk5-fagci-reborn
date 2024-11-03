@@ -64,7 +64,7 @@ static void moveRange() {
   int16_t f = from;
   int16_t t = to;
   if (f > t) {
-    swap_int16_t(f, t);
+    SWAP(f, t);
   }
 
   CH _ch;
@@ -95,8 +95,8 @@ void SAVECH_update(void) {}
 
 static void save(void) {
   gTextinputText = tempName;
-  snprintf(gTextinputText, 9, "%lu.%05lu", radio->rx.f / 100000,
-           radio->rx.f % 100000);
+  snprintf(gTextinputText, 9, "%lu.%05lu", radio->rx.f / MHZ,
+           radio->rx.f % MHZ);
   gTextInputSize = 9;
   gTextInputCallback = saveNamed;
   APPS_run(APP_TEXTINPUT);
@@ -182,7 +182,7 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   int16_t f = from;
   int16_t t = currentChannelIndex;
   if (f > t) {
-    swap_int16_t(f, t);
+    SWAP(f, t);
   }
   CH _ch;
   if (!bKeyPressed && !bKeyHeld) {
@@ -266,7 +266,7 @@ void SAVECH_render(void) {
     int16_t f = from + 1;
     int16_t t = to == -1 ? currentChannelIndex + 1 : to + 1;
     if (f > t) {
-      swap_int16_t(f, t);
+      SWAP(f, t);
     }
     if (to == -1) {
       STATUSLINE_SetText("%d-%d", f, t);
