@@ -39,6 +39,10 @@ void PutPixel(uint8_t x, uint8_t y, uint8_t fill) {
   }
 }
 
+bool GetPixel(uint8_t x, uint8_t y) {
+  return gFrameBuffer[y / 8][x] & (1 << (y & 7));
+}
+
 static void DrawALine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
                       int16_t color) {
   int16_t steep = abs(y1 - y0) > abs(x1 - x0);

@@ -51,6 +51,7 @@ void UI_ClearStatus();
 void UI_ClearScreen();
 
 void PutPixel(uint8_t x, uint8_t y, uint8_t fill);
+bool GetPixel(uint8_t x, uint8_t y);
 
 void DrawVLine(int16_t x, int16_t y, int16_t h, Color color);
 void DrawHLine(int16_t x, int16_t y, int16_t w, Color color);
