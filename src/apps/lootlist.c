@@ -226,6 +226,7 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     switch (key) {
     case KEY_0:
       LOOT_Clear();
+      RADIO_TuneToPure(0, true);
       return true;
     case KEY_SIDE1:
       gMonitorMode = !gMonitorMode;
