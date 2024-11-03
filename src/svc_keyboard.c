@@ -8,6 +8,7 @@
 #include "inc/dp32g030/gpio.h"
 #include "scheduler.h"
 #include "settings.h"
+#include "screencapture.h"
 
 // NOTE: Important!
 // If app runs app on keypress, keyup passed to next app
@@ -20,14 +21,15 @@ static void onKey(KEY_Code_t key, bool pressed, bool hold) {
     BACKLIGHT_On();
     TaskTouch(BACKLIGHT_Update);
   }
+  
   if (hold && pressed && !gRepeatHeld && key == KEY_F) {
     gSettings.keylock = !gSettings.keylock;
     SETTINGS_Save();
     gRedrawScreen = true;
     return;
   }
-  if (gSettings.keylock && (gSettings.pttLock ? true : key != KEY_PTT) &&
-      !(hold && pressed && !gRepeatHeld && key == KEY_F)) {
+
+  if (gSettings.keylock && (gSettings.pttLock ? true : key != KEY_PTT) && !(hold && pressed && !gRepeatHeld && key == KEY_F)) {
     return;
   }
 
@@ -37,6 +39,11 @@ static void onKey(KEY_Code_t key, bool pressed, bool hold) {
   // - keyup hold (hold && !pressed)
   if ((hold || !pressed) && APPS_key(key, pressed, hold)) {
     gRedrawScreen = true;
+    return;
+  }
+
+  if (key == KEY_8 && hold && pressed) {
+    captureScreen();
     return;
   }
 
@@ -62,6 +69,14 @@ static void onKey(KEY_Code_t key, bool pressed, bool hold) {
   }
 }
 
-void SVC_KEYBOARD_Init(void) {}
-void SVC_KEYBOARD_Update(void) { KEYBOARD_CheckKeys(onKey); }
-void SVC_KEYBOARD_Deinit(void) {}
+void SVC_KEYBOARD_Init(void) {
+
+}
+
+void SVC_KEYBOARD_Update(void) {
+  KEYBOARD_CheckKeys(onKey);
+}
+
+void SVC_KEYBOARD_Deinit(void) {
+
+}

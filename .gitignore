@@ -2,6 +2,8 @@ obj/
 bin/
 src/external/
 .vsconfig/
+.vscode/
+.DS_Store
 
 *.log
 *.log.bak
