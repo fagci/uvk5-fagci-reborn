@@ -650,6 +650,26 @@ void RADIO_SetGain(uint8_t gainIndex) {
   onPresetUpdate();
 }
 
+void RADIO_SetFilterBandwidth(BK4819_FilterBandwidth_t bw) {
+  ModulationType mod = RADIO_GetModulation();
+  switch (RADIO_GetRadio()) {
+  case RADIO_BK4819:
+    BK4819_SetFilterBandwidth(bw);
+    break;
+  case RADIO_BK1080:
+    break;
+  case RADIO_SI4732:
+    if (mod == MOD_USB || mod == MOD_LSB) {
+      SI47XX_SetSsbBandwidth(SI_BW_MAP_SSB[bw]);
+    } else {
+      SI47XX_SetBandwidth(SI_BW_MAP_AMFM[bw], true);
+    }
+    break;
+  default:
+    break;
+  }
+}
+
 void RADIO_SetupBandParams() {
   // Log("RADIO_SetupBandParams");
   Band *b = &gCurrentPreset->band;
@@ -657,12 +677,12 @@ void RADIO_SetupBandParams() {
   ModulationType mod = RADIO_GetModulation();
   RADIO_SetGain(b->gainIndex);
   // Log("Set mod %s", modulationTypeOptions[mod]);
+  RADIO_SetFilterBandwidth(b->bw);
   switch (RADIO_GetRadio()) {
   case RADIO_BK4819:
     BK4819_SquelchType(b->squelchType);
     BK4819_Squelch(b->squelch, fMid, gSettings.sqlOpenTime,
                    gSettings.sqlCloseTime);
-    BK4819_SetFilterBandwidth(b->bw);
     BK4819_SetModulation(mod);
     if (gSettings.scrambler) {
       BK4819_EnableScramble(gSettings.scrambler);
@@ -678,10 +698,7 @@ void RADIO_SetupBandParams() {
       SI47XX_SetSeekFmLimits(b->bounds.start, b->bounds.end);
       SI47XX_SetSeekFmSpacing(StepFrequencyTable[b->step]);
     } else {
-      if (mod == MOD_USB || mod == MOD_LSB) {
-        SI47XX_SetSsbBandwidth(SI_BW_MAP_SSB[b->bw]);
-      } else {
-        SI47XX_SetBandwidth(SI_BW_MAP_AMFM[b->bw], true);
+      if (mod == MOD_AM) {
         SI47XX_SetSeekAmLimits(b->bounds.start, b->bounds.end);
         SI47XX_SetSeekAmSpacing(StepFrequencyTable[b->step]);
       }
@@ -1035,7 +1052,8 @@ void RADIO_ToggleListeningBW(void) {
     ++gCurrentPreset->band.bw;
   }
 
-  BK4819_SetFilterBandwidth(gCurrentPreset->band.bw);
+  RADIO_SetFilterBandwidth(gCurrentPreset->band.bw);
+
   onPresetUpdate();
 }
 
