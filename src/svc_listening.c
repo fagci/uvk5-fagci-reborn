@@ -71,13 +71,13 @@ void SVC_LISTEN_Init(void) {
   gDW.lastActiveVFO = -1;
   gDW.activityOnVFO = 0;
   gDW.isSync = false;
-  gDW.doSync = gSettings.dw;
+  gDW.doSync = gSettings.dw != DW_OFF;
   gDW.doSwitch = false;
   gDW.doSwitchBack = false;
 }
 
 void SVC_LISTEN_Update(void) {
-  if (gSettings.dw) {
+  if (gSettings.dw != DW_OFF) {
     if (gDW.doSwitch) {
       gDW.doSwitch = false;
       gDW.doSync = false;
@@ -103,7 +103,7 @@ void SVC_LISTEN_Update(void) {
     // return;
   }
   if (gTxState == TX_UNKNOWN && gDW.doSync) {
-    if (!gSettings.dw) {
+    if (gSettings.dw == DW_OFF) {
       gDW.doSync = false;
       return;
     }

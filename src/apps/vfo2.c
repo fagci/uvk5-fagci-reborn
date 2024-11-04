@@ -43,7 +43,7 @@ static void render2VFOPart(uint8_t i) {
     UI_RSSIBar(gLoot[i].rssi, RADIO_GetS(), f, 31);
   }
 
-  if (gSettings.dw && gDW.lastActiveVFO == i) {
+  if (gSettings.dw != DW_OFF && gDW.lastActiveVFO == i) {
     PrintMedium(13, bl, ">>");
   }
 
