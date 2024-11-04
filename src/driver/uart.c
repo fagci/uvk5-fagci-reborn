@@ -523,14 +523,26 @@ void UART_HandleCommand(void) {
   BOARD_ToggleGreen(false);
 }
 
+void LogUart(const char *const str) { UART_Send(str, strlen(str)); }
+
+
+void UART_printf(const char *str, ...) {
+  char text[128];
+  int len;
+
+  va_list va;
+  va_start(va, str);
+  len = vsnprintf(text, sizeof(text), str, va);
+  va_end(va);
+
+  UART_Send(text, len);
+}
+
 void Log(const char *pattern, ...) {
   char text[128];
   va_list args;
   va_start(args, pattern);
   vsnprintf(text, sizeof(text), pattern, args);
   va_end(args);
-  sprintf(text, "%u %s\n", Now(), text);
-  UART_Send(text, strlen(text));
+  UART_printf("%u %s\n", Now(), text);
 }
-
-void LogUart(const char *const str) { UART_Send(str, strlen(str)); }

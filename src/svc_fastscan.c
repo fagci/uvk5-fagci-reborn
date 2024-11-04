@@ -1,7 +1,6 @@
 #include "svc_fastscan.h"
 #include "driver/bk4819.h"
 #include "driver/st7565.h"
-#include "driver/uart.h"
 #include "helper/lootlist.h"
 #include "radio.h"
 #include "scheduler.h"
@@ -94,8 +93,6 @@ void SVC_FC_Update(void) {
   if (loot && (loot->blacklist || loot->whitelist)) {
     return;
   }
-
-  Log("%u0", f);
 
   if (delta(f, scanF) < 100) {
     gotF(f);
