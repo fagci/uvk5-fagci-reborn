@@ -1,4 +1,5 @@
 #include "spectrum.h"
+#include "../driver/uart.h"
 #include "../helper/measurements.h"
 #include "components.h"
 #include "graphics.h"
@@ -39,8 +40,11 @@ static uint16_t minRssi(const uint16_t *array, uint8_t n) {
 static uint8_t maxNoise(const uint8_t *array, uint8_t n) {
   uint16_t max = 0;
   for (uint8_t i = 0; i < n; ++i) {
-    if (array[i] > max) {
+    if (array[i] != UINT8_MAX && array[i] > max) {
       max = array[i];
+    }
+    if (array[i] == UINT8_MAX) {
+      Log("!!! NOISE=255 at %u", i);
     }
   }
   return max;
@@ -70,6 +74,7 @@ void SP_Init(Band *b) {
   SP_Begin();
 }
 
+#include "../driver/uart.h"
 void SP_AddPoint(const Loot *msm) {
   uint32_t xs = ConvertDomain(msm->f, range->start, range->end, 0, MAX_POINTS);
   uint32_t xe =
@@ -91,7 +96,7 @@ void SP_AddPoint(const Loot *msm) {
       noiseHistory[x] = msm->noise;
     }
   }
-  if (x > filledPoints) {
+  if (x + 1 > filledPoints) {
     filledPoints = x + 1;
   }
   if (filledPoints > MAX_POINTS) {

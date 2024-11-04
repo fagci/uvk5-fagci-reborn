@@ -136,3 +136,20 @@ void CHANNELS_LoadScanlist(uint8_t n) {
   }
   SETTINGS_Save();
 }
+
+void CHANNELS_LoadBlacklistToLoot() {
+  uint8_t scanlistMask = 1 << 7;
+  for (int16_t i = 0; i < CHANNELS_GetCountMax(); ++i) {
+    if (!CHANNELS_Existing(i)) {
+      continue;
+    }
+    if ((CHANNELS_Scanlists(i) & scanlistMask) == scanlistMask) {
+      CH ch;
+      CHANNELS_Load(i, &ch);
+      Loot *loot = LOOT_AddEx(ch.rx.f, true);
+      loot->open = false;
+      loot->blacklist = true;
+      loot->lastTimeOpen = 0;
+    }
+  }
+}

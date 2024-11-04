@@ -4,6 +4,7 @@
 #include "../driver/bk4819.h"
 #include "../driver/st7565.h"
 #include "../driver/system.h"
+#include "../driver/uart.h"
 #include "../helper/channels.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
@@ -64,13 +65,15 @@ static void updateMsm() {
     msm.open = isSquelchOpen();
   }
 
-  LOOT_Update(&msm);
   SP_AddPoint(&msm);
+  LOOT_Update(&msm);
   RADIO_ToggleRX(msm.open);
 }
 
 static void scanFn(bool _) {
-  if (msm.rssi == 0) {
+  if (msm.rssi == 0 ||
+      msm.noise ==
+          UINT8_MAX) { // to prevent skip freq when scanFn is called faster
     return;
   }
   RADIO_ToggleRX(false);
@@ -90,6 +93,7 @@ static void scanFn(bool _) {
     SP_Next();
   }
   msm.rssi = 0;
+  msm.noise = UINT8_MAX;
 }
 
 static void init() {
@@ -120,25 +124,8 @@ static void startNewScan() {
   }
 }
 
-static void loadBlacklist() {
-  uint8_t scanlistMask = 1 << 7;
-  for (int16_t i = 0; i < CHANNELS_GetCountMax(); ++i) {
-    if (!CHANNELS_Existing(i)) {
-      continue;
-    }
-    if ((CHANNELS_Scanlists(i) & scanlistMask) == scanlistMask) {
-      CH ch;
-      CHANNELS_Load(i, &ch);
-      Loot *loot = LOOT_AddEx(ch.rx.f, true);
-      loot->open = false;
-      loot->blacklist = true;
-      loot->lastTimeOpen = 0;
-    }
-  }
-}
-
 void SPECTRUM_init(void) {
-  loadBlacklist();
+  CHANNELS_LoadBlacklistToLoot();
 
   SVC_Toggle(SVC_LISTEN, false, 0);
   RADIO_LoadCurrentVFO();

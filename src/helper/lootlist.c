@@ -4,6 +4,7 @@
 #include "../radio.h"
 #include "../scheduler.h"
 #include "../svc.h"
+#include <stdint.h>
 
 static Loot loot[LOOT_SIZE_MAX] = {0};
 static int16_t lootIndex = -1;
@@ -61,6 +62,7 @@ Loot *LOOT_AddEx(uint32_t f, bool reuse) {
       .lastTimeOpen = Now(),
       .duration = 0,
       .rssi = 0,
+      .noise = UINT8_MAX,
       .cd = 0xFF,
       .ct = 0xFF,
       .open = true, // as we add it when open
@@ -140,6 +142,7 @@ void LOOT_Replace(Loot *item, uint32_t f) {
   item->lastTimeOpen = 0;
   item->duration = 0;
   item->rssi = 0;
+  item->noise = UINT8_MAX;
   item->ct = 0xFF;
   item->cd = 0xFF;
   lastTimeCheck = Now();
@@ -206,6 +209,7 @@ void LOOT_Update(Loot *msm) {
 
   LOOT_UpdateEx(item, msm);
 }
+
 void LOOT_RemoveBlacklisted(void) {
   LOOT_Sort(LOOT_SortByBlacklist, true);
   for (uint16_t i = 0; i < LOOT_Size(); ++i) {
