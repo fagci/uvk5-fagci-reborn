@@ -64,6 +64,9 @@ static void updateMsm() {
   } else {
     msm.open = isSquelchOpen();
   }
+  if (gSettings.skipGarbageFrequencies && (msm.f % 1300000 == 0)) {
+    msm.open = false;
+  }
 
   SP_AddPoint(&msm);
   LOOT_Update(&msm);
@@ -71,9 +74,7 @@ static void updateMsm() {
 }
 
 static void scanFn(bool _) {
-  if (msm.rssi == 0 ||
-      msm.noise ==
-          UINT8_MAX) { // to prevent skip freq when scanFn is called faster
+  if (msm.rssi == 0) { // to prevent skip freq when scanFn is called faster
     return;
   }
   RADIO_ToggleRX(false);
