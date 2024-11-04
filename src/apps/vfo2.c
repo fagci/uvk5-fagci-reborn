@@ -38,7 +38,8 @@ static void render2VFOPart(uint8_t i) {
     }
   }
 
-  if (gIsListening && (gDW.activityOnVFO == i || (!gSettings.dw && isActive))) {
+  if (gIsListening && ((gSettings.dw != DW_OFF && gDW.activityOnVFO == i) ||
+                       (gSettings.dw == DW_OFF && isActive))) {
     PrintMedium(0, bl, "RX");
     UI_RSSIBar(gLoot[i].rssi, RADIO_GetS(), f, 31);
   }
