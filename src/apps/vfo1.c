@@ -109,19 +109,14 @@ static void initChannelScan() {
 }
 
 static void startScan() {
-  if (RADIO_GetRadio() == RADIO_SI4732 && RADIO_IsSSB()) {
-    SSB_Seek_ON = true;
-    // todo: scan by snr
-  } else {
-    if (radio->channel >= 0) {
-      initChannelScan();
-    }
-    if (radio->channel >= 0 && gScanlistSize == 0) {
-      SVC_Toggle(SVC_SCAN, false, 0);
-      return;
-    }
-    SVC_Toggle(SVC_SCAN, true, gSettings.scanTimeout);
+  if (radio->channel >= 0) {
+    initChannelScan();
   }
+  if (radio->channel >= 0 && gScanlistSize == 0) {
+    SVC_Toggle(SVC_SCAN, false, 0);
+    return;
+  }
+  SVC_Toggle(SVC_SCAN, true, gSettings.scanTimeout);
 }
 
 static void scanlistByKey(KEY_Code_t key) {
@@ -167,16 +162,20 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     bool isSsb = RADIO_IsSSB();
     switch (key) {
     case KEY_UP:
-      SSB_Seek_ON = false;
-      SSB_Seek_UP = true;
+      if (SSB_Seek_ON) {
+        SSB_Seek_UP = true;
+        return true;
+      }
       if (SVC_Running(SVC_SCAN)) {
         gScanForward = true;
       }
       RADIO_NextFreqNoClicks(true);
       return true;
     case KEY_DOWN:
-      SSB_Seek_ON = false;
-      SSB_Seek_UP = false;
+      if (SSB_Seek_ON) {
+        SSB_Seek_UP = false;
+        return true;
+      }
       if (SVC_Running(SVC_SCAN)) {
         gScanForward = false;
       }
@@ -202,7 +201,6 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   // long held
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     OffsetDirection offsetDirection = gCurrentPreset->offsetDir;
-    SSB_Seek_ON = false;
     switch (key) {
     case KEY_EXIT:
       prepareABScan();
@@ -244,10 +242,15 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       RADIO_ToggleModulation();
       return true;
     case KEY_STAR:
-      if (gSettings.crossBandScan && radio->channel <= -1) {
-        selectFirstPresetFromScanlist();
+      if (RADIO_GetRadio() == RADIO_SI4732 && RADIO_IsSSB()) {
+        SSB_Seek_ON = true;
+        // todo: scan by snr
+      } else {
+        if (gSettings.crossBandScan && radio->channel <= -1) {
+          selectFirstPresetFromScanlist();
+        }
+        startScan();
       }
-      startScan();
       return true;
     case KEY_SIDE1:
       APPS_run(APP_ANALYZER);
@@ -262,7 +265,6 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
   // Simple keypress
   if (!bKeyPressed && !bKeyHeld) {
-    SSB_Seek_ON = false;
     switch (key) {
     case KEY_0:
     case KEY_1:
@@ -315,6 +317,10 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       }
       break;
     case KEY_EXIT:
+      if (SSB_Seek_ON) {
+        SSB_Seek_ON = false;
+        return true;
+      }
       if (SVC_Running(SVC_SCAN)) {
         SVC_Toggle(SVC_SCAN, false, 0);
         return true;
@@ -347,7 +353,8 @@ void VFO1_render(void) {
       modulationTypeOptions[vfo->modulation == MOD_PRST ? p->band.modulation
                                                         : vfo->modulation];
   if (gIsListening) {
-    UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, RADIO_GetS(), vfo->rx.f, BASE + 2);
+    UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, RADIO_GetS(), vfo->rx.f,
+               BASE + 2);
   }
 
   if (radio->channel >= 0) {
