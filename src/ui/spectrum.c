@@ -44,18 +44,18 @@ static uint8_t maxNoise(const uint8_t *array, uint8_t n) {
       max = array[i];
     }
     if (array[i] == UINT8_MAX) {
-      Log("!!! NOISE=255 at %u", i);
+      Log("!!! NOISE=255 at %u", i); // appears when switching bands
     }
   }
   return max;
 }
 
 void SP_ResetHistory(void) {
+  filledPoints = 0;
   for (uint8_t i = 0; i < MAX_POINTS; ++i) {
     rssiHistory[i] = 0;
     noiseHistory[i] = UINT8_MAX;
   }
-  filledPoints = 0;
 }
 
 void SP_Begin(void) {
