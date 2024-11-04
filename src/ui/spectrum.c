@@ -19,11 +19,12 @@ static const uint8_t S_BOTTOM = SPECTRUM_Y + SPECTRUM_H;
 static uint16_t rssiHistory[MAX_POINTS] = {0};
 static uint8_t noiseHistory[MAX_POINTS] = {0};
 
-static uint8_t x;
+static uint8_t x = 0;
+static uint8_t ox = UINT8_MAX;
 static uint8_t filledPoints;
 
-static uint16_t stepsCount;
-static uint16_t currentStep;
+static FRange *range;
+static uint32_t step;
 
 static uint16_t minRssi(const uint16_t *array, uint8_t n) {
   uint16_t min = UINT16_MAX;
@@ -48,30 +49,32 @@ static uint8_t maxNoise(const uint8_t *array, uint8_t n) {
 void SP_ResetHistory(void) {
   for (uint8_t i = 0; i < MAX_POINTS; ++i) {
     rssiHistory[i] = 0;
-    noiseHistory[x] = UINT8_MAX;
+    noiseHistory[i] = UINT8_MAX;
   }
   filledPoints = 0;
-  currentStep = 0;
 }
 
-void SP_Begin(void) { currentStep = 0; }
+void SP_Begin(void) {
+  x = 0;
+  ox = UINT8_MAX;
+}
 
 void SP_Next(void) {
-  if (currentStep < stepsCount - 1) {
-    currentStep++;
-  }
+  // TODO: remove
 }
 
-void SP_Init(uint16_t steps) {
-  stepsCount = steps;
+void SP_Init(Band *b) {
+  range = &b->bounds;
+  step = StepFrequencyTable[b->step];
   SP_ResetHistory();
   SP_Begin();
 }
 
-static uint8_t ox = UINT8_MAX;
 void SP_AddPoint(const Loot *msm) {
-  uint8_t xs = MAX_POINTS * currentStep / stepsCount;
-  uint8_t xe = MAX_POINTS * (currentStep + 1) / stepsCount;
+  uint32_t xs = ConvertDomain(msm->f, range->start, range->end, 0, MAX_POINTS);
+  uint32_t xe =
+      ConvertDomain(msm->f + step, range->start, range->end, 0, MAX_POINTS);
+
   if (xe > MAX_POINTS) {
     xe = MAX_POINTS;
   }
@@ -116,8 +119,7 @@ void SP_Render(const Preset *p) {
   DrawHLine(0, S_BOTTOM, MAX_POINTS, C_FILL);
 
   for (uint8_t i = 0; i < filledPoints; ++i) {
-    uint8_t yVal = ConvertDomain(rssiHistory[i] * 2, v.vMin * 2, v.vMax * 2, 0,
-                                 SPECTRUM_H);
+    uint8_t yVal = ConvertDomain(rssiHistory[i], v.vMin, v.vMax, 0, SPECTRUM_H);
     DrawVLine(i, S_BOTTOM - yVal, yVal, C_FILL);
   }
 }
@@ -156,8 +158,8 @@ void SP_RenderGraph() {
       ConvertDomain(rssiHistory[0] * 2, v.vMin * 2, v.vMax * 2, 0, SPECTRUM_H);
 
   for (uint8_t i = 1; i < MAX_POINTS; ++i) {
-    uint8_t yVal =
-        ConvertDomain(rssiHistory[i] * 2, v.vMin * 2, v.vMax * 2, 0, SPECTRUM_H);
+    uint8_t yVal = ConvertDomain(rssiHistory[i] * 2, v.vMin * 2, v.vMax * 2, 0,
+                                 SPECTRUM_H);
     DrawLine(i - 1, S_BOTTOM - oVal, i, S_BOTTOM - yVal, C_FILL);
     oVal = yVal;
   }

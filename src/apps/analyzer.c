@@ -57,7 +57,7 @@ static void startNewScan(bool reset) {
     } else {
       BK4819_SetFilterBandwidth(BK4819_FILTER_BW_NARROWER);
     }
-    SP_Init(PRESETS_GetSteps(&opt));
+    SP_Init(&opt.band);
   } else {
     SP_Begin();
   }

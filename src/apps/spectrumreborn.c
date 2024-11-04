@@ -64,12 +64,15 @@ static void updateMsm() {
     msm.open = isSquelchOpen();
   }
 
-  SP_AddPoint(&msm);
   LOOT_Update(&msm);
+  SP_AddPoint(&msm);
   RADIO_ToggleRX(msm.open);
 }
 
 static void scanFn(bool _) {
+  if (msm.rssi == 0) {
+    return;
+  }
   RADIO_ToggleRX(false);
   radio->rx.f = msm.f;
   if (RADIO_NextPresetFreqXBandEx(true, false, false)) {
@@ -86,10 +89,10 @@ static void scanFn(bool _) {
     msm.f = radio->rx.f;
     SP_Next();
   }
+  msm.rssi = 0;
 }
 
 static void init() {
-  newScan = true;
   oldPresetIndex = 0;
   rssiO = UINT16_MAX;
   noiseO = 0;
@@ -99,8 +102,7 @@ static void init() {
   LOOT_Standby();
   RADIO_SetupBandParams();
 
-  SP_Init(PRESETS_GetSteps(gCurrentPreset));
-  updateMsm();
+  SP_Init(&gCurrentPreset->band);
 }
 
 static void startNewScan() {
@@ -118,8 +120,7 @@ static void startNewScan() {
   }
 }
 
-void SPECTRUM_init(void) {
-  // --- LOAD BLACKLIST ---
+static void loadBlacklist() {
   uint8_t scanlistMask = 1 << 7;
   for (int16_t i = 0; i < CHANNELS_GetCountMax(); ++i) {
     if (!CHANNELS_Existing(i)) {
@@ -134,12 +135,14 @@ void SPECTRUM_init(void) {
       loot->lastTimeOpen = 0;
     }
   }
-  // --- LOAD BLACKLIST END ---
+}
+
+void SPECTRUM_init(void) {
+  loadBlacklist();
 
   SVC_Toggle(SVC_LISTEN, false, 0);
   RADIO_LoadCurrentVFO();
-  init();
-  // SVC_Toggle(SVC_SCAN, true, msmDelay);
+  newScan = true;
 }
 
 void SPECTRUM_deinit() {
@@ -158,13 +161,11 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_UP:
       PRESETS_SelectPresetRelative(true);
       RADIO_SelectPresetSave(gSettings.activePreset);
-      // newScan = true;
       startNewScan();
       return true;
     case KEY_DOWN:
       PRESETS_SelectPresetRelative(false);
       RADIO_SelectPresetSave(gSettings.activePreset);
-      // newScan = true;
       startNewScan();
       return true;
     case KEY_1:
@@ -241,7 +242,7 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   }
   return false;
 }
-
+static uint32_t lastMsmUpdate = 0;
 void SPECTRUM_update(void) {
   BOARD_ToggleGreen(gIsListening);
   if (Now() - gLastRender >= 500) {
@@ -254,7 +255,10 @@ void SPECTRUM_update(void) {
     gScanFn = scanFn;
     SVC_Toggle(SVC_SCAN, true, msmDelay);
   }
-  updateMsm();
+  if (Now() - lastMsmUpdate >= msmDelay) {
+    updateMsm();
+    lastMsmUpdate = Now();
+  }
 }
 
 void SPECTRUM_render(void) {

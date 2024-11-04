@@ -8,7 +8,7 @@
 
 void SP_AddPoint(const Loot *msm);
 void SP_ResetHistory();
-void SP_Init(uint16_t steps);
+void SP_Init(Band *b);
 void SP_Begin();
 void SP_Next();
 void SP_Render(const Preset *p);

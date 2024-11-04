@@ -67,7 +67,6 @@ void SVC_SCAN_Init(void) {
       gScanFn = RADIO_NextPresetFreqXBand;
     }
   }
-  next();
 }
 
 void SVC_SCAN_Update(void) {

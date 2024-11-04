@@ -13,7 +13,7 @@ void UI_FSmall(uint32_t f);
 void UI_FSmallest(uint32_t f, uint8_t x, uint8_t y);
 void UI_DrawScrollBar(const uint16_t size, const uint16_t currentIndex,
                       const uint8_t linesCount);
-void UI_DrawTicks(uint8_t y, Band *band);
+void UI_DrawTicks(uint8_t y, const Band *band);
 void UI_DrawSpectrumElements(const uint8_t sy, uint8_t msmDelay, int16_t sq,
                              Band *currentBand);
 void UI_ShowWait();

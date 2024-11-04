@@ -77,8 +77,8 @@ void drawTicks(uint8_t y, uint32_t fs, uint32_t fe, uint32_t div, uint8_t h) {
   }
 }
 
-void UI_DrawTicks(uint8_t y, Band *band) {
-  FRange *range = &band->bounds;
+void UI_DrawTicks(uint8_t y, const Band *band) {
+  const FRange *range = &band->bounds;
   uint32_t fs = range->start;
   uint32_t fe = range->end;
   uint32_t bw = fe - fs;
