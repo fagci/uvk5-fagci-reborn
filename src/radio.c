@@ -138,7 +138,7 @@ void RADIO_SetupRegisters(void) {
   /* BK4819_WriteRegister(BK4819_REG_3F, BK4819_REG_3F_SQUELCH_FOUND |
                                           BK4819_REG_3F_SQUELCH_LOST); */
   BK4819_WriteRegister(0x40, (BK4819_ReadRegister(0x40) & ~(0b11111111111)) |
-                                 1300 | (1 << 12));
+                                 1000 | (1 << 12));
   // BK4819_WriteRegister(0x40, (1 << 12) | (1450));
 }
 
