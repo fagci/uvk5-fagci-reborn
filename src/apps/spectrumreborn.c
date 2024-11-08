@@ -19,6 +19,7 @@
 #include "../ui/spectrum.h"
 #include "../ui/statusline.h"
 #include "apps.h"
+#include "vfo1.h"
 #include <stdint.h>
 
 static uint8_t noiseOpenDiff = 14;
@@ -221,7 +222,8 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_PTT:
       if (gLastActiveLoot) {
         RADIO_TuneToSave(gLastActiveLoot->f);
-        APPS_run(APP_VFOPRO);
+        gVfo1ProMode = true;
+        APPS_run(APP_VFO1);
       }
       return true;
     default:

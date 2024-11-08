@@ -20,7 +20,6 @@
 #include "vfo1.h"
 #include "vfo2.h"
 #include "vfocfg.h"
-#include "vfopro.h"
 
 #define APPS_STACK_SIZE 8
 
@@ -57,7 +56,6 @@ AppType_t APPS_Peek(void) {
 
 const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
     APP_VFO1,         //
-    APP_VFOPRO,       //
     APP_VFO2,         //
     APP_SAVECH,       //
     APP_SPECTRUM,     //
@@ -78,8 +76,6 @@ const App apps[APPS_COUNT] = {
     {"Analyzer", ANALYZER_init, ANALYZER_update, ANALYZER_render, ANALYZER_key,
      ANALYZER_deinit},
     {"Channels", SAVECH_init, SAVECH_update, SAVECH_render, SAVECH_key, NULL},
-    {"1 VFO pro", VFOPRO_init, VFOPRO_update, VFOPRO_render, VFOPRO_key,
-     VFOPRO_deinit},
     {"Freq input", FINPUT_init, NULL, FINPUT_render, FINPUT_key, FINPUT_deinit},
     {"Run app", APPSLIST_init, NULL, APPSLIST_render, APPSLIST_key, NULL},
     {"Loot", LOOTLIST_init, LOOTLIST_update, LOOTLIST_render, LOOTLIST_key,

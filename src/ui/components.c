@@ -17,10 +17,10 @@ void UI_Battery(uint8_t Level) {
   }
 }
 
-void UI_RSSIBar(uint16_t rssi, int8_t s, uint32_t f, uint8_t y) {
+void UI_RSSIBar(uint16_t rssi, uint8_t snr, uint32_t f, uint8_t y) {
   if (rssi == 0)
     return;
-  const uint8_t BAR_LEFT_MARGIN = 32;
+  const uint8_t BAR_LEFT_MARGIN = 2;
   const uint8_t BAR_BASE = y + 7;
 
   int dBm = Rssi2DBm(rssi);
@@ -28,20 +28,15 @@ void UI_RSSIBar(uint16_t rssi, int8_t s, uint32_t f, uint8_t y) {
 
   FillRect(0, y, LCD_WIDTH, 8, C_CLEAR);
 
-  for (uint8_t i = 0; i < s; ++i) {
-    /* if (i >= 9) {
-      FillRect(BAR_LEFT_MARGIN + i * 5, y + 2, 4, 6, C_FILL);
-    } else { */
+  for (uint8_t i = 0; i < ConvertDomain(rssi, 15, 340, 0, 13); ++i) {
     FillRect(BAR_LEFT_MARGIN + i * 5, y + 3, 4, 4, C_FILL);
-    // }
   }
 
+  FillRect(BAR_LEFT_MARGIN, y + 8, ConvertDomain(RADIO_GetS(), 0, 13, 0, 54), 1,
+           C_FILL);
+
   PrintMediumEx(LCD_WIDTH - 1, BAR_BASE, 2, true, "%d", dBm);
-  if (s < 10) {
-    PrintMedium(0, BAR_BASE, "S%u", s);
-  } else {
-    PrintMedium(0, BAR_BASE, "S9+%u0", s - 9);
-  }
+  // PrintMedium(0, BAR_BASE, "SNR %u", snr);
 }
 
 void UI_FSmall(uint32_t f) {
@@ -52,7 +47,7 @@ void UI_FSmall(uint32_t f) {
 
   uint16_t step = StepFrequencyTable[gCurrentPreset->band.step];
 
-  PrintSmall(0, 21, "%u.%02uk", step / 100, step % 100);
+  // PrintSmall(0, 21, "%u.%02uk", step / 100, step % 100);
 
   /* if (gSettings.upconverter) {
     UI_FSmallest(radio->rx.f, 32, 21);

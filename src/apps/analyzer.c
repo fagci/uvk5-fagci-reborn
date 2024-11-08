@@ -13,6 +13,7 @@
 #include "../ui/spectrum.h"
 #include "../ui/statusline.h"
 #include "apps.h"
+#include "vfo1.h"
 #include <stdint.h>
 
 static const uint8_t spectrumWidth = LCD_WIDTH;
@@ -259,7 +260,8 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_PTT:
       if (centerF == peakF) {
         RADIO_TuneToSave(centerF);
-        APPS_run(APP_VFOPRO);
+        gVfo1ProMode = true;
+        APPS_run(APP_VFO1);
       } else if (peakF) {
         setCenterF(peakF);
       }

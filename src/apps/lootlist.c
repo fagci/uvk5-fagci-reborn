@@ -15,6 +15,7 @@
 #include "../ui/menu.h"
 #include "../ui/statusline.h"
 #include "apps.h"
+#include "vfo1.h"
 
 static uint8_t menuIndex = 0;
 static const uint8_t MENU_ITEM_H_LARGER = 15;
@@ -97,7 +98,8 @@ static void getLootItem(uint16_t i, uint16_t index, bool isCurrent) {
   PrintSmallEx(LCD_WIDTH - 6, y + 7, POS_R, C_INVERT, "%us",
                item->duration / 1000);
 
-  // PrintSmallEx(8, y + 7 + 6, POS_L, C_INVERT, "%03ddB", Rssi2DBm(item->rssi));
+  // PrintSmallEx(8, y + 7 + 6, POS_L, C_INVERT, "%03ddB",
+  // Rssi2DBm(item->rssi));
   if (item->ct != 0xFF) {
     PrintSmallEx(8 + 55, y + 7 + 6, POS_L, C_INVERT, "CT:%u.%uHz",
                  CTCSS_Options[item->ct] / 10, CTCSS_Options[item->ct] % 10);
@@ -266,7 +268,8 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_PTT:
       tuneToLoot(loot, true);
-      APPS_run(APP_VFOPRO);
+      gVfo1ProMode = true;
+      APPS_run(APP_VFO1);
       return true;
     case KEY_1:
       sort(SORT_LOT);

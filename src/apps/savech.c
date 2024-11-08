@@ -10,6 +10,7 @@
 #include "../ui/statusline.h"
 #include "apps.h"
 #include "textinput.h"
+#include "vfo1.h"
 
 static uint16_t currentChannelIndex = 0;
 static uint16_t chCount = 0;
@@ -224,7 +225,8 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_PTT:
       RADIO_TuneToCH(chNum);
       RADIO_SaveCurrentVFO();
-      APPS_run(APP_VFOPRO);
+      gVfo1ProMode = true;
+      APPS_run(APP_VFO1);
       from = -1;
       return true;
     case KEY_F:

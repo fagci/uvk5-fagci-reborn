@@ -16,6 +16,71 @@
 #include "apps.h"
 #include "finput.h"
 
+bool gVfo1ProMode = false;
+
+static uint8_t menuIndex = 0;
+
+static char String[16];
+
+static const RegisterSpec registerSpecs[] = {
+    {"ATT", BK4819_REG_13, 0, 0xFFFF, 1},
+    /* {"RF", BK4819_REG_43, 12, 0b111, 1},
+    {"RFwe", BK4819_REG_43, 9, 0b111, 1}, */
+
+    // {"IF", 0x3D, 0, 0xFFFF, 100},
+    // TODO: 7 values:
+    /* 0: Zero IF
+    0x2aab: 8.46 kHz IF
+    0x4924: 7.25 kHz IF
+    0x6800: 6.35 kHz IF
+    0x871c: 5.64 kHz IF
+    0xa666: 5.08 kHz IF
+    0xc5d1: 4.62 kHz IF
+    0xe555: 4.23 kHz IF
+    If REG_43<5> = 1, IF = IF*2. */
+
+    {"DEV", 0x40, 0, 0xFFF, 10},
+    // {"300T", 0x44, 0, 0xFFFF, 1000},
+    RS_RF_FILT_BW,
+    // {"AFTxfl", 0x43, 6, 0b111, 1}, // 7 is widest
+    // {"3kAFrsp", 0x74, 0, 0xFFFF, 100},
+    // {"CMP", 0x31, 3, 1, 1},
+    {"MIC", 0x7D, 0, 0xF, 1},
+
+    {"AGCL", 0x49, 0, 0b1111111, 1},
+    {"AGCH", 0x49, 7, 0b1111111, 1},
+    {"AFC", 0x73, 0, 0xFF, 1},
+};
+
+static void UpdateRegMenuValue(RegisterSpec s, bool add) {
+  uint16_t v, maxValue;
+
+  if (s.num == BK4819_REG_13) {
+    v = gCurrentPreset->band.gainIndex;
+    maxValue = ARRAY_SIZE(gainTable) - 1;
+  } else if (s.num == 0x73) {
+    v = BK4819_GetAFC();
+    maxValue = 8;
+  } else {
+    v = BK4819_GetRegValue(s);
+    maxValue = s.mask;
+  }
+
+  if (add && v <= maxValue - s.inc) {
+    v += s.inc;
+  } else if (!add && v >= 0 + s.inc) {
+    v -= s.inc;
+  }
+
+  if (s.num == BK4819_REG_13) {
+    RADIO_SetGain(v);
+  } else if (s.num == 0x73) {
+    BK4819_SetAFC(v);
+  } else {
+    BK4819_SetRegValue(s, v);
+  }
+}
+
 static void setChannel(uint16_t v) { RADIO_TuneToCH(v - 1); }
 static void tuneTo(uint32_t f) { RADIO_TuneToSave(GetTuneF(f)); }
 
@@ -65,6 +130,9 @@ void VFO1_update(void) {
 
   if (gIsListening && Now() - gLastRender >= 500) {
     gRedrawScreen = true;
+    if (gVfo1ProMode) {
+      RADIO_UpdateMeasurements();
+    }
   }
 }
 
@@ -140,6 +208,93 @@ static void selectFirstPresetFromScanlist() {
   }
 }
 
+bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  if (key == KEY_PTT) {
+    RADIO_ToggleTX(bKeyHeld);
+    return true;
+  }
+  if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
+    switch (key) {
+    case KEY_4: // freq catch
+      if (RADIO_GetRadio() != RADIO_BK4819) {
+        gShowAllRSSI = !gShowAllRSSI;
+      }
+      return true;
+    default:
+      break;
+    }
+  }
+
+  if (!bKeyHeld) {
+    switch (key) {
+    case KEY_1:
+      RADIO_UpdateStep(true);
+      return true;
+    case KEY_7:
+      RADIO_UpdateStep(false);
+      return true;
+    case KEY_3:
+      RADIO_UpdateSquelchLevel(true);
+      return true;
+    case KEY_9:
+      RADIO_UpdateSquelchLevel(false);
+      return true;
+    case KEY_0:
+      RADIO_ToggleModulation();
+      return true;
+    case KEY_6:
+      RADIO_ToggleListeningBW();
+      return true;
+    case KEY_SIDE1:
+      gMonitorMode = !gMonitorMode;
+      return true;
+    case KEY_F:
+      APPS_run(APP_VFO_CFG);
+      return true;
+    case KEY_2:
+      IncDec8(&menuIndex, 0, ARRAY_SIZE(registerSpecs) - 1, -1);
+      return true;
+    case KEY_8:
+      IncDec8(&menuIndex, 0, ARRAY_SIZE(registerSpecs) - 1, 1);
+      return true;
+    default:
+      break;
+    }
+  }
+
+  bool isSsb = RADIO_IsSSB();
+  switch (key) {
+  case KEY_UP:
+    UpdateRegMenuValue(registerSpecs[menuIndex], true);
+    return true;
+  case KEY_DOWN:
+    UpdateRegMenuValue(registerSpecs[menuIndex], false);
+    return true;
+  case KEY_SIDE1:
+    if (RADIO_GetRadio() == RADIO_SI4732 && isSsb) {
+      RADIO_TuneToSave(radio->rx.f + 1);
+      return true;
+    }
+    return true;
+  case KEY_SIDE2:
+    if (RADIO_GetRadio() == RADIO_SI4732 && isSsb) {
+      RADIO_TuneToSave(radio->rx.f - 1);
+      return true;
+    }
+    break;
+  case KEY_EXIT:
+    if (gVfo1ProMode) {
+      gVfo1ProMode = 0;
+      return true;
+    }
+    APPS_exit();
+    return true;
+  default:
+    break;
+  }
+  return false;
+}
+
 bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!SVC_Running(SVC_SCAN) && !bKeyPressed && !bKeyHeld &&
       radio->channel >= 0) {
@@ -152,6 +307,11 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     }
   }
+
+  if (gVfo1ProMode) {
+    return VFOPRO_key(key, bKeyPressed, bKeyHeld);
+  }
+
   if (key == KEY_PTT && !gIsNumNavInput) {
     RADIO_ToggleTX(bKeyHeld);
     return true;
@@ -208,6 +368,9 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_1:
       APPS_run(APP_PRESETS_LIST);
+      return true;
+    case KEY_2:
+      gVfo1ProMode = !gVfo1ProMode;
       return true;
     case KEY_3:
       RADIO_ToggleVfoMR();
@@ -338,6 +501,35 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
+static void DrawRegs(void) {
+  const uint8_t PAD_LEFT = 0;
+  const uint8_t PAD_TOP = 42;
+  const uint8_t CELL_WIDTH = 32;
+  const uint8_t CELL_HEIGHT = 8;
+  uint8_t col = 0;
+
+  RegisterSpec rs = registerSpecs[menuIndex];
+
+  if (rs.num == BK4819_REG_13) {
+    if (gCurrentPreset->band.gainIndex == 18) {
+      sprintf(String, "auto");
+    } else {
+      sprintf(String, "%ddB", gainTable[gCurrentPreset->band.gainIndex].gainDb);
+    }
+  } else if (rs.num == 0x73) {
+    uint8_t afc = BK4819_GetAFC();
+    if (afc) {
+      sprintf(String, "%u", afc);
+    } else {
+      sprintf(String, "off");
+    }
+  } else {
+    sprintf(String, "%u", BK4819_GetRegValue(rs));
+  }
+
+  PrintMedium(2, LCD_HEIGHT - 2, "%u. %s: %s", menuIndex, rs.name, String);
+}
+
 void VFO1_render(void) {
   const uint8_t BASE = 38;
 
@@ -351,8 +543,8 @@ void VFO1_render(void) {
   const char *mod =
       modulationTypeOptions[vfo->modulation == MOD_PRST ? p->band.modulation
                                                         : vfo->modulation];
-  if (gIsListening) {
-    UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, RADIO_GetS(), vfo->rx.f,
+  if (gIsListening || gVfo1ProMode) {
+    UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, RADIO_GetSNR(), vfo->rx.f,
                BASE + 2);
   }
 
@@ -369,5 +561,10 @@ void VFO1_render(void) {
                          fp2);
     PrintBigDigitsEx(LCD_WIDTH - 1, BASE, POS_R, C_FILL, "%02u", fp3);
     PrintMediumEx(LCD_WIDTH - 1, BASE - 12, POS_R, C_FILL, mod);
+  }
+
+  if (gVfo1ProMode) {
+    UI_FSmall(gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(radio->rx.f));
+    DrawRegs();
   }
 }

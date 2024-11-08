@@ -10,4 +10,6 @@ void VFO1_update();
 bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
 void VFO1_render();
 
+extern bool gVfo1ProMode;
+
 #endif /* end of include guard: VFO1_APP_H */
