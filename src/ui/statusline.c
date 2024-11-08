@@ -86,12 +86,20 @@ void STATUSLINE_render(void) {
     icons[idx++] = SYM_BEACON;
   }
 
+  if (gSettings.dw != DW_OFF) {
+    icons[idx++] = SYM_DW;
+  }
+
   if (SVC_Running(SVC_FC)) {
     icons[idx++] = SYM_FC;
   }
 
   if (SVC_Running(SVC_SCAN)) {
     icons[idx++] = SYM_SCAN;
+  }
+
+  if (LOOT_Size() == LOOT_SIZE_MAX) {
+    icons[idx++] = SYM_LOOT_FULL;
   }
 
   if (gMonitorMode) {
