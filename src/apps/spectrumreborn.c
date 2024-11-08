@@ -250,7 +250,6 @@ void SPECTRUM_update(void) {
 }
 
 void SPECTRUM_render(void) {
-  UI_ClearScreen();
   STATUSLINE_SetText(currentBand->name);
 
   SP_Render(gCurrentPreset);

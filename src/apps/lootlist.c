@@ -148,7 +148,6 @@ void LOOTLIST_update() {
 }
 
 void LOOTLIST_render(void) {
-  UI_ClearScreen();
   UI_ShowMenuEx(shortList ? getLootItemShort : getLootItem, LOOT_Size(),
                 menuIndex, shortList ? 5 : 3);
 }

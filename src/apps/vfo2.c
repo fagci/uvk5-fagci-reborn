@@ -127,8 +127,6 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 void VFO2_update(void) { VFO1_update(); }
 
 void VFO2_render(void) {
-  UI_ClearScreen();
-
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
   } else {

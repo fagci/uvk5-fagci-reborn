@@ -15,7 +15,6 @@ void MEMVIEW_Render(void) {
   uint8_t buf[64] = {0};
   EEPROM_ReadBuffer(page * PAGE_SZ, buf, PAGE_SZ);
 
-  UI_ClearScreen();
   for (uint8_t i = 0; i < PAGE_SZ; ++i) {
     uint8_t col = i % 8;
     uint8_t row = i / 8;

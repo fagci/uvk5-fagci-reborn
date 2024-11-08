@@ -151,8 +151,6 @@ bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void FINPUT_render(void) {
-  UI_ClearScreen();
-
   uint8_t dotIndex = freqInputDotIndex ? freqInputDotIndex : freqInputIndex;
 
   const uint8_t charWidth = 10;

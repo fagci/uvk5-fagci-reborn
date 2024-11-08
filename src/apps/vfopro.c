@@ -259,7 +259,6 @@ static void DrawRegs(void) {
 }
 
 void VFOPRO_render(void) {
-  UI_ClearScreen();
   STATUSLINE_SetText(gCurrentPreset->band.name);
   UI_FSmall(gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(radio->rx.f));
   UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, RADIO_GetS(), radio->rx.f, 23);

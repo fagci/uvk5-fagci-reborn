@@ -18,8 +18,6 @@ static void getMenuItemText(uint16_t index, char *name) {
 }
 
 void APPSLIST_render(void) {
-  UI_ClearScreen();
-
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
   } else {

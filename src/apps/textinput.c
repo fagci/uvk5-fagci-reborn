@@ -202,8 +202,6 @@ void TEXTINPUT_render(void) {
   const uint8_t CHAR_W = 5;
   const size_t charCount = strlen(inputField);
 
-  UI_ClearScreen();
-
   DrawHLine(8, INPUT_Y, LCD_WIDTH - 16, C_FILL);
 
   PrintSmallEx(LCD_WIDTH - 8, INPUT_Y + 5, POS_R, C_FILL, "%u/%u", charCount,

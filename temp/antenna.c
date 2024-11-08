@@ -61,7 +61,6 @@ void ANTENNA_render(void) {
   uint16_t segmentsCount =
       calcLen(CHINEESE_BNC, ARRAY_SIZE(CHINEESE_BNC), quarterCm * 10);
 
-  UI_ClearScreen();
   PrintMediumBoldEx(LCD_XCENTER, LCD_YCENTER - 9 * 2, POS_C, C_FILL,
                     "f=%u.%05uMHz", f / MHZ, f % MHZ);
   PrintMediumBoldEx(LCD_XCENTER, LCD_YCENTER - 9, POS_C, C_FILL, "L=%u.%02um",

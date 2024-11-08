@@ -128,8 +128,6 @@ void RESET_Render(void) {
   uint8_t progressX = ConvertDomain(bytesWrote, 0, bytesMax, 1, LCD_WIDTH - 2);
   uint8_t POS_Y = LCD_HEIGHT / 2;
 
-  UI_ClearScreen();
-
   if (eepromType < EEPROM_BL24C64) {
     for (uint8_t t = EEPROM_BL24C64; t <= EEPROM_M24M02; t++) {
       uint8_t i = t - EEPROM_BL24C64;

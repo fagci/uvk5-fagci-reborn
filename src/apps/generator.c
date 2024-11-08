@@ -86,7 +86,6 @@ bool GENERATOR_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void GENERATOR_render() {
-  UI_ClearScreen();
   uint32_t txf = RADIO_GetTXF();
   PrintMediumEx(LCD_XCENTER, 15, POS_C, C_FILL, "%u.%05u", txf / MHZ,
                 txf % MHZ);

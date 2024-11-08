@@ -191,7 +191,6 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void PRESETCFG_render(void) {
-  UI_ClearScreen();
   const MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {
     UI_ShowMenu(getSubmenuItemText, item->size, subMenuIndex);

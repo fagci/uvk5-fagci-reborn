@@ -7,7 +7,6 @@
 void TASKMAN_Init(void) { }
 
 void TASKMAN_Render(void) {
-  UI_ClearScreen();
   for (uint8_t i = 0; i < ARRAY_SIZE(tasks); ++i) {
     Task *t = &tasks[i];
     if (t->handler) {

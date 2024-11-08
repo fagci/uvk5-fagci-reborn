@@ -3,7 +3,6 @@
 #include "apps.h"
 
 void ABOUT_Render() {
-  UI_ClearScreen();
   PrintMediumEx(LCD_XCENTER, LCD_YCENTER + 8, POS_C, C_FILL, "r3b0rn");
   PrintSmallEx(LCD_XCENTER, LCD_YCENTER + 14, POS_C, C_FILL, "by FAGCI");
   PrintSmallEx(LCD_XCENTER, LCD_YCENTER + 24, POS_C, C_FILL,

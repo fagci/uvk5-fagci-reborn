@@ -272,7 +272,6 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void ANALYZER_render(void) {
-  UI_ClearScreen();
   STATUSLINE_SetText(opt.band.name);
 
   for (uint8_t i = SPECTRUM_Y; i < SPECTRUM_Y + SPECTRUM_H; i += 4) {

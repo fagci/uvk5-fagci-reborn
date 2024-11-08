@@ -61,8 +61,6 @@ bool LEVEL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void LEVEL_render(void) {
-  UI_ClearScreen();
-
   UI_FSmall(radio->rx.f);
 
   SP_RenderGraph();

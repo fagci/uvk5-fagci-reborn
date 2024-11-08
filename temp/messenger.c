@@ -49,8 +49,6 @@ bool MESSENGER_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void MESSENGER_render(void) {
-  UI_ClearScreen();
-
   uint8_t ii = 0;
   for (uint8_t i = 0; i < 6; ++i) {
     DataPacket *d = MSG_GetMessage(i);

@@ -339,7 +339,6 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void VFO1_render(void) {
-  UI_ClearScreen();
   const uint8_t BASE = 38;
 
   VFO *vfo = &gVFO[gSettings.activeVFO];

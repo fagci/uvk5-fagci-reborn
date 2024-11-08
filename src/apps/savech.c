@@ -255,7 +255,6 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void SAVECH_render(void) {
-  UI_ClearScreen();
   UI_ShowMenuEx(getChItem,
                 gSettings.currentScanlist == 15 ? CHANNELS_GetCountMax()
                                                 : gScanlistSize,

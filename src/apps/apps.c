@@ -1,5 +1,6 @@
 #include "apps.h"
 #include "../driver/st7565.h"
+#include "../ui/graphics.h"
 #include "../ui/statusline.h"
 #include "about.h"
 #include "analyzer.h"
@@ -66,7 +67,7 @@ const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
     APP_MEMVIEW,      //
     APP_GENERATOR,    //
     // APP_LEVEL,        //
-    APP_ABOUT,        //
+    APP_ABOUT, //
 };
 
 const App apps[APPS_COUNT] = {
@@ -95,7 +96,8 @@ const App apps[APPS_COUNT] = {
     {"2 VFO", VFO1_init, VFO2_update, VFO2_render, VFO2_key, NULL},
     {"Generator", GENERATOR_init, GENERATOR_update, GENERATOR_render,
      GENERATOR_key, NULL},
-    // {"Level", LEVEL_init, LEVEL_update, LEVEL_render, LEVEL_key, LEVEL_deinit},
+    // {"Level", LEVEL_init, LEVEL_update, LEVEL_render, LEVEL_key,
+    // LEVEL_deinit},
     {"ABOUT", NULL, NULL, ABOUT_Render, ABOUT_key, NULL},
 };
 
@@ -125,6 +127,7 @@ void APPS_update(void) {
 
 void APPS_render(void) {
   if (apps[gCurrentApp].render) {
+    UI_ClearScreen();
     apps[gCurrentApp].render();
   }
 }

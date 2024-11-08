@@ -30,7 +30,6 @@ static void toggleScanlist(uint8_t n) {
 }
 
 void PRESETLIST_render(void) {
-  UI_ClearScreen();
   UI_ShowMenuEx(getPresetItem, PRESETS_Size(), menuIndex,
                 MENU_LINES_TO_SHOW + 1);
 }

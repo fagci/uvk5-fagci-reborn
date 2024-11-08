@@ -153,8 +153,8 @@ void LOOT_UpdateEx(Loot *item, Loot *msm) {
     return;
   }
 
-  if (SVC_Running(SVC_SCAN) && item->blacklist ||
-      (item->whitelist && !gMonitorMode)) {
+  if (SVC_Running(SVC_SCAN) &&
+      (item->blacklist || (item->whitelist && !gMonitorMode))) {
     msm->open = false;
   }
 
