@@ -58,7 +58,6 @@ Loot *LOOT_AddEx(uint32_t f, bool reuse) {
   lastTimeCheck = Now();
   loot[lootIndex] = (Loot){
       .f = f,
-      .firstTime = Now(),
       .lastTimeOpen = Now(),
       .duration = 0,
       .rssi = 0,
@@ -138,7 +137,6 @@ Loot *LOOT_Item(uint16_t i) { return &loot[i]; }
 void LOOT_Replace(Loot *item, uint32_t f) {
   item->f = f;
   item->open = false;
-  item->firstTime = Now();
   item->lastTimeOpen = 0;
   item->duration = 0;
   item->rssi = 0;

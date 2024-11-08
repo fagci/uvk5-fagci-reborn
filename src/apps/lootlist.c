@@ -97,7 +97,7 @@ static void getLootItem(uint16_t i, uint16_t index, bool isCurrent) {
   PrintSmallEx(LCD_WIDTH - 6, y + 7, POS_R, C_INVERT, "%us",
                item->duration / 1000);
 
-  PrintSmallEx(8, y + 7 + 6, POS_L, C_INVERT, "%03ddB", Rssi2DBm(item->rssi));
+  // PrintSmallEx(8, y + 7 + 6, POS_L, C_INVERT, "%03ddB", Rssi2DBm(item->rssi));
   if (item->ct != 0xFF) {
     PrintSmallEx(8 + 55, y + 7 + 6, POS_L, C_INVERT, "CT:%u.%uHz",
                  CTCSS_Options[item->ct] / 10, CTCSS_Options[item->ct] % 10);
@@ -173,7 +173,7 @@ static void saveLootToCh(const Loot *loot, int16_t chnum, uint8_t scanlist) {
       .bw = p->band.bw,
   };
 
-  snprintf(ch.name, 9, "%lu.%05lu", ch.rx.f / MHZ, ch.rx.f % MHZ);
+  snprintf(ch.name, 9, "%u.%05u", ch.rx.f / MHZ, ch.rx.f % MHZ);
 
   if (loot->ct != 255) {
     ch.tx.codeType = CODE_TYPE_CONTINUOUS_TONE;

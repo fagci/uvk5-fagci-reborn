@@ -22,8 +22,6 @@ static uint32_t centerF = 0;
 static uint8_t scanInterval = 2;
 static uint8_t stepsCount = 128;
 
-static bool isListening = false;
-
 static uint32_t peakF = 0;
 static uint32_t _peakF = 0;
 static uint16_t peakRssi = 0;

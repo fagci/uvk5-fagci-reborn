@@ -5,11 +5,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define LOOT_SIZE_MAX 280
+#define LOOT_SIZE_MAX 380
 
 typedef struct {
   uint32_t f;
-  uint32_t firstTime;
   uint32_t lastTimeOpen;
   uint16_t duration;
   uint16_t rssi;
