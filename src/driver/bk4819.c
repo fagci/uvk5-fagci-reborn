@@ -129,7 +129,13 @@ void BK4819_Init(void) {
   BK4819_SetAGC(true, 0);
   BK4819_WriteRegister(BK4819_REG_19, 0x1041);
   BK4819_WriteRegister(BK4819_REG_7D, 0xE94F);
-  BK4819_WriteRegister(BK4819_REG_48, 0xB3A8);
+  // BK4819_WriteRegister(BK4819_REG_48, 0xB3A8);
+  BK4819_WriteRegister(
+      BK4819_REG_48,
+      (11u << 12) |    // ??? 0..15
+          (0u << 10) | // AF Rx Gain-1 (0 = 0dB)
+          (40u << 4) | // AF Rx Gain-2 (-26dB ~ 5.5dB, 0.5dB/step)
+          (10u << 0)); // AF DAC Gain (2dB/step, 15 = max, 0 = min)
 
   for (uint8_t i = 0; i < ARRAY_SIZE(DTMF_COEFFS); ++i) {
     BK4819_WriteRegister(0x09, (i << 12) | DTMF_COEFFS[i]);
@@ -246,8 +252,8 @@ void BK4819_SetAGC(bool useDefault, uint8_t gainIndex) {
   );
 
   if (gainIndex == GAIN_AUTO) {
-    // BK4819_WriteRegister(BK4819_REG_13, 0x03BE);
-    BK4819_WriteRegister(BK4819_REG_13, 0x0295);
+    BK4819_WriteRegister(BK4819_REG_13, 0x03BE);
+    // BK4819_WriteRegister(BK4819_REG_13, 0x0295);
   } else {
     BK4819_WriteRegister(BK4819_REG_13, gainTable[gainIndex].regValue);
   }
@@ -259,10 +265,13 @@ void BK4819_SetAGC(bool useDefault, uint8_t gainIndex) {
   uint8_t low = 56;  // 1dB / LSB 56
   uint8_t high = 84; // 1dB / LSB 84
 
+  BK4819_WriteRegister(
+      0x14, (0u << 8) | (0u << 5) | (3u << 3) |
+                (1u << 0)); // 000000 00 000 11 000  0x0019 =  0 0 3 1
   if (useDefault) {
-    BK4819_WriteRegister(BK4819_REG_14, 0x0019);
+    // BK4819_WriteRegister(BK4819_REG_14, 0x0019);
   } else {
-    BK4819_WriteRegister(BK4819_REG_14, 0x0000);
+    // BK4819_WriteRegister(BK4819_REG_14, 0x0000);
     // slow 25 45
     // fast 15 50
     low = 20;

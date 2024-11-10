@@ -214,12 +214,17 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         gShowAllRSSI = !gShowAllRSSI;
       }
       return true;
+    case KEY_5:
+      registerActive = !registerActive;
+      return true;
     default:
       break;
     }
   }
 
-  if (!bKeyHeld) {
+  bool isSsb = RADIO_IsSSB();
+
+  if (!bKeyHeld || bKeyPressed) {
     switch (key) {
     case KEY_1:
       RADIO_UpdateStep(true);
@@ -235,25 +240,45 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_4:
       return true;
-    case KEY_5:
-      gFInputCallback = RADIO_TuneToSave;
-      APPS_run(APP_FINPUT);
-      return true;
-    case KEY_MENU:
-      registerActive = !registerActive;
-      return true;
     case KEY_0:
       RADIO_ToggleModulation();
       return true;
     case KEY_6:
       RADIO_ToggleListeningBW();
       return true;
-    case KEY_SIDE1:
-      gMonitorMode = !gMonitorMode;
-      return true;
     case KEY_F:
       APPS_run(APP_VFO_CFG);
       return true;
+    case KEY_SIDE1:
+      if (!gVfo1ProMode) {
+        gMonitorMode = !gMonitorMode;
+        return true;
+      }
+      if (RADIO_GetRadio() == RADIO_SI4732 && isSsb) {
+        RADIO_TuneToSave(radio->rx.f + 1);
+        return true;
+      }
+      return true;
+    case KEY_SIDE2:
+      if (RADIO_GetRadio() == RADIO_SI4732 && isSsb) {
+        RADIO_TuneToSave(radio->rx.f - 1);
+        return true;
+      }
+      break;
+    case KEY_EXIT:
+      if (registerActive) {
+        registerActive = false;
+        return true;
+      }
+      APPS_exit();
+      return true;
+    default:
+      break;
+    }
+  }
+
+  if (!bKeyPressed && !bKeyHeld) {
+    switch (key) {
     case KEY_2:
       if (registerActive) {
         UpdateRegMenuValue(registerSpecs[menuIndex], true);
@@ -268,35 +293,15 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         IncDec8(&menuIndex, 0, ARRAY_SIZE(registerSpecs) - 1, 1);
       }
       return true;
+    case KEY_5:
+      gFInputCallback = RADIO_TuneToSave;
+      APPS_run(APP_FINPUT);
+      return true;
     default:
       break;
     }
   }
 
-  bool isSsb = RADIO_IsSSB();
-  switch (key) {
-  case KEY_SIDE1:
-    if (RADIO_GetRadio() == RADIO_SI4732 && isSsb) {
-      RADIO_TuneToSave(radio->rx.f + 1);
-      return true;
-    }
-    return true;
-  case KEY_SIDE2:
-    if (RADIO_GetRadio() == RADIO_SI4732 && isSsb) {
-      RADIO_TuneToSave(radio->rx.f - 1);
-      return true;
-    }
-    break;
-  case KEY_EXIT:
-    if (registerActive) {
-      registerActive = false;
-      return true;
-    }
-    APPS_exit();
-    return true;
-  default:
-    break;
-  }
   return false;
 }
 
