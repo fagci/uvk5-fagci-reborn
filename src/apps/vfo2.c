@@ -95,13 +95,13 @@ static void render2VFOPart(uint8_t i) {
                vfo->tx.codeType ? TX_CODE_TYPES[vfo->tx.codeType] : "",
                shortRadioNames[r]);
 
-  if (loot->lastTimeOpen) {
+  /* if (loot->lastTimeOpen) {
     PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,
                  est % 60, loot->duration / 1000);
-  } else {
+  } else { */
     PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%d.%02dk", step / 100,
                  step % 100);
-  }
+  // }
 }
 
 bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
