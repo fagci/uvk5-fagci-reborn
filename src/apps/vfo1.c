@@ -258,7 +258,7 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         RADIO_TuneToSave(radio->rx.f + 1);
         return true;
       }
-      return true;
+      break;
     case KEY_SIDE2:
       if (RADIO_GetRadio() == RADIO_SI4732 && isSsb) {
         RADIO_TuneToSave(radio->rx.f - 1);
