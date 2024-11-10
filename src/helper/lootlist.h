@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define LOOT_SIZE_MAX 340
+#define LOOT_SIZE_MAX 320
 
 typedef struct {
   uint32_t f;

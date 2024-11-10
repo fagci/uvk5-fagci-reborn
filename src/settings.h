@@ -264,6 +264,8 @@ extern const char *TX_CODE_TYPES[4];
 extern const char *rogerNames[4];
 extern const char *dwNames[3];
 
+extern Settings defaultSettings;
+
 void SETTINGS_Save();
 void SETTINGS_Load();
 void SETTINGS_DelayedSave();

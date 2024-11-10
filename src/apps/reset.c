@@ -56,45 +56,8 @@ void RESET_Update(void) {
     return;
   }
   if (!settingsWrote) {
-    gSettings = (Settings){
-        .eepromType = eepromType,
-        .squelch = 4,
-        .scrambler = 0,
-        .batsave = 4,
-        .vox = 0,
-        .backlight = BL_TIME_VALUES[3],
-        .txTime = 0,
-        .micGain = 15,
-        .currentScanlist = 15,
-        .roger = 0,
-        .scanmode = 0,
-        .chDisplayMode = 0,
-        .dw = false,
-        .crossBandScan = false,
-        .beep = false,
-        .keylock = false,
-        .busyChannelTxLock = false,
-        .ste = true,
-        .repeaterSte = true,
-        .dtmfdecode = false,
-        .brightness = 8,
-        .contrast = 8,
-        .mainApp = APP_VFO2,
-        .sqOpenedTimeout = SCAN_TO_NONE,
-        .sqClosedTimeout = SCAN_TO_2s,
-        .sqlOpenTime = 1,
-        .sqlCloseTime = 1,
-        .skipGarbageFrequencies = true,
-        .scanTimeout = 50,
-        .activeVFO = 0,
-        .activePreset = 9,
-        .presetsCount = ARRAY_SIZE(defaultPresets),
-        .backlightOnSquelch = BL_SQL_ON,
-        .batteryCalibration = 2000,
-        .batteryType = BAT_1600,
-        .batteryStyle = BAT_PERCENT,
-        .upconverter = 0,
-    };
+    gSettings = defaultSettings;
+    gSettings.eepromType = eepromType;
     settingsWrote = true;
     bytesWrote += SETTINGS_SIZE;
   } else if (vfosWrote < ARRAY_SIZE(defaultVFOs)) {

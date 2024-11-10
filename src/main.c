@@ -104,17 +104,27 @@ void Main(void) {
     unreborn();
   }
 
+  UI_ClearScreen();
+  PrintMediumBoldEx(LCD_XCENTER, LCD_YCENTER, POS_C, C_FILL, "(X__X)");
+  ST7565_Blit();
+
   SETTINGS_Load();
+  if (gSettings.batteryCalibration > 2154 ||
+      gSettings.batteryCalibration < 1900) {
+    gSettings = defaultSettings;
+    gSettings.batteryCalibration = 0;
+  }
   ST7565_Init();
   BACKLIGHT_Init();
 
-  BATTERY_UpdateBatteryInfo();
-
-  if (pressedKey == KEY_EXIT) {
+  if (pressedKey == KEY_EXIT || gSettings.batteryCalibration == 0) {
+    gSettings.batteryCalibration = 2000;
     Boot(APP_RESET);
   } else if (KEYBOARD_Poll() == KEY_5) {
+    gSettings.batteryCalibration = 2000;
     Boot(APP_MEMVIEW);
   } else {
+    BATTERY_UpdateBatteryInfo();
     TaskAdd("Intro", Intro, 1, true, 5);
   }
 

@@ -1,5 +1,6 @@
 #include "settings.h"
 #include "driver/eeprom.h"
+#include "helper/presetlist.h"
 #include "scheduler.h"
 
 Settings gSettings;
@@ -25,6 +26,46 @@ const char *EEPROM_TYPE_NAMES[8] = {
     "BL24C512",  // 101
     "BL24C1024", // 110
     "M24M02",    // 111
+};
+
+Settings defaultSettings = (Settings){
+    .eepromType = EEPROM_BL24C64,
+    .squelch = 4,
+    .scrambler = 0,
+    .batsave = 4,
+    .vox = 0,
+    .backlight = 3,
+    .txTime = 0,
+    .micGain = 15,
+    .currentScanlist = 15,
+    .roger = 0,
+    .scanmode = 0,
+    .chDisplayMode = 0,
+    .dw = false,
+    .crossBandScan = false,
+    .beep = false,
+    .keylock = false,
+    .busyChannelTxLock = false,
+    .ste = true,
+    .repeaterSte = true,
+    .dtmfdecode = false,
+    .brightness = 8,
+    .contrast = 8,
+    .mainApp = APP_VFO2,
+    .sqOpenedTimeout = SCAN_TO_NONE,
+    .sqClosedTimeout = SCAN_TO_2s,
+    .sqlOpenTime = 1,
+    .sqlCloseTime = 1,
+    .skipGarbageFrequencies = true,
+    .scanTimeout = 50,
+    .activeVFO = 0,
+    .activePreset = 9,
+    .presetsCount = PRESETS_COUNT,
+    .backlightOnSquelch = BL_SQL_ON,
+    .batteryCalibration = 2000,
+    .batteryType = BAT_1600,
+    .batteryStyle = BAT_PERCENT,
+    .upconverter = 0,
 };
 
 const uint32_t EEPROM_SIZES[8] = {
