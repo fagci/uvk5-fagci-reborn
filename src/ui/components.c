@@ -63,13 +63,12 @@ void UI_FSmall(uint32_t f) {
   PrintSmall(30, 18, "%u/%u", sq.no, sq.nc);
   PrintSmall(60, 18, "%u/%u", sq.go, sq.gc);
 
-  PrintSmall(0, 27, "SNR %u", RADIO_GetSNR());
+  PrintSmallEx(LCD_WIDTH - 1, 12, POS_R, C_FILL, "SNR %u", RADIO_GetSNR());
 
-  PrintSmallEx(LCD_WIDTH - 1, 12, POS_R, true,
+  PrintSmallEx(LCD_WIDTH - 1, 18, POS_R, true,
                RADIO_GetBWName(gCurrentPreset->band.bw));
   const uint32_t step = StepFrequencyTable[gCurrentPreset->band.step];
-  PrintSmallEx(LCD_WIDTH - 1, 18, POS_R, C_FILL, "STP %d.%02dk", step / 100,
-               step % 100);
+  PrintSmallEx(0, 27, POS_L, C_FILL, "STP %d.%02dk", step / 100, step % 100);
 }
 
 void UI_FSmallest(uint32_t f, uint8_t x, uint8_t y) {

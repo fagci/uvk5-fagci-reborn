@@ -104,6 +104,11 @@ static void render2VFOPart(uint8_t i) {
   }
 }
 
+void VFO2_init(void) {
+  gVfo1ProMode = false;
+  RADIO_LoadCurrentVFO();
+}
+
 bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (VFO1_key(key, bKeyPressed, bKeyHeld)) {
     return true;

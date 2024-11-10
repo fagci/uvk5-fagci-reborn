@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+void VFO2_init(void);
 void VFO2_update(void);
 bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
 void VFO2_render();

@@ -233,7 +233,13 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_9:
       RADIO_UpdateSquelchLevel(false);
       return true;
+    case KEY_4:
+      return true;
     case KEY_5:
+      gFInputCallback = RADIO_TuneToSave;
+      APPS_run(APP_FINPUT);
+      return true;
+    case KEY_MENU:
       registerActive = !registerActive;
       return true;
     case KEY_0:
