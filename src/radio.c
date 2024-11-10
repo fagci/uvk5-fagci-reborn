@@ -199,7 +199,6 @@ static bool isSimpleSql() {
 }
 
 static bool isSqOpenSimple(uint16_t r) {
-  const uint8_t band = radio->rx.f > SETTINGS_GetFilterBound() ? 1 : 0;
   SQL sq = GetSql(gCurrentPreset->band.squelch);
 
   uint8_t n, g;
@@ -978,7 +977,10 @@ void RADIO_NextPresetFreqXBand(bool next) {
 }
 
 static ModulationType MODS_BK4819[] = {
-    MOD_FM, MOD_AM, MOD_USB, MOD_BYP, MOD_RAW, MOD_WFM,
+    MOD_FM,
+    MOD_AM,
+    MOD_USB,
+    MOD_WFM,
 };
 
 static ModulationType MODS_BK1080[] = {

@@ -133,7 +133,6 @@ static void upDown(uint8_t inc) {
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   const MenuItem *item = &menu[menuIndex];
-  const uint8_t SUBMENU_SIZE = item->size;
   if ((key == KEY_UP || key == KEY_DOWN) && isSubMenu && item->type == M_GAIN) {
     RADIO_SetGain(subMenuIndex);
   }

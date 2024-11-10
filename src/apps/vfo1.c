@@ -514,12 +514,6 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 static void DrawRegs(void) {
-  const uint8_t PAD_LEFT = 0;
-  const uint8_t PAD_TOP = 42;
-  const uint8_t CELL_WIDTH = 32;
-  const uint8_t CELL_HEIGHT = 8;
-  uint8_t col = 0;
-
   RegisterSpec rs = registerSpecs[menuIndex];
 
   if (rs.num == BK4819_REG_13) {

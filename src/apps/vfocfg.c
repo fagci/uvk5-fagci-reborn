@@ -243,8 +243,6 @@ bool VFOCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     }
   }
-  const MenuItem *item = &menu[menuIndex];
-  uint8_t SUBMENU_SIZE = item->size;
   switch (key) {
   case KEY_UP:
     upDown(-1);

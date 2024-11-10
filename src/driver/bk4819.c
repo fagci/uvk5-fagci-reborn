@@ -12,6 +12,8 @@
 #define BK4819_F_MIN 1600000
 #define BK4819_F_MAX 134000000
 
+uint32_t AUTO_GAIN_INDEX = 20;
+
 static uint16_t gBK4819_GpioOutState;
 static Filter selectedFilter = FILTER_OFF;
 
@@ -547,7 +549,11 @@ void BK4819_SetModulation(ModulationType type) {
     BK4819_SetRegValue(RS_RF_FILT_BW_WEAK, 7);
     BK4819_SetRegValue(RS_BW_MODE, 3);
   } else {
-    BK4819_SetRegValue(RS_XTAL_MODE, 2);
+    if (isSsb) {
+      BK4819_SetRegValue(RS_XTAL_MODE, 3);
+    } else {
+      BK4819_SetRegValue(RS_XTAL_MODE, 2);
+    }
     BK4819_SetRegValue(RS_IF_F, 10923);
   }
 }
