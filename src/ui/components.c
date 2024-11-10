@@ -36,15 +36,15 @@ void UI_RSSIBar(uint16_t rssi, uint8_t snr, uint32_t f, uint8_t y) {
   uint8_t rssiW = ConvertDomain(rssi, RSSI_MIN, RSSI_MAX, 0, BAR_WIDTH);
   uint8_t snrW = ConvertDomain(RADIO_GetSNR(), SNR_MIN, SNR_MAX, 0, BAR_WIDTH);
 
-  FillRect(BAR_LEFT_MARGIN, y + 1, rssiW, 4, C_FILL);
-  FillRect(BAR_LEFT_MARGIN, y + 6, snrW, 3, C_FILL);
+  FillRect(BAR_LEFT_MARGIN, y + 2, rssiW, 4, C_FILL);
+  FillRect(BAR_LEFT_MARGIN, y + 7, snrW, 1, C_FILL);
 
-  DrawHLine(0, y + 4, BAR_WIDTH, C_FILL);
+  DrawHLine(0, y + 5, BAR_WIDTH - 2, C_FILL);
   for (int16_t r = Rssi2DBm(RSSI_MIN); r < Rssi2DBm(RSSI_MAX); r++) {
     if (r % 10 == 0) {
       FillRect(ConvertDomain(r, Rssi2DBm(RSSI_MIN), Rssi2DBm(RSSI_MAX), 0,
                              BAR_WIDTH),
-               y + 4 - (r % 50 == 0 ? 2 : 1), 1, r % 50 == 0 ? 2 : 1, C_INVERT);
+               y + 5 - (r % 50 == 0 ? 2 : 1), 1, r % 50 == 0 ? 2 : 1, C_INVERT);
     }
   }
 
