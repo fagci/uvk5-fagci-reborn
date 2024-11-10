@@ -200,13 +200,7 @@ static bool isSimpleSql() {
 
 static bool isSqOpenSimple(uint16_t r) {
   const uint8_t band = radio->rx.f > SETTINGS_GetFilterBound() ? 1 : 0;
-  const uint8_t sq = gCurrentPreset->band.squelch;
-  const uint16_t ro = SQ[band][0][sq];
-  const uint16_t rc = SQ[band][1][sq];
-  const uint8_t no = SQ[band][2][sq];
-  const uint8_t nc = SQ[band][3][sq];
-  const uint8_t go = SQ[band][4][sq];
-  const uint8_t gc = SQ[band][5][sq];
+  SQL sq = GetSql(gCurrentPreset->band.squelch);
 
   uint8_t n, g;
 
@@ -216,28 +210,28 @@ static bool isSqOpenSimple(uint16_t r) {
   case SQUELCH_RSSI_NOISE_GLITCH:
     n = BK4819_GetNoise();
     g = BK4819_GetGlitch();
-    open = r >= ro && n <= no && g <= go;
-    if (r < rc || n > nc || g > gc) {
+    open = r >= sq.ro && n <= sq.no && g <= sq.go;
+    if (r < sq.rc || n > sq.nc || g > sq.gc) {
       open = false;
     }
     break;
   case SQUELCH_RSSI_NOISE:
     n = BK4819_GetNoise();
-    open = r >= ro && n <= no;
-    if (r < rc || n > nc) {
+    open = r >= sq.ro && n <= sq.no;
+    if (r < sq.rc || n > sq.nc) {
       open = false;
     }
     break;
   case SQUELCH_RSSI_GLITCH:
     g = BK4819_GetGlitch();
-    open = r >= ro && g <= go;
-    if (r < rc || g > gc) {
+    open = r >= sq.ro && g <= sq.go;
+    if (r < sq.rc || g > sq.gc) {
       open = false;
     }
     break;
   case SQUELCH_RSSI:
-    open = r >= ro;
-    if (r < rc) {
+    open = r >= sq.ro;
+    if (r < sq.rc) {
       open = false;
     }
     break;
@@ -733,7 +727,7 @@ uint16_t RADIO_GetRSSI(void) {
 uint16_t RADIO_GetSNR(void) {
   switch (RADIO_GetRadio()) {
   case RADIO_BK4819:
-    return BK4819_GetSNR();
+    return ConvertDomain(BK4819_GetSNR(), 24, 170, 0, 30);
   case RADIO_BK1080:
     return gShowAllRSSI ? BK1080_GetSNR() : 0;
   case RADIO_SI4732:
@@ -748,7 +742,7 @@ uint16_t RADIO_GetSNR(void) {
 }
 
 uint16_t RADIO_GetS() {
-    uint8_t snr = RADIO_GetSNR();
+  uint8_t snr = RADIO_GetSNR();
   switch (RADIO_GetRadio()) {
   case RADIO_BK4819:
     return ConvertDomain(snr, 0, 137, 0, 13);

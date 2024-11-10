@@ -22,7 +22,7 @@
  */
 
 
-#include "BK4819.h"
+#include "ijv-bk-driver.hpp"
 
 // ---------------------------------------------------- Configurazione tabella Gain
 const t_gain_table gain_table[] =

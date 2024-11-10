@@ -127,7 +127,8 @@ typedef struct {
   uint8_t txTime : 4;
   uint8_t micGain : 4;
   uint8_t currentScanlist : 4;
-  uint8_t reserved1 : 2;
+  uint8_t iAmPro : 1;
+  uint8_t reserved2 : 1;
   uint8_t roger : 2;
   uint8_t scanmode : 2;
   CHDisplayMode chDisplayMode : 2;

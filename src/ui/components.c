@@ -18,47 +18,58 @@ void UI_Battery(uint8_t Level) {
 }
 
 void UI_RSSIBar(uint16_t rssi, uint8_t snr, uint32_t f, uint8_t y) {
-  if (rssi == 0)
+  if (rssi == 0) {
     return;
-  const uint8_t BAR_LEFT_MARGIN = 2;
-  const uint8_t BAR_BASE = y + 7;
+  }
 
-  int dBm = Rssi2DBm(rssi);
-  // uint8_t s = DBm2S(dBm, f >= 3000000);
+  const uint8_t BAR_LEFT_MARGIN = 0;
+  const uint8_t BAR_WIDTH = LCD_WIDTH - BAR_LEFT_MARGIN - 22;
+  const uint8_t BAR_BASE = y + 7;
 
   FillRect(0, y, LCD_WIDTH, 8, C_CLEAR);
 
-  for (uint8_t i = 0; i < ConvertDomain(rssi, 15, 340, 0, 13); ++i) {
-    FillRect(BAR_LEFT_MARGIN + i * 5, y + 3, 4, 4, C_FILL);
+  const uint16_t RSSI_MIN = 10;
+  const uint16_t RSSI_MAX = 350;
+  const uint16_t SNR_MIN = 0;
+  const uint16_t SNR_MAX = 30;
+
+  uint8_t rssiW = ConvertDomain(rssi, RSSI_MIN, RSSI_MAX, 0, BAR_WIDTH);
+  uint8_t snrW = ConvertDomain(RADIO_GetSNR(), SNR_MIN, SNR_MAX, 0, BAR_WIDTH);
+
+  FillRect(BAR_LEFT_MARGIN, y + 1, rssiW, 4, C_FILL);
+  FillRect(BAR_LEFT_MARGIN, y + 6, snrW, 3, C_FILL);
+
+  DrawHLine(0, y + 4, BAR_WIDTH, C_FILL);
+  for (int16_t r = Rssi2DBm(RSSI_MIN); r < Rssi2DBm(RSSI_MAX); r++) {
+    if (r % 10 == 0) {
+      FillRect(ConvertDomain(r, Rssi2DBm(RSSI_MIN), Rssi2DBm(RSSI_MAX), 0,
+                             BAR_WIDTH),
+               y + 4 - (r % 50 == 0 ? 2 : 1), 1, r % 50 == 0 ? 2 : 1, C_INVERT);
+    }
   }
 
-  FillRect(BAR_LEFT_MARGIN, y + 8, ConvertDomain(RADIO_GetS(), 0, 13, 0, 54), 1,
-           C_FILL);
-
-  PrintMediumEx(LCD_WIDTH - 1, BAR_BASE, 2, true, "%d", dBm);
-  // PrintMedium(0, BAR_BASE, "SNR %u", snr);
+  PrintMediumEx(LCD_WIDTH - 1, BAR_BASE, 2, true, "%d", Rssi2DBm(rssi));
 }
 
 void UI_FSmall(uint32_t f) {
-  PrintSmallEx(LCD_WIDTH - 1, 15, 2, true,
-               modulationTypeOptions[RADIO_GetModulation()]);
-  PrintSmallEx(LCD_WIDTH - 1, 21, 2, true,
+  SQL sq = GetSql(gCurrentPreset->band.squelch);
+
+  PrintSmall(0, 12, "R %u", RADIO_GetRSSI());
+  PrintSmall(30, 12, "N %u", BK4819_GetNoise());
+  PrintSmall(60, 12, "G %u", BK4819_GetGlitch());
+  PrintSmall(90, 12, "SQ %u", gCurrentPreset->band.squelch);
+
+  PrintSmall(0, 18, "%u/%u", sq.ro, sq.rc);
+  PrintSmall(30, 18, "%u/%u", sq.no, sq.nc);
+  PrintSmall(60, 18, "%u/%u", sq.go, sq.gc);
+
+  PrintSmall(0, 27, "SNR %u", RADIO_GetSNR());
+
+  PrintSmallEx(LCD_WIDTH - 1, 12, POS_R, true,
                RADIO_GetBWName(gCurrentPreset->band.bw));
-
-  uint16_t step = StepFrequencyTable[gCurrentPreset->band.step];
-
-  // PrintSmall(0, 21, "%u.%02uk", step / 100, step % 100);
-
-  /* if (gSettings.upconverter) {
-    UI_FSmallest(radio->rx.f, 32, 21);
-  } */
-
-  PrintSmallEx(32, 21, POS_C, C_FILL, "S:%u", RADIO_GetSNR());
-  PrintSmallEx(52, 21, POS_C, C_FILL, "N:%u", BK4819_GetNoise());
-  PrintSmallEx(72, 21, POS_C, C_FILL, "G:%u", BK4819_GetGlitch());
-  PrintSmallEx(92, 21, POS_C, C_FILL, "SQ:%u", gCurrentPreset->band.squelch);
-
-  PrintMediumEx(64, 15, POS_C, C_FILL, "%u.%05u", f / MHZ, f % MHZ);
+  const uint32_t step = StepFrequencyTable[gCurrentPreset->band.step];
+  PrintSmallEx(LCD_WIDTH - 1, 18, POS_R, C_FILL, "STP %d.%02dk", step / 100,
+               step % 100);
 }
 
 void UI_FSmallest(uint32_t f, uint8_t x, uint8_t y) {

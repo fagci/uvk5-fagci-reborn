@@ -1,23 +1,8 @@
-/* Copyright 2023 Dual Tachyon
- * https://github.com/DualTachyon
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
- */
-
 #ifndef DRIVER_BK4819_h
 #define DRIVER_BK4819_h
 
 #include "../driver/bk4819-regs.h"
+#include "../helper/measurements.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -95,9 +80,11 @@ typedef struct {
 } Gain;
 
 typedef enum BK4819_CssScanResult_t BK4819_CssScanResult_t;
-extern const Gain gainTable[19];
+extern const Gain gainTable[32];
 
-extern const uint8_t SQ[2][6][11];
+static uint32_t AUTO_GAIN_INDEX = 20;
+
+// extern const uint8_t SQ[2][6][11];
 
 void BK4819_Init(void);
 uint16_t BK4819_ReadRegister(BK4819_REGISTER_t Register);
@@ -117,13 +104,7 @@ void BK4819_SetFilterBandwidth(BK4819_FilterBandwidth_t Bandwidth);
 void BK4819_SetupPowerAmplifier(uint8_t Bias, uint32_t Frequency);
 void BK4819_SetFrequency(uint32_t Frequency);
 uint32_t BK4819_GetFrequency(void);
-void BK4819_SetupSquelch(uint8_t SquelchOpenRSSIThresh,
-                         uint8_t SquelchCloseRSSIThresh,
-                         uint8_t SquelchOpenNoiseThresh,
-                         uint8_t SquelchCloseNoiseThresh,
-                         uint8_t SquelchCloseGlitchThresh,
-                         uint8_t SquelchOpenGlitchThresh, uint8_t OpenDelay,
-                         uint8_t CloseDelay);
+void BK4819_SetupSquelch(SQL sq, uint8_t delayO, uint8_t delayC);
 void BK4819_Squelch(uint8_t sql, uint32_t f, uint8_t OpenDelay,
                     uint8_t CloseDelay);
 void BK4819_SquelchType(SquelchType t);

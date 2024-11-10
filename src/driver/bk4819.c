@@ -29,7 +29,7 @@ static const uint8_t squelchTypeValues[4] = {0x88, 0xAA, 0xCC, 0xFF};
 static const uint8_t DTMF_COEFFS[] = {111, 107, 103, 98, 80,  71,  58,  44,
                                       65,  55,  37,  23, 228, 203, 181, 159};
 
-const uint8_t SQ[2][6][11] = {
+/* const uint8_t SQ[2][6][11] = {
     {
         {0, 10, 62, 66, 74, 75, 92, 95, 98, 170, 252},
         {0, 5, 60, 64, 72, 70, 89, 92, 95, 166, 250},
@@ -46,28 +46,69 @@ const uint8_t SQ[2][6][11] = {
         {255, 90, 135, 135, 116, 10, 8, 7, 6, 32, 32},
         {255, 100, 150, 140, 120, 15, 12, 11, 10, 30, 30},
     },
-};
+}; */
 
-const Gain gainTable[19] = {
-    {0x000, -43}, //
-    {0x100, -40}, //
-    {0x020, -38}, //
-    {0x200, -35}, //
-    {0x040, -33}, //
-    {0x220, -30}, //
-    {0x060, -28}, //
-    {0x240, -25}, //
-    {0x0A0, -23}, //
-    {0x260, -20}, //
-    {0x1C0, -18}, //
-    {0x2A0, -15}, //
-    {0x2C0, -13}, //
-    {0x2E0, -11}, //
-    {0x360, -9},  //
-    {0x380, -6},  //
-    {0x3A0, -4},  //
-    {0x3C0, -2},  //
-    {0x3E0, 0},   //
+const Gain gainTable[32] = {
+    {0x10, 90},  //	0 	  	-57   			0 0 2 0
+    {0x1, 88},   //	1 		-55       		0
+                 // 0	    0	    1
+    {0x9, 87},   //	2  		-54      		0
+                 // 0	    1	    1
+    {0x2, 83},   //	3  		-50       		0
+                 // 0	    0	    2
+    {0xA, 81},   //	4  		-48       		0
+                 // 0	    1	    2
+    {0x12, 79},  //	5  		-46       		0
+                 // 0	    2	    2
+    {0x2A, 77},  //	6  		-44       		0
+                 // 1	    1	    2
+    {0x32, 75},  //	7  		-42       		0
+                 // 1	    2	    2
+    {0x3A, 70},  //	8  		-37       		0
+                 // 1	    3	    2
+    {0x20B, 68}, //   9  		-35       		2
+                 //   0	    1	    3
+    {0x213, 64}, //   10 		-31      		2
+                 //   0	    2	    3
+    {0x21B, 62}, //   11 		-29       		2
+                 //   0	    3	    3
+    {0x214, 59}, //   12 		-26       		2
+                 //   0	    2	    4
+    {0x21C, 56}, //   13 		-23      		2
+                 //   0	    3	    4
+    {0x22D, 52}, //   14 		-19      		2
+                 //   1	    1	    5
+    {0x23C, 50}, //   15 		-17      		2
+                 //   1	    3	    4
+    {0x23D, 48}, //   16 		-15      		2
+                 //   1	    3	    5
+    {0x255, 44}, //   17 		-11      		2
+                 //   2	    2	    5
+    {0x25D, 42}, //   18 		-9      		2
+                 //   2	    3	    5
+    {0x275, 39}, //   19 		-6       		2
+                 //   3	    2	    5
+    {0x295, 33}, //   20 		 0       		2
+                 //   4	    2	    5
+    {0x2B6, 31}, //   21 		+2        		2
+                 //   4	    2	    6
+    {0x354, 28}, //   22 		+5 	   			3
+                 //   2	    2	    4
+    {0x36C, 23}, //   23 		+9       		3
+                 //   3	    1	    4
+    {0x38C, 20}, //   24 		+13        		3
+                 //   4	    1	    4
+    {0x38D, 17}, //   25 		+16        		3
+                 //   4	    1	    5
+    {0x3B5, 13}, //   26 		+20        		3
+                 //   5	    2	    5
+    {0x3B6, 9},  //   27 		+22      		3
+                 //   5	    2	    6
+    {0x3D6, 8},  //   28 		+25       		3
+                 //   6	    2	    6
+    {0x3BF, 3},  //   29 		+28      		3 5 3 7
+    {0x3DF, 2},  //   30 		+31      		3 6 3 7
+    {0x3FF, 0},  //   31 		+33  			3 7 3 7
 };
 
 inline uint16_t scale_freq(const uint16_t freq) {
@@ -205,12 +246,12 @@ void BK4819_SetAGC(bool useDefault, uint8_t gainIndex) {
   );
 
   if (gainIndex == GAIN_AUTO) {
-    BK4819_WriteRegister(BK4819_REG_13, 0x03BE);
+    // BK4819_WriteRegister(BK4819_REG_13, 0x03BE);
+    BK4819_WriteRegister(BK4819_REG_13, 0x0295);
   } else {
-    BK4819_WriteRegister(BK4819_REG_13,
-                         gainTable[gainIndex].regValue | 6 | (3 << 3));
+    BK4819_WriteRegister(BK4819_REG_13, gainTable[gainIndex].regValue);
   }
-  BK4819_WriteRegister(BK4819_REG_12, 0x037B);
+  BK4819_WriteRegister(BK4819_REG_12, 0x037C);
   BK4819_WriteRegister(BK4819_REG_11, 0x027B);
   BK4819_WriteRegister(BK4819_REG_10, 0x007A);
 
@@ -424,26 +465,25 @@ uint32_t BK4819_GetFrequency(void) {
          BK4819_ReadRegister(BK4819_REG_38);
 }
 
-void BK4819_SetupSquelch(uint8_t ro, uint8_t rc, uint8_t no, uint8_t nc,
-                         uint8_t gc, uint8_t go, uint8_t delayO,
-                         uint8_t delayC) {
-  BK4819_WriteRegister(BK4819_REG_4D, 0xA000 | gc);
+void BK4819_SetupSquelch(SQL sq, uint8_t delayO, uint8_t delayC) {
+  sq.no = Clamp(sq.no, 0, 127);
+  sq.nc = Clamp(sq.nc, 0, 127);
+
+  BK4819_WriteRegister(BK4819_REG_4D, 0xA000 | sq.gc);
   BK4819_WriteRegister(
       BK4819_REG_4E,
       (1u << 14) |                   //  1 ???
           (uint16_t)(delayO << 11) | // *5  squelch = open  delay .. 0 ~ 7
           (uint16_t)(delayC << 9) |  // *3  squelch = close delay .. 0 ~ 3
-          go);
-  BK4819_WriteRegister(BK4819_REG_4F, (nc << 8) | no);
-  BK4819_WriteRegister(BK4819_REG_78, (ro << 8) | rc);
+          sq.go);
+  BK4819_WriteRegister(BK4819_REG_4F, (sq.nc << 8) | sq.no);
+  BK4819_WriteRegister(BK4819_REG_78, (sq.ro << 8) | sq.rc);
 }
 
 void BK4819_Squelch(uint8_t sql, uint32_t f, uint8_t OpenDelay,
                     uint8_t CloseDelay) {
-  const uint8_t band = f > SETTINGS_GetFilterBound() ? 1 : 0;
-  BK4819_SetupSquelch(SQ[band][0][sql], SQ[band][1][sql], SQ[band][2][sql],
-                      SQ[band][3][sql], SQ[band][4][sql], SQ[band][5][sql],
-                      OpenDelay, CloseDelay);
+  // const uint8_t band = f > SETTINGS_GetFilterBound() ? 1 : 0;
+  BK4819_SetupSquelch(GetSql(sql), OpenDelay, CloseDelay);
 }
 
 void BK4819_SquelchType(SquelchType t) {

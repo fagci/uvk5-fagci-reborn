@@ -19,32 +19,23 @@
 bool gVfo1ProMode = false;
 
 static uint8_t menuIndex = 0;
+static bool registerActive = false;
 
 static char String[16];
 
 static const RegisterSpec registerSpecs[] = {
-    {"ATT", BK4819_REG_13, 0, 0xFFFF, 1},
+    {"Gain", BK4819_REG_13, 0, 0xFFFF, 1},
     /* {"RF", BK4819_REG_43, 12, 0b111, 1},
     {"RFwe", BK4819_REG_43, 9, 0b111, 1}, */
 
     // {"IF", 0x3D, 0, 0xFFFF, 100},
-    // TODO: 7 values:
-    /* 0: Zero IF
-    0x2aab: 8.46 kHz IF
-    0x4924: 7.25 kHz IF
-    0x6800: 6.35 kHz IF
-    0x871c: 5.64 kHz IF
-    0xa666: 5.08 kHz IF
-    0xc5d1: 4.62 kHz IF
-    0xe555: 4.23 kHz IF
-    If REG_43<5> = 1, IF = IF*2. */
 
     {"DEV", 0x40, 0, 0xFFF, 10},
     // {"300T", 0x44, 0, 0xFFFF, 1000},
     RS_RF_FILT_BW,
     // {"AFTxfl", 0x43, 6, 0b111, 1}, // 7 is widest
     // {"3kAFrsp", 0x74, 0, 0xFFFF, 100},
-    // {"CMP", 0x31, 3, 1, 1},
+    {"CMP", 0x31, 3, 1, 1},
     {"MIC", 0x7D, 0, 0xF, 1},
 
     {"AGCL", 0x49, 0, 0b1111111, 1},
@@ -109,6 +100,9 @@ static void channelScanFn(bool forward) {
 
 void VFO1_init(void) {
   gDW.activityOnVFO = -1;
+  if (!gVfo1ProMode) {
+    gVfo1ProMode = gSettings.iAmPro;
+  }
   RADIO_LoadCurrentVFO();
 }
 
@@ -239,6 +233,9 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_9:
       RADIO_UpdateSquelchLevel(false);
       return true;
+    case KEY_5:
+      registerActive = !registerActive;
+      return true;
     case KEY_0:
       RADIO_ToggleModulation();
       return true;
@@ -252,10 +249,18 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       APPS_run(APP_VFO_CFG);
       return true;
     case KEY_2:
-      IncDec8(&menuIndex, 0, ARRAY_SIZE(registerSpecs) - 1, -1);
+      if (registerActive) {
+        UpdateRegMenuValue(registerSpecs[menuIndex], true);
+      } else {
+        IncDec8(&menuIndex, 0, ARRAY_SIZE(registerSpecs) - 1, -1);
+      }
       return true;
     case KEY_8:
-      IncDec8(&menuIndex, 0, ARRAY_SIZE(registerSpecs) - 1, 1);
+      if (registerActive) {
+        UpdateRegMenuValue(registerSpecs[menuIndex], false);
+      } else {
+        IncDec8(&menuIndex, 0, ARRAY_SIZE(registerSpecs) - 1, 1);
+      }
       return true;
     default:
       break;
@@ -264,12 +269,6 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
   bool isSsb = RADIO_IsSSB();
   switch (key) {
-  case KEY_UP:
-    UpdateRegMenuValue(registerSpecs[menuIndex], true);
-    return true;
-  case KEY_DOWN:
-    UpdateRegMenuValue(registerSpecs[menuIndex], false);
-    return true;
   case KEY_SIDE1:
     if (RADIO_GetRadio() == RADIO_SI4732 && isSsb) {
       RADIO_TuneToSave(radio->rx.f + 1);
@@ -283,8 +282,8 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     }
     break;
   case KEY_EXIT:
-    if (gVfo1ProMode) {
-      gVfo1ProMode = 0;
+    if (registerActive) {
+      registerActive = false;
       return true;
     }
     APPS_exit();
@@ -308,8 +307,8 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     }
   }
 
-  if (gVfo1ProMode) {
-    return VFOPRO_key(key, bKeyPressed, bKeyHeld);
+  if (gVfo1ProMode && VFOPRO_key(key, bKeyPressed, bKeyHeld)) {
+    return true;
   }
 
   if (key == KEY_PTT && !gIsNumNavInput) {
@@ -370,7 +369,9 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       APPS_run(APP_PRESETS_LIST);
       return true;
     case KEY_2:
-      gVfo1ProMode = !gVfo1ProMode;
+      gSettings.iAmPro = !gSettings.iAmPro;
+      gVfo1ProMode = gSettings.iAmPro;
+      SETTINGS_Save();
       return true;
     case KEY_3:
       RADIO_ToggleVfoMR();
@@ -511,10 +512,11 @@ static void DrawRegs(void) {
   RegisterSpec rs = registerSpecs[menuIndex];
 
   if (rs.num == BK4819_REG_13) {
-    if (gCurrentPreset->band.gainIndex == 18) {
+    if (gCurrentPreset->band.gainIndex == AUTO_GAIN_INDEX) {
       sprintf(String, "auto");
     } else {
-      sprintf(String, "%ddB", gainTable[gCurrentPreset->band.gainIndex].gainDb);
+      sprintf(String, "%+ddB",
+              -gainTable[gCurrentPreset->band.gainIndex].gainDb + 33);
     }
   } else if (rs.num == 0x73) {
     uint8_t afc = BK4819_GetAFC();
@@ -527,7 +529,10 @@ static void DrawRegs(void) {
     sprintf(String, "%u", BK4819_GetRegValue(rs));
   }
 
-  PrintMedium(2, LCD_HEIGHT - 2, "%u. %s: %s", menuIndex, rs.name, String);
+  PrintMedium(2, LCD_HEIGHT - 4, "%u. %s: %s", menuIndex, rs.name, String);
+  if (registerActive) {
+    FillRect(0, LCD_HEIGHT - 4 - 7, LCD_WIDTH, 9, C_INVERT);
+  }
 }
 
 void VFO1_render(void) {

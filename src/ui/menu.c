@@ -119,7 +119,7 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
     sprintf(Output, "%u", band->squelch);
     break;
   case M_GAIN:
-    sprintf(Output, "%ddB", gainTable[band->gainIndex].gainDb);
+    sprintf(Output, "%ddB", -gainTable[band->gainIndex].gainDb + 33);
     break;
   case M_MODULATION:
     strncpy(Output,

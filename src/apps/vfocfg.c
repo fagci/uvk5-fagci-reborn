@@ -151,8 +151,8 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     sprintf(name, "%u", index);
     return;
   case M_GAIN:
-    sprintf(name, index == ARRAY_SIZE(gainTable) - 1 ? "auto" : "%ddB%s",
-            gainTable[index].gainDb, index == 16 ? " #" : "");
+    sprintf(name, index == AUTO_GAIN_INDEX ? "auto" : "%+ddB",
+            -gainTable[index].gainDb + 33);
     return;
   default:
     break;

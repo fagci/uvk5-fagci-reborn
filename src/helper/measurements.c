@@ -17,7 +17,7 @@ uint32_t ClampF(uint32_t v, uint32_t min, uint32_t max) {
 }
 
 uint32_t ConvertDomainF(uint32_t aValue, uint32_t aMin, uint32_t aMax,
-                               uint32_t bMin, uint32_t bMax) {
+                        uint32_t bMin, uint32_t bMax) {
   const uint64_t aRange = aMax - aMin;
   const uint64_t bRange = bMax - bMin;
   aValue = ClampF(aValue, aMin, aMax);
@@ -148,3 +148,21 @@ void IncDec32(uint32_t *val, uint32_t min, uint32_t max, int32_t inc) {
 }
 
 bool IsReadable(char *name) { return name[0] >= 32 && name[0] < 127; }
+
+SQL GetSql(uint8_t level) {
+  SQL sq = {0, 0, 255, 255, 255, 255};
+  if (level == 0) {
+    return sq;
+  }
+
+  /* sq.ro = 8 << (level / 2);
+  sq.no = sq.go = 8 << ((10 - level) / 2); */
+
+  sq.ro = ConvertDomain(level, 0, 10, 79, 180);
+  sq.no = ConvertDomain(level, 0, 10, 80, 10);
+  sq.go = ConvertDomain(level, 0, 10, 47, 7);
+
+  sq.rc = sq.ro - 6;
+  sq.nc = sq.gc = sq.no + 6;
+  return sq;
+}
