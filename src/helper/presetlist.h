@@ -19,7 +19,6 @@ void PRESETS_SavePreset(int8_t num, Preset *p);
 void PRESETS_LoadPreset(int8_t num, Preset *p);
 void PRESETS_SaveCurrent();
 bool PRESET_InRange(const uint32_t f, const Preset *p);
-bool PRESET_InRangeOffset(const uint32_t f, const Preset *p);
 
 uint16_t PRESETS_GetStepSize(Preset *p);
 uint32_t PRESETS_GetSteps(Preset *p);

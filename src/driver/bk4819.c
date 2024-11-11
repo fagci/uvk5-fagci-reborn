@@ -364,28 +364,7 @@ void BK4819_EnableVox(uint16_t VoxEnableThreshold,
   BK4819_WriteRegister(BK4819_REG_31, REG_31_Value | 4); // bit 2 - VOX Enable
 }
 
-typedef enum {
-  BK4819_FILTER_BW_26k = 0, //	"W 26k",	//0
-  BK4819_FILTER_BW_23k,     //  "W 23k",	//1
-  BK4819_FILTER_BW_20k,     //  "W 20k",	//2
-  BK4819_FILTER_BW_17k,     //  "W 17k",	//3
-  BK4819_FILTER_BW_14k,     //  "W 14k",	//4
-  BK4819_FILTER_BW_12k,     //  "W 12k",	//5
-  BK4819_FILTER_BW_10k,     //  "N 10k",	//6
-  BK4819_FILTER_BW_9k,      //  "N 9k",		//7
-  BK4819_FILTER_BW_7k,      //  "U 7K",		//8
-  BK4819_FILTER_BW_6k       //  "U 6K"		//9
-} BK4819_IJV_Filter_Bandwidth_t;
-
-void BK4819_SetFilterBandwidth(BK4819_FilterBandwidth_t Bandwidth) {
-  static const BK4819_IJV_Filter_Bandwidth_t OLD_BW_TO_IJV_BW[] = {
-      [BK4819_FILTER_BW_WIDE] = BK4819_FILTER_BW_12k,
-      [BK4819_FILTER_BW_NARROW] = BK4819_FILTER_BW_9k,
-      [BK4819_FILTER_BW_NARROWER] = BK4819_FILTER_BW_6k,
-      [BK4819_FILTER_BW_SOMETHING] = BK4819_FILTER_BW_14k,
-  };
-  const uint8_t bw = OLD_BW_TO_IJV_BW[Bandwidth];
-
+void BK4819_SetFilterBandwidth(BK4819_FilterBandwidth_t bw) {
   if (bw > 9)
     return;
 

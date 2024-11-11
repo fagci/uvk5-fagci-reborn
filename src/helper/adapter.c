@@ -2,26 +2,26 @@
 #include "../radio.h"
 
 void VFO2CH(VFO *src, Preset *p, CH *dst) {
-  dst->rx.f = src->rx.f;
-  dst->tx.f = RADIO_GetTXFEx(src, p);
-  dst->rx.code = src->rx.code;
-  dst->tx.code = src->tx.code;
-  dst->rx.codeType = src->rx.codeType;
-  dst->tx.codeType = src->tx.codeType;
-  dst->bw = p->band.bw;
+  dst->rxF = src->rxF;
+  dst->txF = RADIO_GetTXFEx(src, p);
+  dst->code.rx.value = src->code.rx.value;
+  dst->code.tx.value = src->code.tx.value;
+  dst->code.rx.type = src->code.rx.type;
+  dst->code.tx.type = src->code.tx.type;
+  dst->bw = p->bw;
   dst->power = src->power;
   dst->radio = src->radio == RADIO_UNKNOWN ? p->radio : src->radio;
   dst->modulation =
-      src->modulation == MOD_PRST ? p->band.modulation : src->modulation;
+      src->modulation == MOD_PRST ? p->modulation : src->modulation;
 }
 
 void CH2VFO(CH *src, VFO *dst) {
-  dst->rx.f = src->rx.f;
-  dst->tx.f = src->tx.f;
-  dst->rx.code = src->rx.code;
-  dst->tx.code = src->tx.code;
-  dst->rx.codeType = src->rx.codeType;
-  dst->tx.codeType = src->tx.codeType;
+  dst->rxF = src->rxF;
+  dst->txF = src->txF;
+  dst->code.rx.value = src->code.rx.value;
+  dst->code.tx.value = src->code.tx.value;
+  dst->code.rx.type = src->code.rx.type;
+  dst->code.tx.type = src->code.tx.type;
   dst->power = src->power;
   dst->radio = src->radio;
   dst->modulation = src->modulation;

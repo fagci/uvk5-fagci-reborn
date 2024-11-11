@@ -40,6 +40,7 @@ typedef enum {
   OFFSET_NONE,
   OFFSET_PLUS,
   OFFSET_MINUS,
+  OFFSET_FREQ,
 } OffsetDirection;
 
 typedef enum {
@@ -168,32 +169,19 @@ typedef struct {
 
 typedef struct {
   uint32_t f : 27;
-  uint8_t codeType : 4;
-  uint8_t code;
+
 } __attribute__((packed)) F; // 5 B
 // getsize(F)
 
 typedef struct {
-  F rx;
-  F tx;
-  char name[10];
-  uint8_t memoryBanks;
-  ModulationType modulation : 4;
-  BK4819_FilterBandwidth_t bw : 2;
-  TXOutputPower power : 2;
-  Radio radio : 2;
-} __attribute__((packed)) CH; // 22 B
-// getsize(CH)
+  uint8_t value;
+  uint8_t type : 4;
+} Code;
 
 typedef struct {
-  F rx;
-  F tx;
-  int16_t channel;
-  ModulationType modulation : 4;
-  TXOutputPower power : 2;
-  Radio radio : 2;
-} __attribute__((packed)) VFO;
-// getsize(VFO)
+  Code rx;
+  Code tx;
+} CodeRXTX;
 
 typedef struct {
   uint32_t start : 27;
@@ -201,35 +189,71 @@ typedef struct {
 } __attribute__((packed)) FRange;
 
 typedef struct {
-  FRange bounds;
-  char name[10];
-  Step step : 4;
-  ModulationType modulation : 4;
-  BK4819_FilterBandwidth_t bw : 2;
-  SquelchType squelchType : 2;
-  uint8_t squelch : 4;
-  uint8_t gainIndex : 5;
-  uint8_t reserved1 : 3;
-} __attribute__((packed)) Band;
-
-typedef struct {
-  uint8_t s : 8;
-  uint8_t m : 8;
-  uint8_t e : 8;
+  uint8_t s;
+  uint8_t m;
+  uint8_t e;
 } __attribute__((packed)) PowerCalibration;
 
 typedef struct {
-  PowerCalibration powCalib;
-  uint32_t lastUsedFreq : 27;
-  uint32_t offset : 26;
-  Band band;
-  uint8_t memoryBanks : 8;
-  TXOutputPower power : 2;
-  OffsetDirection offsetDir : 2;
+  uint8_t value : 4;
+  SquelchType type : 2;
+} Squelch;
+
+typedef enum {
+  TYPE_CH,
+  TYPE_PRESET,
+  TYPE_VFO,
+  TYPE_SETTING,
+  TYPE_FILE,
+  TYPE_MELODY,
+  TYPE_MISC1,
+  TYPE_MISC2,
+} CHType;
+
+typedef struct {
+  // Common fields
+  CHType type : 3;
+  bool readonly : 1;
+  union {
+    uint16_t memoryBanks;
+    int16_t channel;
+  };
+  char name[10];
+  uint32_t rxF : 27;
+  uint32_t txF : 27;
+  OffsetDirection offsetDir : 2; // =0 -> tx=rxF
+                                 // =1 -> tx=rxF+txF
+                                 // =2 -> tx=rxF-txF
+                                 // =4 -> tx=txF
+
+  // Common radio settings
+  Step step : 4;
+  ModulationType modulation : 4;
+  BK4819_FilterBandwidth_t bw : 4;
   Radio radio : 2;
+  TXOutputPower power : 2;
   bool allowTx : 1;
-} __attribute__((packed)) Preset;
-// getsize(Preset)
+
+  Squelch squelch;
+  uint8_t scrambler : 4;
+
+  union {
+    // Only VFO/MR
+    CodeRXTX code;
+
+    // Only PRESET
+    struct {
+      PowerCalibration powCalib;
+      uint32_t lastUsedFreq : 27;
+    } misc;
+  };
+
+  uint8_t gainIndex : 5; // Common rest
+} __attribute__((packed)) CH;
+typedef CH Band;
+typedef CH VFO;
+typedef CH Preset;
+// getsize(CH)
 
 // char (*__chCount)(void)[(8196 - sizeof(Settings) - sizeof(Preset) * 29 -
 // sizeof(VFO) * 2)/sizeof(CH)] = 1;
@@ -237,9 +261,9 @@ typedef struct {
 #define SETTINGS_OFFSET (0)
 #define SETTINGS_SIZE sizeof(Settings)
 
-#define PRESET_SIZE sizeof(Preset)
+#define PRESET_SIZE sizeof(CH)
 #define CH_SIZE sizeof(CH)
-#define VFO_SIZE sizeof(VFO)
+#define VFO_SIZE sizeof(CH)
 
 #define VFOS_OFFSET (SETTINGS_OFFSET + SETTINGS_SIZE)
 #define PRESETS_OFFSET (VFOS_OFFSET + VFO_SIZE * 2)

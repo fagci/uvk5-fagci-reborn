@@ -52,12 +52,12 @@ void UI_RSSIBar(uint16_t rssi, uint8_t snr, uint32_t f, uint8_t y) {
 }
 
 void UI_FSmall(uint32_t f) {
-  SQL sq = GetSql(gCurrentPreset->band.squelch);
+  SQL sq = GetSql(gCurrentPreset->squelch.value);
 
   PrintSmall(0, 12, "R %u", RADIO_GetRSSI());
   PrintSmall(30, 12, "N %u", BK4819_GetNoise());
   PrintSmall(60, 12, "G %u", BK4819_GetGlitch());
-  PrintSmall(90, 12, "SQ %u", gCurrentPreset->band.squelch);
+  PrintSmall(90, 12, "SQ %u", gCurrentPreset->squelch.value);
 
   PrintSmall(0, 18, "%u/%u", sq.ro, sq.rc);
   PrintSmall(30, 18, "%u/%u", sq.no, sq.nc);
@@ -66,8 +66,8 @@ void UI_FSmall(uint32_t f) {
   PrintSmallEx(LCD_WIDTH - 1, 12, POS_R, C_FILL, "SNR %u", RADIO_GetSNR());
 
   PrintSmallEx(LCD_WIDTH - 1, 18, POS_R, true,
-               RADIO_GetBWName(gCurrentPreset->band.bw));
-  const uint32_t step = StepFrequencyTable[gCurrentPreset->band.step];
+               RADIO_GetBWName(gCurrentPreset->bw));
+  const uint32_t step = StepFrequencyTable[gCurrentPreset->step];
   PrintSmallEx(0, 27, POS_L, C_FILL, "STP %d.%02dk", step / 100, step % 100);
 }
 
@@ -83,9 +83,8 @@ void drawTicks(uint8_t y, uint32_t fs, uint32_t fe, uint32_t div, uint8_t h) {
 }
 
 void UI_DrawTicks(uint8_t y, const Band *band) {
-  const FRange *range = &band->bounds;
-  uint32_t fs = range->start;
-  uint32_t fe = range->end;
+  uint32_t fs = band->rxF;
+  uint32_t fe = band->txF;
   uint32_t bw = fe - fs;
 
   for (uint32_t p = 100000000; p >= 10; p /= 10) {
@@ -113,8 +112,8 @@ void UI_DrawSpectrumElements(const uint8_t sy, uint8_t msmDelay, int16_t sq,
                       gLastActiveLoot->f / MHZ, gLastActiveLoot->f % MHZ);
   }
 
-  uint32_t fs = currentBand->bounds.start;
-  uint32_t fe = currentBand->bounds.end;
+  uint32_t fs = currentBand->rxF;
+  uint32_t fe = currentBand->txF;
 
   PrintSmallEx(0, LCD_HEIGHT - 1, POS_L, C_FILL, "%u.%05u", fs / MHZ, fs % MHZ);
   PrintSmallEx(LCD_WIDTH, LCD_HEIGHT - 1, POS_R, C_FILL, "%u.%05u", fe / MHZ,

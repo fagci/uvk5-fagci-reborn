@@ -24,9 +24,9 @@
 #include "svc.h"
 #include <string.h>
 
-VFO *radio;
-VFO gVFO[2] = {0};
-Preset *gVFOPresets[2] = {0};
+CH *radio;
+CH gVFO[2] = {0};
+CH *gVFOPresets[2] = {0};
 
 Loot gLoot[2] = {0};
 

@@ -8,7 +8,6 @@ int16_t gScanlistSize = 0;
 uint16_t gScanlist[SCANLIST_MAX] = {0};
 
 static const uint8_t CH_NAME_OFFSET = offsetof(CH, name);
-static const uint8_t CH_RX_OFFSET = offsetof(CH, rx);
 static const uint8_t CH_BANKS_OFFSET = offsetof(CH, memoryBanks);
 
 static uint32_t presetsSizeBytes(void) {
@@ -37,14 +36,6 @@ uint16_t CHANNELS_GetCountMax(void) {
   return n < SCANLIST_MAX ? n : SCANLIST_MAX;
 }
 
-F CHANNELS_GetRX(int16_t num) {
-  F f;
-  if (num >= 0) {
-    EEPROM_ReadBuffer(GetChannelOffset(num) + CH_RX_OFFSET, &f, sizeof(F));
-  }
-  return f;
-}
-
 void CHANNELS_Load(int16_t num, CH *p) {
   if (num >= 0) {
     EEPROM_ReadBuffer(GetChannelOffset(num), p, CH_SIZE);
@@ -59,12 +50,12 @@ void CHANNELS_Save(int16_t num, CH *p) {
 
 void CHANNELS_Delete(int16_t num) {
   CH _ch = {
-      .rx = {0},
-      .tx = {0},
+      .rxF = 0,
+      .txF = 0,
       .name = {'\0'},
       .memoryBanks = 0,
       .modulation = MOD_FM,
-      .bw = BK4819_FILTER_BW_WIDE,
+      .bw = BK4819_FILTER_BW_14k,
       .power = TX_POW_LOW,
       .radio = RADIO_UNKNOWN,
   };
@@ -146,7 +137,7 @@ void CHANNELS_LoadBlacklistToLoot() {
     if ((CHANNELS_Scanlists(i) & scanlistMask) == scanlistMask) {
       CH ch;
       CHANNELS_Load(i, &ch);
-      Loot *loot = LOOT_AddEx(ch.rx.f, true);
+      Loot *loot = LOOT_AddEx(ch.rxF, true);
       loot->open = false;
       loot->blacklist = true;
       loot->lastTimeOpen = 0;
