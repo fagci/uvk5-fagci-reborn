@@ -104,13 +104,7 @@ const char *RADIO_GetBWName(BK4819_FilterBandwidth_t i) {
 }
 
 void RADIO_SetupRegisters(void) {
-  /* GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
-  BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN, false);
-  BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false); */
   BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, false);
-  // BK4819_SetupPowerAmplifier(0, 0); // 0 is default
-
-  // BK4819_SetFilterBandwidth(BK4819_FILTER_BW_WIDE);
 
   while (BK4819_ReadRegister(BK4819_REG_0C) & 1U) {
     BK4819_WriteRegister(BK4819_REG_02, 0);
@@ -118,28 +112,14 @@ void RADIO_SetupRegisters(void) {
   }
   BK4819_WriteRegister(BK4819_REG_3F, 0);
   BK4819_WriteRegister(BK4819_REG_7D, 0xE94F | 10); // mic
-  // TX
-  // BK4819_WriteRegister(0x44, 38888);  // 300 resp TX
-  BK4819_WriteRegister(0x74, 0xAF1F); // 3k resp TX
+  BK4819_WriteRegister(0x74, 0xAF1F);               // 3k resp TX
 
   BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, true);
-  BK4819_WriteRegister(
-      BK4819_REG_48,
-      (11u << 12) |    // ??? .. 0 ~ 15, doesn't seem to make any difference
-          (1u << 10) | // AF Rx Gain-1
-          (56 << 4) |  // AF Rx Gain-2
-          (8 << 0));   // AF DAC Gain (after Gain-1 and Gain-2)
 
-  // BK4819_DisableScramble(); // default is off
-  // BK4819_DisableVox() // default is off;
   BK4819_DisableDTMF();
 
-  // BK4819_WriteRegister(BK4819_REG_3F, 0);
-  /* BK4819_WriteRegister(BK4819_REG_3F, BK4819_REG_3F_SQUELCH_FOUND |
-                                          BK4819_REG_3F_SQUELCH_LOST); */
   BK4819_WriteRegister(0x40, (BK4819_ReadRegister(0x40) & ~(0b11111111111)) |
                                  1000 | (1 << 12));
-  // BK4819_WriteRegister(0x40, (1 << 12) | (1450));
 }
 
 static void setSI4732Modulation(ModulationType mod) {
@@ -892,7 +872,7 @@ void RADIO_ToggleVfoMR(void) {
 
 void RADIO_UpdateSquelchLevel(bool next) {
   uint8_t sq = gCurrentPreset->band.squelch;
-  IncDec8(&sq, 0, 10, next ? 1 : -1);
+  IncDec8(&sq, 0, 16, next ? 1 : -1);
   RADIO_SetSquelch(sq);
 }
 

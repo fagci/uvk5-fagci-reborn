@@ -33,6 +33,7 @@ static const RegisterSpec registerSpecs[] = {
     {"DEV", 0x40, 0, 0xFFF, 10},
     // {"300T", 0x44, 0, 0xFFFF, 1000},
     RS_RF_FILT_BW,
+    RS_XTAL_MODE,
     // {"AFTxfl", 0x43, 6, 0b111, 1}, // 7 is widest
     // {"3kAFrsp", 0x74, 0, 0xFFFF, 100},
     {"CMP", 0x31, 3, 1, 1},
@@ -154,8 +155,7 @@ static void initChannelScan() {
   LOOT_Clear();
   CHANNELS_LoadScanlist(gSettings.currentScanlist);
   if (gScanlistSize == 0) {
-    gSettings.currentScanlist = 15;
-    CHANNELS_LoadScanlist(gSettings.currentScanlist);
+    CHANNELS_LoadScanlist(15);
     SETTINGS_DelayedSave();
   }
   for (uint16_t i = 0; i < gScanlistSize; ++i) {
@@ -165,6 +165,7 @@ static void initChannelScan() {
     Loot *loot = LOOT_AddEx(ch.rx.f, true);
     loot->open = false;
     loot->lastTimeOpen = 0;
+    loot->blacklist = ch.memoryBanks & (1 << 7);
   }
 
   gScanFn = channelScanFn;
@@ -541,7 +542,7 @@ static void DrawRegs(void) {
 }
 
 void VFO1_render(void) {
-  const uint8_t BASE = 38;
+  const uint8_t BASE = 42;
 
   VFO *vfo = &gVFO[gSettings.activeVFO];
   Preset *p = gVFOPresets[gSettings.activeVFO];

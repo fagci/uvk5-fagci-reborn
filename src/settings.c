@@ -30,7 +30,6 @@ const char *EEPROM_TYPE_NAMES[8] = {
 
 Settings defaultSettings = (Settings){
     .eepromType = EEPROM_BL24C64,
-    .squelch = 4,
     .scrambler = 0,
     .batsave = 4,
     .vox = 0,

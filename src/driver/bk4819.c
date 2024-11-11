@@ -254,8 +254,8 @@ void BK4819_SetAGC(bool useDefault, uint8_t gainIndex) {
   );
 
   if (gainIndex == GAIN_AUTO) {
-    BK4819_WriteRegister(BK4819_REG_13, 0x03BE);
-    // BK4819_WriteRegister(BK4819_REG_13, 0x0295);
+    // BK4819_WriteRegister(BK4819_REG_13, 0x03BE);
+    BK4819_WriteRegister(BK4819_REG_13, 0x0295);
   } else {
     BK4819_WriteRegister(BK4819_REG_13, gainTable[gainIndex].regValue);
   }
@@ -549,11 +549,7 @@ void BK4819_SetModulation(ModulationType type) {
     BK4819_SetRegValue(RS_RF_FILT_BW_WEAK, 7);
     BK4819_SetRegValue(RS_BW_MODE, 3);
   } else {
-    if (isSsb) {
-      BK4819_SetRegValue(RS_XTAL_MODE, 3);
-    } else {
-      BK4819_SetRegValue(RS_XTAL_MODE, 2);
-    }
+    BK4819_SetRegValue(RS_XTAL_MODE, 2);
     BK4819_SetRegValue(RS_IF_F, 10923);
   }
 }

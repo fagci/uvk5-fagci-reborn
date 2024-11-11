@@ -20,7 +20,7 @@ static MenuItem menu[] = {
     {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions) - 1},
     {"BW", M_BW, 4},
     {"Gain", M_GAIN, ARRAY_SIZE(gainTable)},
-    {"SQ level", M_SQ, 10},
+    {"SQ level", M_SQ, 16},
     {"SQ type", M_SQ_TYPE, ARRAY_SIZE(sqTypeNames)},
     {"Radio", M_RADIO, ARRAY_SIZE(radioNames) - 1},
     {"Enable TX", M_TX, 2},

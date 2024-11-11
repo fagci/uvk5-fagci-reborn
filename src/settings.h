@@ -119,7 +119,7 @@ extern const uint32_t EEPROM_SIZES[8];
 typedef struct {
   EEPROMType eepromType : 3;
   uint8_t checkbyte : 5;
-  uint8_t squelch : 4;
+  uint8_t reserved0 : 4;
   uint8_t scrambler : 4;
   uint8_t batsave : 4;
   uint8_t vox : 4;

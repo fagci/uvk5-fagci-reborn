@@ -22,7 +22,7 @@ static MenuItem menu[] = {
     {"BW", M_BW, 4},
     {"Gain", M_GAIN, ARRAY_SIZE(gainTable)},
     {"SQ type", M_SQ_TYPE, ARRAY_SIZE(sqTypeNames)},
-    {"SQ level", M_SQ, 10},
+    {"SQ level", M_SQ, 16},
     {"RX freq", M_F_RX, 0},
     {"TX freq", M_F_TX, 0},
     {"RX code type", M_RX_CODE_TYPE, ARRAY_SIZE(TX_CODE_TYPES)},
