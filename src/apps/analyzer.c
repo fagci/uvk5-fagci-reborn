@@ -50,7 +50,7 @@ static void startNewScan(bool reset) {
     if (step > 5000) {
       BK4819_SetModulation(MOD_WFM);
     } else if (step >= 1200) {
-      BK4819_SetFilterBandwidth(BK4819_FILTER_BW_WIDE);
+      BK4819_SetFilterBandwidth(BK4819_FILTER_BW_14k);
     } else if (step >= 625) {
       BK4819_SetFilterBandwidth(BK4819_FILTER_BW_NARROW);
     } else {
@@ -121,7 +121,7 @@ void ANALYZER_init(void) {
   gMonitorMode = false;
 
   opt.step = gCurrentPreset->step;
-  opt.band.squelch = 0;
+  opt.squelch.value = 0;
 
   setCenterF(radio->rx.f);
   startNewScan(true);

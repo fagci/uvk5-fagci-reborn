@@ -47,16 +47,16 @@ static void setInitialSubmenuIndex(void) {
     subMenuIndex = gCurrentPreset->bw;
     break;
   case M_RX_CODE_TYPE:
-    subMenuIndex = radio->rx.codeType;
+    subMenuIndex = radio->code.rx.type;
     break;
   case M_RX_CODE:
-    subMenuIndex = radio->rx.code;
+    subMenuIndex = radio->code.rx.value;
     break;
   case M_TX_CODE_TYPE:
-    subMenuIndex = radio->tx.codeType;
+    subMenuIndex = radio->code.tx.type;
     break;
   case M_TX_CODE:
-    subMenuIndex = radio->tx.code;
+    subMenuIndex = radio->code.tx.value;
     break;
   case M_F_TXP:
     subMenuIndex = gCurrentPreset->power;
@@ -71,10 +71,10 @@ static void setInitialSubmenuIndex(void) {
     subMenuIndex = gCurrentPreset->step;
     break;
   case M_SQ_TYPE:
-    subMenuIndex = gCurrentPreset->band.squelchType;
+    subMenuIndex = gCurrentPreset->squelch.type;
     break;
   case M_SQ:
-    subMenuIndex = gCurrentPreset->band.squelch;
+    subMenuIndex = gCurrentPreset->squelch.value;
     break;
   case M_GAIN:
     subMenuIndex = gCurrentPreset->band.gainIndex;
@@ -126,13 +126,13 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     strncpy(name, TX_CODE_TYPES[index], 15);
     return;
   case M_RX_CODE:
-    PrintRTXCode(name, radio->rx.codeType, index);
+    PrintRTXCode(name, radio->code.rx.type, index);
     return;
   case M_TX_CODE_TYPE:
     strncpy(name, TX_CODE_TYPES[index], 15);
     return;
   case M_TX_CODE:
-    PrintRTXCode(name, radio->tx.codeType, index);
+    PrintRTXCode(name, radio->code.tx.type, index);
     return;
   case M_F_TXP:
     strncpy(name, TX_POWER_NAMES[index], 15);

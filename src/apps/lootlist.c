@@ -50,19 +50,19 @@ static void tuneToLoot(const Loot *loot, bool save) {
   Preset *p = PRESET_ByFrequency(loot->f);
   radio->rx.f = loot->f;
   radio->tx.f = 0;
-  radio->rx.codeType = radio->tx.codeType = CODE_TYPE_OFF;
-  radio->rx.code = radio->tx.code = 0;
+  radio->code.rx.type = radio->code.tx.type = CODE_TYPE_OFF;
+  radio->code.rx.value = radio->code.tx.value = 0;
 
   radio->radio = p->radio;
   radio->modulation = p->modulation;
   radio->power = p->power;
 
   if (loot->cd != 0xFF) {
-    radio->tx.codeType = CODE_TYPE_DIGITAL;
-    radio->tx.code = loot->cd;
+    radio->code.tx.type = CODE_TYPE_DIGITAL;
+    radio->code.tx.value = loot->cd;
   } else if (loot->ct != 0xFF) {
-    radio->tx.codeType = CODE_TYPE_CONTINUOUS_TONE;
-    radio->tx.code = loot->ct;
+    radio->code.tx.type = CODE_TYPE_CONTINUOUS_TONE;
+    radio->code.tx.value = loot->ct;
   }
 
   if (save) {
@@ -177,11 +177,11 @@ static void saveLootToCh(const Loot *loot, int16_t chnum, uint8_t scanlist) {
   snprintf(ch.name, 9, "%u.%05u", ch.rx.f / MHZ, ch.rx.f % MHZ);
 
   if (loot->ct != 255) {
-    ch.tx.codeType = CODE_TYPE_CONTINUOUS_TONE;
-    ch.tx.code = loot->ct;
+    ch.code.tx.type = CODE_TYPE_CONTINUOUS_TONE;
+    ch.code.tx.value = loot->ct;
   } else if (loot->cd != 255) {
-    ch.tx.codeType = CODE_TYPE_DIGITAL;
-    ch.tx.code = loot->cd;
+    ch.code.tx.type = CODE_TYPE_DIGITAL;
+    ch.code.tx.value = loot->cd;
   }
 
   CHANNELS_Save(chnum, &ch);

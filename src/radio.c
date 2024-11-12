@@ -69,13 +69,13 @@ const char *sqTypeNames[4] = {"RNG", "RG", "RN", "R"};
 const char *deviationNames[] = {"", "+", "-"};
 
 static const SI47XX_SsbFilterBW SI_BW_MAP_SSB[] = {
-    [BK4819_FILTER_BW_WIDE] = SI47XX_SSB_BW_4_kHz,
+    [BK4819_FILTER_BW_14k] = SI47XX_SSB_BW_4_kHz,
     [BK4819_FILTER_BW_NARROW] = SI47XX_SSB_BW_3_kHz,
     [BK4819_FILTER_BW_NARROWER] = SI47XX_SSB_BW_2_2_kHz,
     [BK4819_FILTER_BW_SOMETHING] = SI47XX_SSB_BW_0_5_kHz,
 };
 static const SI47XX_FilterBW SI_BW_MAP_AMFM[] = {
-    [BK4819_FILTER_BW_WIDE] = SI47XX_BW_6_kHz,
+    [BK4819_FILTER_BW_14k] = SI47XX_BW_6_kHz,
     [BK4819_FILTER_BW_NARROW] = SI47XX_BW_4_kHz,
     [BK4819_FILTER_BW_NARROWER] = SI47XX_BW_3_kHz,
     [BK4819_FILTER_BW_SOMETHING] = SI47XX_BW_1_kHz,
@@ -110,7 +110,7 @@ void RADIO_SetupRegisters(void) {
   BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, false);
   // BK4819_SetupPowerAmplifier(0, 0); // 0 is default
 
-  // BK4819_SetFilterBandwidth(BK4819_FILTER_BW_WIDE);
+  // BK4819_SetFilterBandwidth(BK4819_FILTER_BW_14k);
 
   while (BK4819_ReadRegister(BK4819_REG_0C) & 1U) {
     BK4819_WriteRegister(BK4819_REG_02, 0);
@@ -172,17 +172,17 @@ static void setupToneDetection() {
   } else {
     BK4819_DisableDTMF();
   }
-  switch (radio->rx.codeType) {
+  switch (radio->code.rx.type) {
   case CODE_TYPE_DIGITAL:
   case CODE_TYPE_REVERSE_DIGITAL:
     // Log("DCS on");
     BK4819_SetCDCSSCodeWord(
-        DCS_GetGolayCodeWord(radio->rx.codeType, radio->rx.code));
+        DCS_GetGolayCodeWord(radio->code.rx.type, radio->code.rx.value));
     InterruptMask |= BK4819_REG_3F_CDCSS_FOUND | BK4819_REG_3F_CDCSS_LOST;
     break;
   case CODE_TYPE_CONTINUOUS_TONE:
     // Log("CTCSS on");
-    BK4819_SetCTCSSFrequency(CTCSS_Options[radio->rx.code]);
+    BK4819_SetCTCSSFrequency(CTCSS_Options[radio->code.rx.value]);
     InterruptMask |= BK4819_REG_3F_CTCSS_FOUND | BK4819_REG_3F_CTCSS_LOST;
     break;
   default:
@@ -199,13 +199,13 @@ static bool isSimpleSql() {
 }
 
 static bool isSqOpenSimple(uint16_t r) {
-  SQL sq = GetSql(gCurrentPreset->band.squelch);
+  SQL sq = GetSql(gCurrentPreset->squelch.value);
 
   uint8_t n, g;
 
   bool open;
 
-  switch (gCurrentPreset->band.squelchType) {
+  switch (gCurrentPreset->squelch.type) {
   case SQUELCH_RSSI_NOISE_GLITCH:
     n = BK4819_GetNoise();
     g = BK4819_GetGlitch();
@@ -397,14 +397,14 @@ void RADIO_ToggleRX(bool on) {
 }
 
 void RADIO_EnableCxCSS(void) {
-  switch (radio->tx.codeType) {
+  switch (radio->code.tx.type) {
   case CODE_TYPE_CONTINUOUS_TONE:
-    BK4819_SetCTCSSFrequency(CTCSS_Options[radio->tx.code]);
+    BK4819_SetCTCSSFrequency(CTCSS_Options[radio->code.tx.value]);
     break;
   case CODE_TYPE_DIGITAL:
   case CODE_TYPE_REVERSE_DIGITAL:
     BK4819_SetCDCSSCodeWord(
-        DCS_GetGolayCodeWord(radio->tx.codeType, radio->tx.code));
+        DCS_GetGolayCodeWord(radio->code.tx.type, radio->code.tx.value));
     break;
   default:
     BK4819_ExitSubAu();
@@ -610,13 +610,13 @@ void RADIO_LoadCurrentVFO(void) {
 }
 
 void RADIO_SetSquelch(uint8_t sq) {
-  gCurrentPreset->band.squelch = sq;
+  gCurrentPreset->squelch.value = sq;
   RADIO_SetSquelchPure(gCurrentPreset->band.rxF, sq);
   onPresetUpdate();
 }
 
 void RADIO_SetSquelchType(SquelchType t) {
-  gCurrentPreset->band.squelchType = t;
+  gCurrentPreset->squelch.type = t;
   onPresetUpdate();
 }
 
@@ -782,7 +782,7 @@ Loot *RADIO_UpdateMeasurements(void) {
   lastMsmUpdate = Now();
   msm->rssi = RADIO_GetRSSI();
   msm->open = RADIO_IsSquelchOpen(msm);
-  if (radio->rx.codeType == CODE_TYPE_OFF) {
+  if (radio->code.rx.type == CODE_TYPE_OFF) {
     toneFound = true;
   }
 
@@ -891,7 +891,7 @@ void RADIO_ToggleVfoMR(void) {
 }
 
 void RADIO_UpdateSquelchLevel(bool next) {
-  uint8_t sq = gCurrentPreset->band.squelch;
+  uint8_t sq = gCurrentPreset->squelch.value;
   IncDec8(&sq, 0, 10, next ? 1 : -1);
   RADIO_SetSquelch(sq);
 }
@@ -1057,7 +1057,7 @@ void RADIO_UpdateStep(bool inc) {
 
 void RADIO_ToggleListeningBW(void) {
   if (gCurrentPreset->bw == BK4819_FILTER_BW_SOMETHING) {
-    gCurrentPreset->bw = BK4819_FILTER_BW_WIDE;
+    gCurrentPreset->bw = BK4819_FILTER_BW_14k;
   } else {
     ++gCurrentPreset->bw;
   }

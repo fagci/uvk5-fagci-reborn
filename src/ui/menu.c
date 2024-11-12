@@ -141,16 +141,16 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
     sprintf(Output, "%u.%05u", radio->tx.f / MHZ, radio->tx.f % MHZ);
     break;
   case M_RX_CODE_TYPE:
-    strncpy(Output, TX_CODE_TYPES[radio->rx.codeType], 31);
+    strncpy(Output, TX_CODE_TYPES[radio->code.rx.type], 31);
     break;
   case M_RX_CODE:
-    PrintRTXCode(Output, radio->rx.codeType, radio->rx.code);
+    PrintRTXCode(Output, radio->code.rx.type, radio->code.rx.value);
     break;
   case M_TX_CODE_TYPE:
-    strncpy(Output, TX_CODE_TYPES[radio->tx.codeType], 31);
+    strncpy(Output, TX_CODE_TYPES[radio->code.tx.type], 31);
     break;
   case M_TX_CODE:
-    PrintRTXCode(Output, radio->tx.codeType, radio->tx.code);
+    PrintRTXCode(Output, radio->code.tx.type, radio->code.tx.value);
     break;
   case M_TX_OFFSET:
     sprintf(Output, "%u.%05u", gCurrentPreset->offset / MHZ,
@@ -198,12 +198,12 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
     PRESETS_SaveCurrent();
     break;
   case M_SQ_TYPE:
-    gCurrentPreset->band.squelchType = subMenuIndex;
+    gCurrentPreset->squelch.type = subMenuIndex;
     BK4819_SquelchType(subMenuIndex);
     PRESETS_SaveCurrent();
     break;
   case M_SQ:
-    gCurrentPreset->band.squelch = subMenuIndex;
+    gCurrentPreset->squelch.value = subMenuIndex;
     BK4819_Squelch(subMenuIndex, radio->rx.f, gSettings.sqlOpenTime,
                    gSettings.sqlCloseTime);
     PRESETS_SaveCurrent();
@@ -220,19 +220,19 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
     PRESETS_SaveCurrent();
     break;
   case M_RX_CODE_TYPE:
-    radio->rx.codeType = subMenuIndex;
+    radio->code.rx.type = subMenuIndex;
     RADIO_SaveCurrentVFO();
     break;
   case M_RX_CODE:
-    radio->rx.code = subMenuIndex;
+    radio->code.rx.value = subMenuIndex;
     RADIO_SaveCurrentVFO();
     break;
   case M_TX_CODE_TYPE:
-    radio->tx.codeType = subMenuIndex;
+    radio->code.tx.type = subMenuIndex;
     RADIO_SaveCurrentVFO();
     break;
   case M_TX_CODE:
-    radio->tx.code = subMenuIndex;
+    radio->code.tx.value = subMenuIndex;
     RADIO_SaveCurrentVFO();
     break;
   case M_RADIO:

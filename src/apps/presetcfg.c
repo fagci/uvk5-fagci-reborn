@@ -44,10 +44,10 @@ static void setInitialSubmenuIndex(void) {
     subMenuIndex = gCurrentPreset->step;
     break;
   case M_SQ_TYPE:
-    subMenuIndex = gCurrentPreset->band.squelchType;
+    subMenuIndex = gCurrentPreset->squelch.type;
     break;
   case M_SQ:
-    subMenuIndex = gCurrentPreset->band.squelch;
+    subMenuIndex = gCurrentPreset->squelch.value;
     break;
   case M_GAIN:
     subMenuIndex = gCurrentPreset->band.gainIndex;
