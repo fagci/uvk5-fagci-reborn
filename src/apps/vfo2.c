@@ -27,7 +27,7 @@ static void render2VFOPart(uint8_t i) {
   const uint16_t fp2 = f / 100 % 1000;
   const uint8_t fp3 = f % 100;
   const char *mod =
-      modulationTypeOptions[vfo->modulation == MOD_PRST ? p->band.modulation
+      modulationTypeOptions[vfo->modulation == MOD_PRST ? p->modulation
                                                         : vfo->modulation];
   const uint32_t step = StepFrequencyTable[p->step];
 
@@ -88,7 +88,7 @@ static void render2VFOPart(uint8_t i) {
   }
   PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %c SQ%u %c %s %s",
                p->allowTx ? TX_POWER_NAMES[p->power][0] : ' ',
-               "wNnW"[p->band.bw], p -> band.squelch,
+               "wNnW"[p->bw], p -> band.squelch,
                RADIO_GetTXFEx(vfo, p) != vfo->rx.f
                    ? (p->offsetDir ? TX_OFFSET_NAMES[p->offsetDir][0] : '*')
                    : ' ',

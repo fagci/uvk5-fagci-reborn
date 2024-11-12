@@ -124,7 +124,7 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
   case M_MODULATION:
     strncpy(Output,
             modulationTypeOptions[isVfo ? radio->modulation
-                                        : gCurrentPreset->band.modulation],
+                                        : gCurrentPreset->modulation],
             31);
     break;
   case M_STEP:
@@ -171,7 +171,7 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
   bool isVfo = gCurrentApp == APP_VFO_CFG;
   switch (item->type) {
   case M_BW:
-    gCurrentPreset->band.bw = subMenuIndex;
+    gCurrentPreset->bw = subMenuIndex;
     BK4819_SetFilterBandwidth(subMenuIndex);
     PRESETS_SaveCurrent();
     break;
@@ -189,7 +189,7 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
       RADIO_SaveCurrentVFO();
       RADIO_SetupByCurrentVFO();
     } else {
-      gCurrentPreset->band.modulation = subMenuIndex;
+      gCurrentPreset->modulation = subMenuIndex;
       PRESETS_SaveCurrent();
     }
     break;
@@ -256,7 +256,7 @@ void OnRadioSubmenuChange(const MenuItem *item, uint8_t subMenuIndex) {
     RADIO_SetGain(subMenuIndex);
     break;
   case M_BW:
-    gCurrentPreset->band.bw = subMenuIndex;
+    gCurrentPreset->bw = subMenuIndex;
     RADIO_SetupBandParams();
     break;
   default:

@@ -44,7 +44,7 @@ static void setInitialSubmenuIndex(void) {
     subMenuIndex = radio->radio;
     break;
   case M_BW:
-    subMenuIndex = gCurrentPreset->band.bw;
+    subMenuIndex = gCurrentPreset->bw;
     break;
   case M_RX_CODE_TYPE:
     subMenuIndex = radio->rx.codeType;

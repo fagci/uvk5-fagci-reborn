@@ -46,7 +46,7 @@ static void startNewScan(bool reset) {
     msm.f = opt.band.rxF;
     BK4819_TuneTo(msm.f, true);
     BK4819_SetRegValue(afcDisableRegSpec, true);
-    BK4819_SetModulation(opt.band.modulation);
+    BK4819_SetModulation(opt.modulation);
     if (step > 5000) {
       BK4819_SetModulation(MOD_WFM);
     } else if (step >= 1200) {
@@ -108,7 +108,7 @@ static void setCenterF(uint32_t f) {
   centerF = f;
   opt.band.rxF = centerF - halfBW;
   opt.band.txF = centerF + halfBW;
-  opt.band.modulation = RADIO_GetModulation();
+  opt.modulation = RADIO_GetModulation();
   startNewScan(true);
 }
 

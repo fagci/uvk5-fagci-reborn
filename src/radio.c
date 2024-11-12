@@ -86,8 +86,8 @@ Radio RADIO_GetRadio() {
 }
 
 ModulationType RADIO_GetModulation() {
-  // return gCurrentPreset->band.modulation;
-  return radio->modulation == MOD_PRST ? gCurrentPreset->band.modulation
+  // return gCurrentPreset->modulation;
+  return radio->modulation == MOD_PRST ? gCurrentPreset->modulation
                                        : radio->modulation;
 }
 
@@ -625,7 +625,7 @@ void RADIO_SetGain(uint8_t gainIndex) {
   bool disableAGC = false;
   switch (RADIO_GetRadio()) {
   case RADIO_BK4819:
-    BK4819_SetAGC(gCurrentPreset->band.modulation != MOD_AM, gainIndex);
+    BK4819_SetAGC(gCurrentPreset->modulation != MOD_AM, gainIndex);
     break;
   case RADIO_SI4732:
     // 0 - max gain
@@ -1031,7 +1031,7 @@ static ModulationType getNextModulation() {
       indexOf(items, ARRAY_SIZE(MODS_BK4819), RADIO_GetModulation());
   if (curIndex >= 0) {
     IncDecI8(&curIndex, 0, sz, 1);
-    if (items[curIndex] == gCurrentPreset->band.modulation) {
+    if (items[curIndex] == gCurrentPreset->modulation) {
       return MOD_PRST;
     }
   } else {
@@ -1056,13 +1056,13 @@ void RADIO_UpdateStep(bool inc) {
 }
 
 void RADIO_ToggleListeningBW(void) {
-  if (gCurrentPreset->band.bw == BK4819_FILTER_BW_SOMETHING) {
-    gCurrentPreset->band.bw = BK4819_FILTER_BW_WIDE;
+  if (gCurrentPreset->bw == BK4819_FILTER_BW_SOMETHING) {
+    gCurrentPreset->bw = BK4819_FILTER_BW_WIDE;
   } else {
-    ++gCurrentPreset->band.bw;
+    ++gCurrentPreset->bw;
   }
 
-  RADIO_SetFilterBandwidth(gCurrentPreset->band.bw);
+  RADIO_SetFilterBandwidth(gCurrentPreset->bw);
 
   onPresetUpdate();
 }

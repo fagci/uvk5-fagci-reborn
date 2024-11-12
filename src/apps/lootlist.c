@@ -54,7 +54,7 @@ static void tuneToLoot(const Loot *loot, bool save) {
   radio->rx.code = radio->tx.code = 0;
 
   radio->radio = p->radio;
-  radio->modulation = p->band.modulation;
+  radio->modulation = p->modulation;
   radio->power = p->power;
 
   if (loot->cd != 0xFF) {
@@ -168,10 +168,10 @@ static void saveLootToCh(const Loot *loot, int16_t chnum, uint8_t scanlist) {
       .rx = {loot->f, CODE_TYPE_OFF, 0},
       .tx = {0, CODE_TYPE_OFF, 0},
       .radio = p->radio,
-      .modulation = p->band.modulation,
+      .modulation = p->modulation,
       .memoryBanks = 1 << scanlist,
       .power = p->power,
-      .bw = p->band.bw,
+      .bw = p->bw,
   };
 
   snprintf(ch.name, 9, "%u.%05u", ch.rx.f / MHZ, ch.rx.f % MHZ);
