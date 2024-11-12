@@ -1,7 +1,7 @@
 #ifndef MENU_H
 #define MENU_H
 
-#include "../helper/presetlist.h"
+#include "../helper/channels.h"
 #include <stdbool.h>
 #include <stdint.h>
 

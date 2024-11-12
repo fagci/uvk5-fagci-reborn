@@ -3,7 +3,6 @@
 #include "../helper/channels.h"
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"
-#include "../helper/presetlist.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
@@ -45,8 +44,7 @@ static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
 }
 
 static void saveNamed(void) {
-  CH _ch;
-  VFO2CH(radio, gCurrentPreset, &_ch);
+  CH _ch = *radio;
   _ch.memoryBanks = 1 << gSettings.currentScanlist;
   strncpy(_ch.name, tempName, 9);
   CHANNELS_Save(currentChannelIndex, &_ch);
@@ -96,8 +94,7 @@ void SAVECH_update(void) {}
 
 static void save(void) {
   gTextinputText = tempName;
-  snprintf(gTextinputText, 9, "%lu.%05lu", radio->rxF / MHZ,
-           radio->rxF % MHZ);
+  snprintf(gTextinputText, 9, "%lu.%05lu", radio->rxF / MHZ, radio->rxF % MHZ);
   gTextInputSize = 9;
   gTextInputCallback = saveNamed;
   APPS_run(APP_TEXTINPUT);

@@ -1,7 +1,8 @@
 #include "presetlist.h"
+#include "../helper/channels.h"
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"
-#include "../helper/presetlist.h"
+#include "../radio.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
 #include "apps.h"
@@ -10,23 +11,23 @@
 static uint8_t menuIndex = 0;
 
 static void getPresetItem(uint16_t i, uint16_t index, bool isCurrent) {
-  Preset *p = PRESETS_Item(index);
+  Preset p = PRESETS_Item(index);
   const uint8_t y = MENU_Y + i * MENU_ITEM_H;
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
   }
-  PrintMediumEx(8, y + 8, POS_L, C_INVERT, "%s", p->name);
+  PrintMediumEx(8, y + 8, POS_L, C_INVERT, "%s", p.name);
   char scanlistsStr[9] = "";
   for (i = 0; i < 8; ++i) {
-    scanlistsStr[i] = p->memoryBanks & (1 << i) ? '1' + i : '-';
+    scanlistsStr[i] = p.memoryBanks & (1 << i) ? '1' + i : '-';
   }
   PrintSmallEx(LCD_WIDTH - 5, y + 8, POS_R, C_INVERT, "%s", scanlistsStr);
 }
 
 static void toggleScanlist(uint8_t n) {
-  Preset *p = PRESETS_Item(menuIndex);
-  p->memoryBanks ^= 1 << n;
-  PRESETS_SavePreset(menuIndex, p);
+  Preset p = PRESETS_Item(menuIndex);
+  p.memoryBanks ^= 1 << n;
+  PRESETS_SavePreset(menuIndex, &p);
 }
 
 void PRESETLIST_render(void) {

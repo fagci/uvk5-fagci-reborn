@@ -2,6 +2,7 @@
 #include "../dcs.h"
 #include "../driver/st7565.h"
 #include "../helper/measurements.h"
+#include "../radio.h"
 #include "graphics.h"
 
 const char *onOff[] = {"Off", "On"};
@@ -91,13 +92,12 @@ void PrintRTXCode(char *Output, uint8_t codeType, uint8_t code) {
 }
 
 void GetMenuItemValue(PresetCfgMenu type, char *Output) {
-  Band *band = gCurrentPreset;
-  uint32_t fs = band->rxF;
-  uint32_t fe = band->txF;
+  uint32_t fs = gCurrentPreset.rxF;
+  uint32_t fe = gCurrentPreset.txF;
   bool isVfo = gCurrentApp == APP_VFO_CFG;
   switch (type) {
   case M_RADIO:
-    strncpy(Output, radioNames[isVfo ? radio->radio : gCurrentPreset->radio],
+    strncpy(Output, radioNames[isVfo ? radio->radio : gCurrentPreset.radio],
             31);
     break;
   case M_START:
@@ -107,32 +107,32 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
     sprintf(Output, "%lu.%03lu", fe / MHZ, fe / 100 % 1000);
     break;
   case M_NAME:
-    strncpy(Output, band->name, 31);
+    strncpy(Output, gCurrentPreset.name, 31);
     break;
   case M_BW:
-    strncpy(Output, RADIO_GetBWName(band->bw), 31);
+    strncpy(Output, RADIO_GetBWName(gCurrentPreset.bw), 31);
     break;
   case M_SQ_TYPE:
-    strncpy(Output, sqTypeNames[band->squelch.type], 31);
+    strncpy(Output, sqTypeNames[gCurrentPreset.squelch.type], 31);
     break;
   case M_SQ:
-    sprintf(Output, "%u", band->squelch);
+    sprintf(Output, "%u", gCurrentPreset.squelch);
     break;
   case M_GAIN:
-    sprintf(Output, "%ddB", -gainTable[band->gainIndex].gainDb + 33);
+    sprintf(Output, "%ddB", -gainTable[gCurrentPreset.gainIndex].gainDb + 33);
     break;
   case M_MODULATION:
     strncpy(Output,
             modulationTypeOptions[isVfo ? radio->modulation
-                                        : gCurrentPreset->modulation],
+                                        : gCurrentPreset.modulation],
             31);
     break;
   case M_STEP:
-    sprintf(Output, "%u.%02uKHz", StepFrequencyTable[band->step] / 100,
-            StepFrequencyTable[band->step] % 100);
+    sprintf(Output, "%u.%02uKHz", StepFrequencyTable[gCurrentPreset.step] / 100,
+            StepFrequencyTable[gCurrentPreset.step] % 100);
     break;
   case M_TX:
-    strncpy(Output, yesNo[gCurrentPreset->allowTx], 31);
+    strncpy(Output, yesNo[gCurrentPreset.allowTx], 31);
     break;
   case M_F_RX:
     sprintf(Output, "%u.%05u", radio->rxF / MHZ, radio->rxF % MHZ);
@@ -153,13 +153,13 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
     PrintRTXCode(Output, radio->code.tx.type, radio->code.tx.value);
     break;
   case M_TX_OFFSET:
-    sprintf(Output, "%u.%05u", radio->txF / MHZ, gCurrentPreset->txF % MHZ);
+    sprintf(Output, "%u.%05u", radio->txF / MHZ, gCurrentPreset.txF % MHZ);
     break;
   case M_TX_OFFSET_DIR:
     snprintf(Output, 15, TX_OFFSET_NAMES[radio->offsetDir]);
     break;
   case M_F_TXP:
-    snprintf(Output, 15, TX_POWER_NAMES[gCurrentPreset->power]);
+    snprintf(Output, 15, TX_POWER_NAMES[gCurrentPreset.power]);
     break;
   default:
     break;
@@ -170,16 +170,16 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
   bool isVfo = gCurrentApp == APP_VFO_CFG;
   switch (item->type) {
   case M_BW:
-    gCurrentPreset->bw = subMenuIndex;
+    gCurrentPreset.bw = subMenuIndex;
     BK4819_SetFilterBandwidth(subMenuIndex);
     PRESETS_SaveCurrent();
     break;
   case M_F_TXP:
-    gCurrentPreset->power = subMenuIndex;
+    gCurrentPreset.power = subMenuIndex;
     PRESETS_SaveCurrent();
     break;
   case M_TX_OFFSET_DIR:
-    gCurrentPreset->offsetDir = subMenuIndex;
+    gCurrentPreset.offsetDir = subMenuIndex;
     PRESETS_SaveCurrent();
     break;
   case M_MODULATION:
@@ -188,33 +188,33 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
       RADIO_SaveCurrentVFO();
       RADIO_SetupByCurrentVFO();
     } else {
-      gCurrentPreset->modulation = subMenuIndex;
+      gCurrentPreset.modulation = subMenuIndex;
       PRESETS_SaveCurrent();
     }
     break;
   case M_STEP:
-    gCurrentPreset->step = subMenuIndex;
+    gCurrentPreset.step = subMenuIndex;
     PRESETS_SaveCurrent();
     break;
   case M_SQ_TYPE:
-    gCurrentPreset->squelch.type = subMenuIndex;
+    gCurrentPreset.squelch.type = subMenuIndex;
     BK4819_SquelchType(subMenuIndex);
     PRESETS_SaveCurrent();
     break;
   case M_SQ:
-    gCurrentPreset->squelch.value = subMenuIndex;
+    gCurrentPreset.squelch.value = subMenuIndex;
     BK4819_Squelch(subMenuIndex, radio->rxF, gSettings.sqlOpenTime,
                    gSettings.sqlCloseTime);
     PRESETS_SaveCurrent();
     break;
 
   case M_GAIN:
-    gCurrentPreset->gainIndex = subMenuIndex;
-    BK4819_SetAGC(RADIO_GetModulation() != MOD_AM, gCurrentPreset->gainIndex);
+    gCurrentPreset.gainIndex = subMenuIndex;
+    BK4819_SetAGC(RADIO_GetModulation() != MOD_AM, gCurrentPreset.gainIndex);
     PRESETS_SaveCurrent();
     break;
   case M_TX:
-    gCurrentPreset->allowTx = subMenuIndex;
+    gCurrentPreset.allowTx = subMenuIndex;
     PRESETS_SaveCurrent();
     break;
   case M_RX_CODE_TYPE:
@@ -238,7 +238,7 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
       radio->radio = subMenuIndex;
       RADIO_SaveCurrentVFO();
     } else {
-      gCurrentPreset->radio = subMenuIndex;
+      gCurrentPreset.radio = subMenuIndex;
       PRESETS_SaveCurrent();
     }
     break;
@@ -254,7 +254,7 @@ void OnRadioSubmenuChange(const MenuItem *item, uint8_t subMenuIndex) {
     RADIO_SetGain(subMenuIndex);
     break;
   case M_BW:
-    gCurrentPreset->bw = subMenuIndex;
+    gCurrentPreset.bw = subMenuIndex;
     RADIO_SetupBandParams();
     break;
   default:

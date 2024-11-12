@@ -5,7 +5,6 @@
 #include "../helper/channels.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
-#include "../helper/presetlist.h"
 #include "../radio.h"
 #include "../scheduler.h"
 #include "../svc.h"
@@ -47,15 +46,15 @@ static bool shortList = true;
 static bool sortRev = false;
 
 static void tuneToLoot(const Loot *loot, bool save) {
-  Preset *p = PRESET_ByFrequency(loot->f);
+  Preset p = PRESET_ByFrequency(loot->f);
   radio->rxF = loot->f;
   radio->txF = 0;
   radio->code.rx.type = radio->code.tx.type = CODE_TYPE_OFF;
   radio->code.rx.value = radio->code.tx.value = 0;
 
-  radio->radio = p->radio;
-  radio->modulation = p->modulation;
-  radio->power = p->power;
+  radio->radio = p.radio;
+  radio->modulation = p.modulation;
+  radio->power = p.power;
 
   if (loot->cd != 0xFF) {
     radio->code.tx.type = CODE_TYPE_DIGITAL;
@@ -163,7 +162,7 @@ void LOOTLIST_init(void) {
 }
 
 static void saveLootToCh(const Loot *loot, int16_t chnum, uint8_t scanlist) {
-  Preset *p = PRESET_ByFrequency(loot->f);
+  Preset p = PRESET_ByFrequency(loot->f);
   CH ch = {
       .rxF = loot->f,
       .txF = 0,
@@ -174,11 +173,11 @@ static void saveLootToCh(const Loot *loot, int16_t chnum, uint8_t scanlist) {
               .rx.value = 0,
               .tx.value = 0,
           },
-      .radio = p->radio,
-      .modulation = p->modulation,
+      .radio = p.radio,
+      .modulation = p.modulation,
       .memoryBanks = 1 << scanlist,
-      .power = p->power,
-      .bw = p->bw,
+      .power = p.power,
+      .bw = p.bw,
   };
 
   snprintf(ch.name, 9, "%u.%05u", ch.rxF / MHZ, ch.rxF % MHZ);

@@ -47,7 +47,7 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   uint16_t v, maxValue;
 
   if (s.num == BK4819_REG_13) {
-    v = gCurrentPreset->gainIndex;
+    v = gCurrentPreset.gainIndex;
     maxValue = ARRAY_SIZE(gainTable) - 1;
   } else if (s.num == 0x73) {
     v = BK4819_GetAFC();
@@ -195,7 +195,7 @@ static void selectFirstPresetFromScanlist() {
     if (sl == 15 ||
         (PRESETS_Item(i)->memoryBanks & scanlistMask) == scanlistMask) {
       PRESET_Select(i);
-      RADIO_TuneTo(gCurrentPreset->rxF);
+      RADIO_TuneTo(gCurrentPreset.rxF);
       return;
     }
   }
@@ -369,7 +369,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
   // long held
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
-    OffsetDirection offsetDirection = gCurrentPreset->offsetDir;
+    OffsetDirection offsetDirection = gCurrentPreset.offsetDir;
     switch (key) {
     case KEY_EXIT:
       prepareABScan();
@@ -404,7 +404,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_8:
       IncDec8(&offsetDirection, 0, OFFSET_MINUS, 1);
-      gCurrentPreset->offsetDir = offsetDirection;
+      gCurrentPreset.offsetDir = offsetDirection;
       return true;
     case KEY_9: // call
       gTextInputSize = 15;
@@ -516,11 +516,11 @@ static void DrawRegs(void) {
   RegisterSpec rs = registerSpecs[menuIndex];
 
   if (rs.num == BK4819_REG_13) {
-    if (gCurrentPreset->gainIndex == AUTO_GAIN_INDEX) {
+    if (gCurrentPreset.gainIndex == AUTO_GAIN_INDEX) {
       sprintf(String, "auto");
     } else {
       sprintf(String, "%+ddB",
-              -gainTable[gCurrentPreset->gainIndex].gainDb + 33);
+              -gainTable[gCurrentPreset.gainIndex].gainDb + 33);
     }
   } else if (rs.num == 0x73) {
     uint8_t afc = BK4819_GetAFC();

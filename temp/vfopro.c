@@ -18,7 +18,7 @@
 
 
 void VFOPRO_render(void) {
-  STATUSLINE_SetText(gCurrentPreset->band.name);
+  STATUSLINE_SetText(gCurrentPreset.band.name);
   UI_FSmall(gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(radio->rx.f));
   UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, RADIO_GetSNR(), radio->rx.f, 23);
 

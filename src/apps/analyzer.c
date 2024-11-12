@@ -1,9 +1,9 @@
 #include "analyzer.h"
 #include "../apps/finput.h"
 #include "../driver/st7565.h"
+#include "../helper/channels.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
-#include "../helper/presetlist.h"
 #include "../radio.h"
 #include "../settings.h"
 #include "../svc.h"
@@ -117,7 +117,7 @@ void ANALYZER_init(void) {
 
   gMonitorMode = false;
 
-  opt.step = gCurrentPreset->step;
+  opt.step = gCurrentPreset.step;
   opt.squelch.value = 0;
 
   setCenterF(radio->rxF);

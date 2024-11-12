@@ -1,7 +1,8 @@
 #include "presetcfg.h"
+#include "../helper/channels.h"
 #include "../helper/measurements.h"
-#include "../helper/presetlist.h"
 #include "../misc.h"
+#include "../radio.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
 #include "finput.h"
@@ -32,28 +33,28 @@ static void setInitialSubmenuIndex(void) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_RADIO:
-    subMenuIndex = gCurrentPreset->radio;
+    subMenuIndex = gCurrentPreset.radio;
     break;
   case M_BW:
-    subMenuIndex = gCurrentPreset->bw;
+    subMenuIndex = gCurrentPreset.bw;
     break;
   case M_MODULATION:
-    subMenuIndex = gCurrentPreset->modulation;
+    subMenuIndex = gCurrentPreset.modulation;
     break;
   case M_STEP:
-    subMenuIndex = gCurrentPreset->step;
+    subMenuIndex = gCurrentPreset.step;
     break;
   case M_SQ_TYPE:
-    subMenuIndex = gCurrentPreset->squelch.type;
+    subMenuIndex = gCurrentPreset.squelch.type;
     break;
   case M_SQ:
-    subMenuIndex = gCurrentPreset->squelch.value;
+    subMenuIndex = gCurrentPreset.squelch.value;
     break;
   case M_GAIN:
-    subMenuIndex = gCurrentPreset->gainIndex;
+    subMenuIndex = gCurrentPreset.gainIndex;
     break;
   case M_TX:
-    subMenuIndex = gCurrentPreset->allowTx;
+    subMenuIndex = gCurrentPreset.allowTx;
     break;
   default:
     subMenuIndex = 0;
@@ -100,18 +101,18 @@ static void getSubmenuItemText(uint16_t index, char *name) {
 }
 
 static void setUpperBound(uint32_t f) {
-  gCurrentPreset->txF = f;
-  if (gCurrentPreset->misc.lastUsedFreq > f) {
-    gCurrentPreset->misc.lastUsedFreq = f;
+  gCurrentPreset.txF = f;
+  if (gCurrentPreset.misc.lastUsedFreq > f) {
+    gCurrentPreset.misc.lastUsedFreq = f;
     RADIO_TuneToSave(f);
   }
   PRESETS_SaveCurrent();
 }
 
 static void setLowerBound(uint32_t f) {
-  gCurrentPreset->rxF = f;
-  if (gCurrentPreset->misc.lastUsedFreq < f) {
-    gCurrentPreset->misc.lastUsedFreq = f;
+  gCurrentPreset.rxF = f;
+  if (gCurrentPreset.misc.lastUsedFreq < f) {
+    gCurrentPreset.misc.lastUsedFreq = f;
     RADIO_TuneToSave(f);
   }
   PRESETS_SaveCurrent();
@@ -148,18 +149,18 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     switch (item->type) {
     case M_NAME:
       gTextInputSize = 9;
-      gTextinputText = gCurrentPreset->name;
+      gTextinputText = gCurrentPreset.name;
       gTextInputCallback = PRESETS_SaveCurrent;
       APPS_run(APP_TEXTINPUT);
       return true;
     case M_START:
       gFInputCallback = setLowerBound;
-      gFInputTempFreq = gCurrentPreset->rxF;
+      gFInputTempFreq = gCurrentPreset.rxF;
       APPS_run(APP_FINPUT);
       return true;
     case M_END:
       gFInputCallback = setUpperBound;
-      gFInputTempFreq = gCurrentPreset->txF;
+      gFInputTempFreq = gCurrentPreset.txF;
       APPS_run(APP_FINPUT);
       return true;
     /* case M_SAVE:
