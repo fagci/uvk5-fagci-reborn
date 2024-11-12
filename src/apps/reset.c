@@ -1,13 +1,12 @@
 #include "reset.h"
 #include "../driver/eeprom.h"
 #include "../driver/st7565.h"
+#include "../external/CMSIS_5/Device/ARM/ARMCM0/Include/ARMCM0.h"
 #include "../helper/channels.h"
 #include "../helper/measurements.h"
-#include "../helper/presetlist.h"
 #include "../helper/vfos.h"
 #include "../settings.h"
 #include "../ui/graphics.h"
-#include "ARMCM0.h"
 
 static uint32_t bytesMax = 0;
 static uint32_t bytesWrote = 0;
@@ -43,7 +42,7 @@ static void startReset(EEPROMType t) {
   channelsWrote = 0;
   settingsWrote = false;
   channelsMax = CHANNELS_GetCountMax();
-  bytesMax = ARRAY_SIZE(defaultPresets) * PRESET_SIZE + channelsMax * CH_SIZE;
+  bytesMax = CHANNELS_OFFSET + channelsMax * CH_SIZE;
 }
 
 void RESET_Init(void) {
@@ -63,7 +62,7 @@ void RESET_Update(void) {
   } else if (vfosWrote < ARRAY_SIZE(defaultVFOs)) {
     VFOS_Save(vfosWrote, &defaultVFOs[vfosWrote]);
     vfosWrote++;
-    bytesWrote += VFO_SIZE;
+    bytesWrote += CH_SIZE;
   } else if (presetsWrote < ARRAY_SIZE(defaultPresets)) {
     Preset *p = &defaultPresets[presetsWrote];
     p->gainIndex = 18;
@@ -75,7 +74,7 @@ void RESET_Update(void) {
     }
     PRESETS_SavePreset(presetsWrote, p);
     presetsWrote++;
-    bytesWrote += PRESET_SIZE;
+    bytesWrote += CH_SIZE;
   } else if (channelsWrote < channelsMax) {
     CHANNELS_Delete(channelsWrote);
     channelsWrote++;

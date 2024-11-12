@@ -145,8 +145,7 @@ typedef struct {
   uint8_t contrast : 4;
   AppType_t mainApp : 8;
 
-  int8_t presetsCount : 8;
-  int8_t activePreset : 8;
+  int16_t activePreset : 8;
   uint16_t batteryCalibration : 12;
   BatteryType batteryType : 2;
   BatteryStyle batteryStyle : 2;
@@ -255,27 +254,19 @@ typedef CH VFO;
 typedef CH Preset;
 // getsize(CH)
 
-// char (*__chCount)(void)[(8196 - sizeof(Settings) - sizeof(Preset) * 29 -
-// sizeof(VFO) * 2)/sizeof(CH)] = 1;
-
 #define SETTINGS_OFFSET (0)
 #define SETTINGS_SIZE sizeof(Settings)
 
-#define PRESET_SIZE sizeof(CH)
-#define CH_SIZE sizeof(CH)
-#define VFO_SIZE sizeof(CH)
-
 #define VFOS_OFFSET (SETTINGS_OFFSET + SETTINGS_SIZE)
-#define PRESETS_OFFSET (VFOS_OFFSET + VFO_SIZE * 2)
+#define CH_SIZE sizeof(CH)
+#define CHANNELS_OFFSET (VFOS_OFFSET + CH_SIZE * 2)
 
 #define PATCH_SIZE 15832
 
 // settings
 // VFOs
-// presets
-// ...
-// channel 2
 // channel 1
+// channel 2
 
 extern Settings gSettings;
 extern uint8_t BL_TIME_VALUES[7];

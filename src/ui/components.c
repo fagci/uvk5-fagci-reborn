@@ -1,7 +1,7 @@
 #include "components.h"
 #include "../driver/st7565.h"
+#include "../helper/channels.h"
 #include "../helper/measurements.h"
-#include "../helper/presetlist.h"
 #include "graphics.h"
 #include <stdint.h>
 
