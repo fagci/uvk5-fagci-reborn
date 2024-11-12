@@ -91,7 +91,7 @@ void PrintRTXCode(char *Output, uint8_t codeType, uint8_t code) {
 }
 
 void GetMenuItemValue(PresetCfgMenu type, char *Output) {
-  Band *band = &gCurrentPreset->band;
+  Band *band = gCurrentPreset;
   uint32_t fs = band->rxF;
   uint32_t fe = band->txF;
   bool isVfo = gCurrentApp == APP_VFO_CFG;
@@ -113,7 +113,7 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
     strncpy(Output, RADIO_GetBWName(band->bw), 31);
     break;
   case M_SQ_TYPE:
-    strncpy(Output, sqTypeNames[band->squelchType], 31);
+    strncpy(Output, sqTypeNames[band->squelch.type], 31);
     break;
   case M_SQ:
     sprintf(Output, "%u", band->squelch);
