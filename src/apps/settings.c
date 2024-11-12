@@ -486,7 +486,7 @@ static void setMenuIndexAndRun(uint16_t v) {
 }
 
 static void setUpconverterFreq(uint32_t f) {
-  uint32_t _f = GetScreenF(radio->rx.f);
+  uint32_t _f = GetScreenF(radio->rxF);
   gSettings.upconverter = f;
   RADIO_TuneToSave(GetTuneF(_f));
   SETTINGS_Save();

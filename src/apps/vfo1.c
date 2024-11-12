@@ -131,8 +131,8 @@ void VFO1_update(void) {
 }
 
 static void prepareABScan() {
-  const uint32_t F1 = gVFO[0].rx.f;
-  const uint32_t F2 = gVFO[1].rx.f;
+  const uint32_t F1 = gVFO[0].rxF;
+  const uint32_t F2 = gVFO[1].rxF;
   FRange *b = &defaultPreset.band.bounds;
 
   if (F1 < F2) {
@@ -144,7 +144,7 @@ static void prepareABScan() {
   }
   sprintf(defaultPreset.band.name, "%u-%u", b->start / MHZ, b->end / MHZ);
   gCurrentPreset = &defaultPreset;
-  defaultPreset.lastUsedFreq = radio->rx.f;
+  defaultPreset.lastUsedFreq = radio->rxF;
   gSettings.crossBandScan = false;
   RADIO_TuneToPure(b->start, true);
 }
@@ -162,7 +162,7 @@ static void initChannelScan() {
     CH ch;
     int32_t num = gScanlist[i];
     CHANNELS_Load(num, &ch);
-    Loot *loot = LOOT_AddEx(ch.rx.f, true);
+    Loot *loot = LOOT_AddEx(ch.rxF, true);
     loot->open = false;
     loot->lastTimeOpen = 0;
   }
@@ -255,13 +255,13 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         return true;
       }
       if (RADIO_GetRadio() == RADIO_SI4732 && isSsb) {
-        RADIO_TuneToSave(radio->rx.f + 1);
+        RADIO_TuneToSave(radio->rxF + 1);
         return true;
       }
       break;
     case KEY_SIDE2:
       if (RADIO_GetRadio() == RADIO_SI4732 && isSsb) {
-        RADIO_TuneToSave(radio->rx.f - 1);
+        RADIO_TuneToSave(radio->rxF - 1);
         return true;
       }
       break;
@@ -353,13 +353,13 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_SIDE1:
       if (RADIO_GetRadio() == RADIO_SI4732 && isSsb) {
-        RADIO_TuneToSave(radio->rx.f + 5);
+        RADIO_TuneToSave(radio->rxF + 5);
         return true;
       }
       break;
     case KEY_SIDE2:
       if (RADIO_GetRadio() == RADIO_SI4732 && isSsb) {
-        RADIO_TuneToSave(radio->rx.f - 5);
+        RADIO_TuneToSave(radio->rxF - 5);
         return true;
       }
       break;
@@ -545,7 +545,7 @@ void VFO1_render(void) {
 
   VFO *vfo = &gVFO[gSettings.activeVFO];
   Preset *p = gVFOPresets[gSettings.activeVFO];
-  uint32_t f = gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(vfo->rx.f);
+  uint32_t f = gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(vfo->rxF);
 
   uint16_t fp1 = f / MHZ;
   uint16_t fp2 = f / 100 % 1000;
@@ -554,7 +554,7 @@ void VFO1_render(void) {
       modulationTypeOptions[vfo->modulation == MOD_PRST ? p->modulation
                                                         : vfo->modulation];
   if (gIsListening || gVfo1ProMode) {
-    UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, RADIO_GetSNR(), vfo->rx.f,
+    UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, RADIO_GetSNR(), vfo->rxF,
                BASE + 2);
   }
 
@@ -574,7 +574,7 @@ void VFO1_render(void) {
   }
 
   if (gVfo1ProMode) {
-    UI_FSmall(gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(radio->rx.f));
+    UI_FSmall(gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(radio->rxF));
     DrawRegs();
   }
 }

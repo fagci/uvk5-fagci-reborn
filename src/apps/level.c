@@ -61,7 +61,7 @@ bool LEVEL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void LEVEL_render(void) {
-  UI_FSmall(radio->rx.f);
+  UI_FSmall(radio->rxF);
 
   SP_RenderGraph();
   DrawHLine(0, SPECTRUM_Y, 2, C_FILL);

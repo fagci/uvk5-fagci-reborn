@@ -45,7 +45,7 @@ void (*gScanFn)(bool) = NULL;
 
 static void next(void) {
   gScanFn(gScanForward);
-  lastSettedF = radio->rx.f;
+  lastSettedF = radio->rxF;
   SetTimeout(&timeout, 0); // will be passed at next update
   if (gScanRedraw) {
     gRedrawScreen = true;
@@ -80,8 +80,8 @@ void SVC_SCAN_Update(void) {
   if (lastListenState != gIsListening) {
     if (gIsListening &&
         (gCurrentApp != APP_SPECTRUM && gCurrentApp != APP_ANALYZER) &&
-        lastSavedF != radio->rx.f) {
-      lastSavedF = radio->rx.f;
+        lastSavedF != radio->rxF) {
+      lastSavedF = radio->rxF;
       RADIO_SaveCurrentVFO();
     }
     lastListenState = gIsListening;
@@ -95,7 +95,7 @@ void SVC_SCAN_Update(void) {
     return;
   }
 
-  if (lastSettedF != radio->rx.f) {
+  if (lastSettedF != radio->rxF) {
     SetTimeout(&timeout, 0);
   }
 }
@@ -111,7 +111,7 @@ void SVC_SCAN_Deinit(void) {
     SETTINGS_Load();
   }
   if (RADIO_GetRadio() != RADIO_BK4819) {
-    uint32_t f = radio->rx.f;
+    uint32_t f = radio->rxF;
 
     if (RADIO_GetRadio() == RADIO_SI4732) {
       SI47xx_GetStatus(true, true);

@@ -44,7 +44,7 @@ static bool checkActivityOnFreq(uint32_t freq) {
 static void sync(void) {
   static int8_t i = VFOS_COUNT - 1;
 
-  if (checkActivityOnFreq(gVFO[i].rx.f)) {
+  if (checkActivityOnFreq(gVFO[i].rxF)) {
     gDW.activityOnVFO = i;
     gDW.lastActiveVFO = i;
     if (gSettings.dw == DW_SWITCH) {

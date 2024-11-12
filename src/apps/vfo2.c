@@ -21,7 +21,7 @@ static void render2VFOPart(uint8_t i) {
   const Loot *loot = &gLoot[i];
 
   uint32_t f =
-      gTxState == TX_ON && isActive ? RADIO_GetTXF() : GetScreenF(vfo->rx.f);
+      gTxState == TX_ON && isActive ? RADIO_GetTXF() : GetScreenF(vfo->rxF);
 
   const uint16_t fp1 = f / MHZ;
   const uint16_t fp2 = f / 100 % 1000;
@@ -89,7 +89,7 @@ static void render2VFOPart(uint8_t i) {
   PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %c SQ%u %c %s %s",
                p->allowTx ? TX_POWER_NAMES[p->power][0] : ' ',
                "wNnW"[p->bw], p -> squelch.value,
-               RADIO_GetTXFEx(vfo, p) != vfo->rx.f
+               RADIO_GetTXFEx(vfo, p) != vfo->rxF
                    ? (p->offsetDir ? TX_OFFSET_NAMES[p->offsetDir][0] : '*')
                    : ' ',
                vfo->code.tx.type ? TX_CODE_TYPES[vfo->code.tx.type] : "",
@@ -136,7 +136,7 @@ void VFO2_render(void) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
   } else {
     STATUSLINE_SetText("%s:%u", gCurrentPreset->band.name,
-                       PRESETS_GetChannel(gCurrentPreset, radio->rx.f) + 1);
+                       PRESETS_GetChannel(gCurrentPreset, radio->rxF) + 1);
   }
 
   render2VFOPart(0);

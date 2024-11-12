@@ -79,11 +79,11 @@ static void scanFn(bool _) {
     return;
   }
   RADIO_ToggleRX(false);
-  radio->rx.f = msm.f;
+  radio->rxF = msm.f;
   if (RADIO_NextPresetFreqXBandEx(true, false, false)) {
     if (noiseO > 0) {
       // next band scan
-      msm.f = radio->rx.f;
+      msm.f = radio->rxF;
     } else {
       // rewind
       updateStats();
@@ -91,7 +91,7 @@ static void scanFn(bool _) {
     }
     newScan = true;
   } else {
-    msm.f = radio->rx.f;
+    msm.f = radio->rxF;
     SP_Next();
   }
   msm.rssi = 0;

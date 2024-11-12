@@ -123,7 +123,7 @@ void ANALYZER_init(void) {
   opt.step = gCurrentPreset->step;
   opt.squelch.value = 0;
 
-  setCenterF(radio->rx.f);
+  setCenterF(radio->rxF);
   startNewScan(true);
   squelchRssi = UINT16_MAX;
 

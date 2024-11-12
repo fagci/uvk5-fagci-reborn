@@ -96,8 +96,8 @@ void SAVECH_update(void) {}
 
 static void save(void) {
   gTextinputText = tempName;
-  snprintf(gTextinputText, 9, "%lu.%05lu", radio->rx.f / MHZ,
-           radio->rx.f % MHZ);
+  snprintf(gTextinputText, 9, "%lu.%05lu", radio->rxF / MHZ,
+           radio->rxF % MHZ);
   gTextInputSize = 9;
   gTextInputCallback = saveNamed;
   APPS_run(APP_TEXTINPUT);

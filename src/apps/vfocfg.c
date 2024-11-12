@@ -160,7 +160,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
 }
 
 static void setTXF(uint32_t f) {
-  radio->tx.f = f;
+  radio->txF = f;
   RADIO_SaveCurrentVFO();
 }
 
@@ -179,12 +179,12 @@ static bool accept(void) {
   switch (item->type) {
   case M_F_RX:
     gFInputCallback = RADIO_TuneTo;
-    gFInputTempFreq = radio->rx.f;
+    gFInputTempFreq = radio->rxF;
     APPS_run(APP_FINPUT);
     return true;
   case M_F_TX:
     gFInputCallback = setTXF;
-    gFInputTempFreq = radio->tx.f;
+    gFInputTempFreq = radio->txF;
     APPS_run(APP_FINPUT);
     return true;
   case M_TX_OFFSET:

@@ -48,8 +48,8 @@ static bool sortRev = false;
 
 static void tuneToLoot(const Loot *loot, bool save) {
   Preset *p = PRESET_ByFrequency(loot->f);
-  radio->rx.f = loot->f;
-  radio->tx.f = 0;
+  radio->rxF = loot->f;
+  radio->txF = 0;
   radio->code.rx.type = radio->code.tx.type = CODE_TYPE_OFF;
   radio->code.rx.value = radio->code.tx.value = 0;
 
@@ -81,7 +81,7 @@ static void displayFreqBlWl(uint8_t y, const Loot *loot) {
   }
   PrintMediumEx(8, y + 7, POS_L, C_INVERT, "%u.%05u", loot->f / MHZ,
                 loot->f % MHZ);
-  if (gIsListening && loot->f == radio->rx.f) {
+  if (gIsListening && loot->f == radio->rxF) {
     PrintSymbolsEx(LCD_WIDTH - 24, y + 7, POS_R, C_INVERT, "%c", SYM_BEEP);
   }
 }
@@ -174,7 +174,7 @@ static void saveLootToCh(const Loot *loot, int16_t chnum, uint8_t scanlist) {
       .bw = p->bw,
   };
 
-  snprintf(ch.name, 9, "%u.%05u", ch.rx.f / MHZ, ch.rx.f % MHZ);
+  snprintf(ch.name, 9, "%u.%05u", ch.rxF / MHZ, ch.rxF % MHZ);
 
   if (loot->ct != 255) {
     ch.code.tx.type = CODE_TYPE_CONTINUOUS_TONE;

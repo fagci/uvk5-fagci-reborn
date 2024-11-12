@@ -342,7 +342,7 @@ static void rxTurnOn(Radio r) {
   case RADIO_BK1080:
     BK4819_Idle();
     BK1080_Mute(false);
-    BK1080_Init(radio->rx.f, true);
+    BK1080_Init(radio->rxF, true);
     break;
   case RADIO_SI4732:
     BK4819_Idle();
@@ -415,12 +415,12 @@ void RADIO_EnableCxCSS(void) {
 }
 
 uint32_t RADIO_GetTXFEx(VFO *vfo, Preset *p) {
-  uint32_t txF = vfo->rx.f;
+  uint32_t txF = vfo->rxF;
 
-  if (vfo->tx.f) {
-    txF = vfo->tx.f;
+  if (vfo->txF) {
+    txF = vfo->txF;
   } else if (p->offset && p->offsetDir != OFFSET_NONE) {
-    txF = vfo->rx.f + (p->offsetDir == OFFSET_PLUS ? p->offset : -p->offset);
+    txF = vfo->rxF + (p->offsetDir == OFFSET_PLUS ? p->offset : -p->offset);
   }
 
   return txF;
@@ -504,7 +504,7 @@ void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power, bool paEnabled) {
     BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, true);
 
     setupToneDetection();
-    BK4819_TuneTo(radio->rx.f, true);
+    BK4819_TuneTo(radio->rxF, true);
   }
 }
 
@@ -543,7 +543,7 @@ void RADIO_SwitchRadio() {
 }
 
 void RADIO_SetupByCurrentVFO(void) {
-  uint32_t f = radio->rx.f;
+  uint32_t f = radio->rxF;
   lastMsmUpdate = 0;
   PRESET_SelectByFrequency(f);
   gVFOPresets[gSettings.activeVFO] = gCurrentPreset;
@@ -566,8 +566,8 @@ void RADIO_TuneTo(uint32_t f) {
     radio->radio = RADIO_UNKNOWN;
     radio->modulation = MOD_PRST;
   }
-  radio->tx.f = 0;
-  radio->rx.f = f;
+  radio->txF = 0;
+  radio->rxF = f;
   RADIO_SetupByCurrentVFO();
   setupToneDetection(); // note: idk where it will be
 }
@@ -600,9 +600,9 @@ void RADIO_LoadCurrentVFO(void) {
     if (gVFO[i].channel >= 0) {
       RADIO_VfoLoadCH(i);
     }
-    gVFOPresets[i] = PRESET_ByFrequency(gVFO[i].rx.f);
+    gVFOPresets[i] = PRESET_ByFrequency(gVFO[i].rxF);
 
-    LOOT_Replace(&gLoot[i], gVFO[i].rx.f);
+    LOOT_Replace(&gLoot[i], gVFO[i].rxF);
   }
 
   radio = &gVFO[gSettings.activeVFO];
@@ -770,7 +770,7 @@ Loot *RADIO_UpdateMeasurements(void) {
   if (RADIO_GetRadio() == RADIO_SI4732 && SVC_Running(SVC_SCAN)) {
     bool valid = false;
     uint32_t f = SI47XX_getFrequency(&valid);
-    radio->rx.f = f;
+    radio->rxF = f;
     gRedrawScreen = true;
     if (valid) {
       SVC_Toggle(SVC_SCAN, false, 0);
@@ -829,7 +829,7 @@ Loot *RADIO_UpdateMeasurements(void) {
                (gCurrentApp == APP_SPECTRUM || gCurrentApp == APP_ANALYZER)) {
       rx = false;
     } else if (gSettings.skipGarbageFrequencies &&
-               (radio->rx.f % 1300000 == 0) &&
+               (radio->rxF % 1300000 == 0) &&
                RADIO_GetRadio() == RADIO_BK4819) {
       rx = false;
     }
@@ -904,11 +904,11 @@ void RADIO_NextFreqNoClicks(bool next) {
     return;
   }
 
-  Preset *nextPreset = PRESET_ByFrequency(radio->rx.f + dir);
+  Preset *nextPreset = PRESET_ByFrequency(radio->rxF + dir);
   const Band *nextBand = &nextPreset->band;
   uint32_t nextBandStep = StepFrequencyTable[nextBand->step];
 
-  uint32_t f = radio->rx.f + nextBandStep * dir;
+  uint32_t f = radio->rxF + nextBandStep * dir;
   if (nextPreset != gCurrentPreset && nextPreset != &defaultPreset &&
       !PRESET_InRange(f, nextPreset)) {
     if (next) {
@@ -919,8 +919,8 @@ void RADIO_NextFreqNoClicks(bool next) {
   } else {
     f = PRESETS_GetF(nextPreset, PRESETS_GetChannel(nextPreset, f));
     radio->channel = -1;
-    radio->tx.f = 0;
-    radio->rx.f = f;
+    radio->txF = 0;
+    radio->rxF = f;
     RADIO_SetupByCurrentVFO();
   }
   onVfoUpdate();
@@ -944,7 +944,7 @@ static void selectPreset(bool next) {
 
 bool RADIO_NextPresetFreqXBandEx(bool next, bool tune, bool precise) {
   uint32_t steps = PRESETS_GetSteps(gCurrentPreset);
-  int64_t step = PRESETS_GetChannel(gCurrentPreset, radio->rx.f);
+  int64_t step = PRESETS_GetChannel(gCurrentPreset, radio->rxF);
   bool switchBand = false;
 
   if (next) {
@@ -965,9 +965,9 @@ bool RADIO_NextPresetFreqXBandEx(bool next, bool tune, bool precise) {
     selectPreset(true);
     step = 0;
   }
-  radio->rx.f = PRESETS_GetF(gCurrentPreset, step);
+  radio->rxF = PRESETS_GetF(gCurrentPreset, step);
   if (tune) {
-    RADIO_TuneToPure(radio->rx.f, precise);
+    RADIO_TuneToPure(radio->rxF, precise);
   }
   return switchBand;
 }
@@ -1019,7 +1019,7 @@ static ModulationType getNextModulation() {
     sz = ARRAY_SIZE(MODS_BK1080);
   } else {
     // si4732
-    if (radio->rx.f <= 3000000) {
+    if (radio->rxF <= 3000000) {
       items = MODS_SI4732_HF;
       sz = ARRAY_SIZE(MODS_SI4732_HF);
     } else {

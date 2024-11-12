@@ -135,10 +135,10 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
     strncpy(Output, yesNo[gCurrentPreset->allowTx], 31);
     break;
   case M_F_RX:
-    sprintf(Output, "%u.%05u", radio->rx.f / MHZ, radio->rx.f % MHZ);
+    sprintf(Output, "%u.%05u", radio->rxF / MHZ, radio->rxF % MHZ);
     break;
   case M_F_TX:
-    sprintf(Output, "%u.%05u", radio->tx.f / MHZ, radio->tx.f % MHZ);
+    sprintf(Output, "%u.%05u", radio->txF / MHZ, radio->txF % MHZ);
     break;
   case M_RX_CODE_TYPE:
     strncpy(Output, TX_CODE_TYPES[radio->code.rx.type], 31);
@@ -204,7 +204,7 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
     break;
   case M_SQ:
     gCurrentPreset->squelch.value = subMenuIndex;
-    BK4819_Squelch(subMenuIndex, radio->rx.f, gSettings.sqlOpenTime,
+    BK4819_Squelch(subMenuIndex, radio->rxF, gSettings.sqlOpenTime,
                    gSettings.sqlCloseTime);
     PRESETS_SaveCurrent();
     break;
