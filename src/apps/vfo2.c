@@ -29,7 +29,7 @@ static void render2VFOPart(uint8_t i) {
   const char *mod =
       modulationTypeOptions[vfo->modulation == MOD_PRST ? p->band.modulation
                                                         : vfo->modulation];
-  const uint32_t step = StepFrequencyTable[p->band.step];
+  const uint32_t step = StepFrequencyTable[p->step];
 
   if (isActive && gTxState <= TX_ON) {
     FillRect(0, bl - 14, 28, 7, C_FILL);

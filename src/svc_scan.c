@@ -105,8 +105,8 @@ void SVC_SCAN_Deinit(void) {
   gScanRedraw = true;
   if (&defaultPreset == gCurrentPreset && defaultPreset.band.name[0] != 'd') {
     sprintf(defaultPreset.band.name, "default");
-    defaultPreset.band.bounds.start = 0;
-    defaultPreset.band.bounds.end = 0;
+    defaultPreset.band.rxF = 0;
+    defaultPreset.band.txF = 0;
     RADIO_TuneTo(defaultPreset.lastUsedFreq);
     SETTINGS_Load();
   }

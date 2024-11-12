@@ -115,7 +115,7 @@ static void startNewScan() {
   currentBand = &gCurrentPreset->band;
   currentStepSize = PRESETS_GetStepSize(gCurrentPreset);
 
-  msm.f = currentBand->bounds.start;
+  msm.f = currentBand->rxF;
 
   if (gSettings.activePreset != oldPresetIndex) {
     init();

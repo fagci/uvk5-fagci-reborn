@@ -196,7 +196,7 @@ static void selectFirstPresetFromScanlist() {
     if (sl == 15 ||
         (PRESETS_Item(i)->memoryBanks & scanlistMask) == scanlistMask) {
       PRESET_Select(i);
-      RADIO_TuneTo(gCurrentPreset->band.bounds.start);
+      RADIO_TuneTo(gCurrentPreset->band.rxF);
       return;
     }
   }

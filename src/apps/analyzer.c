@@ -43,7 +43,7 @@ static void startNewScan(bool reset) {
   peakRssi = 0;
   if (reset) {
     LOOT_Standby();
-    msm.f = opt.band.bounds.start;
+    msm.f = opt.band.rxF;
     BK4819_TuneTo(msm.f, true);
     BK4819_SetRegValue(afcDisableRegSpec, true);
     BK4819_SetModulation(opt.band.modulation);
@@ -82,8 +82,8 @@ static void scanFn(bool forward) {
     return;
   }
 
-  if (msm.f + step > opt.band.bounds.end) {
-    msm.f = opt.band.bounds.start;
+  if (msm.f + step > opt.band.txF) {
+    msm.f = opt.band.rxF;
     peakF = _peakF;
     gRedrawScreen = true;
     if (useSquelch && squelchRssi == UINT16_MAX) {
@@ -95,7 +95,7 @@ static void scanFn(bool forward) {
 
   RADIO_TuneToPure(msm.f, false);
 
-  if (msm.f == opt.band.bounds.start) {
+  if (msm.f == opt.band.rxF) {
     startNewScan(false);
     return;
   }
@@ -103,11 +103,11 @@ static void scanFn(bool forward) {
 }
 
 static void setCenterF(uint32_t f) {
-  step = StepFrequencyTable[opt.band.step];
+  step = StepFrequencyTable[opt.step];
   const uint32_t halfBW = step * (stepsCount / 2);
   centerF = f;
-  opt.band.bounds.start = centerF - halfBW;
-  opt.band.bounds.end = centerF + halfBW;
+  opt.band.rxF = centerF - halfBW;
+  opt.band.txF = centerF + halfBW;
   opt.band.modulation = RADIO_GetModulation();
   startNewScan(true);
 }
@@ -120,7 +120,7 @@ void ANALYZER_init(void) {
 
   gMonitorMode = false;
 
-  opt.band.step = gCurrentPreset->band.step;
+  opt.step = gCurrentPreset->step;
   opt.band.squelch = 0;
 
   setCenterF(radio->rx.f);
@@ -152,7 +152,7 @@ static void restartScan() {
 }
 
 bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
-  const uint32_t step = StepFrequencyTable[opt.band.step];
+  const uint32_t step = StepFrequencyTable[opt.step];
 
   // repeat or keyup
   if (bKeyPressed || !bKeyHeld) {
@@ -228,14 +228,14 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       LOOT_WhitelistLast();
       return true;
     case KEY_2:
-      if (opt.band.step < STEP_500_0kHz) {
-        opt.band.step++;
+      if (opt.step < STEP_500_0kHz) {
+        opt.step++;
       }
       setCenterF(centerF);
       return true;
     case KEY_8:
-      if (opt.band.step > 0) {
-        opt.band.step--;
+      if (opt.step > 0) {
+        opt.step--;
       }
       setCenterF(centerF);
       return true;
@@ -292,8 +292,8 @@ void ANALYZER_render(void) {
   }
 
   PrintSmallEx(0, SPECTRUM_Y - 3 + 6, POS_L, C_FILL, "%u.%02uk",
-               StepFrequencyTable[opt.band.step] / 100,
-               StepFrequencyTable[opt.band.step] % 100);
+               StepFrequencyTable[opt.step] / 100,
+               StepFrequencyTable[opt.step] % 100);
   PrintSmallEx(LCD_XCENTER, 4, POS_C, C_FILL, "%04d/%04d",
                Rssi2DBm(SP_GetNoiseFloor()), Rssi2DBm(SP_GetRssiMax()));
 

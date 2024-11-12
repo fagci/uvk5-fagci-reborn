@@ -92,8 +92,8 @@ void PrintRTXCode(char *Output, uint8_t codeType, uint8_t code) {
 
 void GetMenuItemValue(PresetCfgMenu type, char *Output) {
   Band *band = &gCurrentPreset->band;
-  uint32_t fs = band->bounds.start;
-  uint32_t fe = band->bounds.end;
+  uint32_t fs = band->rxF;
+  uint32_t fe = band->txF;
   bool isVfo = gCurrentApp == APP_VFO_CFG;
   switch (type) {
   case M_RADIO:
@@ -194,7 +194,7 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
     }
     break;
   case M_STEP:
-    gCurrentPreset->band.step = subMenuIndex;
+    gCurrentPreset->step = subMenuIndex;
     PRESETS_SaveCurrent();
     break;
   case M_SQ_TYPE:

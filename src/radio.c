@@ -590,7 +590,7 @@ void RADIO_SelectPresetSave(int8_t num) {
   if (PRESET_InRange(gCurrentPreset->lastUsedFreq, gCurrentPreset)) {
     RADIO_TuneToSave(gCurrentPreset->lastUsedFreq);
   } else {
-    RADIO_TuneToSave(gCurrentPreset->band.bounds.start);
+    RADIO_TuneToSave(gCurrentPreset->band.rxF);
   }
 }
 
@@ -611,7 +611,7 @@ void RADIO_LoadCurrentVFO(void) {
 
 void RADIO_SetSquelch(uint8_t sq) {
   gCurrentPreset->band.squelch = sq;
-  RADIO_SetSquelchPure(gCurrentPreset->band.bounds.start, sq);
+  RADIO_SetSquelchPure(gCurrentPreset->band.rxF, sq);
   onPresetUpdate();
 }
 
@@ -666,7 +666,7 @@ void RADIO_SetFilterBandwidth(BK4819_FilterBandwidth_t bw) {
 void RADIO_SetupBandParams() {
   // Log("RADIO_SetupBandParams");
   Band *b = &gCurrentPreset->band;
-  uint32_t fMid = b->bounds.start + (b->bounds.end - b->bounds.start) / 2;
+  uint32_t fMid = b->rxF + (b->txF - b->rxF) / 2;
   ModulationType mod = RADIO_GetModulation();
   RADIO_SetGain(b->gainIndex);
   // Log("Set mod %s", modulationTypeOptions[mod]);
@@ -688,11 +688,11 @@ void RADIO_SetupBandParams() {
     break;
   case RADIO_SI4732:
     if (mod == MOD_FM) {
-      SI47XX_SetSeekFmLimits(b->bounds.start, b->bounds.end);
+      SI47XX_SetSeekFmLimits(b->rxF, b->txF);
       SI47XX_SetSeekFmSpacing(StepFrequencyTable[b->step]);
     } else {
       if (mod == MOD_AM) {
-        SI47XX_SetSeekAmLimits(b->bounds.start, b->bounds.end);
+        SI47XX_SetSeekAmLimits(b->rxF, b->txF);
         SI47XX_SetSeekAmSpacing(StepFrequencyTable[b->step]);
       }
     }
@@ -912,9 +912,9 @@ void RADIO_NextFreqNoClicks(bool next) {
   if (nextPreset != gCurrentPreset && nextPreset != &defaultPreset &&
       !PRESET_InRange(f, nextPreset)) {
     if (next) {
-      RADIO_TuneTo(nextBand->bounds.start);
+      RADIO_TuneTo(nextBand->rxF);
     } else {
-      RADIO_TuneTo(nextBand->bounds.end - nextBand->bounds.end % nextBandStep);
+      RADIO_TuneTo(nextBand->txF - nextBand->txF % nextBandStep);
     }
   } else {
     f = PRESETS_GetF(nextPreset, PRESETS_GetChannel(nextPreset, f));
@@ -1049,9 +1049,9 @@ void RADIO_ToggleModulation(void) {
 }
 
 void RADIO_UpdateStep(bool inc) {
-  uint8_t step = gCurrentPreset->band.step;
+  uint8_t step = gCurrentPreset->step;
   IncDec8(&step, 0, STEP_500_0kHz, inc ? 1 : -1);
-  gCurrentPreset->band.step = step;
+  gCurrentPreset->step = step;
   onPresetUpdate();
 }
 

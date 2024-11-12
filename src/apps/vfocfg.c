@@ -68,7 +68,7 @@ static void setInitialSubmenuIndex(void) {
     subMenuIndex = radio->modulation;
     break;
   case M_STEP:
-    subMenuIndex = gCurrentPreset->band.step;
+    subMenuIndex = gCurrentPreset->step;
     break;
   case M_SQ_TYPE:
     subMenuIndex = gCurrentPreset->band.squelchType;

@@ -41,7 +41,7 @@ static void setInitialSubmenuIndex(void) {
     subMenuIndex = gCurrentPreset->band.modulation;
     break;
   case M_STEP:
-    subMenuIndex = gCurrentPreset->band.step;
+    subMenuIndex = gCurrentPreset->step;
     break;
   case M_SQ_TYPE:
     subMenuIndex = gCurrentPreset->band.squelchType;
@@ -100,7 +100,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
 }
 
 static void setUpperBound(uint32_t f) {
-  gCurrentPreset->band.bounds.end = f;
+  gCurrentPreset->band.txF = f;
   if (gCurrentPreset->lastUsedFreq > f) {
     gCurrentPreset->lastUsedFreq = f;
     RADIO_TuneToSave(f);
@@ -109,7 +109,7 @@ static void setUpperBound(uint32_t f) {
 }
 
 static void setLowerBound(uint32_t f) {
-  gCurrentPreset->band.bounds.start = f;
+  gCurrentPreset->band.rxF = f;
   if (gCurrentPreset->lastUsedFreq < f) {
     gCurrentPreset->lastUsedFreq = f;
     RADIO_TuneToSave(f);
@@ -154,12 +154,12 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case M_START:
       gFInputCallback = setLowerBound;
-      gFInputTempFreq = gCurrentPreset->band.bounds.start;
+      gFInputTempFreq = gCurrentPreset->band.rxF;
       APPS_run(APP_FINPUT);
       return true;
     case M_END:
       gFInputCallback = setUpperBound;
-      gFInputTempFreq = gCurrentPreset->band.bounds.end;
+      gFInputTempFreq = gCurrentPreset->band.txF;
       APPS_run(APP_FINPUT);
       return true;
     /* case M_SAVE:
