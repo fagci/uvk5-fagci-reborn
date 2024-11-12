@@ -31,10 +31,7 @@ static uint16_t squelchRssi = UINT16_MAX;
 static bool useSquelch = false;
 
 static Preset opt = {
-    .band =
-        {
-            .name = "Analyzer",
-        },
+    .name = "Analyzer",
 };
 static uint16_t step;
 
@@ -43,7 +40,7 @@ static void startNewScan(bool reset) {
   peakRssi = 0;
   if (reset) {
     LOOT_Standby();
-    msm.f = opt.band.rxF;
+    msm.f = opt.rxF;
     BK4819_TuneTo(msm.f, true);
     BK4819_SetRegValue(afcDisableRegSpec, true);
     BK4819_SetModulation(opt.modulation);
@@ -56,7 +53,7 @@ static void startNewScan(bool reset) {
     } else {
       BK4819_SetFilterBandwidth(BK4819_FILTER_BW_6k);
     }
-    SP_Init(&opt.band);
+    SP_Init(&opt);
   } else {
     SP_Begin();
   }
@@ -82,8 +79,8 @@ static void scanFn(bool forward) {
     return;
   }
 
-  if (msm.f + step > opt.band.txF) {
-    msm.f = opt.band.rxF;
+  if (msm.f + step > opt.txF) {
+    msm.f = opt.rxF;
     peakF = _peakF;
     gRedrawScreen = true;
     if (useSquelch && squelchRssi == UINT16_MAX) {
@@ -95,7 +92,7 @@ static void scanFn(bool forward) {
 
   RADIO_TuneToPure(msm.f, false);
 
-  if (msm.f == opt.band.rxF) {
+  if (msm.f == opt.rxF) {
     startNewScan(false);
     return;
   }
@@ -106,8 +103,8 @@ static void setCenterF(uint32_t f) {
   step = StepFrequencyTable[opt.step];
   const uint32_t halfBW = step * (stepsCount / 2);
   centerF = f;
-  opt.band.rxF = centerF - halfBW;
-  opt.band.txF = centerF + halfBW;
+  opt.rxF = centerF - halfBW;
+  opt.txF = centerF + halfBW;
   opt.modulation = RADIO_GetModulation();
   startNewScan(true);
 }
@@ -274,7 +271,7 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void ANALYZER_render(void) {
-  STATUSLINE_SetText(opt.band.name);
+  STATUSLINE_SetText(opt.name);
 
   for (uint8_t i = SPECTRUM_Y; i < SPECTRUM_Y + SPECTRUM_H; i += 4) {
     PutPixel(spectrumWidth / 2, i, C_FILL);
@@ -283,7 +280,7 @@ void ANALYZER_render(void) {
   SP_Render(&opt);
 
   UI_DrawSpectrumElements(SPECTRUM_Y, scanInterval, Rssi2DBm(squelchRssi),
-                          &opt.band);
+                          &opt);
 
   SP_RenderArrow(&opt, peakF);
 

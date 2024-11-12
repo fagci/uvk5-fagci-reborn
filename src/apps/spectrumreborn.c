@@ -108,11 +108,11 @@ static void init() {
   LOOT_Standby();
   RADIO_SetupBandParams();
 
-  SP_Init(&gCurrentPreset->band);
+  SP_Init(gCurrentPreset);
 }
 
 static void startNewScan() {
-  currentBand = &gCurrentPreset->band;
+  currentBand = gCurrentPreset;
   currentStepSize = PRESETS_GetStepSize(gCurrentPreset);
 
   msm.f = currentBand->rxF;

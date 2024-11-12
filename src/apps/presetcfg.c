@@ -50,7 +50,7 @@ static void setInitialSubmenuIndex(void) {
     subMenuIndex = gCurrentPreset->squelch.value;
     break;
   case M_GAIN:
-    subMenuIndex = gCurrentPreset->band.gainIndex;
+    subMenuIndex = gCurrentPreset->gainIndex;
     break;
   case M_TX:
     subMenuIndex = gCurrentPreset->allowTx;
@@ -100,18 +100,18 @@ static void getSubmenuItemText(uint16_t index, char *name) {
 }
 
 static void setUpperBound(uint32_t f) {
-  gCurrentPreset->band.txF = f;
-  if (gCurrentPreset->lastUsedFreq > f) {
-    gCurrentPreset->lastUsedFreq = f;
+  gCurrentPreset->txF = f;
+  if (gCurrentPreset->misc.lastUsedFreq > f) {
+    gCurrentPreset->misc.lastUsedFreq = f;
     RADIO_TuneToSave(f);
   }
   PRESETS_SaveCurrent();
 }
 
 static void setLowerBound(uint32_t f) {
-  gCurrentPreset->band.rxF = f;
-  if (gCurrentPreset->lastUsedFreq < f) {
-    gCurrentPreset->lastUsedFreq = f;
+  gCurrentPreset->rxF = f;
+  if (gCurrentPreset->misc.lastUsedFreq < f) {
+    gCurrentPreset->misc.lastUsedFreq = f;
     RADIO_TuneToSave(f);
   }
   PRESETS_SaveCurrent();
@@ -148,18 +148,18 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     switch (item->type) {
     case M_NAME:
       gTextInputSize = 9;
-      gTextinputText = gCurrentPreset->band.name;
+      gTextinputText = gCurrentPreset->name;
       gTextInputCallback = PRESETS_SaveCurrent;
       APPS_run(APP_TEXTINPUT);
       return true;
     case M_START:
       gFInputCallback = setLowerBound;
-      gFInputTempFreq = gCurrentPreset->band.rxF;
+      gFInputTempFreq = gCurrentPreset->rxF;
       APPS_run(APP_FINPUT);
       return true;
     case M_END:
       gFInputCallback = setUpperBound;
-      gFInputTempFreq = gCurrentPreset->band.txF;
+      gFInputTempFreq = gCurrentPreset->txF;
       APPS_run(APP_FINPUT);
       return true;
     /* case M_SAVE:

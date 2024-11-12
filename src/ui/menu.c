@@ -153,11 +153,10 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
     PrintRTXCode(Output, radio->code.tx.type, radio->code.tx.value);
     break;
   case M_TX_OFFSET:
-    sprintf(Output, "%u.%05u", gCurrentPreset->offset / MHZ,
-            gCurrentPreset->offset % MHZ);
+    sprintf(Output, "%u.%05u", radio->txF / MHZ, gCurrentPreset->txF % MHZ);
     break;
   case M_TX_OFFSET_DIR:
-    snprintf(Output, 15, TX_OFFSET_NAMES[gCurrentPreset->offsetDir]);
+    snprintf(Output, 15, TX_OFFSET_NAMES[radio->offsetDir]);
     break;
   case M_F_TXP:
     snprintf(Output, 15, TX_POWER_NAMES[gCurrentPreset->power]);
@@ -210,9 +209,8 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
     break;
 
   case M_GAIN:
-    gCurrentPreset->band.gainIndex = subMenuIndex;
-    BK4819_SetAGC(RADIO_GetModulation() != MOD_AM,
-                  gCurrentPreset->band.gainIndex);
+    gCurrentPreset->gainIndex = subMenuIndex;
+    BK4819_SetAGC(RADIO_GetModulation() != MOD_AM, gCurrentPreset->gainIndex);
     PRESETS_SaveCurrent();
     break;
   case M_TX:

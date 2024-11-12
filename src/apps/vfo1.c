@@ -47,7 +47,7 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   uint16_t v, maxValue;
 
   if (s.num == BK4819_REG_13) {
-    v = gCurrentPreset->band.gainIndex;
+    v = gCurrentPreset->gainIndex;
     maxValue = ARRAY_SIZE(gainTable) - 1;
   } else if (s.num == 0x73) {
     v = BK4819_GetAFC();
@@ -131,22 +131,21 @@ void VFO1_update(void) {
 }
 
 static void prepareABScan() {
-  const uint32_t F1 = gVFO[0].rxF;
-  const uint32_t F2 = gVFO[1].rxF;
-  FRange *b = &defaultPreset.band.bounds;
+  uint32_t F1 = gVFO[0].rxF;
+  uint32_t F2 = gVFO[1].rxF;
 
-  if (F1 < F2) {
-    b->start = F1;
-    b->end = F2;
-  } else {
-    b->start = F2;
-    b->end = F1;
+  if (F1 > F2) {
+    SWAP(F1, F2);
   }
-  sprintf(defaultPreset.band.name, "%u-%u", b->start / MHZ, b->end / MHZ);
+
+  defaultPreset.rxF = F1;
+  defaultPreset.txF = F2;
+
+  sprintf(defaultPreset.name, "%u-%u", F1 / MHZ, F2 / MHZ);
   gCurrentPreset = &defaultPreset;
-  defaultPreset.lastUsedFreq = radio->rxF;
+  defaultPreset.misc.lastUsedFreq = radio->rxF;
   gSettings.crossBandScan = false;
-  RADIO_TuneToPure(b->start, true);
+  RADIO_TuneToPure(F1, true);
 }
 
 static void initChannelScan() {
@@ -196,7 +195,7 @@ static void selectFirstPresetFromScanlist() {
     if (sl == 15 ||
         (PRESETS_Item(i)->memoryBanks & scanlistMask) == scanlistMask) {
       PRESET_Select(i);
-      RADIO_TuneTo(gCurrentPreset->band.rxF);
+      RADIO_TuneTo(gCurrentPreset->rxF);
       return;
     }
   }
@@ -517,11 +516,11 @@ static void DrawRegs(void) {
   RegisterSpec rs = registerSpecs[menuIndex];
 
   if (rs.num == BK4819_REG_13) {
-    if (gCurrentPreset->band.gainIndex == AUTO_GAIN_INDEX) {
+    if (gCurrentPreset->gainIndex == AUTO_GAIN_INDEX) {
       sprintf(String, "auto");
     } else {
       sprintf(String, "%+ddB",
-              -gainTable[gCurrentPreset->band.gainIndex].gainDb + 33);
+              -gainTable[gCurrentPreset->gainIndex].gainDb + 33);
     }
   } else if (rs.num == 0x73) {
     uint8_t afc = BK4819_GetAFC();

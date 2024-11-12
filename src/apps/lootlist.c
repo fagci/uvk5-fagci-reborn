@@ -165,8 +165,15 @@ void LOOTLIST_init(void) {
 static void saveLootToCh(const Loot *loot, int16_t chnum, uint8_t scanlist) {
   Preset *p = PRESET_ByFrequency(loot->f);
   CH ch = {
-      .rx = {loot->f, CODE_TYPE_OFF, 0},
-      .tx = {0, CODE_TYPE_OFF, 0},
+      .rxF = loot->f,
+      .txF = 0,
+      .code =
+          (CodeRXTX){
+              .rx.type = CODE_TYPE_OFF,
+              .tx.type = CODE_TYPE_OFF,
+              .rx.value = 0,
+              .tx.value = 0,
+          },
       .radio = p->radio,
       .modulation = p->modulation,
       .memoryBanks = 1 << scanlist,
@@ -202,7 +209,9 @@ static void saveToFreeChannels(bool saveWhitelist, uint8_t scanlist) {
     while (chnum) {
       chnum--;
       if (CHANNELS_Existing(chnum)) {
-        if (CHANNELS_GetRX(chnum).f == loot->f) {
+        CH ch;
+        CHANNELS_Load(chnum, &ch);
+        if (ch.rxF == loot->f) {
           break;
         }
       } else {

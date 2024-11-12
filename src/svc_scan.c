@@ -13,26 +13,14 @@ bool gScanForward = true;
 bool gScanRedraw = true;
 
 uint32_t SCAN_TIMEOUTS[15] = {
-    0,
-    100,
-    200,
-    300,
-    400,
-    500,
-    1000 * 1,
-    1000 * 3,
-    1000 * 5,
-    1000 * 10,
-    1000 * 30,
-    1000 * 60,
-    1000 * 60 * 2,
-    1000 * 60 * 5,
-    ((uint32_t)0) - 1,
+    0,         100,       200,           300,           400,
+    500,       1000 * 1,  1000 * 3,      1000 * 5,      1000 * 10,
+    1000 * 30, 1000 * 60, 1000 * 60 * 2, 1000 * 60 * 5, ((uint32_t)0) - 1,
 };
 
 char *SCAN_TIMEOUT_NAMES[15] = {
-    "0",   "100ms", "200ms", "300ms", "400ms", "500ms", "1s",   "3s",   "5s",
-    "10s", "30s",   "1min",  "2min",  "5min", "None",
+    "0",  "100ms", "200ms", "300ms", "400ms", "500ms", "1s",   "3s",
+    "5s", "10s",   "30s",   "1min",  "2min",  "5min",  "None",
 };
 
 static uint32_t lastSettedF = 0;
@@ -103,11 +91,11 @@ void SVC_SCAN_Update(void) {
 void SVC_SCAN_Deinit(void) {
   gScanFn = NULL;
   gScanRedraw = true;
-  if (&defaultPreset == gCurrentPreset && defaultPreset.band.name[0] != 'd') {
-    sprintf(defaultPreset.band.name, "default");
-    defaultPreset.band.rxF = 0;
-    defaultPreset.band.txF = 0;
-    RADIO_TuneTo(defaultPreset.lastUsedFreq);
+  if (&defaultPreset == gCurrentPreset && defaultPreset.name[0] != 'd') {
+    sprintf(defaultPreset.name, "default");
+    defaultPreset.rxF = 0;
+    defaultPreset.txF = 0;
+    RADIO_TuneTo(defaultPreset.misc.lastUsedFreq);
     SETTINGS_Load();
   }
   if (RADIO_GetRadio() != RADIO_BK4819) {

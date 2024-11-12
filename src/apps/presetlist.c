@@ -15,7 +15,7 @@ static void getPresetItem(uint16_t i, uint16_t index, bool isCurrent) {
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
   }
-  PrintMediumEx(8, y + 8, POS_L, C_INVERT, "%s", p->band.name);
+  PrintMediumEx(8, y + 8, POS_L, C_INVERT, "%s", p->name);
   char scanlistsStr[9] = "";
   for (i = 0; i < 8; ++i) {
     scanlistsStr[i] = p->memoryBanks & (1 << i) ? '1' + i : '-';

@@ -270,19 +270,19 @@ static uint8_t calculateOutputPower(Preset *p) {
 
   switch (p->power) {
   case TX_POW_LOW:
-    power_bias = p->powCalib.s;
+    power_bias = p->misc.powCalib.s;
     break;
 
   case TX_POW_MID:
-    power_bias = p->powCalib.m;
+    power_bias = p->misc.powCalib.m;
     break;
 
   case TX_POW_HIGH:
-    power_bias = p->powCalib.e;
+    power_bias = p->misc.powCalib.e;
     break;
 
   default:
-    power_bias = p->powCalib.s;
+    power_bias = p->misc.powCalib.s;
     if (power_bias > 10)
       power_bias -= 10; // 10mw if Low=500mw
   }
@@ -417,10 +417,10 @@ void RADIO_EnableCxCSS(void) {
 uint32_t RADIO_GetTXFEx(VFO *vfo, Preset *p) {
   uint32_t txF = vfo->rxF;
 
-  if (vfo->txF) {
+  if (vfo->txF && p->offsetDir == OFFSET_FREQ) {
     txF = vfo->txF;
-  } else if (p->offset && p->offsetDir != OFFSET_NONE) {
-    txF = vfo->rxF + (p->offsetDir == OFFSET_PLUS ? p->offset : -p->offset);
+  } else if (p->txF && p->offsetDir != OFFSET_NONE) {
+    txF = vfo->rxF + (p->offsetDir == OFFSET_PLUS ? p->txF : -p->txF);
   }
 
   return txF;
@@ -576,7 +576,7 @@ void RADIO_TuneTo(uint32_t f) {
 void RADIO_TuneToSave(uint32_t f) {
   RADIO_TuneTo(f);
   RADIO_SaveCurrentVFO();
-  gCurrentPreset->lastUsedFreq = f;
+  gCurrentPreset->misc.lastUsedFreq = f;
   PRESETS_SaveCurrent();
 }
 
@@ -587,10 +587,10 @@ void RADIO_SelectPresetSave(int8_t num) {
   radio->modulation = MOD_PRST;
   PRESET_Select(num);
   // PRESETS_SaveCurrent();
-  if (PRESET_InRange(gCurrentPreset->lastUsedFreq, gCurrentPreset)) {
-    RADIO_TuneToSave(gCurrentPreset->lastUsedFreq);
+  if (PRESET_InRange(gCurrentPreset->misc.lastUsedFreq, gCurrentPreset)) {
+    RADIO_TuneToSave(gCurrentPreset->misc.lastUsedFreq);
   } else {
-    RADIO_TuneToSave(gCurrentPreset->band.rxF);
+    RADIO_TuneToSave(gCurrentPreset->rxF);
   }
 }
 
@@ -611,7 +611,7 @@ void RADIO_LoadCurrentVFO(void) {
 
 void RADIO_SetSquelch(uint8_t sq) {
   gCurrentPreset->squelch.value = sq;
-  RADIO_SetSquelchPure(gCurrentPreset->band.rxF, sq);
+  RADIO_SetSquelchPure(gCurrentPreset->rxF, sq);
   onPresetUpdate();
 }
 
@@ -621,7 +621,7 @@ void RADIO_SetSquelchType(SquelchType t) {
 }
 
 void RADIO_SetGain(uint8_t gainIndex) {
-  gCurrentPreset->band.gainIndex = gainIndex;
+  gCurrentPreset->gainIndex = gainIndex;
   bool disableAGC = false;
   switch (RADIO_GetRadio()) {
   case RADIO_BK4819:
@@ -665,7 +665,7 @@ void RADIO_SetFilterBandwidth(BK4819_FilterBandwidth_t bw) {
 
 void RADIO_SetupBandParams() {
   // Log("RADIO_SetupBandParams");
-  Band *b = &gCurrentPreset->band;
+  Band *b = gCurrentPreset;
   uint32_t fMid = b->rxF + (b->txF - b->rxF) / 2;
   ModulationType mod = RADIO_GetModulation();
   RADIO_SetGain(b->gainIndex);
@@ -673,8 +673,8 @@ void RADIO_SetupBandParams() {
   RADIO_SetFilterBandwidth(b->bw);
   switch (RADIO_GetRadio()) {
   case RADIO_BK4819:
-    BK4819_SquelchType(b->squelchType);
-    BK4819_Squelch(b->squelch, fMid, gSettings.sqlOpenTime,
+    BK4819_SquelchType(b->squelch.type);
+    BK4819_Squelch(b->squelch.value, fMid, gSettings.sqlOpenTime,
                    gSettings.sqlCloseTime);
     BK4819_SetModulation(mod);
     if (gSettings.scrambler) {
@@ -905,7 +905,7 @@ void RADIO_NextFreqNoClicks(bool next) {
   }
 
   Preset *nextPreset = PRESET_ByFrequency(radio->rxF + dir);
-  const Band *nextBand = &nextPreset->band;
+  const Band *nextBand = nextPreset;
   uint32_t nextBandStep = StepFrequencyTable[nextBand->step];
 
   uint32_t f = radio->rxF + nextBandStep * dir;

@@ -77,7 +77,7 @@ static void setInitialSubmenuIndex(void) {
     subMenuIndex = gCurrentPreset->squelch.value;
     break;
   case M_GAIN:
-    subMenuIndex = gCurrentPreset->band.gainIndex;
+    subMenuIndex = gCurrentPreset->gainIndex;
     break;
   default:
     subMenuIndex = 0;
@@ -92,20 +92,18 @@ static void getMenuItemText(uint16_t index, char *name) {
 static void updateTxCodeListSize() {
   for (uint8_t i = 0; i < ARRAY_SIZE(menu); ++i) {
     MenuItem *item = &menu[i];
-    const F *f = NULL;
+    uint8_t type = CODE_TYPE_OFF;
     if (item->type == M_TX_CODE) {
-      f = &radio->tx;
+      type = radio->code.tx.type;
     } else if (item->type == M_RX_CODE) {
-      f = &radio->rx;
+      type = radio->code.rx.type;
     }
-    if (f) {
-      if (f->codeType == CODE_TYPE_CONTINUOUS_TONE) {
-        item->size = ARRAY_SIZE(CTCSS_Options);
-      } else if (f->codeType != CODE_TYPE_OFF) {
-        item->size = ARRAY_SIZE(DCS_Options);
-      } else {
-        item->size = 0;
-      }
+    if (type == CODE_TYPE_CONTINUOUS_TONE) {
+      item->size = ARRAY_SIZE(CTCSS_Options);
+    } else if (type != CODE_TYPE_OFF) {
+      item->size = ARRAY_SIZE(DCS_Options);
+    } else {
+      item->size = 0;
     }
   }
 }
@@ -165,7 +163,7 @@ static void setTXF(uint32_t f) {
 }
 
 static void setTXOffset(uint32_t f) {
-  gCurrentPreset->offset = f;
+  gCurrentPreset->txF = f;
   PRESETS_SaveCurrent();
 }
 
@@ -189,7 +187,7 @@ static bool accept(void) {
     return true;
   case M_TX_OFFSET:
     gFInputCallback = setTXOffset;
-    gFInputTempFreq = gCurrentPreset->offset;
+    gFInputTempFreq = gCurrentPreset->txF;
     APPS_run(APP_FINPUT);
     return true;
   case M_SAVE:

@@ -66,10 +66,10 @@ void RESET_Update(void) {
     bytesWrote += VFO_SIZE;
   } else if (presetsWrote < ARRAY_SIZE(defaultPresets)) {
     Preset *p = &defaultPresets[presetsWrote];
-    p->band.gainIndex = 18;
+    p->gainIndex = 18;
     p->squelch.value = 3;
     p->squelch.type = SQUELCH_RSSI_NOISE_GLITCH;
-    if (p->band.txF < 3000000) {
+    if (p->txF < 3000000) {
       p->radio = RADIO_SI4732; // TODO: if SI existing
                                // default is RADIO_BK4819
     }

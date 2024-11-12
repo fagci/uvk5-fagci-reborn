@@ -24,7 +24,7 @@ static uint8_t x = 0;
 static uint8_t ox = UINT8_MAX;
 static uint8_t filledPoints;
 
-static FRange *range;
+static Band *range;
 static uint32_t step;
 
 static uint16_t minRssi(const uint16_t *array, uint8_t n) {
@@ -68,7 +68,7 @@ void SP_Next(void) {
 }
 
 void SP_Init(Band *b) {
-  range = &b->bounds;
+  range = b;
   step = StepFrequencyTable[b->step];
   SP_ResetHistory();
   SP_Begin();
@@ -76,9 +76,9 @@ void SP_Init(Band *b) {
 
 #include "../driver/uart.h"
 void SP_AddPoint(const Loot *msm) {
-  uint32_t xs = ConvertDomain(msm->f, range->start, range->end, 0, MAX_POINTS);
+  uint32_t xs = ConvertDomain(msm->f, range->rxF, range->txF, 0, MAX_POINTS);
   uint32_t xe =
-      ConvertDomain(msm->f + step, range->start, range->end, 0, MAX_POINTS);
+      ConvertDomain(msm->f + step, range->rxF, range->txF, 0, MAX_POINTS);
 
   if (xe > MAX_POINTS) {
     xe = MAX_POINTS;
@@ -118,7 +118,7 @@ void SP_Render(const Preset *p) {
   const VMinMax v = getV();
 
   if (p) {
-    UI_DrawTicks(S_BOTTOM, &p->band);
+    UI_DrawTicks(S_BOTTOM, p);
   }
 
   DrawHLine(0, S_BOTTOM, MAX_POINTS, C_FILL);
@@ -130,8 +130,7 @@ void SP_Render(const Preset *p) {
 }
 
 void SP_RenderArrow(const Preset *p, uint32_t f) {
-  uint8_t cx = ConvertDomain(f, p->band.rxF, p->band.txF, 0,
-                             MAX_POINTS - 1);
+  uint8_t cx = ConvertDomain(f, p->rxF, p->txF, 0, MAX_POINTS - 1);
   DrawVLine(cx, SPECTRUM_Y, 4, C_FILL);
   FillRect(cx - 2, SPECTRUM_Y, 5, 2, C_FILL);
 }
