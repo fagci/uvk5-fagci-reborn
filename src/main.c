@@ -10,7 +10,7 @@
 #include "driver/uart.h"
 #include "external/CMSIS_5/Device/ARM/ARMCM0/Include/ARMCM0.h"
 #include "helper/battery.h"
-#include "helper/presetlist.h"
+#include "helper/channels.h"
 #include "radio.h"
 #include "scheduler.h"
 #include "settings.h"

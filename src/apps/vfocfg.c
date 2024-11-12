@@ -3,7 +3,7 @@
 #include "../driver/st7565.h"
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"
-#include "../helper/presetlist.h"
+#include "../helper/channels.h"
 #include "../misc.h"
 #include "../radio.h"
 #include "../ui/graphics.h"

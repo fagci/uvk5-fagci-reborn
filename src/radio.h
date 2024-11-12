@@ -19,7 +19,7 @@ typedef enum {
 
 extern CH *radio;
 extern CH gVFO[2];
-extern CH *gVFOPresets[2];
+extern CH gVFOPresets[2];
 
 extern Loot gLoot[2];
 

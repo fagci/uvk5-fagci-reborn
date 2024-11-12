@@ -11,12 +11,10 @@
 #include "driver/st7565.h"
 #include "driver/system.h"
 #include "driver/uart.h"
-#include "helper/adapter.h"
 #include "helper/battery.h"
 #include "helper/channels.h"
 #include "helper/lootlist.h"
 #include "helper/measurements.h"
-#include "helper/presetlist.h"
 #include "helper/vfos.h"
 #include "misc.h"
 #include "scheduler.h"
@@ -26,7 +24,7 @@
 
 CH *radio;
 CH gVFO[2] = {0};
-CH *gVFOPresets[2] = {0};
+CH gVFOPresets[2];
 
 Loot gLoot[2] = {0};
 
@@ -426,16 +424,16 @@ uint32_t RADIO_GetTXFEx(VFO *vfo, Preset *p) {
   return txF;
 }
 
-uint32_t RADIO_GetTXF(void) { return RADIO_GetTXFEx(radio, gCurrentPreset); }
+uint32_t RADIO_GetTXF(void) { return RADIO_GetTXFEx(radio, &gCurrentPreset); }
 
 TXState RADIO_GetTXState(uint32_t txF) {
   if (gSettings.upconverter) {
     return TX_DISABLED_UPCONVERTER;
   }
 
-  const Preset *txPreset = PRESET_ByFrequency(txF);
+  const Preset txPreset = PRESET_ByFrequency(txF);
 
-  if (!txPreset->allowTx || RADIO_GetRadio() != RADIO_BK4819 ||
+  if (!txPreset.allowTx || RADIO_GetRadio() != RADIO_BK4819 ||
       SVC_Running(SVC_FC)) {
     return TX_DISABLED;
   }
@@ -450,8 +448,8 @@ TXState RADIO_GetTXState(uint32_t txF) {
 }
 
 uint32_t RADIO_GetTxPower(uint32_t txF) {
-  Preset *txPreset = PRESET_ByFrequency(txF);
-  uint8_t power = calculateOutputPower(txPreset);
+  Preset txPreset = PRESET_ByFrequency(txF);
+  uint8_t power = calculateOutputPower(&txPreset);
   if (power > 0x91) {
     power = 0x91;
   }
@@ -665,16 +663,16 @@ void RADIO_SetFilterBandwidth(BK4819_FilterBandwidth_t bw) {
 
 void RADIO_SetupBandParams() {
   // Log("RADIO_SetupBandParams");
-  Band *b = gCurrentPreset;
-  uint32_t fMid = b->rxF + (b->txF - b->rxF) / 2;
+  Preset p = gCurrentPreset;
+  uint32_t fMid = p.rxF + (p.txF - p.rxF) / 2;
   ModulationType mod = RADIO_GetModulation();
-  RADIO_SetGain(b->gainIndex);
+  RADIO_SetGain(p.gainIndex);
   // Log("Set mod %s", modulationTypeOptions[mod]);
-  RADIO_SetFilterBandwidth(b->bw);
+  RADIO_SetFilterBandwidth(p.bw);
   switch (RADIO_GetRadio()) {
   case RADIO_BK4819:
-    BK4819_SquelchType(b->squelch.type);
-    BK4819_Squelch(b->squelch.value, fMid, gSettings.sqlOpenTime,
+    BK4819_SquelchType(p.squelch.type);
+    BK4819_Squelch(p.squelch.value, fMid, gSettings.sqlOpenTime,
                    gSettings.sqlCloseTime);
     BK4819_SetModulation(mod);
     if (gSettings.scrambler) {
@@ -688,12 +686,12 @@ void RADIO_SetupBandParams() {
     break;
   case RADIO_SI4732:
     if (mod == MOD_FM) {
-      SI47XX_SetSeekFmLimits(b->rxF, b->txF);
-      SI47XX_SetSeekFmSpacing(StepFrequencyTable[b->step]);
+      SI47XX_SetSeekFmLimits(p.rxF, p.txF);
+      SI47XX_SetSeekFmSpacing(StepFrequencyTable[p.step]);
     } else {
       if (mod == MOD_AM) {
-        SI47XX_SetSeekAmLimits(b->rxF, b->txF);
-        SI47XX_SetSeekAmSpacing(StepFrequencyTable[b->step]);
+        SI47XX_SetSeekAmLimits(p.rxF, p.txF);
+        SI47XX_SetSeekAmSpacing(StepFrequencyTable[p.step]);
       }
     }
 
@@ -846,10 +844,8 @@ bool RADIO_UpdateMeasurementsEx(Loot *dest) {
 }
 
 void RADIO_VfoLoadCH(uint8_t i) {
-  CH ch;
-  CHANNELS_Load(gVFO[i].channel, &ch);
-  CH2VFO(&ch, &gVFO[i]);
-  strncpy(gVFONames[i], ch.name, 9);
+  CHANNELS_Load(gVFO[i].channel, &gVFO[i]);
+  strncpy(gVFONames[i], gVFO[i].name, 9);
 }
 
 bool RADIO_TuneToCH(int32_t num) {
@@ -904,20 +900,22 @@ void RADIO_NextFreqNoClicks(bool next) {
     return;
   }
 
-  Preset *nextPreset = PRESET_ByFrequency(radio->rxF + dir);
-  const Band *nextBand = nextPreset;
-  uint32_t nextBandStep = StepFrequencyTable[nextBand->step];
+  Preset nextPreset = PRESET_ByFrequency(radio->rxF + dir);
+  uint32_t nextBandStep = StepFrequencyTable[nextPreset.step];
 
   uint32_t f = radio->rxF + nextBandStep * dir;
+  // TODO: вероятно херня какая-то
+  // NOTE: тут надо только ограничивать текущим пресетом, границы которого
+  // должны после ввода частоты расширяться до пределов
   if (nextPreset != gCurrentPreset && nextPreset != &defaultPreset &&
       !PRESET_InRange(f, nextPreset)) {
     if (next) {
-      RADIO_TuneTo(nextBand->rxF);
+      RADIO_TuneTo(nextPreset.rxF);
     } else {
-      RADIO_TuneTo(nextBand->txF - nextBand->txF % nextBandStep);
+      RADIO_TuneTo(nextPreset.txF - nextPreset.txF % nextBandStep);
     }
   } else {
-    f = PRESETS_GetF(nextPreset, PRESETS_GetChannel(nextPreset, f));
+    f = CHANNELS_GetF(&nextPreset, CHANNELS_GetChannel(&nextPreset, f));
     radio->channel = -1;
     radio->txF = 0;
     radio->rxF = f;

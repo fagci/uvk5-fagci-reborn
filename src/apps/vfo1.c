@@ -5,7 +5,6 @@
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"
-#include "../helper/presetlist.h"
 #include "../radio.h"
 #include "../scheduler.h"
 #include "../svc.h"
@@ -142,7 +141,7 @@ static void prepareABScan() {
   defaultPreset.txF = F2;
 
   sprintf(defaultPreset.name, "%u-%u", F1 / MHZ, F2 / MHZ);
-  gCurrentPreset = &defaultPreset;
+  gCurrentPreset = defaultPreset;
   defaultPreset.misc.lastUsedFreq = radio->rxF;
   gSettings.crossBandScan = false;
   RADIO_TuneToPure(F1, true);
@@ -191,9 +190,9 @@ static void scanlistByKey(KEY_Code_t key) {
 static void selectFirstPresetFromScanlist() {
   uint8_t sl = gSettings.currentScanlist;
   uint8_t scanlistMask = 1 << sl;
-  for (uint8_t i = 0; i < PRESETS_COUNT; ++i) {
+  for (uint8_t i = 0; i < PRESETS_COUNT_MAX; ++i) {
     if (sl == 15 ||
-        (PRESETS_Item(i)->memoryBanks & scanlistMask) == scanlistMask) {
+        (PRESETS_Item(i).memoryBanks & scanlistMask) == scanlistMask) {
       PRESET_Select(i);
       RADIO_TuneTo(gCurrentPreset.rxF);
       return;

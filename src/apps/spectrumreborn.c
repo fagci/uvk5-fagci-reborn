@@ -8,7 +8,6 @@
 #include "../helper/channels.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
-#include "../helper/presetlist.h"
 #include "../scheduler.h"
 #include "../settings.h"
 #include "../svc.h"
@@ -108,12 +107,12 @@ static void init() {
   LOOT_Standby();
   RADIO_SetupBandParams();
 
-  SP_Init(gCurrentPreset);
+  SP_Init(&gCurrentPreset);
 }
 
 static void startNewScan() {
-  currentBand = gCurrentPreset;
-  currentStepSize = PRESETS_GetStepSize(gCurrentPreset);
+  currentBand = &gCurrentPreset;
+  currentStepSize = CHANNELS_GetStepSize(currentBand);
 
   msm.f = currentBand->rxF;
 
@@ -254,7 +253,7 @@ void SPECTRUM_update(void) {
 void SPECTRUM_render(void) {
   STATUSLINE_SetText(currentBand->name);
 
-  SP_Render(gCurrentPreset);
+  SP_Render(&gCurrentPreset);
   UI_DrawSpectrumElements(SPECTRUM_Y, msmDelay, noiseOpenDiff, currentBand);
 
   const uint8_t bl = 16 + 6;

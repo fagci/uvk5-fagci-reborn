@@ -1,5 +1,4 @@
 #include "savech.h"
-#include "../helper/adapter.h"
 #include "../helper/channels.h"
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"

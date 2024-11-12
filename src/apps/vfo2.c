@@ -1,8 +1,8 @@
 #include "vfo2.h"
 #include "../dcs.h"
+#include "../helper/channels.h"
 #include "../helper/lootlist.h"
 #include "../helper/numnav.h"
-#include "../helper/presetlist.h"
 #include "../misc.h"
 #include "../scheduler.h"
 #include "../settings.h"
@@ -87,8 +87,8 @@ static void render2VFOPart(uint8_t i) {
     }
   }
   PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %c SQ%u %c %s %s",
-               p->allowTx ? TX_POWER_NAMES[p->power][0] : ' ',
-               "wNnW"[p->bw], p -> squelch.value,
+               p->allowTx ? TX_POWER_NAMES[p->power][0] : ' ', "wNnW"[p->bw],
+               p -> squelch.value,
                RADIO_GetTXFEx(vfo, p) != vfo->rxF
                    ? (p->offsetDir ? TX_OFFSET_NAMES[p->offsetDir][0] : '*')
                    : ' ',
@@ -136,7 +136,7 @@ void VFO2_render(void) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
   } else {
     STATUSLINE_SetText("%s:%u", gCurrentPreset.name,
-                       PRESETS_GetChannel(gCurrentPreset, radio->rxF) + 1);
+                       CHANNELS_GetChannel(&gCurrentPreset, radio->rxF) + 1);
   }
 
   render2VFOPart(0);
