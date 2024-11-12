@@ -52,9 +52,9 @@ static void startNewScan(bool reset) {
     } else if (step >= 1200) {
       BK4819_SetFilterBandwidth(BK4819_FILTER_BW_14k);
     } else if (step >= 625) {
-      BK4819_SetFilterBandwidth(BK4819_FILTER_BW_NARROW);
+      BK4819_SetFilterBandwidth(BK4819_FILTER_BW_9k);
     } else {
-      BK4819_SetFilterBandwidth(BK4819_FILTER_BW_NARROWER);
+      BK4819_SetFilterBandwidth(BK4819_FILTER_BW_6k);
     }
     SP_Init(&opt.band);
   } else {

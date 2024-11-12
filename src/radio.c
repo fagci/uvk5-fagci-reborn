@@ -70,15 +70,15 @@ const char *deviationNames[] = {"", "+", "-"};
 
 static const SI47XX_SsbFilterBW SI_BW_MAP_SSB[] = {
     [BK4819_FILTER_BW_14k] = SI47XX_SSB_BW_4_kHz,
-    [BK4819_FILTER_BW_NARROW] = SI47XX_SSB_BW_3_kHz,
-    [BK4819_FILTER_BW_NARROWER] = SI47XX_SSB_BW_2_2_kHz,
-    [BK4819_FILTER_BW_SOMETHING] = SI47XX_SSB_BW_0_5_kHz,
+    [BK4819_FILTER_BW_9k] = SI47XX_SSB_BW_3_kHz,
+    [BK4819_FILTER_BW_6k] = SI47XX_SSB_BW_2_2_kHz,
+    [BK4819_FILTER_BW_20k] = SI47XX_SSB_BW_0_5_kHz,
 };
 static const SI47XX_FilterBW SI_BW_MAP_AMFM[] = {
     [BK4819_FILTER_BW_14k] = SI47XX_BW_6_kHz,
-    [BK4819_FILTER_BW_NARROW] = SI47XX_BW_4_kHz,
-    [BK4819_FILTER_BW_NARROWER] = SI47XX_BW_3_kHz,
-    [BK4819_FILTER_BW_SOMETHING] = SI47XX_BW_1_kHz,
+    [BK4819_FILTER_BW_9k] = SI47XX_BW_4_kHz,
+    [BK4819_FILTER_BW_6k] = SI47XX_BW_3_kHz,
+    [BK4819_FILTER_BW_20k] = SI47XX_BW_1_kHz,
 };
 
 Radio RADIO_GetRadio() {
@@ -1056,7 +1056,7 @@ void RADIO_UpdateStep(bool inc) {
 }
 
 void RADIO_ToggleListeningBW(void) {
-  if (gCurrentPreset->bw == BK4819_FILTER_BW_SOMETHING) {
+  if (gCurrentPreset->bw == BK4819_FILTER_BW_20k) {
     gCurrentPreset->bw = BK4819_FILTER_BW_14k;
   } else {
     ++gCurrentPreset->bw;
