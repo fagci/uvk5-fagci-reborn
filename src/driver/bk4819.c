@@ -25,7 +25,6 @@ static const uint16_t modTypeReg47Values[] = {
     [MOD_BYP] = BK4819_AF_BYPASS, //
     [MOD_RAW] = BK4819_AF_RAW,    //
     [MOD_WFM] = BK4819_AF_FM,     //
-    [MOD_PRST] = BK4819_AF_RAW,   // for some reason =)
 };
 static const uint8_t squelchTypeValues[4] = {0x88, 0xAA, 0xCC, 0xFF};
 static const uint8_t DTMF_COEFFS[] = {111, 107, 103, 98, 80,  71,  58,  44,

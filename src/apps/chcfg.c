@@ -44,7 +44,7 @@ static MenuItem menu[] = {
 };
 static const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
 
-void GetMenuItemValue(PresetCfgMenu type, char *Output) {
+static void getMenuItemValue(PresetCfgMenu type, char *Output) {
   uint32_t fs = gChEd.rxF;
   uint32_t fe = gChEd.txF;
   switch (type) {
@@ -123,7 +123,7 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
   }
 }
 
-void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
+static void acceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
   switch (item->type) {
   case M_BW:
     gChEd.bw = subMenuIndex;
@@ -186,7 +186,7 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
 }
 
 // TODO: update all the things instantly?
-void OnRadioSubmenuChange(const MenuItem *item, uint8_t subMenuIndex) {
+static void onRadioSubmenuChange(const MenuItem *item, uint8_t subMenuIndex) {
   switch (item->type) {
   case M_GAIN:
     gChEd.gainIndex = subMenuIndex;
@@ -398,7 +398,7 @@ static bool accept(void) {
   }
   updateTxCodeListSize();
   if (isSubMenu) {
-    AcceptRadioConfig(item, subMenuIndex);
+    acceptRadioConfig(item, subMenuIndex);
     isSubMenu = false;
   } else {
     isSubMenu = true;
@@ -419,7 +419,7 @@ static void setMenuIndexAndRun(uint16_t v) {
 static void upDown(uint8_t inc) {
   if (isSubMenu) {
     IncDec8(&subMenuIndex, 0, menu[menuIndex].size, inc);
-    OnRadioSubmenuChange(&menu[menuIndex], subMenuIndex);
+    onRadioSubmenuChange(&menu[menuIndex], subMenuIndex);
   } else {
     IncDec8(&menuIndex, 0, MENU_SIZE, inc);
   }
@@ -476,7 +476,7 @@ void CHCFG_render(void) {
   } else {
     UI_ShowMenu(getMenuItemText, ARRAY_SIZE(menu), menuIndex);
     char Output[32] = "";
-    GetMenuItemValue(item->type, Output);
+    getMenuItemValue(item->type, Output);
     PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 4, POS_C, C_FILL, Output);
   }
 }

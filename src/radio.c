@@ -35,7 +35,7 @@ bool gMonitorMode = false;
 TXState gTxState = TX_UNKNOWN;
 bool gShowAllRSSI = false;
 
-static Radio oldRadio = RADIO_UNKNOWN;
+static Radio oldRadio = RADIO_BK4819;
 static uint32_t lastTailTone = 0;
 static uint32_t lastMsmUpdate = 0;
 static bool toneFound = false;
@@ -79,15 +79,9 @@ static const SI47XX_FilterBW SI_BW_MAP_AMFM[] = {
     [BK4819_FILTER_BW_20k] = SI47XX_BW_1_kHz,
 };
 
-Radio RADIO_GetRadio() {
-  return radio->radio == RADIO_UNKNOWN ? gCurrentPreset.radio : radio->radio;
-}
+Radio RADIO_GetRadio() { return radio->radio; }
 
-ModulationType RADIO_GetModulation() {
-  // return gCurrentPreset.modulation;
-  return radio->modulation == MOD_PRST ? gCurrentPreset.modulation
-                                       : radio->modulation;
-}
+ModulationType RADIO_GetModulation() { return radio->modulation; }
 
 const char *RADIO_GetBWName(BK4819_FilterBandwidth_t i) {
   switch (RADIO_GetRadio()) {
@@ -561,8 +555,8 @@ void RADIO_SetupByCurrentVFO(void) {
 void RADIO_TuneTo(uint32_t f) {
   if (radio->channel != -1) {
     radio->channel = -1;
-    radio->radio = RADIO_UNKNOWN;
-    radio->modulation = MOD_PRST;
+    // radio->radio = RADIO_UNKNOWN;
+    // radio->modulation = MOD_PRST;
   }
   radio->txF = 0;
   radio->rxF = f;
@@ -581,8 +575,9 @@ void RADIO_TuneToSave(uint32_t f) {
 void RADIO_SaveCurrentVFO(void) { VFOS_Save(gSettings.activeVFO, radio); }
 
 void RADIO_SelectPresetSave(int8_t num) {
-  radio->radio = RADIO_UNKNOWN;
-  radio->modulation = MOD_PRST;
+  // TODO: copy settings from preset
+  // radio->radio = RADIO_UNKNOWN;
+  // radio->modulation = MOD_PRST;
   PRESET_Select(num);
   // PRESETS_SaveCurrent();
   if (PRESET_InRange(gCurrentPreset.misc.lastUsedFreq, gCurrentPreset)) {
@@ -1024,9 +1019,6 @@ static ModulationType getNextModulation() {
       indexOf(items, ARRAY_SIZE(MODS_BK4819), RADIO_GetModulation());
   if (curIndex >= 0) {
     IncDecI8(&curIndex, 0, sz, 1);
-    if (items[curIndex] == gCurrentPreset.modulation) {
-      return MOD_PRST;
-    }
   } else {
     return items[0];
   }

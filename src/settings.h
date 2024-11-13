@@ -84,7 +84,6 @@ typedef enum {
   RADIO_BK4819,
   RADIO_BK1080,
   RADIO_SI4732,
-  RADIO_UNKNOWN,
 } Radio;
 
 typedef enum {

@@ -58,8 +58,8 @@ void RESET_Update(void) {
   } else if (vfosWrote < ARRAY_SIZE(defaultVFOs)) {
     VFO *vfo = &defaultVFOs[vfosWrote];
     vfo->channel = -1;
-    vfo->modulation = MOD_PRST;
-    vfo->radio = RADIO_UNKNOWN;
+    vfo->modulation = MOD_FM;
+    vfo->radio = RADIO_BK4819;
     vfo->txF = 0;
     vfo->offsetDir = OFFSET_NONE;
     vfo->allowTx = false;

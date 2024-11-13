@@ -583,16 +583,8 @@ void CHANNELS_Save(int16_t num, CH *p) {
 }
 
 void CHANNELS_Delete(int16_t num) {
-  CH _ch = {
-      .rxF = 0,
-      .txF = 0,
-      .name = {'\0'},
-      .memoryBanks = 0,
-      .modulation = MOD_FM,
-      .bw = BK4819_FILTER_BW_14k,
-      .power = TX_POW_LOW,
-      .radio = RADIO_UNKNOWN,
-  };
+  CH _ch;
+  memset(&_ch, 0, sizeof(_ch));
   CHANNELS_Save(num, &_ch);
 }
 

@@ -40,7 +40,6 @@ typedef enum {
   MOD_BYP,
   MOD_RAW,
   MOD_WFM,
-  MOD_PRST,
 } ModulationType;
 
 typedef enum {
