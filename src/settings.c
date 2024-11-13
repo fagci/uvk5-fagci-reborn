@@ -1,6 +1,5 @@
 #include "settings.h"
 #include "driver/eeprom.h"
-#include "helper/presetlist.h"
 #include "scheduler.h"
 
 Settings gSettings;
@@ -60,7 +59,6 @@ Settings defaultSettings = (Settings){
     .scanTimeout = 50,
     .activeVFO = 0,
     .activePreset = 9,
-    .presetsCount = PRESETS_COUNT,
     .backlightOnSquelch = BL_SQL_ON,
     .batteryCalibration = 2000,
     .batteryType = BAT_1600,

@@ -694,7 +694,7 @@ uint32_t CHANNELS_GetChannel(Preset *p, uint32_t f) {
 }
 
 void PRESETS_SaveCurrent(void) {
-  PRESETS_SavePreset(gSettings.activePreset, &gCurrentPreset);
+  CHANNELS_Save(gSettings.activePreset, &gCurrentPreset);
 }
 
 int8_t PRESETS_Size(void) { return presetlistSize < 0 ? 0 : presetlistSize; }

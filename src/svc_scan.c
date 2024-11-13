@@ -4,7 +4,7 @@
 #include "driver/st7565.h"
 #include "driver/uart.h"
 #include "external/printf/printf.h"
-#include "helper/presetlist.h"
+#include "helper/channels.h"
 #include "radio.h"
 #include "scheduler.h"
 #include "settings.h"
@@ -91,7 +91,7 @@ void SVC_SCAN_Update(void) {
 void SVC_SCAN_Deinit(void) {
   gScanFn = NULL;
   gScanRedraw = true;
-  if (&defaultPreset == gCurrentPreset && defaultPreset.name[0] != 'd') {
+  if (defaultPreset.name[0] != 'd') {
     sprintf(defaultPreset.name, "default");
     defaultPreset.rxF = 0;
     defaultPreset.txF = 0;

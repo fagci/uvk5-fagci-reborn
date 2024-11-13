@@ -72,7 +72,7 @@ void RESET_Update(void) {
       p->radio = RADIO_SI4732; // TODO: if SI existing
                                // default is RADIO_BK4819
     }
-    PRESETS_SavePreset(presetsWrote, p);
+    CHANNELS_Save(presetsWrote, p);
     presetsWrote++;
     bytesWrote += CH_SIZE;
   } else if (channelsWrote < channelsMax) {

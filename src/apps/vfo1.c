@@ -542,7 +542,7 @@ void VFO1_render(void) {
   const uint8_t BASE = 38;
 
   VFO *vfo = &gVFO[gSettings.activeVFO];
-  Preset *p = gVFOPresets[gSettings.activeVFO];
+  Preset *p = &gVFOPresets[gSettings.activeVFO];
   uint32_t f = gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(vfo->rxF);
 
   uint16_t fp1 = f / MHZ;

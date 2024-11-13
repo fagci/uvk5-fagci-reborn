@@ -893,29 +893,24 @@ void RADIO_UpdateSquelchLevel(bool next) {
 }
 
 void RADIO_NextFreqNoClicks(bool next) {
-  const int8_t dir = next ? 1 : -1;
 
   if (radio->channel >= 0) {
     RADIO_NextCH(next);
     return;
   }
 
-  Preset nextPreset = PRESET_ByFrequency(radio->rxF + dir);
-  uint32_t nextBandStep = StepFrequencyTable[nextPreset.step];
+  const int8_t dir = next ? 1 : -1;
+  const uint32_t step = StepFrequencyTable[radio->step];
 
-  uint32_t f = radio->rxF + nextBandStep * dir;
-  // TODO: вероятно херня какая-то
-  // NOTE: тут надо только ограничивать текущим пресетом, границы которого
-  // должны после ввода частоты расширяться до пределов
-  if (nextPreset != gCurrentPreset && nextPreset != &defaultPreset &&
-      !PRESET_InRange(f, nextPreset)) {
+  uint32_t f = radio->rxF + step * dir;
+  if (!PRESET_InRange(f, gCurrentPreset)) {
     if (next) {
-      RADIO_TuneTo(nextPreset.rxF);
+      RADIO_TuneTo(gCurrentPreset.rxF);
     } else {
-      RADIO_TuneTo(nextPreset.txF - nextPreset.txF % nextBandStep);
+      RADIO_TuneTo(gCurrentPreset.txF - gCurrentPreset.txF % step);
     }
   } else {
-    f = CHANNELS_GetF(&nextPreset, CHANNELS_GetChannel(&nextPreset, f));
+    f = CHANNELS_GetF(&gCurrentPreset, CHANNELS_GetChannel(&gCurrentPreset, f));
     radio->channel = -1;
     radio->txF = 0;
     radio->rxF = f;
@@ -941,8 +936,8 @@ static void selectPreset(bool next) {
 }
 
 bool RADIO_NextPresetFreqXBandEx(bool next, bool tune, bool precise) {
-  uint32_t steps = PRESETS_GetSteps(gCurrentPreset);
-  int64_t step = PRESETS_GetChannel(gCurrentPreset, radio->rxF);
+  uint32_t steps = CHANNELS_GetSteps(&gCurrentPreset);
+  int64_t step = CHANNELS_GetChannel(&gCurrentPreset, radio->rxF);
   bool switchBand = false;
 
   if (next) {
@@ -955,7 +950,7 @@ bool RADIO_NextPresetFreqXBandEx(bool next, bool tune, bool precise) {
     // get previous preset
     switchBand = true;
     selectPreset(false);
-    steps = PRESETS_GetSteps(gCurrentPreset);
+    steps = CHANNELS_GetSteps(&gCurrentPreset);
     step = steps - 1;
   } else if (step >= steps) {
     // get next preset
@@ -963,7 +958,7 @@ bool RADIO_NextPresetFreqXBandEx(bool next, bool tune, bool precise) {
     selectPreset(true);
     step = 0;
   }
-  radio->rxF = PRESETS_GetF(gCurrentPreset, step);
+  radio->rxF = CHANNELS_GetF(&gCurrentPreset, step);
   if (tune) {
     RADIO_TuneToPure(radio->rxF, precise);
   }

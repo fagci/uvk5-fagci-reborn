@@ -27,7 +27,7 @@ static void getPresetItem(uint16_t i, uint16_t index, bool isCurrent) {
 static void toggleScanlist(uint8_t n) {
   Preset p = PRESETS_Item(menuIndex);
   p.memoryBanks ^= 1 << n;
-  PRESETS_SavePreset(menuIndex, &p);
+  CHANNELS_Save(menuIndex, &p);
 }
 
 void PRESETLIST_render(void) {

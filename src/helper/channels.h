@@ -33,8 +33,6 @@ int8_t PRESET_GetCurrentIndex();
 void PRESET_Select(int8_t i);
 Preset PRESET_ByFrequency(uint32_t f);
 int8_t PRESET_SelectByFrequency(uint32_t f);
-void PRESETS_SavePreset(int8_t num, Preset *p);
-void PRESETS_LoadPreset(int8_t num, Preset *p);
 void PRESETS_SaveCurrent();
 bool PRESET_InRange(const uint32_t f, const Preset p);
 

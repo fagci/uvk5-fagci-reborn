@@ -15,7 +15,7 @@ static void render2VFOPart(uint8_t i) {
   const uint8_t BASE = 22;
   const uint8_t bl = BASE + 34 * i;
 
-  Preset *p = gVFOPresets[i];
+  Preset *p = &gVFOPresets[i];
   VFO *vfo = &gVFO[i];
   const bool isActive = gSettings.activeVFO == i;
   const Loot *loot = &gLoot[i];
