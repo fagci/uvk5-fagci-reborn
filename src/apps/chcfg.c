@@ -1,7 +1,6 @@
 #include "chcfg.h"
 #include "../dcs.h"
 #include "../driver/st7565.h"
-#include "../helper/channels.h"
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"
 #include "../misc.h"
@@ -15,6 +14,8 @@
 static uint8_t menuIndex = 0;
 static uint8_t subMenuIndex = 0;
 static bool isSubMenu = false;
+
+CH gChEd;
 
 static MenuItem menu[] = {
     {"Name", M_NAME, 0},
@@ -51,43 +52,55 @@ static void setInitialSubmenuIndex(void) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_RADIO:
-    subMenuIndex = radio->radio;
+    subMenuIndex = gChEd.radio;
     break;
   case M_BW:
-    subMenuIndex = gCurrentPreset.bw;
+    subMenuIndex = gChEd.bw;
     break;
   case M_RX_CODE_TYPE:
-    subMenuIndex = radio->code.rx.type;
+    subMenuIndex = gChEd.code.rx.type;
     break;
   case M_RX_CODE:
-    subMenuIndex = radio->code.rx.value;
+    subMenuIndex = gChEd.code.rx.value;
     break;
   case M_TX_CODE_TYPE:
-    subMenuIndex = radio->code.tx.type;
+    subMenuIndex = gChEd.code.tx.type;
     break;
   case M_TX_CODE:
-    subMenuIndex = radio->code.tx.value;
+    subMenuIndex = gChEd.code.tx.value;
     break;
   case M_F_TXP:
-    subMenuIndex = gCurrentPreset.power;
+    subMenuIndex = gChEd.power;
     break;
   case M_TX_OFFSET_DIR:
-    subMenuIndex = gCurrentPreset.offsetDir;
+    subMenuIndex = gChEd.offsetDir;
     break;
   case M_MODULATION:
-    subMenuIndex = radio->modulation;
+    subMenuIndex = gChEd.modulation;
     break;
   case M_STEP:
-    subMenuIndex = gCurrentPreset.step;
+    subMenuIndex = gChEd.step;
     break;
   case M_SQ_TYPE:
-    subMenuIndex = gCurrentPreset.squelch.type;
+    subMenuIndex = gChEd.squelch.type;
     break;
   case M_SQ:
-    subMenuIndex = gCurrentPreset.squelch.value;
+    subMenuIndex = gChEd.squelch.value;
     break;
   case M_GAIN:
-    subMenuIndex = gCurrentPreset.gainIndex;
+    subMenuIndex = gChEd.gainIndex;
+    break;
+  case M_SCRAMBLER:
+    subMenuIndex = gChEd.scrambler;
+    break;
+  case M_TX:
+    subMenuIndex = gChEd.allowTx;
+    break;
+  case M_READONLY:
+    subMenuIndex = gChEd.readonly;
+    break;
+  case M_TYPE:
+    subMenuIndex = gChEd.type;
     break;
   default:
     subMenuIndex = 0;
@@ -96,6 +109,15 @@ static void setInitialSubmenuIndex(void) {
 }
 
 static void getMenuItemText(uint16_t index, char *name) {
+  MenuItem *m = &menu[index];
+  if (gChEd.type == TYPE_PRESET && m->type == M_F_RX) {
+    strncpy(name, "Start f", 31);
+    return;
+  }
+  if (gChEd.type == TYPE_PRESET && m->type == M_F_TX) {
+    strncpy(name, "End f", 31);
+    return;
+  }
   strncpy(name, menu[index].name, 31);
 }
 
@@ -104,9 +126,9 @@ static void updateTxCodeListSize() {
     MenuItem *item = &menu[i];
     uint8_t type = CODE_TYPE_OFF;
     if (item->type == M_TX_CODE) {
-      type = radio->code.tx.type;
+      type = gChEd.code.tx.type;
     } else if (item->type == M_RX_CODE) {
-      type = radio->code.rx.type;
+      type = gChEd.code.rx.type;
     }
     if (type == CODE_TYPE_CONTINUOUS_TONE) {
       item->size = ARRAY_SIZE(CTCSS_Options);
@@ -156,11 +178,19 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     strncpy(name, sqTypeNames[index], 31);
     return;
   case M_SQ:
+  case M_SCRAMBLER:
     sprintf(name, "%u", index);
     return;
   case M_GAIN:
     sprintf(name, index == AUTO_GAIN_INDEX ? "auto" : "%+ddB",
             -gainTable[index].gainDb + 33);
+    return;
+  case M_TX:
+  case M_READONLY:
+    strncpy(name, yesNo[index], 31);
+    return;
+  case M_TYPE:
+    strncpy(name, CH_TYPE_NAMES[index], 31);
     return;
   default:
     break;
