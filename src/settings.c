@@ -26,6 +26,9 @@ const char *EEPROM_TYPE_NAMES[8] = {
     "BL24C1024", // 110
     "M24M02",    // 111
 };
+const char *CH_TYPE_NAMES[8] = {
+    "CH", "PRESET", "VFO", "SETTING", "FILE", "MELODY", "MISC1", "MISC2",
+};
 
 Settings defaultSettings = (Settings){
     .eepromType = EEPROM_BL24C64,

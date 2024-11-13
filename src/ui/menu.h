@@ -32,6 +32,9 @@ typedef enum {
   M_TX_OFFSET,
   M_TX_OFFSET_DIR,
   M_F_TXP,
+  M_SCRAMBLER,
+  M_READONLY,
+  M_TYPE,
   M_SAVE,
 } PresetCfgMenu;
 
@@ -41,12 +44,12 @@ typedef struct MenuItem {
   uint8_t size;
 } MenuItem;
 
-typedef enum {
+/* typedef enum {
   MT_ITEMS,
   MT_RANGE,
   MT_INPUT,
   MT_RUN,
-} MenuItemType;
+} MenuItemType; */
 
 void UI_ShowMenuItem(uint8_t line, const char *name, bool isCurrent);
 void UI_ShowMenuSimple(const MenuItem *menu, uint16_t size,
