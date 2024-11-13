@@ -77,16 +77,14 @@ void UI_ShowMenuEx(void (*showItem)(uint16_t i, uint16_t index, bool isCurrent),
 }
 
 void PrintRTXCode(char *Output, uint8_t codeType, uint8_t code) {
-  if (codeType) {
-    if (codeType == CODE_TYPE_CONTINUOUS_TONE) {
-      sprintf(Output, "CT:%u.%uHz", CTCSS_Options[code] / 10,
-              CTCSS_Options[code] % 10);
-    } else if (codeType == CODE_TYPE_DIGITAL) {
-      sprintf(Output, "DCS:D%03oN", DCS_Options[code]);
-    } else if (codeType == CODE_TYPE_REVERSE_DIGITAL) {
-      sprintf(Output, "DCS:D%03oI", DCS_Options[code]);
-    } else {
-      sprintf(Output, "No code");
-    }
+  if (codeType == CODE_TYPE_CONTINUOUS_TONE) {
+    sprintf(Output, "CT:%u.%uHz", CTCSS_Options[code] / 10,
+            CTCSS_Options[code] % 10);
+  } else if (codeType == CODE_TYPE_DIGITAL) {
+    sprintf(Output, "DCS:D%03oN", DCS_Options[code]);
+  } else if (codeType == CODE_TYPE_REVERSE_DIGITAL) {
+    sprintf(Output, "DCS:D%03oI", DCS_Options[code]);
+  } else {
+    sprintf(Output, "No code");
   }
 }

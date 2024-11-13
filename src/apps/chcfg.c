@@ -40,11 +40,6 @@ static MenuItem menu[] = {
     {"Enable TX", M_TX, 2},
     {"Readonly", M_READONLY, 2},
     {"Type", M_TYPE, ARRAY_SIZE(CH_TYPE_NAMES)},
-
-    // TODO: conditional naming
-    {"F start", M_START, 0},
-    {"F end", M_END, 0},
-
     {"Save", M_SAVE, 0},
 };
 static const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
@@ -73,6 +68,9 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
     break;
   case M_SQ:
     sprintf(Output, "%u", gChEd.squelch);
+    break;
+  case M_SCRAMBLER:
+    sprintf(Output, "%u", gChEd.scrambler);
     break;
   case M_GAIN:
     sprintf(Output, "%ddB", -gainTable[gChEd.gainIndex].gainDb + 33);
@@ -113,6 +111,12 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
     break;
   case M_F_TXP:
     snprintf(Output, 15, TX_POWER_NAMES[gChEd.power]);
+    break;
+  case M_READONLY:
+    snprintf(Output, 15, yesNo[gChEd.readonly]);
+    break;
+  case M_TYPE:
+    snprintf(Output, 15, CH_TYPE_NAMES[gChEd.type]);
     break;
   default:
     break;
@@ -162,6 +166,15 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
     break;
   case M_RADIO:
     gChEd.radio = subMenuIndex;
+    break;
+  case M_SCRAMBLER:
+    gChEd.scrambler = subMenuIndex;
+    break;
+  case M_READONLY:
+    gChEd.readonly = subMenuIndex;
+    break;
+  case M_TYPE:
+    gChEd.type = subMenuIndex;
     break;
   default:
     break;

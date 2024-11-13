@@ -20,16 +20,12 @@ static EEPROMType eepromType;
 
 static VFO defaultVFOs[2] = {
     (VFO){
+        .name = "VFO 1",
         .rxF = 14550000,
-        .channel = -1,
-        .modulation = MOD_PRST,
-        .radio = RADIO_UNKNOWN,
     },
     (VFO){
+        .name = "VFO 2",
         .rxF = 43307500,
-        .channel = -1,
-        .modulation = MOD_PRST,
-        .radio = RADIO_UNKNOWN,
     },
 };
 
@@ -60,7 +56,20 @@ void RESET_Update(void) {
     settingsWrote = true;
     bytesWrote += SETTINGS_SIZE;
   } else if (vfosWrote < ARRAY_SIZE(defaultVFOs)) {
-    VFOS_Save(vfosWrote, &defaultVFOs[vfosWrote]);
+    VFO *vfo = &defaultVFOs[vfosWrote];
+    vfo->channel = -1;
+    vfo->modulation = MOD_PRST;
+    vfo->radio = RADIO_UNKNOWN;
+    vfo->txF = 0;
+    vfo->offsetDir = OFFSET_NONE;
+    vfo->allowTx = false;
+    vfo->gainIndex = AUTO_GAIN_INDEX;
+    vfo->code.rx.type = 0;
+    vfo->code.tx.type = 0;
+    vfo->readonly = false;
+    vfo->misc.lastUsedFreq = vfo->rxF;
+    vfo->type = TYPE_VFO;
+    VFOS_Save(vfosWrote, vfo);
     vfosWrote++;
     bytesWrote += CH_SIZE;
   } else if (presetsWrote < ARRAY_SIZE(defaultPresets)) {
@@ -74,6 +83,7 @@ void RESET_Update(void) {
     }
     CHANNELS_Save(presetsWrote, p);
     presetsWrote++;
+    channelsWrote++;
     bytesWrote += CH_SIZE;
   } else if (channelsWrote < channelsMax) {
     CHANNELS_Delete(channelsWrote);
