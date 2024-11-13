@@ -57,7 +57,7 @@ bool APPSLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   case KEY_MENU:
     APPS_exit();
-    if (app == APP_PRESETS_LIST || app == APP_LOOT_LIST || app == APP_SAVECH) {
+    if (app == APP_LOOT_LIST || app == APP_CH_LIST) {
       APPS_run(app);
     } else {
       APPS_runManual(app);

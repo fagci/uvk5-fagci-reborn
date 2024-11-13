@@ -10,6 +10,7 @@
 #include "../ui/statusline.h"
 #include "apps.h"
 #include "finput.h"
+#include "textinput.h"
 
 static uint8_t menuIndex = 0;
 static uint8_t subMenuIndex = 0;
@@ -47,6 +48,147 @@ static MenuItem menu[] = {
     {"Save", M_SAVE, 0},
 };
 static const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
+
+void GetMenuItemValue(PresetCfgMenu type, char *Output) {
+  uint32_t fs = gChEd.rxF;
+  uint32_t fe = gChEd.txF;
+  switch (type) {
+  case M_RADIO:
+    strncpy(Output, radioNames[gChEd.radio], 31);
+    break;
+  case M_START:
+    sprintf(Output, "%lu.%03lu", fs / MHZ, fs / 100 % 1000);
+    break;
+  case M_END:
+    sprintf(Output, "%lu.%03lu", fe / MHZ, fe / 100 % 1000);
+    break;
+  case M_NAME:
+    strncpy(Output, gChEd.name, 31);
+    break;
+  case M_BW:
+    strncpy(Output, RADIO_GetBWName(gChEd.bw), 31);
+    break;
+  case M_SQ_TYPE:
+    strncpy(Output, sqTypeNames[gChEd.squelch.type], 31);
+    break;
+  case M_SQ:
+    sprintf(Output, "%u", gChEd.squelch);
+    break;
+  case M_GAIN:
+    sprintf(Output, "%ddB", -gainTable[gChEd.gainIndex].gainDb + 33);
+    break;
+  case M_MODULATION:
+    strncpy(Output, modulationTypeOptions[gChEd.modulation], 31);
+    break;
+  case M_STEP:
+    sprintf(Output, "%u.%02uKHz", StepFrequencyTable[gChEd.step] / 100,
+            StepFrequencyTable[gChEd.step] % 100);
+    break;
+  case M_TX:
+    strncpy(Output, yesNo[gChEd.allowTx], 31);
+    break;
+  case M_F_RX:
+    sprintf(Output, "%u.%05u", gChEd.rxF / MHZ, gChEd.rxF % MHZ);
+    break;
+  case M_F_TX:
+    sprintf(Output, "%u.%05u", gChEd.txF / MHZ, gChEd.txF % MHZ);
+    break;
+  case M_RX_CODE_TYPE:
+    strncpy(Output, TX_CODE_TYPES[gChEd.code.rx.type], 31);
+    break;
+  case M_RX_CODE:
+    PrintRTXCode(Output, gChEd.code.rx.type, gChEd.code.rx.value);
+    break;
+  case M_TX_CODE_TYPE:
+    strncpy(Output, TX_CODE_TYPES[gChEd.code.tx.type], 31);
+    break;
+  case M_TX_CODE:
+    PrintRTXCode(Output, gChEd.code.tx.type, gChEd.code.tx.value);
+    break;
+  case M_TX_OFFSET:
+    sprintf(Output, "%u.%05u", gChEd.txF / MHZ, gChEd.txF % MHZ);
+    break;
+  case M_TX_OFFSET_DIR:
+    snprintf(Output, 15, TX_OFFSET_NAMES[gChEd.offsetDir]);
+    break;
+  case M_F_TXP:
+    snprintf(Output, 15, TX_POWER_NAMES[gChEd.power]);
+    break;
+  default:
+    break;
+  }
+}
+
+void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
+  switch (item->type) {
+  case M_BW:
+    gChEd.bw = subMenuIndex;
+    break;
+  case M_F_TXP:
+    gChEd.power = subMenuIndex;
+    break;
+  case M_TX_OFFSET_DIR:
+    gChEd.offsetDir = subMenuIndex;
+    break;
+  case M_MODULATION:
+    gChEd.modulation = subMenuIndex;
+    break;
+  case M_STEP:
+    gChEd.step = subMenuIndex;
+    break;
+  case M_SQ_TYPE:
+    gChEd.squelch.type = subMenuIndex;
+    break;
+  case M_SQ:
+    gChEd.squelch.value = subMenuIndex;
+    break;
+  case M_GAIN:
+    gChEd.gainIndex = subMenuIndex;
+    break;
+  case M_TX:
+    gChEd.allowTx = subMenuIndex;
+    break;
+  case M_RX_CODE_TYPE:
+    gChEd.code.rx.type = subMenuIndex;
+    break;
+  case M_RX_CODE:
+    gChEd.code.rx.value = subMenuIndex;
+    break;
+  case M_TX_CODE_TYPE:
+    gChEd.code.tx.type = subMenuIndex;
+    break;
+  case M_TX_CODE:
+    gChEd.code.tx.value = subMenuIndex;
+    break;
+  case M_RADIO:
+    gChEd.radio = subMenuIndex;
+    break;
+  default:
+    break;
+  }
+  if (gChEd.type == TYPE_VFO) {
+    *radio = gChEd;
+    RADIO_SetupByCurrentVFO();
+  }
+}
+
+// TODO: update all the things instantly?
+void OnRadioSubmenuChange(const MenuItem *item, uint8_t subMenuIndex) {
+  switch (item->type) {
+  case M_GAIN:
+    gChEd.gainIndex = subMenuIndex;
+    break;
+  case M_BW:
+    gChEd.bw = subMenuIndex;
+    break;
+  default:
+    break;
+  }
+  if (gChEd.type == TYPE_VFO) {
+    *radio = gChEd;
+    RADIO_SetupByCurrentVFO();
+  }
+}
 
 static void setInitialSubmenuIndex(void) {
   const MenuItem *item = &menu[menuIndex];
@@ -230,8 +372,13 @@ static bool accept(void) {
     gFInputTempFreq = gCurrentPreset.txF;
     APPS_run(APP_FINPUT);
     return true;
+  case M_NAME:
+    gTextinputText = gChEd.name;
+    gTextInputSize = 9;
+    APPS_run(APP_TEXTINPUT);
+    return true;
   case M_SAVE:
-    APPS_run(APP_SAVECH);
+    APPS_run(APP_CH_CFG);
     return true;
   default:
     break;
@@ -307,7 +454,7 @@ void CHCFG_render(void) {
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
   } else {
-    STATUSLINE_SetText(apps[APP_VFO_CFG].name);
+    STATUSLINE_SetText(gChEd.name);
   }
   MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {

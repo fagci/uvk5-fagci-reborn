@@ -116,7 +116,6 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     strncpy(name, fltBound[index], 31);
     return;
   case M_BRIGHTNESS:
-  case M_SCRAMBLER:
     sprintf(name, "%u", index);
     return;
   case M_CONTRAST:
@@ -214,10 +213,6 @@ static void accept(void) {
     gSettings.backlight = subMenuIndex;
     SETTINGS_Save();
     break;
-  case M_SCRAMBLER:
-    gSettings.scrambler = subMenuIndex;
-    SETTINGS_Save();
-    break;
   case M_BEEP:
     gSettings.beep = subMenuIndex;
     SETTINGS_Save();
@@ -297,9 +292,6 @@ static const char *getValue(Menu type) {
   case M_CONTRAST:
     sprintf(Output, "%d", gSettings.contrast - 8);
     return Output;
-  case M_SCRAMBLER:
-    sprintf(Output, "%u", gSettings.scrambler);
-    return Output;
   case M_BAT_CAL:
     sprintf(Output, "%u", gSettings.batteryCalibration);
     return Output;
@@ -370,10 +362,6 @@ static void onSubChange(void) {
   case M_BL_TIME:
     BACKLIGHT_SetDuration(BL_TIME_VALUES[subMenuIndex]);
     break;
-  case M_SCRAMBLER:
-    gSettings.scrambler = subMenuIndex;
-    RADIO_SetupByCurrentVFO();
-    break;
   case M_CONTRAST:
     gSettings.contrast = subMenuIndex;
     break;
@@ -415,9 +403,6 @@ static void setInitialSubmenuIndex(void) {
     break;
   case M_FLT_BOUND:
     subMenuIndex = gSettings.bound_240_280;
-    break;
-  case M_SCRAMBLER:
-    subMenuIndex = gSettings.scrambler;
     break;
   case M_BEEP:
     subMenuIndex = gSettings.beep;

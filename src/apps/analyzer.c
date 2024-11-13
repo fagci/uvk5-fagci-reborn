@@ -237,7 +237,7 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       setCenterF(centerF);
       return true;
     case KEY_F:
-      APPS_run(APP_PRESET_CFG);
+      APPS_run(APP_CH_CFG);
       return true;
     case KEY_0:
       if (stepsCount > 32) {

@@ -306,7 +306,7 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_5:
       tuneToLoot(loot, false);
-      APPS_run(APP_SAVECH);
+      APPS_run(APP_CH_LIST);
       return true;
     case KEY_0:
       LOOT_Remove(menuIndex);

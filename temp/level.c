@@ -4,6 +4,7 @@
 #include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/spectrum.h"
+#include "apps.h"
 #include "finput.h"
 
 static Loot msm;
@@ -44,7 +45,7 @@ bool LEVEL_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       gMonitorMode = !gMonitorMode;
       return true;
     case KEY_F:
-      APPS_run(APP_VFO_CFG);
+      APPS_run(APP_CH_CFG);
       return true;
     case KEY_5:
       gFInputCallback = RADIO_TuneTo;

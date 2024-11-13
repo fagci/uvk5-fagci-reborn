@@ -206,10 +206,10 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       RADIO_NextFreqNoClicks(true);
       return true;
     case KEY_F:
-      APPS_run(APP_PRESET_CFG);
+      APPS_run(APP_CH_CFG);
       return true;
     case KEY_0:
-      APPS_run(APP_PRESETS_LIST);
+      APPS_run(APP_CH_LIST);
       return true;
     case KEY_STAR:
       APPS_run(APP_LOOT_LIST);

@@ -245,7 +245,7 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       RADIO_ToggleListeningBW();
       return true;
     case KEY_F:
-      APPS_run(APP_VFO_CFG);
+      APPS_run(APP_CH_CFG);
       return true;
     case KEY_SIDE1:
       if (!gVfo1ProMode) {
@@ -375,7 +375,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       startScan();
       return true;
     case KEY_1:
-      APPS_run(APP_PRESETS_LIST);
+      APPS_run(APP_CH_LIST);
       return true;
     case KEY_2:
       gSettings.iAmPro = !gSettings.iAmPro;
@@ -469,7 +469,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       }
       return true;
     case KEY_F:
-      APPS_run(APP_VFO_CFG);
+      APPS_run(APP_CH_CFG);
       return true;
     case KEY_STAR:
       APPS_run(APP_LOOT_LIST);

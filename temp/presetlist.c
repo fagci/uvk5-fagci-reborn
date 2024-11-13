@@ -73,7 +73,7 @@ bool PRESETLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_F:
       PRESET_Select(menuIndex);
-      APPS_run(APP_PRESET_CFG);
+      APPS_run(APP_CH_CFG);
       return true;
     case KEY_1:
     case KEY_2:

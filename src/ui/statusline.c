@@ -123,9 +123,9 @@ void STATUSLINE_render(void) {
     icons[idx++] = SYM_LOCK;
   }
 
-  if ((gCurrentApp == APP_SAVECH || gCurrentApp == APP_VFO1 ||
+  if ((gCurrentApp == APP_CH_LIST || gCurrentApp == APP_VFO1 ||
        gCurrentApp == APP_VFO2 || gCurrentApp == APP_SPECTRUM ||
-       gCurrentApp == APP_LOOT_LIST || gCurrentApp == APP_PRESETS_LIST)) {
+       gCurrentApp == APP_LOOT_LIST)) {
     if (gSettings.currentScanlist == 15) {
       PrintSmallEx(LCD_XCENTER, BASE_Y, POS_C, C_FILL, "SL all");
     } else {
