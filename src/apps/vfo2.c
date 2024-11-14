@@ -15,7 +15,6 @@ static void render2VFOPart(uint8_t i) {
   const uint8_t BASE = 22;
   const uint8_t bl = BASE + 34 * i;
 
-  Preset *p = &gVFOPresets[i];
   VFO *vfo = &gVFO[i];
   const bool isActive = gSettings.activeVFO == i;
   const Loot *loot = &gLoot[i];
@@ -27,7 +26,7 @@ static void render2VFOPart(uint8_t i) {
   const uint16_t fp2 = f / 100 % 1000;
   const uint8_t fp3 = f % 100;
   const char *mod = modulationTypeOptions[vfo->modulation];
-  const uint32_t step = StepFrequencyTable[p->step];
+  const uint32_t step = StepFrequencyTable[vfo->step];
 
   if (isActive && gTxState <= TX_ON) {
     FillRect(0, bl - 14, 28, 7, C_FILL);
@@ -82,10 +81,10 @@ static void render2VFOPart(uint8_t i) {
     }
   }
   PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %c SQ%u %c %s %s",
-               p->allowTx ? TX_POWER_NAMES[p->power][0] : ' ', "wNnW"[p->bw],
-               p -> squelch.value,
-               RADIO_GetTXFEx(vfo, p) != vfo->rxF
-                   ? (p->offsetDir ? TX_OFFSET_NAMES[p->offsetDir][0] : '*')
+               vfo->allowTx ? TX_POWER_NAMES[vfo->power][0] : ' ', "wNnW"[vfo->bw],
+               vfo->squelch.value,
+               RADIO_GetTXFEx(vfo, vfo) != vfo->rxF
+                   ? (vfo->offsetDir ? TX_OFFSET_NAMES[vfo->offsetDir][0] : '*')
                    : ' ',
                vfo->code.tx.type ? TX_CODE_TYPES[vfo->code.tx.type] : "",
                shortRadioNames[r]);

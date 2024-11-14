@@ -290,14 +290,13 @@ static void updateTxCodeListSize() {
     } else if (type != CODE_TYPE_OFF) {
       item->size = ARRAY_SIZE(DCS_Options);
     } else {
-      item->size = 0;
+      // item->size = 0;
     }
   }
 }
 
 static void getSubmenuItemText(uint16_t index, char *name) {
-  const MenuItem *item = &menu[menuIndex];
-  switch (item->type) {
+  switch (menu[menuIndex].type) {
   case M_RADIO:
     strncpy(name, radioNames[index], 31);
     return;

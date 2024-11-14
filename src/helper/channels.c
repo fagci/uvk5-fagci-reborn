@@ -24,6 +24,8 @@ Preset defaultPreset = {
     .squelch.type = SQUELCH_RSSI_NOISE_GLITCH,
     .squelch = 3,
     .gainIndex = 18,
+    .rxF = 0,
+    .txF = 130000000,
 };
 
 Preset defaultPresets[PRESETS_COUNT_MAX] = {

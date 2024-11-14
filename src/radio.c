@@ -537,7 +537,7 @@ void RADIO_SwitchRadio() {
 void RADIO_SetupByCurrentVFO(void) {
   uint32_t f = radio->rxF;
   lastMsmUpdate = 0;
-  PRESET_SelectByFrequency(f);
+  // PRESET_SelectByFrequency(f);
   gVFOPresets[gSettings.activeVFO] = gCurrentPreset;
 
   /* Log("SetupByCurrentVFO, p=%s, r=%s, f=%u", gCurrentPreset.band.name,
@@ -898,19 +898,19 @@ void RADIO_NextFreqNoClicks(bool next) {
   const uint32_t step = StepFrequencyTable[radio->step];
 
   uint32_t f = radio->rxF + step * dir;
-  if (!PRESET_InRange(f, gCurrentPreset)) {
+  /* if (!PRESET_InRange(f, gCurrentPreset)) {
     if (next) {
       RADIO_TuneTo(gCurrentPreset.rxF);
     } else {
       RADIO_TuneTo(gCurrentPreset.txF - gCurrentPreset.txF % step);
     }
-  } else {
-    f = CHANNELS_GetF(&gCurrentPreset, CHANNELS_GetChannel(&gCurrentPreset, f));
+  } else { */
+    // f = CHANNELS_GetF(&gCurrentPreset, CHANNELS_GetChannel(&gCurrentPreset, f));
     radio->channel = -1;
     radio->txF = 0;
     radio->rxF = f;
     RADIO_SetupByCurrentVFO();
-  }
+  // }
   onVfoUpdate();
 }
 

@@ -69,6 +69,8 @@ void RESET_Update(void) {
     vfo->readonly = false;
     vfo->misc.lastUsedFreq = vfo->rxF;
     vfo->type = TYPE_VFO;
+    vfo->squelch.value = 4;
+    vfo->step = STEP_25_0kHz;
     VFOS_Save(vfosWrote, vfo);
     vfosWrote++;
     bytesWrote += CH_SIZE;
