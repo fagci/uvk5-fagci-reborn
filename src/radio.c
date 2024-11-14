@@ -1060,8 +1060,8 @@ void RADIO_UpdateStep(bool inc) {
 }
 
 void RADIO_ToggleListeningBW(void) {
-  if (radio->bw == BK4819_FILTER_BW_20k) {
-    radio->bw = BK4819_FILTER_BW_14k;
+  if (radio->bw == BK4819_FILTER_BW_26k) {
+    radio->bw = BK4819_FILTER_BW_6k;
   } else {
     ++radio->bw;
   }

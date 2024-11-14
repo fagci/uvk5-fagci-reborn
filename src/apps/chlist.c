@@ -49,7 +49,10 @@ static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
 
 static void setMenuIndex(uint16_t i) { channelIndex = i - 1; }
 
-void CHLIST_init() { CHANNELS_LoadScanlist(15); }
+void CHLIST_init() {
+  CHANNELS_LoadScanlist(15);
+  chCount = CHANNELS_GetCountMax();
+}
 
 void CHLIST_update() {}
 
@@ -88,7 +91,8 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       APPS_run(APP_VFO1);
       return true;
     case KEY_F:
-      CHANNELS_Load(chNum, &gChEd);
+      CHANNELS_Load(chNum, &_ch);
+      gChEd = _ch;
       APPS_run(APP_CH_CFG);
       return true;
     case KEY_EXIT:
@@ -102,8 +106,7 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void CHLIST_render() {
-  UI_ShowMenuEx(getChItem, CHANNELS_GetCountMax(), channelIndex,
-                MENU_LINES_TO_SHOW + 1);
+  UI_ShowMenuEx(getChItem, chCount, channelIndex, MENU_LINES_TO_SHOW + 1);
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
   }

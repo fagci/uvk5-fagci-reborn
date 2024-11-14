@@ -471,6 +471,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       }
       return true;
     case KEY_F:
+      gChEd = *radio;
       APPS_run(APP_CH_CFG);
       return true;
     case KEY_STAR:
