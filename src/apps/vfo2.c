@@ -129,7 +129,7 @@ void VFO2_render(void) {
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
   } else {
-    STATUSLINE_SetText("%s:%u", gCurrentPreset.name,
+    STATUSLINE_SetText("%s:%u", radio->name,
                        CHANNELS_GetChannel(&gCurrentPreset, radio->rxF) + 1);
   }
 

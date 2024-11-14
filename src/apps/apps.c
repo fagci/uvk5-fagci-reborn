@@ -78,7 +78,7 @@ const App apps[APPS_COUNT] = {
     {"Reset", RESET_Init, RESET_Update, RESET_Render, RESET_key, NULL},
     {"Text input", TEXTINPUT_init, NULL, TEXTINPUT_render, TEXTINPUT_key,
      TEXTINPUT_deinit},
-    {"CH cfg", CHCFG_init, CHCFG_update, CHCFG_render, CHCFG_key, NULL},
+    {"CH cfg", CHCFG_init, NULL, CHCFG_render, CHCFG_key, CHCFG_deinit},
     {"Settings", SETTINGS_init, NULL, SETTINGS_render, SETTINGS_key, NULL},
     {"1 VFO", VFO1_init, VFO1_update, VFO1_render, VFO1_key, NULL},
     {"2 VFO", VFO2_init, VFO2_update, VFO2_render, VFO2_key, NULL},
@@ -135,9 +135,7 @@ void APPS_run(AppType_t app) {
   APPS_init(app);
 }
 
-void APPS_runManual(AppType_t app) {
-  APPS_run(app);
-}
+void APPS_runManual(AppType_t app) { APPS_run(app); }
 
 bool APPS_exit(void) {
   if (stackIndex == 0) {

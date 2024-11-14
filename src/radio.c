@@ -35,7 +35,7 @@ bool gMonitorMode = false;
 TXState gTxState = TX_UNKNOWN;
 bool gShowAllRSSI = false;
 
-static Radio oldRadio = RADIO_BK4819;
+static uint8_t oldRadio = 255;
 static uint32_t lastTailTone = 0;
 static uint32_t lastMsmUpdate = 0;
 static bool toneFound = false;
@@ -49,9 +49,22 @@ const uint16_t StepFrequencyTable[15] = {
 const char *modulationTypeOptions[8] = {"FM",  "AM",  "LSB", "USB",
                                         "BYP", "RAW", "WFM", "Preset"};
 const char *powerNames[4] = {"ULOW, LOW", "MID", "HIGH"};
-const char *bwNames[5] = {"25k", "12.5k", "6.25k", "25k+"};
-const char *bwNamesSiAMFM[5] = {"6k", "4k", "3k", "1k"};
-const char *bwNamesSiSSB[5] = {"4k", "3k", "2.2k", "0.5k"};
+const char *bwNames[10] = {"W 26k", "W 23k", "W 20k", "W 17k", "W 14k", "W 12k",
+                           "N 10k", "N 9k",  "U 7K",  "U 6K"
+
+};
+const char *bwNamesSiAMFM[7] = {
+    [BK4819_FILTER_BW_6k] = "1kHz",  [BK4819_FILTER_BW_7k] = "1.8kHz",
+    [BK4819_FILTER_BW_9k] = "2kHz",  [BK4819_FILTER_BW_10k] = "2.5kHz",
+    [BK4819_FILTER_BW_12k] = "3kHz", [BK4819_FILTER_BW_14k] = "4kHz",
+    [BK4819_FILTER_BW_17k] = "6kHz",
+};
+const char *bwNamesSiSSB[6] = {
+    [BK4819_FILTER_BW_6k] = "0.5kHz", [BK4819_FILTER_BW_7k] = "1.0kHz",
+    [BK4819_FILTER_BW_9k] = "1.2kHz", [BK4819_FILTER_BW_10k] = "2.2kHz",
+    [BK4819_FILTER_BW_12k] = "3kHz",  [BK4819_FILTER_BW_14k] = "4kHz",
+
+};
 const char *radioNames[4] = {"BK4819", "BK1080", "SI4732", "Preset"};
 const char *shortRadioNames[4] = {"BK", "BC", "SI", "PR"};
 const char *TX_STATE_NAMES[7] = {"TX Off",   "TX On",  "CHARGING", "BAT LOW",
@@ -67,16 +80,21 @@ const char *sqTypeNames[4] = {"RNG", "RG", "RN", "R"};
 const char *deviationNames[] = {"", "+", "-"};
 
 static const SI47XX_SsbFilterBW SI_BW_MAP_SSB[] = {
+    [BK4819_FILTER_BW_6k] = SI47XX_SSB_BW_0_5_kHz,
+    [BK4819_FILTER_BW_7k] = SI47XX_SSB_BW_1_0_kHz,
+    [BK4819_FILTER_BW_9k] = SI47XX_SSB_BW_1_2_kHz,
+    [BK4819_FILTER_BW_10k] = SI47XX_SSB_BW_2_2_kHz,
+    [BK4819_FILTER_BW_12k] = SI47XX_SSB_BW_3_kHz,
     [BK4819_FILTER_BW_14k] = SI47XX_SSB_BW_4_kHz,
-    [BK4819_FILTER_BW_9k] = SI47XX_SSB_BW_3_kHz,
-    [BK4819_FILTER_BW_6k] = SI47XX_SSB_BW_2_2_kHz,
-    [BK4819_FILTER_BW_20k] = SI47XX_SSB_BW_0_5_kHz,
 };
 static const SI47XX_FilterBW SI_BW_MAP_AMFM[] = {
-    [BK4819_FILTER_BW_14k] = SI47XX_BW_6_kHz,
-    [BK4819_FILTER_BW_9k] = SI47XX_BW_4_kHz,
-    [BK4819_FILTER_BW_6k] = SI47XX_BW_3_kHz,
-    [BK4819_FILTER_BW_20k] = SI47XX_BW_1_kHz,
+    [BK4819_FILTER_BW_6k] = SI47XX_BW_1_kHz,
+    [BK4819_FILTER_BW_7k] = SI47XX_BW_1_8_kHz,
+    [BK4819_FILTER_BW_9k] = SI47XX_BW_2_kHz,
+    [BK4819_FILTER_BW_10k] = SI47XX_BW_2_5_kHz,
+    [BK4819_FILTER_BW_12k] = SI47XX_BW_3_kHz,
+    [BK4819_FILTER_BW_14k] = SI47XX_BW_4_kHz,
+    [BK4819_FILTER_BW_17k] = SI47XX_BW_6_kHz,
 };
 
 Radio RADIO_GetRadio() { return radio->radio; }
@@ -191,13 +209,13 @@ static bool isSimpleSql() {
 }
 
 static bool isSqOpenSimple(uint16_t r) {
-  SQL sq = GetSql(gCurrentPreset.squelch.value);
+  SQL sq = GetSql(radio->squelch.value);
 
   uint8_t n, g;
 
   bool open;
 
-  switch (gCurrentPreset.squelch.type) {
+  switch (radio->squelch.type) {
   case SQUELCH_RSSI_NOISE_GLITCH:
     n = BK4819_GetNoise();
     g = BK4819_GetGlitch();
@@ -580,10 +598,10 @@ void RADIO_SelectPresetSave(int8_t num) {
   // radio->modulation = MOD_PRST;
   PRESET_Select(num);
   // PRESETS_SaveCurrent();
-  if (PRESET_InRange(gCurrentPreset.misc.lastUsedFreq, gCurrentPreset)) {
-    RADIO_TuneToSave(gCurrentPreset.misc.lastUsedFreq);
+  if (PRESET_InRange(radio->misc.lastUsedFreq, gCurrentPreset)) {
+    RADIO_TuneToSave(radio->misc.lastUsedFreq);
   } else {
-    RADIO_TuneToSave(gCurrentPreset.rxF);
+    RADIO_TuneToSave(radio->rxF);
   }
 }
 
@@ -603,22 +621,22 @@ void RADIO_LoadCurrentVFO(void) {
 }
 
 void RADIO_SetSquelch(uint8_t sq) {
-  gCurrentPreset.squelch.value = sq;
-  RADIO_SetSquelchPure(gCurrentPreset.rxF, sq);
-  onPresetUpdate();
+  radio->squelch.value = sq;
+  RADIO_SetSquelchPure(radio->rxF, sq);
+  onVfoUpdate();
 }
 
 void RADIO_SetSquelchType(SquelchType t) {
-  gCurrentPreset.squelch.type = t;
-  onPresetUpdate();
+  radio->squelch.type = t;
+  onVfoUpdate();
 }
 
 void RADIO_SetGain(uint8_t gainIndex) {
-  gCurrentPreset.gainIndex = gainIndex;
+  radio->gainIndex = gainIndex;
   bool disableAGC = false;
   switch (RADIO_GetRadio()) {
   case RADIO_BK4819:
-    BK4819_SetAGC(gCurrentPreset.modulation != MOD_AM, gainIndex);
+    BK4819_SetAGC(radio->modulation != MOD_AM, gainIndex);
     break;
   case RADIO_SI4732:
     // 0 - max gain
@@ -633,7 +651,7 @@ void RADIO_SetGain(uint8_t gainIndex) {
   default:
     break;
   }
-  onPresetUpdate();
+  onVfoUpdate();
 }
 
 void RADIO_SetFilterBandwidth(BK4819_FilterBandwidth_t bw) {
@@ -658,16 +676,15 @@ void RADIO_SetFilterBandwidth(BK4819_FilterBandwidth_t bw) {
 
 void RADIO_SetupBandParams() {
   // Log("RADIO_SetupBandParams");
-  Preset p = gCurrentPreset;
-  uint32_t fMid = p.rxF + (p.txF - p.rxF) / 2;
+  uint32_t fMid = radio->rxF + (radio->txF - radio->rxF) / 2;
   ModulationType mod = RADIO_GetModulation();
-  RADIO_SetGain(p.gainIndex);
+  RADIO_SetGain(radio->gainIndex);
   // Log("Set mod %s", modulationTypeOptions[mod]);
-  RADIO_SetFilterBandwidth(p.bw);
+  RADIO_SetFilterBandwidth(radio->bw);
   switch (RADIO_GetRadio()) {
   case RADIO_BK4819:
-    BK4819_SquelchType(p.squelch.type);
-    BK4819_Squelch(p.squelch.value, fMid, gSettings.sqlOpenTime,
+    BK4819_SquelchType(radio->squelch.type);
+    BK4819_Squelch(radio->squelch.value, fMid, gSettings.sqlOpenTime,
                    gSettings.sqlCloseTime);
     BK4819_SetModulation(mod);
     if (gSettings.scrambler) {
@@ -681,12 +698,12 @@ void RADIO_SetupBandParams() {
     break;
   case RADIO_SI4732:
     if (mod == MOD_FM) {
-      SI47XX_SetSeekFmLimits(p.rxF, p.txF);
-      SI47XX_SetSeekFmSpacing(StepFrequencyTable[p.step]);
+      SI47XX_SetSeekFmLimits(radio->rxF, radio->txF);
+      SI47XX_SetSeekFmSpacing(StepFrequencyTable[radio->step]);
     } else {
       if (mod == MOD_AM) {
-        SI47XX_SetSeekAmLimits(p.rxF, p.txF);
-        SI47XX_SetSeekAmSpacing(StepFrequencyTable[p.step]);
+        SI47XX_SetSeekAmLimits(radio->rxF, radio->txF);
+        SI47XX_SetSeekAmSpacing(StepFrequencyTable[radio->step]);
       }
     }
 
@@ -882,7 +899,7 @@ void RADIO_ToggleVfoMR(void) {
 }
 
 void RADIO_UpdateSquelchLevel(bool next) {
-  uint8_t sq = gCurrentPreset.squelch.value;
+  uint8_t sq = radio->squelch.value;
   IncDec8(&sq, 0, 10, next ? 1 : -1);
   RADIO_SetSquelch(sq);
 }
@@ -905,11 +922,12 @@ void RADIO_NextFreqNoClicks(bool next) {
       RADIO_TuneTo(gCurrentPreset.txF - gCurrentPreset.txF % step);
     }
   } else { */
-    // f = CHANNELS_GetF(&gCurrentPreset, CHANNELS_GetChannel(&gCurrentPreset, f));
-    radio->channel = -1;
-    radio->txF = 0;
-    radio->rxF = f;
-    RADIO_SetupByCurrentVFO();
+  // f = CHANNELS_GetF(&gCurrentPreset, CHANNELS_GetChannel(&gCurrentPreset,
+  // f));
+  radio->channel = -1;
+  radio->txF = 0;
+  radio->rxF = f;
+  RADIO_SetupByCurrentVFO();
   // }
   onVfoUpdate();
 }
@@ -1034,30 +1052,30 @@ void RADIO_ToggleModulation(void) {
 }
 
 void RADIO_UpdateStep(bool inc) {
-  uint8_t step = gCurrentPreset.step;
+  uint8_t step = radio->step;
   IncDec8(&step, 0, STEP_500_0kHz, inc ? 1 : -1);
-  gCurrentPreset.step = step;
-  onPresetUpdate();
+  radio->step = step;
+  onVfoUpdate();
 }
 
 void RADIO_ToggleListeningBW(void) {
-  if (gCurrentPreset.bw == BK4819_FILTER_BW_20k) {
-    gCurrentPreset.bw = BK4819_FILTER_BW_14k;
+  if (radio->bw == BK4819_FILTER_BW_20k) {
+    radio->bw = BK4819_FILTER_BW_14k;
   } else {
-    ++gCurrentPreset.bw;
+    ++radio->bw;
   }
 
-  RADIO_SetFilterBandwidth(gCurrentPreset.bw);
+  RADIO_SetFilterBandwidth(radio->bw);
 
-  onPresetUpdate();
+  onVfoUpdate();
 }
 
 void RADIO_ToggleTxPower(void) {
-  if (gCurrentPreset.power == TX_POW_HIGH) {
-    gCurrentPreset.power = TX_POW_ULOW;
+  if (radio->power == TX_POW_HIGH) {
+    radio->power = TX_POW_ULOW;
   } else {
-    ++gCurrentPreset.power;
+    ++radio->power;
   }
 
-  onPresetUpdate();
+  onVfoUpdate();
 }

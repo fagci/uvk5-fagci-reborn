@@ -515,11 +515,10 @@ static void DrawRegs(void) {
   RegisterSpec rs = registerSpecs[menuIndex];
 
   if (rs.num == BK4819_REG_13) {
-    if (gCurrentPreset.gainIndex == AUTO_GAIN_INDEX) {
+    if (radio->gainIndex == AUTO_GAIN_INDEX) {
       sprintf(String, "auto");
     } else {
-      sprintf(String, "%+ddB",
-              -gainTable[gCurrentPreset.gainIndex].gainDb + 33);
+      sprintf(String, "%+ddB", -gainTable[radio->gainIndex].gainDb + 33);
     }
   } else if (rs.num == 0x73) {
     uint8_t afc = BK4819_GetAFC();

@@ -52,12 +52,12 @@ void UI_RSSIBar(uint16_t rssi, uint8_t snr, uint32_t f, uint8_t y) {
 }
 
 void UI_FSmall(uint32_t f) {
-  SQL sq = GetSql(gCurrentPreset.squelch.value);
+  SQL sq = GetSql(radio->squelch.value);
 
   PrintSmall(0, 12, "R %u", RADIO_GetRSSI());
   PrintSmall(30, 12, "N %u", BK4819_GetNoise());
   PrintSmall(60, 12, "G %u", BK4819_GetGlitch());
-  PrintSmall(90, 12, "SQ %u", gCurrentPreset.squelch.value);
+  PrintSmall(90, 12, "SQ %u", radio->squelch.value);
 
   PrintSmall(0, 18, "%u/%u", sq.ro, sq.rc);
   PrintSmall(30, 18, "%u/%u", sq.no, sq.nc);
@@ -65,9 +65,8 @@ void UI_FSmall(uint32_t f) {
 
   PrintSmallEx(LCD_WIDTH - 1, 12, POS_R, C_FILL, "SNR %u", RADIO_GetSNR());
 
-  PrintSmallEx(LCD_WIDTH - 1, 18, POS_R, true,
-               RADIO_GetBWName(gCurrentPreset.bw));
-  const uint32_t step = StepFrequencyTable[gCurrentPreset.step];
+  PrintSmallEx(LCD_WIDTH - 1, 18, POS_R, true, RADIO_GetBWName(radio->bw));
+  const uint32_t step = StepFrequencyTable[radio->step];
   PrintSmallEx(0, 27, POS_L, C_FILL, "STP %d.%02dk", step / 100, step % 100);
 }
 

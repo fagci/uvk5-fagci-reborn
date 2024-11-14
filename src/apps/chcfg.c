@@ -185,24 +185,6 @@ static void acceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
   }
 }
 
-// TODO: update all the things instantly?
-static void onRadioSubmenuChange(const MenuItem *item, uint8_t subMenuIndex) {
-  switch (item->type) {
-  case M_GAIN:
-    gChEd.gainIndex = subMenuIndex;
-    break;
-  case M_BW:
-    gChEd.bw = subMenuIndex;
-    break;
-  default:
-    break;
-  }
-  if (gChEd.type == TYPE_VFO) {
-    *radio = gChEd;
-    RADIO_SetupByCurrentVFO();
-  }
-}
-
 static void setInitialSubmenuIndex(void) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
@@ -289,8 +271,6 @@ static void updateTxCodeListSize() {
       item->size = ARRAY_SIZE(CTCSS_Options);
     } else if (type != CODE_TYPE_OFF) {
       item->size = ARRAY_SIZE(DCS_Options);
-    } else {
-      // item->size = 0;
     }
   }
 }
@@ -363,7 +343,12 @@ static void setTXOffset(uint32_t f) {
 
 void CHCFG_init(void) { updateTxCodeListSize(); }
 
-void CHCFG_update(void) {}
+void CHCFG_deinit(void) {
+  if (gChEd.type == TYPE_VFO) {
+    *radio = gChEd;
+    RADIO_SaveCurrentVFO();
+  }
+}
 
 static bool accept(void) {
   const MenuItem *item = &menu[menuIndex];
@@ -418,7 +403,7 @@ static void setMenuIndexAndRun(uint16_t v) {
 static void upDown(uint8_t inc) {
   if (isSubMenu) {
     IncDec8(&subMenuIndex, 0, menu[menuIndex].size, inc);
-    onRadioSubmenuChange(&menu[menuIndex], subMenuIndex);
+    acceptRadioConfig(&menu[menuIndex], subMenuIndex);
   } else {
     IncDec8(&menuIndex, 0, MENU_SIZE, inc);
   }

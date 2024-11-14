@@ -7,7 +7,7 @@
 #include <stdint.h>
 
 void CHCFG_init();
-void CHCFG_update();
+void CHCFG_deinit();
 bool CHCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
 void CHCFG_render();
 
