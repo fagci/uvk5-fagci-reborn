@@ -564,7 +564,7 @@ static uint32_t getChannelsEnd() {
 }
 
 static uint32_t GetChannelOffset(int16_t num) {
-  return getChannelsEnd() - (num + 1) * CH_SIZE;
+  return CHANNELS_OFFSET + num * CH_SIZE;
 }
 
 uint16_t CHANNELS_GetCountMax(void) {

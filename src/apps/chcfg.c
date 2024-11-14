@@ -17,12 +17,13 @@ static uint8_t subMenuIndex = 0;
 static bool isSubMenu = false;
 
 CH gChEd;
+int16_t gChNum = -1;
 
 static MenuItem menu[] = {
     {"Name", M_NAME, 0},
     {"Step", M_STEP, ARRAY_SIZE(StepFrequencyTable)},
     {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions)},
-    {"BW", M_BW, 4},
+    {"BW", M_BW, 10},
     {"Gain", M_GAIN, ARRAY_SIZE(gainTable)},
     {"SQ type", M_SQ_TYPE, ARRAY_SIZE(sqTypeNames)},
     {"SQ level", M_SQ, 10},
@@ -179,9 +180,16 @@ static void acceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
   default:
     break;
   }
-  if (gChEd.type == TYPE_VFO) {
+
+  switch (gChEd.type) {
+  case TYPE_VFO:
     *radio = gChEd;
     RADIO_SetupByCurrentVFO();
+    break;
+  case TYPE_CH:
+    break;
+  default:
+    break;
   }
 }
 
@@ -348,6 +356,7 @@ void CHCFG_deinit(void) {
     *radio = gChEd;
     RADIO_SaveCurrentVFO();
   }
+  gChNum = -1;
 }
 
 static bool accept(void) {

@@ -13,6 +13,7 @@
 #include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "apps.h"
+#include "chcfg.h"
 #include "finput.h"
 
 bool gVfo1ProMode = false;
@@ -245,6 +246,7 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       RADIO_ToggleListeningBW();
       return true;
     case KEY_F:
+      gChEd = *radio;
       APPS_run(APP_CH_CFG);
       return true;
     case KEY_SIDE1:

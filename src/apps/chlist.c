@@ -3,6 +3,7 @@
 #include "../radio.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
+#include "../ui/statusline.h"
 #include "apps.h"
 #include "vfo1.h"
 
@@ -48,7 +49,7 @@ static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
 
 static void setMenuIndex(uint16_t i) { channelIndex = i - 1; }
 
-void CHLIST_init() {}
+void CHLIST_init() { CHANNELS_LoadScanlist(15); }
 
 void CHLIST_update() {}
 
@@ -100,4 +101,10 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void CHLIST_render() {}
+void CHLIST_render() {
+  UI_ShowMenuEx(getChItem, CHANNELS_GetCountMax(), channelIndex,
+                MENU_LINES_TO_SHOW + 1);
+  if (gIsNumNavInput) {
+    STATUSLINE_SetText("Select: %s", gNumNavInput);
+  }
+}

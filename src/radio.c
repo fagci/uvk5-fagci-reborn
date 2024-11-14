@@ -15,7 +15,6 @@
 #include "helper/channels.h"
 #include "helper/lootlist.h"
 #include "helper/measurements.h"
-#include "helper/vfos.h"
 #include "misc.h"
 #include "scheduler.h"
 #include "settings.h"
@@ -590,7 +589,9 @@ void RADIO_TuneToSave(uint32_t f) {
   PRESETS_SaveCurrent();
 }
 
-void RADIO_SaveCurrentVFO(void) { VFOS_Save(gSettings.activeVFO, radio); }
+void RADIO_SaveCurrentVFO(void) {
+  CHANNELS_Save(CHANNELS_GetCountMax() - 2 + gSettings.activeVFO, radio);
+}
 
 void RADIO_SelectPresetSave(int8_t num) {
   // TODO: copy settings from preset
@@ -607,7 +608,7 @@ void RADIO_SelectPresetSave(int8_t num) {
 
 void RADIO_LoadCurrentVFO(void) {
   for (uint8_t i = 0; i < 2; ++i) {
-    VFOS_Load(i, &gVFO[i]);
+    CHANNELS_Load(CHANNELS_GetCountMax() - 2 + i, &gVFO[i]);
     if (gVFO[i].channel >= 0) {
       RADIO_VfoLoadCH(i);
     }
