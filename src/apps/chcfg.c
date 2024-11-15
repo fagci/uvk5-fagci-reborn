@@ -1,6 +1,7 @@
 #include "chcfg.h"
 #include "../dcs.h"
 #include "../driver/st7565.h"
+#include "../driver/uart.h"
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"
 #include "../misc.h"
@@ -349,7 +350,10 @@ static void setTXOffset(uint32_t f) {
   PRESETS_SaveCurrent();
 }
 
-void CHCFG_init(void) { updateTxCodeListSize(); }
+void CHCFG_init(void) {
+  Log("Editing CH %s", gChEd.name);
+  updateTxCodeListSize();
+}
 
 void CHCFG_deinit(void) {
   if (gChEd.meta.type == TYPE_VFO) {

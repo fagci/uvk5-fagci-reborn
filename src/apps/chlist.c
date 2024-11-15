@@ -1,4 +1,5 @@
 #include "chlist.h"
+#include "../driver/uart.h"
 #include "../helper/numnav.h"
 #include "../radio.h"
 #include "../ui/graphics.h"
@@ -22,27 +23,27 @@ typedef enum {
 
 static uint16_t channelIndex = 0;
 static CHLIST_ViewMode viewMode = MODE_INFO;
-static CH _ch;
+static CH ch;
 static uint16_t chCount = 1024;
 
 static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
   if (gSettings.currentScanlist != 15) {
     index = gScanlist[index];
   }
-  CHANNELS_Load(index, &_ch);
+  CHANNELS_Load(index, &ch);
   const uint8_t y = MENU_Y + i * MENU_ITEM_H;
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
   }
-  if (IsReadable(_ch.name)) {
-    PrintMediumEx(8, y + 8, POS_L, C_INVERT, "%s", _ch.name);
+  if (IsReadable(ch.name)) {
+    PrintMediumEx(8, y + 8, POS_L, C_INVERT, "%s", ch.name);
   } else {
     PrintMediumEx(8, y + 8, POS_L, C_INVERT, "CH-%u", index + 1);
   }
   char scanlistsStr[9] = "";
   for (uint8_t n = 0; n < 8; ++n) {
     scanlistsStr[n] =
-        _ch.memoryBanks & (1 << n) ? (n == 7 ? 'X' : '1' + n) : '-';
+        ch.memoryBanks & (1 << n) ? (n == 7 ? 'X' : '1' + n) : '-';
   }
   PrintSmallEx(LCD_WIDTH - 5, y + 8, POS_R, C_INVERT, "%s", scanlistsStr);
 }
@@ -69,7 +70,10 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     }
   }
 
-  uint16_t chNum = gScanlist[channelIndex];
+  uint16_t chNum = channelIndex;
+  if (gSettings.currentScanlist != 15) {
+    chNum = gScanlist[channelIndex];
+  }
   if (bKeyPressed || !bKeyHeld) {
     switch (key) {
     case KEY_UP:
@@ -91,8 +95,9 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       APPS_run(APP_VFO1);
       return true;
     case KEY_F:
-      CHANNELS_Load(chNum, &_ch);
-      gChEd = _ch;
+      CHANNELS_Load(chNum, &ch);
+      Log("Prepare to edit CH #%u %s", chNum, ch.name);
+      gChEd = ch;
       APPS_run(APP_CH_CFG);
       return true;
     case KEY_EXIT:

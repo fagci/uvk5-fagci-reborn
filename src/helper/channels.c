@@ -650,6 +650,7 @@ void CHANNELS_LoadScanlist(uint8_t n) {
     }
     if (n == 15 || (CHANNELS_Scanlists(i) & scanlistMask) == scanlistMask) {
       gScanlist[gScanlistSize] = i;
+      Log("gScanlist[%u]=%u", gScanlistSize, i);
       gScanlistSize++;
     }
   }
