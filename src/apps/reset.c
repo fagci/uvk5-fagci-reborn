@@ -66,9 +66,9 @@ void RESET_Update(void) {
     vfo->gainIndex = AUTO_GAIN_INDEX;
     vfo->code.rx.type = 0;
     vfo->code.tx.type = 0;
-    vfo->readonly = false;
+    vfo->meta.readonly = false;
     vfo->misc.lastUsedFreq = vfo->rxF;
-    vfo->type = TYPE_VFO;
+    vfo->meta.type = TYPE_VFO;
     vfo->squelch.value = 4;
     vfo->step = STEP_25_0kHz;
     CHANNELS_Save(channelsMax - 2 + vfosWrote, vfo);
@@ -81,7 +81,7 @@ void RESET_Update(void) {
     p->gainIndex = 18;
     p->squelch.value = 4;
     p->squelch.type = SQUELCH_RSSI_NOISE_GLITCH;
-    p->type = TYPE_PRESET;
+    p->meta.type = TYPE_PRESET;
     if (p->txF < 3000000) {
       p->radio = RADIO_SI4732; // TODO: if SI existing
                                // default is RADIO_BK4819

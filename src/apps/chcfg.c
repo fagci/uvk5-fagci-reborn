@@ -114,10 +114,10 @@ static void getMenuItemValue(PresetCfgMenu type, char *Output) {
     snprintf(Output, 15, TX_POWER_NAMES[gChEd.power]);
     break;
   case M_READONLY:
-    snprintf(Output, 15, yesNo[gChEd.readonly]);
+    snprintf(Output, 15, yesNo[gChEd.meta.readonly]);
     break;
   case M_TYPE:
-    snprintf(Output, 15, CH_TYPE_NAMES[gChEd.type]);
+    snprintf(Output, 15, CH_TYPE_NAMES[gChEd.meta.type]);
     break;
   default:
     break;
@@ -172,16 +172,16 @@ static void acceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
     gChEd.scrambler = subMenuIndex;
     break;
   case M_READONLY:
-    gChEd.readonly = subMenuIndex;
+    gChEd.meta.readonly = subMenuIndex;
     break;
   case M_TYPE:
-    gChEd.type = subMenuIndex;
+    gChEd.meta.type = subMenuIndex;
     break;
   default:
     break;
   }
 
-  switch (gChEd.type) {
+  switch (gChEd.meta.type) {
   case TYPE_VFO:
     *radio = gChEd;
     RADIO_SetupByCurrentVFO();
@@ -242,10 +242,10 @@ static void setInitialSubmenuIndex(void) {
     subMenuIndex = gChEd.allowTx;
     break;
   case M_READONLY:
-    subMenuIndex = gChEd.readonly;
+    subMenuIndex = gChEd.meta.readonly;
     break;
   case M_TYPE:
-    subMenuIndex = gChEd.type;
+    subMenuIndex = gChEd.meta.type;
     break;
   default:
     subMenuIndex = 0;
@@ -255,11 +255,11 @@ static void setInitialSubmenuIndex(void) {
 
 static void getMenuItemText(uint16_t index, char *name) {
   MenuItem *m = &menu[index];
-  if (gChEd.type == TYPE_PRESET && m->type == M_F_RX) {
+  if (gChEd.meta.type == TYPE_PRESET && m->type == M_F_RX) {
     strncpy(name, "Start f", 31);
     return;
   }
-  if (gChEd.type == TYPE_PRESET && m->type == M_F_TX) {
+  if (gChEd.meta.type == TYPE_PRESET && m->type == M_F_TX) {
     strncpy(name, "End f", 31);
     return;
   }
@@ -352,7 +352,7 @@ static void setTXOffset(uint32_t f) {
 void CHCFG_init(void) { updateTxCodeListSize(); }
 
 void CHCFG_deinit(void) {
-  if (gChEd.type == TYPE_VFO) {
+  if (gChEd.meta.type == TYPE_VFO) {
     *radio = gChEd;
     RADIO_SaveCurrentVFO();
   }

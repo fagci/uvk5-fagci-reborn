@@ -538,9 +538,10 @@ void BK4819_SetModulation(ModulationType type) {
 
 void BK4819_RX_TurnOn(void) {
   // init bw, mod before that
+  BK4819_WriteRegister(BK4819_REG_36, 0x0000);
   BK4819_WriteRegister(BK4819_REG_37, 0x1F0F);
   BK4819_WriteRegister(BK4819_REG_30, 0x0200);
-  SYSTEM_DelayMs(10);
+  // SYSTEM_DelayMs(10);
   BK4819_WriteRegister(
       BK4819_REG_30,
       BK4819_REG_30_ENABLE_VCO_CALIB | BK4819_REG_30_DISABLE_UNKNOWN |

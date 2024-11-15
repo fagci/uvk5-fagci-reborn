@@ -210,9 +210,13 @@ typedef enum {
 } CHType;
 
 typedef struct {
-  // Common fields
   CHType type : 3;
   bool readonly : 1;
+} CHMeta;
+
+typedef struct {
+  // Common fields
+  CHMeta meta;
   union {
     uint16_t memoryBanks;
     int16_t channel;

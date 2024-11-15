@@ -21,7 +21,6 @@
 
 static void Boot(AppType_t appToRun) {
   RADIO_SetupRegisters();
-  RADIO_LoadCurrentVFO();
 
   SVC_Toggle(SVC_KEYBOARD, true, 10);
   SVC_Toggle(SVC_LISTEN, true, 10);

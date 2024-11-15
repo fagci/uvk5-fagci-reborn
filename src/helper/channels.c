@@ -675,15 +675,15 @@ void CHANNELS_LoadBlacklistToLoot() {
 
 uint16_t CHANNELS_GetStepSize(CH *p) { return StepFrequencyTable[p->step]; }
 
-uint32_t CHANNELS_GetSteps(Preset *p) {
+uint32_t CHANNELS_GetSteps(CH *p) {
   return (p->txF - p->rxF) / CHANNELS_GetStepSize(p) + 1;
 }
 
-uint32_t CHANNELS_GetF(Preset *p, uint32_t channel) {
+uint32_t CHANNELS_GetF(CH *p, uint32_t channel) {
   return p->rxF + channel * CHANNELS_GetStepSize(p);
 }
 
-uint32_t CHANNELS_GetChannel(Preset *p, uint32_t f) {
+uint32_t CHANNELS_GetChannel(CH *p, uint32_t f) {
   return (f - p->rxF) / CHANNELS_GetStepSize(p);
 }
 
@@ -762,9 +762,13 @@ int8_t PRESET_SelectByFrequency(uint32_t f) {
 bool PRESETS_Load(void) {
   for (int16_t i = 0;
        i < CHANNELS_GetCountMax() && presetlistSize < PRESETS_COUNT_MAX; ++i) {
-    Preset p = PRESETS_Item(presetlistSize);
-    CHANNELS_Load(presetlistSize, &p);
-    presetlistSize++;
+    CHMeta meta;
+    EEPROM_ReadBuffer(GetChannelOffset(i) + offsetof(CH, meta), &meta, 1);
+    if (meta.type == TYPE_PRESET) {
+      Preset p = PRESETS_Item(presetlistSize);
+      CHANNELS_Load(presetlistSize, &p);
+      presetlistSize++;
+    }
   }
   return true;
 }

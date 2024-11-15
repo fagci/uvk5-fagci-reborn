@@ -545,21 +545,21 @@ void RADIO_SwitchRadio() {
   if (oldRadio == r) {
     return;
   }
-  // Log("Switch radio from %u to %u", oldRadio + 1, r + 1);
+  Log("Switch radio from %u to %u", oldRadio + 1, r + 1);
   rxTurnOff(oldRadio);
   rxTurnOn(r);
   oldRadio = r;
 }
 
 void RADIO_SetupByCurrentVFO(void) {
+  Log("Setup by current VFO");
   uint32_t f = radio->rxF;
   lastMsmUpdate = 0;
+  Log("Preset by f");
   // PRESET_SelectByFrequency(f);
-  gVFOPresets[gSettings.activeVFO] = gCurrentPreset;
+  // gVFOPresets[gSettings.activeVFO] = gCurrentPreset;
 
-  /* Log("SetupByCurrentVFO, p=%s, r=%s, f=%u", gCurrentPreset.band.name,
-      radioNames[RADIO_GetRadio()], f); */
-
+  Log("Switch radio");
   RADIO_SwitchRadio();
 
   RADIO_SetupBandParams();
@@ -607,7 +607,9 @@ void RADIO_SelectPresetSave(int8_t num) {
 }
 
 void RADIO_LoadCurrentVFO(void) {
+  Log("Load VFOs");
   for (uint8_t i = 0; i < 2; ++i) {
+    Log("Load VFO %u", i + 1);
     CHANNELS_Load(CHANNELS_GetCountMax() - 2 + i, &gVFO[i]);
     if (gVFO[i].channel >= 0) {
       RADIO_VfoLoadCH(i);
@@ -676,7 +678,7 @@ void RADIO_SetFilterBandwidth(BK4819_FilterBandwidth_t bw) {
 }
 
 void RADIO_SetupBandParams() {
-  // Log("RADIO_SetupBandParams");
+  Log("RADIO_SetupBandParams");
   uint32_t fMid = radio->rxF + (radio->txF - radio->rxF) / 2;
   ModulationType mod = RADIO_GetModulation();
   RADIO_SetGain(radio->gainIndex);
@@ -693,7 +695,6 @@ void RADIO_SetupBandParams() {
     } else {
       BK4819_DisableScramble();
     }
-    // BK4819_RX_TurnOn(); /needed?
     break;
   case RADIO_BK1080:
     break;
@@ -714,7 +715,7 @@ void RADIO_SetupBandParams() {
   default:
     break;
   }
-  // Log("RADIO_SetupBandParams end");
+  Log("RADIO_SetupBandParams end");
 }
 
 uint16_t RADIO_GetRSSI(void) {
