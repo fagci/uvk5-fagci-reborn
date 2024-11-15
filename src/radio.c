@@ -556,8 +556,8 @@ void RADIO_SetupByCurrentVFO(void) {
   uint32_t f = radio->rxF;
   lastMsmUpdate = 0;
   Log("Preset by f");
-  // PRESET_SelectByFrequency(f);
-  // gVFOPresets[gSettings.activeVFO] = gCurrentPreset;
+  PRESET_SelectByFrequency(f);
+  gVFOPresets[gSettings.activeVFO] = gCurrentPreset;
 
   Log("Switch radio");
   RADIO_SwitchRadio();

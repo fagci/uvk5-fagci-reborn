@@ -1,5 +1,6 @@
 #include "channels.h"
 #include "../driver/eeprom.h"
+#include "../driver/uart.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
 #include "../radio.h"
@@ -9,7 +10,6 @@
 int16_t gScanlistSize = 0;
 static int8_t presetlistSize = 0;
 uint16_t gScanlist[SCANLIST_MAX] = {0};
-uint16_t gPresetlist[SCANLIST_MAX] = {0};
 
 static const uint8_t CH_NAME_OFFSET = offsetof(CH, name);
 static const uint8_t CH_BANKS_OFFSET = offsetof(CH, memoryBanks);
@@ -38,9 +38,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_9k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 1500000,
-        .powCalib = {50, 100, 140},
-},
+            .lastUsedFreq = 1500000,
+            .powCalib = {50, 100, 140},
+        },
     },
     (Preset){
         .rxF = 2696500,
@@ -51,9 +51,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_9k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 2696500,
-        .powCalib = {50, 100, 140},
-},
+            .lastUsedFreq = 2696500,
+            .powCalib = {50, 100, 140},
+        },
     },
     (Preset){
         .rxF = 2760125,
@@ -64,9 +64,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_9k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 2760125,
-        .powCalib = {50, 100, 140},
-},
+            .lastUsedFreq = 2760125,
+            .powCalib = {50, 100, 140},
+        },
     },
     (Preset){
         .rxF = 2799130,
@@ -77,9 +77,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_9k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 2799130,
-        .powCalib = {50, 100, 140},
-},
+            .lastUsedFreq = 2799130,
+            .powCalib = {50, 100, 140},
+        },
     },
     (Preset){
         .rxF = 6400000,
@@ -90,9 +90,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_9k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 7100000,
-        .powCalib = {50, 100, 140},
-},
+            .lastUsedFreq = 7100000,
+            .powCalib = {50, 100, 140},
+        },
     },
     (Preset){
         .rxF = 8800000,
@@ -103,9 +103,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_9k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 10320000,
-        .powCalib = {50, 100, 140},
-},
+            .lastUsedFreq = 10320000,
+            .powCalib = {50, 100, 140},
+        },
     },
     (Preset){
         .rxF = 10800000,
@@ -116,9 +116,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 10800000,
-        .powCalib = {50, 100, 140},
-},
+            .lastUsedFreq = 10800000,
+            .powCalib = {50, 100, 140},
+        },
     },
     (Preset){
         .rxF = 11800000,
@@ -129,9 +129,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_9k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 13170000,
-        .powCalib = {50, 100, 140},
-},
+            .lastUsedFreq = 13170000,
+            .powCalib = {50, 100, 140},
+        },
     },
     (Preset){
         .rxF = 13500000,
@@ -142,9 +142,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_9k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 13510000,
-        .powCalib = {38, 67, 130},
-},
+            .lastUsedFreq = 13510000,
+            .powCalib = {38, 67, 130},
+        },
     },
     (Preset){
         .rxF = 14400000,
@@ -155,9 +155,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 14550000,
-        .powCalib = {38, 63, 138},
-},
+            .lastUsedFreq = 14550000,
+            .powCalib = {38, 63, 138},
+        },
     },
     (Preset){
         .rxF = 14600000,
@@ -168,9 +168,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 14600000,
-        .powCalib = {38, 63, 138},
-},
+            .lastUsedFreq = 14600000,
+            .powCalib = {38, 63, 138},
+        },
     },
     (Preset){
         .rxF = 14800000,
@@ -181,9 +181,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 14810000,
-        .powCalib = {37, 60, 130},
-},
+            .lastUsedFreq = 14810000,
+            .powCalib = {37, 60, 130},
+        },
         .radio = RADIO_BK4819,
     },
     (Preset){
@@ -195,9 +195,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 15650000,
-        .powCalib = {37, 60, 130},
-},
+            .lastUsedFreq = 15650000,
+            .powCalib = {37, 60, 130},
+        },
         .radio = RADIO_BK4819,
     },
     (Preset){
@@ -209,9 +209,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 16300000,
-        .powCalib = {37, 60, 130},
-},
+            .lastUsedFreq = 16300000,
+            .powCalib = {37, 60, 130},
+        },
         .radio = RADIO_BK4819,
     },
     (Preset){
@@ -223,9 +223,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 20575000,
-        .powCalib = {46, 55, 140},
-},
+            .lastUsedFreq = 20575000,
+            .powCalib = {46, 55, 140},
+        },
     },
     (Preset){
         .rxF = 24500000,
@@ -236,9 +236,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 25355000,
-        .powCalib = {58, 80, 140},
-},
+            .lastUsedFreq = 25355000,
+            .powCalib = {58, 80, 140},
+        },
     },
     (Preset){
         .rxF = 27000000,
@@ -249,9 +249,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 33605000,
-        .powCalib = {77, 95, 140},
-},
+            .lastUsedFreq = 33605000,
+            .powCalib = {77, 95, 140},
+        },
     },
     (Preset){
         .rxF = 43000000,
@@ -262,9 +262,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 43230000,
-        .powCalib = {40, 65, 140},
-},
+            .lastUsedFreq = 43230000,
+            .powCalib = {40, 65, 140},
+        },
     },
     (Preset){
         .rxF = 43307500,
@@ -275,9 +275,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = true,
         .misc = {
-.lastUsedFreq = 43325000,
-        .powCalib = {40, 65, 140},
-},
+            .lastUsedFreq = 43325000,
+            .powCalib = {40, 65, 140},
+        },
     },
     (Preset){
         .rxF = 43480000,
@@ -288,9 +288,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 43480000,
-        .powCalib = {40, 65, 140},
-},
+            .lastUsedFreq = 43480000,
+            .powCalib = {40, 65, 140},
+        },
     },
 
     (Preset){
@@ -302,9 +302,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 44000000,
-        .powCalib = {40, 65, 140},
-},
+            .lastUsedFreq = 44000000,
+            .powCalib = {40, 65, 140},
+        },
     },
     (Preset){
         .rxF = 44600625,
@@ -315,9 +315,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = true,
         .misc = {
-.lastUsedFreq = 44609375,
-        .powCalib = {40, 65, 140},
-},
+            .lastUsedFreq = 44609375,
+            .powCalib = {40, 65, 140},
+        },
     },
     (Preset){
         .rxF = 44620000,
@@ -328,9 +328,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 44620000,
-        .powCalib = {40, 65, 140},
-},
+            .lastUsedFreq = 44620000,
+            .powCalib = {40, 65, 140},
+        },
     },
     (Preset){
         .rxF = 46256250,
@@ -341,9 +341,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 46256250,
-        .powCalib = {40, 65, 140},
-},
+            .lastUsedFreq = 46256250,
+            .powCalib = {40, 65, 140},
+        },
     },
     (Preset){
         .rxF = 46273750,
@@ -354,9 +354,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 46302500,
-        .powCalib = {40, 65, 140},
-},
+            .lastUsedFreq = 46302500,
+            .powCalib = {40, 65, 140},
+        },
     },
     (Preset){
         .rxF = 46756250,
@@ -367,9 +367,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 46756250,
-        .powCalib = {40, 65, 140},
-},
+            .lastUsedFreq = 46756250,
+            .powCalib = {40, 65, 140},
+        },
     },
     (Preset){
         .rxF = 46775000,
@@ -380,9 +380,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 46980000,
-        .powCalib = {40, 64, 140},
-},
+            .lastUsedFreq = 46980000,
+            .powCalib = {40, 64, 140},
+        },
     },
     (Preset){
         .rxF = 47000000,
@@ -393,9 +393,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 50975000,
-        .powCalib = {50, 100, 140},
-},
+            .lastUsedFreq = 50975000,
+            .powCalib = {50, 100, 140},
+        },
     },
     (Preset){
         .rxF = 84000000,
@@ -406,9 +406,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 85500000,
-        .powCalib = {50, 100, 140},
-},
+            .lastUsedFreq = 85500000,
+            .powCalib = {50, 100, 140},
+        },
     },
     (Preset){
         .rxF = 86300000,
@@ -419,9 +419,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 86400000,
-        .powCalib = {50, 100, 140},
-},
+            .lastUsedFreq = 86400000,
+            .powCalib = {50, 100, 140},
+        },
     },
     (Preset){
         .rxF = 87000000,
@@ -432,9 +432,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 87000000,
-        .powCalib = {50, 100, 140},
-},
+            .lastUsedFreq = 87000000,
+            .powCalib = {50, 100, 140},
+        },
     },
     (Preset){
         .rxF = 89000000,
@@ -445,9 +445,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 89000000,
-        .powCalib = {50, 100, 140},
-},
+            .lastUsedFreq = 89000000,
+            .powCalib = {50, 100, 140},
+        },
     },
     (Preset){
         .rxF = 96000000,
@@ -458,9 +458,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 96000000,
-        .powCalib = {50, 100, 140},
-},
+            .lastUsedFreq = 96000000,
+            .powCalib = {50, 100, 140},
+        },
     },
     (Preset){
         .rxF = 126000000,
@@ -471,9 +471,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 129750000,
-        .powCalib = {50, 100, 140},
-},
+            .lastUsedFreq = 129750000,
+            .powCalib = {50, 100, 140},
+        },
     },
     (Preset){
         .rxF = 130000000,
@@ -484,9 +484,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .bw = BK4819_FILTER_BW_14k,
         .allowTx = false,
         .misc = {
-.lastUsedFreq = 130000000,
-        .powCalib = {50, 100, 140},
-},
+            .lastUsedFreq = 130000000,
+            .powCalib = {50, 100, 140},
+        },
     },
 
     // si4732 presets
@@ -498,9 +498,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .modulation = MOD_LSB,
         .bw = BK4819_FILTER_BW_9k,
         .misc = {
-.lastUsedFreq = 181000,
+            .lastUsedFreq = 181000,
+        },
     },
-},
     (Preset){
         .rxF = 350000,
         .txF = 380000,
@@ -509,9 +509,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .modulation = MOD_LSB,
         .bw = BK4819_FILTER_BW_9k,
         .misc = {
-.lastUsedFreq = 364800,
+            .lastUsedFreq = 364800,
+        },
     },
-},
     (Preset){
         .rxF = 700000,
         .txF = 719999,
@@ -520,9 +520,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .modulation = MOD_LSB,
         .bw = BK4819_FILTER_BW_9k,
         .misc = {
-.lastUsedFreq = 710000,
+            .lastUsedFreq = 710000,
+        },
     },
-},
     (Preset){
         .rxF = 1400000,
         .txF = 1435000,
@@ -531,9 +531,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .modulation = MOD_USB,
         .bw = BK4819_FILTER_BW_9k,
         .misc = {
-.lastUsedFreq = 1400000,
+            .lastUsedFreq = 1400000,
+        },
     },
-},
     (Preset){
         .rxF = 2800000,
         .txF = 2969999,
@@ -542,9 +542,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .modulation = MOD_USB,
         .bw = BK4819_FILTER_BW_9k,
         .misc = {
-.lastUsedFreq = 2800000,
+            .lastUsedFreq = 2800000,
+        },
     },
-},
 };
 // char (*__defpres)[sizeof(defaultPresets)/sizeof(Preset)] = 1;
 
@@ -593,7 +593,7 @@ void CHANNELS_Delete(int16_t num) {
 bool CHANNELS_Existing(int16_t num) {
   if (num < 0 ||
       num >= CHANNELS_GetCountMax()) { // TODO: check, somewhere (CH scan, CH
-                                       // list) getting larger than max CH
+    // list) getting larger than max CH
     return false;
   }
   char name[1] = {0};
@@ -693,11 +693,7 @@ void PRESETS_SaveCurrent(void) {
 
 int8_t PRESETS_Size(void) { return presetlistSize < 0 ? 0 : presetlistSize; }
 
-Preset PRESETS_Item(int8_t i) {
-  Preset p;
-  CHANNELS_Load(gPresetlist[i], &p);
-  return p;
-}
+Preset PRESETS_Item(int8_t i) { return defaultPresets[i]; }
 
 void PRESETS_SelectPresetRelative(bool next) {
   int8_t activePreset = gSettings.activePreset;
@@ -736,8 +732,9 @@ Preset PRESET_ByFrequency(uint32_t f) {
   uint32_t smallerBW = 134000000;
   uint16_t index = -1;
   for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
-    if (PRESET_InRange(f, PRESETS_Item(i))) {
-      uint32_t bw = PRESETS_Item(i).txF - PRESETS_Item(i).rxF;
+    Preset item = PRESETS_Item(i);
+    if (PRESET_InRange(f, item)) {
+      uint32_t bw = item.txF - item.rxF;
       if (bw < smallerBW) {
         smallerBW = bw;
         index = i;
@@ -752,6 +749,7 @@ Preset PRESET_ByFrequency(uint32_t f) {
 
 int8_t PRESET_SelectByFrequency(uint32_t f) {
   gCurrentPreset = PRESET_ByFrequency(f);
+  Log("Select PRST %s", gCurrentPreset.name);
   int8_t i = PRESET_IndexOf(gCurrentPreset);
   if (i >= 0) {
     gSettings.activePreset = i;
@@ -760,13 +758,16 @@ int8_t PRESET_SelectByFrequency(uint32_t f) {
 }
 
 bool PRESETS_Load(void) {
-  for (int16_t i = 0;
-       i < CHANNELS_GetCountMax() && presetlistSize < PRESETS_COUNT_MAX; ++i) {
+  int16_t i;
+  for (i = 0; i < CHANNELS_GetCountMax() && presetlistSize < PRESETS_COUNT_MAX;
+       ++i) {
     CHMeta meta;
     EEPROM_ReadBuffer(GetChannelOffset(i) + offsetof(CH, meta), &meta, 1);
     if (meta.type == TYPE_PRESET) {
-      Preset p = PRESETS_Item(presetlistSize);
-      CHANNELS_Load(presetlistSize, &p);
+      CHANNELS_Load(CHANNELS_GetCountMax() - 2 - PRESETS_COUNT_MAX +
+                        presetlistSize,
+                    &defaultPresets[presetlistSize]);
+      Log("Load PRST %s", defaultPresets[presetlistSize].name);
       presetlistSize++;
     }
   }
