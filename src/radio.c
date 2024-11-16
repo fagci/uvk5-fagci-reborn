@@ -19,15 +19,12 @@
 #include "scheduler.h"
 #include "settings.h"
 #include "svc.h"
-#include <string.h>
 
 CH *radio;
 CH gVFO[2] = {0};
 CH gVFOPresets[2];
 
 Loot gLoot[2] = {0};
-
-char gVFONames[2][10] = {0};
 
 bool gIsListening = false;
 bool gMonitorMode = false;
@@ -545,7 +542,8 @@ void RADIO_SwitchRadio() {
   if (oldRadio == r) {
     return;
   }
-  Log("Switch radio from %u to %u", oldRadio + 1, r + 1);
+  Log("Switch radio from %s to %s",
+      oldRadio == UINT8_MAX ? "-" : radioNames[oldRadio], radioNames[r]);
   rxTurnOff(oldRadio);
   rxTurnOn(r);
   oldRadio = r;
@@ -555,7 +553,7 @@ void RADIO_SetupByCurrentVFO(void) {
   Log("Setup by current VFO");
   uint32_t f = radio->rxF;
   lastMsmUpdate = 0;
-  Log("Preset by f");
+  Log("Preset by f %u", f);
   PRESET_SelectByFrequency(f);
   gVFOPresets[gSettings.activeVFO] = gCurrentPreset;
 
@@ -860,8 +858,10 @@ bool RADIO_UpdateMeasurementsEx(Loot *dest) {
 }
 
 void RADIO_VfoLoadCH(uint8_t i) {
+  int16_t chNum = gVFO[i].channel;
   CHANNELS_Load(gVFO[i].channel, &gVFO[i]);
-  strncpy(gVFONames[i], gVFO[i].name, 9);
+  gVFO[i].meta.type = TYPE_VFO;
+  gVFO[i].channel = chNum;
 }
 
 bool RADIO_TuneToCH(int32_t num) {

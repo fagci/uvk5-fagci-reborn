@@ -556,8 +556,7 @@ void VFO1_render(void) {
   }
 
   if (radio->channel >= 0) {
-    PrintMediumEx(LCD_XCENTER, BASE - 16, POS_C, C_FILL,
-                  gVFONames[gSettings.activeVFO]);
+    PrintMediumEx(LCD_XCENTER, BASE - 16, POS_C, C_FILL, radio->name);
   }
 
   if (gTxState && gTxState != TX_ON) {

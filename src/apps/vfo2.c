@@ -55,9 +55,9 @@ static void render2VFOPart(uint8_t i) {
         PrintBigDigitsEx(LCD_WIDTH - 19, bl, POS_R, C_FILL, "%4u.%03u", fp1,
                          fp2);
       } else if (gSettings.chDisplayMode == CH_DISPLAY_MODE_N) {
-        PrintMediumBoldEx(LCD_XCENTER, bl - 4, POS_C, C_FILL, gVFONames[i]);
+        PrintMediumBoldEx(LCD_XCENTER, bl - 4, POS_C, C_FILL, vfo->name);
       } else {
-        PrintMediumBoldEx(LCD_XCENTER, bl - 8, POS_C, C_FILL, gVFONames[i]);
+        PrintMediumBoldEx(LCD_XCENTER, bl - 8, POS_C, C_FILL, vfo->name);
         PrintMediumEx(LCD_XCENTER, bl, POS_C, C_FILL, "%4u.%03u", fp1, fp2);
       }
       PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "MR %03u", vfo->channel + 1);

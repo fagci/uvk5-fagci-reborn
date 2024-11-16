@@ -575,13 +575,14 @@ uint16_t CHANNELS_GetCountMax(void) {
 
 void CHANNELS_Load(int16_t num, CH *p) {
   if (num >= 0) {
+    Log("Load CH%u: %s %u f=%u", num, p->name, p->rxF);
     EEPROM_ReadBuffer(GetChannelOffset(num), p, CH_SIZE);
   }
 }
 
 void CHANNELS_Save(int16_t num, CH *p) {
   if (num >= 0) {
-    Log("Save CH: %s to %u", p->name, num);
+    Log("Save CH: %s to %u f=%u", p->name, num, p->rxF);
     EEPROM_WriteBuffer(GetChannelOffset(num), p, CH_SIZE);
   }
 }
@@ -593,15 +594,10 @@ void CHANNELS_Delete(int16_t num) {
 }
 
 bool CHANNELS_Existing(int16_t num) {
-  if (num < 0 ||
-      num >= CHANNELS_GetCountMax()) { // TODO: check, somewhere (CH scan, CH
-    // list) getting larger than max CH
+  if (num < 0 || num >= CHANNELS_GetCountMax()) {
     return false;
   }
-  char name[1] = {0};
-  uint32_t addr = GetChannelOffset(num) + CH_NAME_OFFSET;
-  EEPROM_ReadBuffer(addr, name, 1);
-  return IsReadable(name);
+  return CHANNELS_GetMeta(num).type != TYPE_EMPTY;
 }
 
 uint8_t CHANNELS_Scanlists(int16_t num) {
@@ -760,11 +756,15 @@ int8_t PRESET_SelectByFrequency(uint32_t f) {
   return i;
 }
 
-bool PRESETS_Load(void) {
+CHMeta CHANNELS_GetMeta(int16_t num) {
   CHMeta meta;
+  EEPROM_ReadBuffer(GetChannelOffset(num) + offsetof(CH, meta), &meta, 1);
+  return meta;
+}
+
+bool PRESETS_Load(void) {
   for (int16_t chNum = CHANNELS_GetCountMax() - 2; chNum >= 0; --chNum) {
-    EEPROM_ReadBuffer(GetChannelOffset(chNum) + offsetof(CH, meta), &meta, 1);
-    if (meta.type != TYPE_PRESET) {
+    if (CHANNELS_GetMeta(chNum).type != TYPE_PRESET) {
       continue;
     }
 

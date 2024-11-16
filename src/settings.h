@@ -199,14 +199,14 @@ typedef struct {
 } Squelch;
 
 typedef enum {
+  TYPE_EMPTY,
   TYPE_CH,
   TYPE_PRESET,
   TYPE_VFO,
+  TYPE_FOLDER,
+  TYPE_MELODY,
   TYPE_SETTING,
   TYPE_FILE,
-  TYPE_MELODY,
-  TYPE_MISC1,
-  TYPE_MISC2,
 } CHType;
 
 typedef struct {

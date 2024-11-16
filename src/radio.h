@@ -23,8 +23,6 @@ extern CH gVFOPresets[2];
 
 extern Loot gLoot[2];
 
-extern char gVFONames[2][10];
-
 extern bool gIsListening;
 extern bool gMonitorMode;
 extern TXState gTxState;

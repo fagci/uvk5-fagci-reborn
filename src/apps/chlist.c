@@ -31,6 +31,13 @@ static CH ch;
 static uint16_t chCount = 1024;
 static char tempName[9] = {0};
 
+static const Symbol typeIcons[] = {
+    [TYPE_CH] = SYM_CH,         [TYPE_PRESET] = SYM_PRESET,
+    [TYPE_VFO] = SYM_VFO,       [TYPE_SETTING] = SYM_SETTING,
+    [TYPE_FILE] = SYM_FILE,     [TYPE_MELODY] = SYM_MELODY,
+    [TYPE_FOLDER] = SYM_FOLDER, [TYPE_EMPTY] = SYM_MISC2,
+};
+
 static uint16_t getChannelNumber(uint16_t menuIndex) {
   if (gSettings.currentScanlist != 15) {
     menuIndex = gScanlist[menuIndex];
@@ -45,23 +52,31 @@ static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
   }
-  if (IsReadable(ch.name)) {
-    PrintMediumEx(8, y + 8, POS_L, C_INVERT, "%s", ch.name);
+  if (ch.meta.type) {
+    PrintSymbolsEx(2, y + 8, POS_L, C_INVERT, "%c", typeIcons[ch.meta.type]);
+    PrintMediumEx(8 + 8, y + 8, POS_L, C_INVERT, "%s", ch.name);
   } else {
-    PrintMediumEx(8, y + 8, POS_L, C_INVERT, "CH-%u", index + 1);
+    PrintMediumEx(2, y + 8, POS_L, C_INVERT, "CH-%u", index + 1);
   }
-  char scanlistsStr[9] = "";
-  for (uint8_t n = 0; n < 8; ++n) {
-    scanlistsStr[n] =
-        ch.memoryBanks & (1 << n) ? (n == 7 ? 'X' : '1' + n) : '-';
+  if (ch.meta.type == TYPE_CH || ch.meta.type == TYPE_PRESET ||
+      ch.meta.type == TYPE_FOLDER) {
+    char scanlistsStr[9] = "";
+    for (uint8_t n = 0; n < 8; ++n) {
+      scanlistsStr[n] =
+          ch.memoryBanks & (1 << n) ? (n == 7 ? 'X' : '1' + n) : '-';
+    }
+    PrintSmallEx(LCD_WIDTH - 5, y + 8, POS_R, C_INVERT, "%s", scanlistsStr);
   }
-  PrintSmallEx(LCD_WIDTH - 5, y + 8, POS_R, C_INVERT, "%s", scanlistsStr);
 }
 
 static void setMenuIndex(uint16_t i) { channelIndex = i - 1; }
 
 static void saveNamed() {
   strncpy(gChEd.name, gTextinputText, 9);
+  gChEd.memoryBanks = 0;
+  if (gChEd.meta.type == TYPE_VFO) {
+    gChEd.meta.type = TYPE_CH;
+  }
   CHANNELS_Save(getChannelNumber(channelIndex), &gChEd);
   RADIO_LoadCurrentVFO();
 }
@@ -124,6 +139,7 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       CHANNELS_Load(chNum, &ch);
       Log("Prepare to edit CH #%u %s", chNum, ch.name);
       gChEd = ch;
+      gChNum = chNum;
       APPS_run(APP_CH_CFG);
       return true;
     case KEY_EXIT:

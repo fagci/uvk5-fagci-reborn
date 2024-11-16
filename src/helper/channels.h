@@ -23,6 +23,7 @@ uint16_t CHANNELS_GetStepSize(CH *p);
 uint32_t CHANNELS_GetSteps(Preset *p);
 uint32_t CHANNELS_GetF(Preset *p, uint32_t channel);
 uint32_t CHANNELS_GetChannel(Preset *p, uint32_t f);
+CHMeta CHANNELS_GetMeta(int16_t num);
 
 bool PRESETS_Load();
 int8_t PRESETS_Size();

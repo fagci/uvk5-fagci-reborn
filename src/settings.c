@@ -25,7 +25,7 @@ const char *EEPROM_TYPE_NAMES[6] = {
     "M24M02",    // 111
 };
 const char *CH_TYPE_NAMES[8] = {
-    "CH", "PRESET", "VFO", "SETTING", "FILE", "MELODY", "MISC1", "MISC2",
+    "EMPTY", "CH", "PRESET", "VFO", "FOLDER", "MELODY", "SETTING", "FILE",
 };
 
 Settings defaultSettings = (Settings){
