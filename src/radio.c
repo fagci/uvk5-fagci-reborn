@@ -48,20 +48,20 @@ const uint16_t StepFrequencyTable[15] = {
 const char *modulationTypeOptions[8] = {"FM",  "AM",  "LSB", "USB",
                                         "BYP", "RAW", "WFM", "Preset"};
 const char *powerNames[4] = {"ULOW, LOW", "MID", "HIGH"};
-const char *bwNames[10] = {"W 26k", "W 23k", "W 20k", "W 17k", "W 14k", "W 12k",
-                           "N 10k", "N 9k",  "U 7K",  "U 6K"
+const char *bwNames[10] = {"W26k", "W23k", "W20k", "W17k", "W14k", "W12k",
+                           "N10k", "N9k",  "U7K",  "U6K"
 
 };
 const char *bwNamesSiAMFM[7] = {
-    [BK4819_FILTER_BW_6k] = "1kHz",  [BK4819_FILTER_BW_7k] = "1.8kHz",
-    [BK4819_FILTER_BW_9k] = "2kHz",  [BK4819_FILTER_BW_10k] = "2.5kHz",
-    [BK4819_FILTER_BW_12k] = "3kHz", [BK4819_FILTER_BW_14k] = "4kHz",
-    [BK4819_FILTER_BW_17k] = "6kHz",
+    [BK4819_FILTER_BW_6k] = "1k",  [BK4819_FILTER_BW_7k] = "1.8k",
+    [BK4819_FILTER_BW_9k] = "2k",  [BK4819_FILTER_BW_10k] = "2.5k",
+    [BK4819_FILTER_BW_12k] = "3k", [BK4819_FILTER_BW_14k] = "4k",
+    [BK4819_FILTER_BW_17k] = "6k",
 };
 const char *bwNamesSiSSB[6] = {
-    [BK4819_FILTER_BW_6k] = "0.5kHz", [BK4819_FILTER_BW_7k] = "1.0kHz",
-    [BK4819_FILTER_BW_9k] = "1.2kHz", [BK4819_FILTER_BW_10k] = "2.2kHz",
-    [BK4819_FILTER_BW_12k] = "3kHz",  [BK4819_FILTER_BW_14k] = "4kHz",
+    [BK4819_FILTER_BW_6k] = "0.5k", [BK4819_FILTER_BW_7k] = "1.0k",
+    [BK4819_FILTER_BW_9k] = "1.2k", [BK4819_FILTER_BW_10k] = "2.2k",
+    [BK4819_FILTER_BW_12k] = "3k",  [BK4819_FILTER_BW_14k] = "4k",
 
 };
 const char *radioNames[4] = {"BK4819", "BK1080", "SI4732", "Preset"};
@@ -524,7 +524,7 @@ void RADIO_SetSquelchPure(uint32_t f, uint8_t sql) {
 void RADIO_TuneToPure(uint32_t f, bool precise) {
   LOOT_Replace(&gLoot[gSettings.activeVFO], f);
   Radio r = RADIO_GetRadio();
-  // Log("Tune %s to %u", radioNames[r], f);
+  Log("Tune %s to %u", radioNames[r], f);
   switch (r) {
   case RADIO_BK4819:
     BK4819_TuneTo(f, precise);

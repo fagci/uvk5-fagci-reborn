@@ -80,9 +80,9 @@ static void render2VFOPart(uint8_t i) {
       PrintSmallEx(0, bl + 6, POS_L, C_FILL, "D%03oN", DCS_Options[loot->cd]);
     }
   }
-  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %c SQ%u %c %s %s",
+  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %s SQ%u %c %s %s",
                vfo->allowTx ? TX_POWER_NAMES[vfo->power][0] : ' ',
-               "wNnW"[vfo->bw], vfo -> squelch.value,
+               RADIO_GetBWName(vfo->bw), vfo->squelch.value,
                RADIO_GetTXFEx(vfo, vfo) != vfo->rxF
                    ? (vfo->offsetDir ? TX_OFFSET_NAMES[vfo->offsetDir][0] : '*')
                    : ' ',
