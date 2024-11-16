@@ -12,7 +12,7 @@ static uint8_t presetsWrote = 0;
 static uint8_t vfosWrote = 0;
 static bool settingsWrote = 0;
 
-static EEPROMType eepromType;
+static uint8_t eepromType = 255;
 
 static VFO defaultVFOs[2] = {
     (VFO){
@@ -39,12 +39,12 @@ static void startReset(EEPROMType t) {
 
 void RESET_Init(void) {
   gSettings.keylock = false;
-  eepromType = EEPROM_A;
+  eepromType = UINT8_MAX;
 }
 
 void RESET_Update(void) {
   gRedrawScreen = true;
-  if (eepromType < EEPROM_BL24C64) {
+  if (eepromType == UINT8_MAX) {
     return;
   }
 
@@ -104,10 +104,9 @@ void RESET_Update(void) {
 void RESET_Render(void) {
   uint8_t POS_Y = LCD_HEIGHT / 2;
 
-  if (eepromType < EEPROM_BL24C64) {
-    for (uint8_t t = EEPROM_BL24C64; t <= EEPROM_M24M02; t++) {
-      uint8_t i = t - EEPROM_BL24C64;
-      PrintMedium(2, 18 + i * 8, "%u: %s", i + 1, EEPROM_TYPE_NAMES[t]);
+  if (eepromType == UINT8_MAX) {
+    for (uint8_t i = 0; i < ARRAY_SIZE(EEPROM_TYPE_NAMES); ++i) {
+      PrintMedium(2, 18 + i * 8, "%u: %s", i + 1, EEPROM_TYPE_NAMES[i]);
     }
     return;
   }
@@ -123,7 +122,7 @@ void RESET_Render(void) {
 
 bool RESET_key(KEY_Code_t k, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld && k > KEY_0) {
-    uint8_t t = EEPROM_BL24C64 + k - 1;
+    uint8_t t = k - 1;
     if (t < ARRAY_SIZE(EEPROM_TYPE_NAMES)) {
       startReset(t);
       return true;

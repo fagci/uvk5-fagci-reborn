@@ -10,6 +10,7 @@
 #include "../ui/menu.h"
 #include "../ui/statusline.h"
 #include "apps.h"
+#include "chlist.h"
 #include "finput.h"
 #include "textinput.h"
 
@@ -388,7 +389,13 @@ static bool accept(void) {
     APPS_run(APP_TEXTINPUT);
     return true;
   case M_SAVE:
-    APPS_run(APP_CH_CFG);
+    if (gChNum >= 0) { // editing existing channel
+      CHANNELS_Save(gChNum, &gChEd);
+      APPS_exit();
+      return true;
+    }
+    gChSaveMode = true;
+    APPS_run(APP_CH_LIST);
     return true;
   default:
     break;

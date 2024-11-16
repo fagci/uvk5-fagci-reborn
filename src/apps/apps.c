@@ -70,7 +70,7 @@ const App apps[APPS_COUNT] = {
      SPECTRUM_deinit},
     {"Analyzer", ANALYZER_init, ANALYZER_update, ANALYZER_render, ANALYZER_key,
      ANALYZER_deinit},
-    {"Channels", CHLIST_init, CHLIST_update, CHLIST_render, CHLIST_key, NULL},
+    {"Channels", CHLIST_init, NULL, CHLIST_render, CHLIST_key, CHLIST_deinit},
     {"Freq input", FINPUT_init, NULL, FINPUT_render, FINPUT_key, FINPUT_deinit},
     {"Run app", APPSLIST_init, NULL, APPSLIST_render, APPSLIST_key, NULL},
     {"Loot", LOOTLIST_init, LOOTLIST_update, LOOTLIST_render, LOOTLIST_key,

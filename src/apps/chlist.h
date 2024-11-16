@@ -7,10 +7,10 @@
 #include <stdint.h>
 
 void CHLIST_init();
-void CHLIST_update();
+void CHLIST_deinit();
 bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
 void CHLIST_render();
 
-extern CH gChEd;
+extern bool gChSaveMode;
 
 #endif /* end of include guard: CHLIST_H */

@@ -584,13 +584,15 @@ void RADIO_TuneTo(uint32_t f) {
 // USE CASE: set vfo and use in another app
 void RADIO_TuneToSave(uint32_t f) {
   RADIO_TuneTo(f);
-  RADIO_SaveCurrentVFO();
   gCurrentPreset.misc.lastUsedFreq = f;
+  RADIO_SaveCurrentVFO();
   PRESETS_SaveCurrent();
 }
 
 void RADIO_SaveCurrentVFO(void) {
-  CHANNELS_Save(CHANNELS_GetCountMax() - 2 + gSettings.activeVFO, radio);
+  uint8_t chNum = CHANNELS_GetCountMax() - 2 + gSettings.activeVFO;
+  Log("save current vfo at %u", chNum);
+  CHANNELS_Save(chNum, radio);
 }
 
 void RADIO_SelectPresetSave(int8_t num) {
@@ -870,6 +872,7 @@ bool RADIO_TuneToCH(int32_t num) {
     RADIO_SetupByCurrentVFO();
     return true;
   }
+  radio->channel = -1;
   return false;
 }
 

@@ -113,8 +113,8 @@ typedef enum {
   EEPROM_M24M02,    // 111
 } EEPROMType;
 
-extern const char *EEPROM_TYPE_NAMES[8];
-extern const uint32_t EEPROM_SIZES[8];
+extern const char *EEPROM_TYPE_NAMES[6];
+extern const uint32_t EEPROM_SIZES[6];
 extern const char *CH_TYPE_NAMES[8];
 
 typedef struct {

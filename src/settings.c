@@ -16,9 +16,7 @@ const char *TX_OFFSET_NAMES[3] = {"None", "+", "-"};
 const char *TX_CODE_TYPES[4] = {"None", "CT", "DCS", "-DCS"};
 const char *rogerNames[4] = {"None", "Moto", "Tiny", "Call"};
 const char *dwNames[3] = {"Off", "TX Stay", "TX Switch"};
-const char *EEPROM_TYPE_NAMES[8] = {
-    "-",         // 000
-    "-",         // 001
+const char *EEPROM_TYPE_NAMES[6] = {
     "BL24C64 #", // 010
     "BL24C128",  // 011
     "BL24C256",  // 100
@@ -69,26 +67,12 @@ Settings defaultSettings = (Settings){
     .upconverter = 0,
 };
 
-const uint32_t EEPROM_SIZES[8] = {
-    8192,   // 000
-    8192,   // 001
-    8192,   // 010
-    16384,  // 011
-    32768,  // 100
-    65536,  // 101
-    131072, // 110
-    262144, // 111
+const uint32_t EEPROM_SIZES[6] = {
+    8192, 16384, 32768, 65536, 131072, 262144,
 };
 
-const uint16_t PAGE_SIZES[8] = {
-    32,  // 000
-    32,  // 001
-    32,  // 010
-    64,  // 011
-    64,  // 100
-    128, // 101
-    128, // 110
-    128, // 111
+const uint16_t PAGE_SIZES[6] = {
+    32, 64, 64, 128, 128, 128,
 };
 
 void SETTINGS_Save(void) {

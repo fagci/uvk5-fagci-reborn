@@ -6,6 +6,8 @@
 #include "../ui/menu.h"
 #include "../ui/statusline.h"
 #include "apps.h"
+#include "chcfg.h"
+#include "textinput.h"
 #include "vfo1.h"
 
 typedef enum {
@@ -21,15 +23,23 @@ typedef enum {
 // - scanlist
 // - type
 
+bool gChSaveMode = false;
+
 static uint16_t channelIndex = 0;
 static CHLIST_ViewMode viewMode = MODE_INFO;
 static CH ch;
 static uint16_t chCount = 1024;
+static char tempName[9] = {0};
+
+static uint16_t getChannelNumber(uint16_t menuIndex) {
+  if (gSettings.currentScanlist != 15) {
+    menuIndex = gScanlist[menuIndex];
+  }
+  return menuIndex;
+}
 
 static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
-  if (gSettings.currentScanlist != 15) {
-    index = gScanlist[index];
-  }
+  index = getChannelNumber(index);
   CHANNELS_Load(index, &ch);
   const uint8_t y = MENU_Y + i * MENU_ITEM_H;
   if (isCurrent) {
@@ -50,12 +60,18 @@ static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
 
 static void setMenuIndex(uint16_t i) { channelIndex = i - 1; }
 
+static void saveNamed() {
+  strncpy(gChEd.name, gTextinputText, 9);
+  CHANNELS_Save(getChannelNumber(channelIndex), &gChEd);
+  RADIO_LoadCurrentVFO();
+}
+
 void CHLIST_init() {
   CHANNELS_LoadScanlist(15);
   chCount = CHANNELS_GetCountMax();
 }
 
-void CHLIST_update() {}
+void CHLIST_deinit() { gChSaveMode = false; }
 
 bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld) {
@@ -70,10 +86,7 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     }
   }
 
-  uint16_t chNum = channelIndex;
-  if (gSettings.currentScanlist != 15) {
-    chNum = gScanlist[channelIndex];
-  }
+  uint16_t chNum = getChannelNumber(channelIndex);
   if (bKeyPressed || !bKeyHeld) {
     switch (key) {
     case KEY_UP:
@@ -88,6 +101,19 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   }
   if (!bKeyPressed && !bKeyHeld) {
     switch (key) {
+    case KEY_MENU:
+      if (gChSaveMode) {
+        gTextinputText = tempName;
+        snprintf(gTextinputText, 9, "%lu.%05lu", gChEd.rxF / MHZ,
+                 gChEd.rxF % MHZ);
+        gTextInputSize = 9;
+        gTextInputCallback = saveNamed;
+        APPS_run(APP_TEXTINPUT);
+        return true;
+      }
+      RADIO_TuneToCH(chNum);
+      APPS_exit();
+      return true;
     case KEY_PTT:
       RADIO_TuneToCH(chNum);
       RADIO_SaveCurrentVFO();

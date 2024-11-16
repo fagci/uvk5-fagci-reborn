@@ -10,6 +10,7 @@
 int16_t gScanlistSize = 0;
 static int8_t presetlistSize = 0;
 uint16_t gScanlist[SCANLIST_MAX] = {0};
+static uint16_t presetChannel[PRESETS_COUNT_MAX] = {0};
 
 static const uint8_t CH_NAME_OFFSET = offsetof(CH, name);
 static const uint8_t CH_BANKS_OFFSET = offsetof(CH, memoryBanks);
@@ -580,6 +581,7 @@ void CHANNELS_Load(int16_t num, CH *p) {
 
 void CHANNELS_Save(int16_t num, CH *p) {
   if (num >= 0) {
+    Log("Save CH: %s to %u", p->name, num);
     EEPROM_WriteBuffer(GetChannelOffset(num), p, CH_SIZE);
   }
 }
@@ -611,7 +613,7 @@ uint8_t CHANNELS_Scanlists(int16_t num) {
 
 int16_t CHANNELS_Next(int16_t base, bool next) {
   int16_t si = base;
-  int16_t max = CHANNELS_GetCountMax();
+  int16_t max = CHANNELS_GetCountMax() - 2 - PRESETS_COUNT_MAX;
   IncDecI16(&si, 0, max, next ? 1 : -1);
   int16_t i = si;
   if (next) {
@@ -712,7 +714,7 @@ int8_t PRESET_GetCurrentIndex(void) {
 
 void PRESET_Select(int8_t i) {
   gCurrentPreset = PRESETS_Item(i);
-  gSettings.activePreset = i;
+  gSettings.activePreset = presetChannel[i];
 }
 
 bool PRESET_InRange(const uint32_t f, const Preset p) {
@@ -753,23 +755,28 @@ int8_t PRESET_SelectByFrequency(uint32_t f) {
   Log("Select PRST %s", gCurrentPreset.name);
   int8_t i = PRESET_IndexOf(gCurrentPreset);
   if (i >= 0) {
-    gSettings.activePreset = i;
+    gSettings.activePreset = presetChannel[i];
   }
   return i;
 }
 
 bool PRESETS_Load(void) {
-  int16_t i;
-  for (i = 0; i < CHANNELS_GetCountMax() && presetlistSize < PRESETS_COUNT_MAX;
-       ++i) {
-    CHMeta meta;
-    EEPROM_ReadBuffer(GetChannelOffset(i) + offsetof(CH, meta), &meta, 1);
-    if (meta.type == TYPE_PRESET) {
-      CHANNELS_Load(CHANNELS_GetCountMax() - 2 - PRESETS_COUNT_MAX +
-                        presetlistSize,
-                    &defaultPresets[presetlistSize]);
-      Log("Load PRST %s", defaultPresets[presetlistSize].name);
-      presetlistSize++;
+  CHMeta meta;
+  for (int16_t chNum = CHANNELS_GetCountMax() - 2; chNum >= 0; --chNum) {
+    EEPROM_ReadBuffer(GetChannelOffset(chNum) + offsetof(CH, meta), &meta, 1);
+    if (meta.type != TYPE_PRESET) {
+      continue;
+    }
+
+    Log("Load PRST %s", defaultPresets[presetlistSize].name);
+    CHANNELS_Load(chNum, &defaultPresets[presetlistSize]);
+
+    presetChannel[presetlistSize] = chNum;
+
+    presetlistSize++;
+
+    if (presetlistSize >= PRESETS_COUNT_MAX) {
+      break;
     }
   }
   return true;

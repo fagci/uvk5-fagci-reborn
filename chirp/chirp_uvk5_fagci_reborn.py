@@ -791,14 +791,12 @@ PATCH_BLOCKS = 1979
 CH_SIZE = 23
 
 EEPROM_SIZES = [
-    8192,  # 000
-    8192,  # 001
-    8192,  # 010
-    16384,  # 011
-    32768,  # 100
-    65536,  # 101
-    131072,  # 110
-    262144,  # 111
+    8192,  
+    16384, 
+    32768, 
+    65536, 
+    131072,
+    262144,
 ]
 
 RADIO_LIST = [
@@ -907,14 +905,12 @@ TX_OFFSET_NAMES = ["Unset", "+", "-"]
 TX_CODE_TYPES = RX_CODE_TYPES = ["None", "CTCSS", "DCS", "-DCS"]
 
 EEPROM_TYPE_NAMES = [
-    "none 1",  # 000
-    "none 2",  # 001
-    "BL24C64 (stock)",  # 010
-    "BL24C128",  # 011
-    "BL24C256",  # 100
-    "BL24C512",  # 101
-    "BL24C1024",  # 110
-    "M24M02 (x1)",  # 111
+    "BL24C64 (stock)",
+    "BL24C128",
+    "BL24C256",
+    "BL24C512",
+    "BL24C1024",
+    "M24M02 (x1)",
 ]
 
 APP_LIST = [
