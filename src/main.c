@@ -22,8 +22,6 @@
 static void Boot(AppType_t appToRun) {
   RADIO_SetupRegisters();
 
-  Log("Has SI: %u", RADIO_HasSi());
-
   SVC_Toggle(SVC_KEYBOARD, true, 10);
   SVC_Toggle(SVC_LISTEN, true, 10);
   SVC_Toggle(SVC_APPS, true, 1);
@@ -95,6 +93,8 @@ void Main(void) {
 
   gSettings.contrast = 6;
   BOARD_Init();
+  hasSi = RADIO_HasSi();
+  Log("hasSi=%u", hasSi);
 
   BACKLIGHT_SetBrightness(7);
 

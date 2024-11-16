@@ -38,7 +38,7 @@ static MenuItem menu[] = {
     {"TX offset", M_TX_OFFSET, 0},
     {"TX offset dir", M_TX_OFFSET_DIR, ARRAY_SIZE(TX_OFFSET_NAMES)},
     {"TX power", M_F_TXP, ARRAY_SIZE(TX_POWER_NAMES)},
-    {"Radio", M_RADIO, ARRAY_SIZE(radioNames)},
+    {"Radio", M_RADIO, 2},
     {"Scrambler", M_SCRAMBLER, 16},
     {"Enable TX", M_TX, 2},
     {"Readonly", M_READONLY, 2},
@@ -52,7 +52,10 @@ static void getMenuItemValue(PresetCfgMenu type, char *Output) {
   uint32_t fe = gChEd.txF;
   switch (type) {
   case M_RADIO:
-    strncpy(Output, radioNames[gChEd.radio], 31);
+    strncpy(Output,
+            radioNames[gChEd.radio == RADIO_BK1080 && hasSi ? RADIO_SI4732
+                                                            : gChEd.radio],
+            31);
     break;
   case M_START:
     sprintf(Output, "%lu.%03lu", fs / MHZ, fs / 100 % 1000);
@@ -168,7 +171,8 @@ static void acceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
     gChEd.code.tx.value = subMenuIndex;
     break;
   case M_RADIO:
-    gChEd.radio = subMenuIndex;
+    gChEd.radio = subMenuIndex == 1 && hasSi ? RADIO_SI4732 : subMenuIndex;
+    Log("Set radio = %u, indexWas = %u", gChEd.radio, subMenuIndex);
     break;
   case M_SCRAMBLER:
     gChEd.scrambler = subMenuIndex;
@@ -185,7 +189,7 @@ static void acceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
 
   switch (gChEd.meta.type) {
   case TYPE_VFO:
-    *radio = gChEd;
+    gVFO[gSettings.activeVFO] = gChEd;
     RADIO_SetupByCurrentVFO();
     break;
   case TYPE_CH:
@@ -199,7 +203,7 @@ static void setInitialSubmenuIndex(void) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_RADIO:
-    subMenuIndex = gChEd.radio;
+    subMenuIndex = gChEd.radio == RADIO_BK4819 ? 0 : 1;
     break;
   case M_BW:
     subMenuIndex = gChEd.bw;
@@ -288,7 +292,9 @@ static void updateTxCodeListSize() {
 static void getSubmenuItemText(uint16_t index, char *name) {
   switch (menu[menuIndex].type) {
   case M_RADIO:
-    strncpy(name, radioNames[index], 31);
+    strncpy(name,
+            radioNames[index == RADIO_BK1080 && hasSi ? RADIO_SI4732 : index],
+            31);
     return;
   case M_MODULATION:
     strncpy(name, modulationTypeOptions[index], 31);
@@ -358,7 +364,7 @@ void CHCFG_init(void) {
 
 void CHCFG_deinit(void) {
   if (gChEd.meta.type == TYPE_VFO) {
-    *radio = gChEd;
+    gVFO[gSettings.activeVFO] = gChEd;
     RADIO_SaveCurrentVFO();
   }
   gChNum = -1;

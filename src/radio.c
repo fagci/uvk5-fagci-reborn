@@ -22,7 +22,6 @@
 
 CH *radio;
 CH gVFO[2] = {0};
-CH gVFOPresets[2];
 
 Loot gLoot[2] = {0};
 
@@ -30,6 +29,8 @@ bool gIsListening = false;
 bool gMonitorMode = false;
 TXState gTxState = TX_UNKNOWN;
 bool gShowAllRSSI = false;
+
+bool hasSi = false;
 
 static uint8_t oldRadio = 255;
 static uint32_t lastTailTone = 0;
@@ -552,12 +553,10 @@ void RADIO_SwitchRadio() {
 }
 
 void RADIO_SetupByCurrentVFO(void) {
-  Log("Setup by current VFO");
+  Log("Setup by current VFO (f=%u, radio=%u)", radio->rxF, radio->radio);
   uint32_t f = radio->rxF;
   lastMsmUpdate = 0;
-  Log("Preset by f %u", f);
   PRESET_SelectByFrequency(f);
-  gVFOPresets[gSettings.activeVFO] = gCurrentPreset;
 
   Log("Switch radio");
   RADIO_SwitchRadio();
@@ -590,7 +589,7 @@ void RADIO_TuneToSave(uint32_t f) {
 }
 
 void RADIO_SaveCurrentVFO(void) {
-  uint8_t chNum = CHANNELS_GetCountMax() - 2 + gSettings.activeVFO;
+  int16_t chNum = CHANNELS_GetCountMax() - 2 + gSettings.activeVFO;
   Log("save current vfo at %u", chNum);
   CHANNELS_Save(chNum, radio);
 }
@@ -609,19 +608,20 @@ void RADIO_SelectPresetSave(int8_t num) {
 }
 
 void RADIO_LoadCurrentVFO(void) {
-  Log("Load VFOs");
   for (uint8_t i = 0; i < 2; ++i) {
     Log("Load VFO %u", i + 1);
     CHANNELS_Load(CHANNELS_GetCountMax() - 2 + i, &gVFO[i]);
+    Log("gVFO(%u)= (f=%u, radio=%u)", i + 1, gVFO[i].rxF, gVFO[i].radio);
     if (gVFO[i].channel >= 0) {
       RADIO_VfoLoadCH(i);
     }
-    gVFOPresets[i] = PRESET_ByFrequency(gVFO[i].rxF);
 
     LOOT_Replace(&gLoot[i], gVFO[i].rxF);
   }
 
   radio = &gVFO[gSettings.activeVFO];
+  Log("radio(VFO%u)= (f=%u, radio=%u)", gSettings.activeVFO + 1, radio->rxF,
+      radio->radio);
   RADIO_SetupByCurrentVFO();
 }
 

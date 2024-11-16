@@ -19,7 +19,6 @@ typedef enum {
 
 extern CH *radio;
 extern CH gVFO[2];
-extern CH gVFOPresets[2];
 
 extern Loot gLoot[2];
 
@@ -27,6 +26,8 @@ extern bool gIsListening;
 extern bool gMonitorMode;
 extern TXState gTxState;
 extern bool gShowAllRSSI;
+
+extern bool hasSi;
 
 extern const uint16_t StepFrequencyTable[15];
 extern const char *modulationTypeOptions[8];
