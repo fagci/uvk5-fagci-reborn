@@ -161,11 +161,13 @@ static void setSI4732Modulation(ModulationType mod) {
 }
 
 static void onVfoUpdate(void) {
+  Log("VFO sav in 2s...");
   TaskRemove(RADIO_SaveCurrentVFO);
   TaskAdd("VFO sav", RADIO_SaveCurrentVFO, 2000, false, 0);
 }
 
 static void onPresetUpdate(void) {
+  Log("PRESET sav in 2s...");
   TaskRemove(PRESETS_SaveCurrent);
   TaskAdd("PRS sav", PRESETS_SaveCurrent, 2000, false, 0);
 }
@@ -654,7 +656,6 @@ void RADIO_SetGain(uint8_t gainIndex) {
   default:
     break;
   }
-  onVfoUpdate();
 }
 
 void RADIO_SetFilterBandwidth(BK4819_FilterBandwidth_t bw) {
@@ -945,7 +946,7 @@ static void selectPreset(bool next) {
     PRESETS_SelectPresetRelative(next);
     while (gSettings.activePreset != index) {
       if (sl == 15 ||
-          (gCurrentPreset.memoryBanks & scanlistMask) == scanlistMask) {
+          (gCurrentPreset.scanlists & scanlistMask) == scanlistMask) {
         return;
       }
       PRESETS_SelectPresetRelative(next);

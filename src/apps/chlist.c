@@ -63,7 +63,7 @@ static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
     char scanlistsStr[9] = "";
     for (uint8_t n = 0; n < 8; ++n) {
       scanlistsStr[n] =
-          ch.memoryBanks & (1 << n) ? (n == 7 ? 'X' : '1' + n) : '-';
+          ch.scanlists & (1 << n) ? (n == 7 ? 'X' : '1' + n) : '-';
     }
     PrintSmallEx(LCD_WIDTH - 5, y + 8, POS_R, C_INVERT, "%s", scanlistsStr);
   }
@@ -73,7 +73,7 @@ static void setMenuIndex(uint16_t i) { channelIndex = i - 1; }
 
 static void saveNamed() {
   strncpy(gChEd.name, gTextinputText, 9);
-  gChEd.memoryBanks = 0;
+  gChEd.scanlists = 0;
   if (gChEd.meta.type == TYPE_VFO) {
     gChEd.meta.type = TYPE_CH;
   }

@@ -108,7 +108,7 @@ static void toggleScanlist(uint16_t idx, uint8_t n) {
     _chNum = idx;
   }
   CHANNELS_Load(_chNum, &_ch);
-  _ch.memoryBanks ^= 1 << n;
+  _ch.scanlists ^= 1 << n;
   CHANNELS_Save(_chNum, &_ch);
 }
 

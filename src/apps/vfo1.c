@@ -193,7 +193,7 @@ static void selectFirstPresetFromScanlist() {
   uint8_t scanlistMask = 1 << sl;
   for (uint8_t i = 0; i < PRESETS_COUNT_MAX; ++i) {
     if (sl == 15 ||
-        (PRESETS_Item(i).memoryBanks & scanlistMask) == scanlistMask) {
+        (PRESETS_Item(i).scanlists & scanlistMask) == scanlistMask) {
       PRESET_Select(i);
       RADIO_TuneTo(gCurrentPreset.rxF);
       return;

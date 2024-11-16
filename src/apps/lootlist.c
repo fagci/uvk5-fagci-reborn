@@ -175,7 +175,7 @@ static void saveLootToCh(const Loot *loot, int16_t chnum, uint8_t scanlist) {
           },
       .radio = p.radio,
       .modulation = p.modulation,
-      .memoryBanks = 1 << scanlist,
+      .scanlists = 1 << scanlist,
       .power = p.power,
       .bw = p.bw,
   };

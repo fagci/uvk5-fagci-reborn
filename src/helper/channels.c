@@ -13,7 +13,7 @@ uint16_t gScanlist[SCANLIST_MAX] = {0};
 static uint16_t presetChannel[PRESETS_COUNT_MAX] = {0};
 
 static const uint8_t CH_NAME_OFFSET = offsetof(CH, name);
-static const uint8_t CH_BANKS_OFFSET = offsetof(CH, memoryBanks);
+static const uint8_t CH_BANKS_OFFSET = offsetof(CH, scanlists);
 
 Preset gCurrentPreset;
 
@@ -575,7 +575,7 @@ uint16_t CHANNELS_GetCountMax(void) {
 
 void CHANNELS_Load(int16_t num, CH *p) {
   if (num >= 0) {
-    Log("Load CH%u: %s %u f=%u", num, p->name, p->rxF);
+    Log("Load CH%u: %s f=%u", num, p->name, p->rxF);
     EEPROM_ReadBuffer(GetChannelOffset(num), p, CH_SIZE);
   }
 }

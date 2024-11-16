@@ -218,7 +218,7 @@ typedef struct {
   // Common fields
   CHMeta meta;
   union {
-    uint16_t memoryBanks;
+    uint16_t scanlists;
     int16_t channel;
   };
   char name[10];
@@ -237,8 +237,8 @@ typedef struct {
   TXOutputPower power : 2;
   bool allowTx : 1;
 
-  Squelch squelch;
   uint8_t scrambler : 4;
+  Squelch squelch;
 
   union {
     // Only VFO/MR
@@ -246,6 +246,7 @@ typedef struct {
 
     // Only PRESET
     struct {
+      uint8_t bank;
       PowerCalibration powCalib;
       uint32_t lastUsedFreq : 27;
     } misc;
@@ -253,10 +254,10 @@ typedef struct {
 
   uint8_t gainIndex : 5; // Common rest
 } __attribute__((packed)) CH;
+// getsize(CH);
 typedef CH Band;
 typedef CH VFO;
 typedef CH Preset;
-// getsize(CH)
 
 #define SETTINGS_OFFSET (0)
 #define SETTINGS_SIZE sizeof(Settings)
