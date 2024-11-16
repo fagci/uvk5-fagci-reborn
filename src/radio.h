@@ -93,4 +93,6 @@ void RADIO_ToggleBK1080(bool on);
 Loot *RADIO_UpdateMeasurements();
 bool RADIO_UpdateMeasurementsEx(Loot *dest);
 
+bool RADIO_HasSi();
+
 #endif /* end of include guard: RADIO_H */

@@ -1085,3 +1085,5 @@ void RADIO_ToggleTxPower(void) {
 
   onVfoUpdate();
 }
+
+bool RADIO_HasSi() { return BK1080_ReadRegister(1) != 0x1080; }
