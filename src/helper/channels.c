@@ -122,7 +122,7 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
     },
     (Preset){
         .rxF = 11800000,
-        .txF = 13499999,
+        .txF = 13699999,
         .name = "Air",
         .step = STEP_12_5kHz,
         .modulation = MOD_AM,
@@ -134,7 +134,7 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         },
     },
     (Preset){
-        .rxF = 13500000,
+        .rxF = 13700000,
         .txF = 14399999,
         .name = "Business1",
         .step = STEP_12_5kHz,

@@ -571,7 +571,25 @@ void VFO1_render(void) {
   }
 
   if (gVfo1ProMode) {
-    UI_FSmall(gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(radio->rxF));
+    SQL sq = GetSql(radio->squelch.value);
+
+    PrintSmall(0, 12, "R %u", RADIO_GetRSSI());
+    PrintSmall(30, 12, "N %u", BK4819_GetNoise());
+    PrintSmall(60, 12, "G %u", BK4819_GetGlitch());
+    PrintSmall(90, 12, "SNR %u", RADIO_GetSNR());
+
+    PrintSmallEx(LCD_WIDTH - 1, 12, POS_R, C_FILL, "SQ %u",
+                 radio->squelch.value);
+
+    PrintSmall(0, 18, "%u/%u", sq.ro, sq.rc);
+    PrintSmall(30, 18, "%u/%u", sq.no, sq.nc);
+    PrintSmall(60, 18, "%u/%u", sq.go, sq.gc);
+
+    PrintSmallEx(LCD_WIDTH - 1, 18, POS_R, true, RADIO_GetBWName(radio->bw));
+
+    const uint32_t step = StepFrequencyTable[radio->step];
+    PrintSmallEx(0, BASE, POS_L, C_FILL, "STP %d.%02d", step / 100, step % 100);
+
     DrawRegs();
   }
 }

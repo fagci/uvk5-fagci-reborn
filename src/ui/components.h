@@ -9,8 +9,6 @@
 
 void UI_Battery(uint8_t Level);
 void UI_RSSIBar(uint16_t rssi, uint8_t snr, uint32_t f, uint8_t y);
-void UI_FSmall(uint32_t f);
-void UI_FSmallest(uint32_t f, uint8_t x, uint8_t y);
 void UI_DrawScrollBar(const uint16_t size, const uint16_t currentIndex,
                       const uint8_t linesCount);
 void UI_DrawTicks(uint8_t y, const Band *band);

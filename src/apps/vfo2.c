@@ -93,7 +93,7 @@ static void render2VFOPart(uint8_t i) {
     PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,
                  est % 60, loot->duration / 1000);
   } else {
-    PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%d.%02dk", step / 100,
+    PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%d.%02d", step / 100,
                  step % 100);
   }
 }

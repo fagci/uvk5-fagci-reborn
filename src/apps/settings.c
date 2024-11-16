@@ -45,7 +45,6 @@ typedef enum {
   M_PTT_LOCK,
   M_DTMF_DECODE,
   M_CH_DISP_MODE,
-  M_RESET,
 } Menu;
 
 static uint8_t menuIndex = 0;
@@ -69,13 +68,13 @@ static const MenuItem menu[] = {
     {"SCAN stay t", M_SQL_TO_CLOSE, ARRAY_SIZE(SCAN_TIMEOUT_NAMES)},
     {"SCAN skip X_X", M_SKIP_GARBAGE_FREQS, 2},
     {"DW", M_DW, 3},
+    {"Contrast", M_CONTRAST, 16},
     {"Backlight", M_BRIGHTNESS, 16},
     {"BL time", M_BL_TIME, ARRAY_SIZE(BL_TIME_VALUES)},
     {"BL SQL mode", M_BL_SQL, ARRAY_SIZE(BL_SQL_MODE_NAMES)},
-    {"Contrast", M_CONTRAST, 16},
     {"DTMF decode", M_PTT_LOCK, 2},
-    {"Upconv", M_UPCONVERTER, 0},
     {"SI power off", M_SI4732_POWER_OFF, 2},
+    {"Upconv", M_UPCONVERTER, 0},
     {"Filter bound", M_FLT_BOUND, 2},
     {"BAT cal", M_BAT_CAL, 255},
     {"BAT type", M_BAT_TYPE, ARRAY_SIZE(BATTERY_TYPE_NAMES)},
@@ -86,7 +85,6 @@ static const MenuItem menu[] = {
     {"Roger", M_ROGER, 4},
     {"Tone local", M_TONE_LOCAL, 2},
     {"Lock PTT", M_PTT_LOCK, 2},
-    {"EEPROM reset", M_RESET, 2},
 };
 
 static const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
@@ -138,7 +136,6 @@ static void getSubmenuItemText(uint16_t index, char *name) {
   case M_BAT_STYLE:
     strncpy(name, BATTERY_STYLE_NAMES[index], 31);
     return;
-  case M_RESET:
   case M_TONE_LOCAL:
   case M_PTT_LOCK:
   case M_SKIP_GARBAGE_FREQS:
@@ -273,11 +270,6 @@ static void accept(void) {
   case M_CH_DISP_MODE:
     gSettings.chDisplayMode = subMenuIndex;
     SETTINGS_Save();
-    break;
-  case M_RESET:
-    if (subMenuIndex) {
-      APPS_run(APP_RESET);
-    }
     break;
   default:
     break;
