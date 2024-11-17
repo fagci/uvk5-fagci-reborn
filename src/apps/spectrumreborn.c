@@ -85,6 +85,7 @@ static void scanFn(bool _) {
       msm.f = radio->rxF;
     } else {
       // rewind
+      Log("rewind to prst index %u", oldPresetIndex);
       updateStats();
       PRESET_Select(oldPresetIndex);
     }
@@ -118,6 +119,7 @@ static void startNewScan() {
 
   if (gSettings.activePreset != oldPresetIndex) {
     init();
+    Log("oldPresetIndex(%u) = %u", oldPresetIndex, gSettings.activePreset);
     oldPresetIndex = gSettings.activePreset;
     gLastActiveLoot = NULL;
   } else {

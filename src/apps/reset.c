@@ -49,6 +49,7 @@ void RESET_Update(void) {
     VFO *vfo = &gVFO[vfosWrote];
     vfo->channel = -1;
     vfo->modulation = MOD_FM;
+    vfo->bw = BK4819_FILTER_BW_12k;
     vfo->radio = RADIO_BK4819;
     vfo->txF = 0;
     vfo->offsetDir = OFFSET_NONE;
