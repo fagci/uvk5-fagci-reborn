@@ -550,11 +550,9 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
 };
 // char (*__defpres)[sizeof(defaultPresets)/sizeof(Preset)] = 1;
 
-static uint32_t getChannelsStart() { return CHANNELS_OFFSET; }
-
 static uint32_t getChannelsEnd() {
   uint32_t eepromSize = SETTINGS_GetEEPROMSize();
-  uint32_t minSizeWithPatch = getChannelsStart() + CH_SIZE + PATCH_SIZE;
+  uint32_t minSizeWithPatch = CHANNELS_OFFSET + CH_SIZE + PATCH_SIZE;
   if (eepromSize < minSizeWithPatch) {
     return eepromSize;
   }
@@ -566,7 +564,7 @@ static uint32_t GetChannelOffset(int16_t num) {
 }
 
 uint16_t CHANNELS_GetCountMax(void) {
-  uint16_t n = (getChannelsEnd() - getChannelsStart()) / CH_SIZE;
+  uint16_t n = (getChannelsEnd() - CHANNELS_OFFSET) / CH_SIZE;
   return n < SCANLIST_MAX ? n : SCANLIST_MAX;
 }
 
@@ -645,7 +643,7 @@ void CHANNELS_LoadScanlist(uint8_t n) {
     }
     if (n == 15 || (CHANNELS_Scanlists(i) & scanlistMask) == scanlistMask) {
       gScanlist[gScanlistSize] = i;
-      Log("gScanlist[%u]=%u", gScanlistSize, i);
+      // Log("gScanlist[%u]=%u", gScanlistSize, i);
       gScanlistSize++;
     }
   }
@@ -689,28 +687,11 @@ CHMeta CHANNELS_GetMeta(int16_t num) {
   return meta;
 }
 
-void PRESETS_SaveCurrent(void) {
-  CHANNELS_Save(presetChannel[gSettings.activePreset], &gCurrentPreset);
-}
+// --- PRESETS ---
 
 int8_t PRESETS_Size(void) { return presetlistSize < 0 ? 0 : presetlistSize; }
 
 Preset PRESETS_Item(int8_t i) { return defaultPresets[i]; }
-
-void PRESETS_SelectPresetRelative(bool next) {
-  int8_t presetIndex = gSettings.activePreset;
-  IncDecI8(&presetIndex, 0, PRESETS_Size(), next ? 1 : -1);
-  gSettings.activePreset = presetIndex;
-  gCurrentPreset = PRESETS_Item(gSettings.activePreset);
-  radio->rxF = gCurrentPreset.rxF;
-  SETTINGS_DelayedSave();
-}
-
-void PRESET_Select(int8_t i) {
-  gCurrentPreset = PRESETS_Item(i);
-  gSettings.activePreset = i;
-  Log("[i] PRST Select %u", i);
-}
 
 bool PRESET_InRange(const uint32_t f, const Preset p) {
   return f >= p.rxF && f <= p.txF;
@@ -743,6 +724,21 @@ Preset PRESET_ByFrequency(uint32_t f) {
     return PRESETS_Item(index);
   }
   return defaultPreset;
+}
+
+void PRESET_Select(int8_t i) {
+  gCurrentPreset = PRESETS_Item(i);
+  gSettings.activePreset = i;
+  Log("[i] PRST Select %u", i);
+}
+
+void PRESETS_SelectPresetRelative(bool next) {
+  int8_t presetIndex = gSettings.activePreset;
+  IncDecI8(&presetIndex, 0, PRESETS_Size(), next ? 1 : -1);
+  gSettings.activePreset = presetIndex;
+  gCurrentPreset = PRESETS_Item(gSettings.activePreset);
+  radio->rxF = gCurrentPreset.rxF;
+  SETTINGS_DelayedSave();
 }
 
 int8_t PRESET_SelectByFrequency(uint32_t f) {
@@ -784,4 +780,8 @@ bool PRESETS_Load(void) {
     }
   }
   return true;
+}
+
+void PRESETS_SaveCurrent(void) {
+  CHANNELS_Save(presetChannel[gSettings.activePreset], &gCurrentPreset);
 }

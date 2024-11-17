@@ -104,7 +104,78 @@ static const SI47XX_FilterBW SI_BW_MAP_AMFM[] = {
     [BK4819_FILTER_BW_17k] = SI47XX_BW_6_kHz,
 };
 
-Radio RADIO_GetRadio() { return radio->radio; }
+static ModulationType MODS_BK4819[] = {
+    MOD_FM,
+    MOD_AM,
+    MOD_USB,
+    MOD_WFM,
+};
+
+static ModulationType MODS_BK1080[] = {
+    MOD_WFM,
+};
+
+static ModulationType MODS_SI4732_HF[] = {
+    MOD_AM,
+    MOD_LSB,
+    MOD_USB,
+};
+
+static ModulationType MODS_SI4732_WFM[] = {
+    MOD_WFM,
+};
+
+static int8_t indexOfMod(ModulationType *arr, uint8_t n, ModulationType t) {
+  for (uint8_t i = 0; i < n; ++i) {
+    if (arr[i] == t) {
+      return i;
+    }
+  }
+  return 0;
+}
+
+static ModulationType getNextModulation() {
+  uint8_t sz;
+  ModulationType *items;
+
+  switch (RADIO_GetRadio()) {
+  case RADIO_BK4819:
+    items = MODS_BK4819;
+    sz = ARRAY_SIZE(MODS_BK4819);
+    break;
+  case RADIO_BK1080:
+    items = MODS_BK1080;
+    sz = ARRAY_SIZE(MODS_BK1080);
+    break;
+  default:
+    if (radio->rxF <= 3000000) {
+      items = MODS_SI4732_HF;
+      sz = ARRAY_SIZE(MODS_SI4732_HF);
+    } else {
+      items = MODS_SI4732_WFM;
+      sz = ARRAY_SIZE(MODS_SI4732_WFM);
+    }
+    break;
+  }
+  int8_t curIndex =
+      indexOfMod(items, ARRAY_SIZE(MODS_BK4819), RADIO_GetModulation());
+  if (curIndex >= 0) {
+    IncDecI8(&curIndex, 0, sz, 1);
+  } else {
+    return items[0];
+  }
+  return items[curIndex];
+}
+
+static void loadVFO(uint8_t num) {
+  CHANNELS_Load(CHANNELS_GetCountMax() - 2 + num, &gVFO[num]);
+}
+
+static void saveVFO(uint8_t num) {
+  CHANNELS_Save(CHANNELS_GetCountMax() - 2 + num, &gVFO[num]);
+}
+
+inline Radio RADIO_GetRadio() { return radio->radio; }
 
 ModulationType RADIO_GetModulation() { return radio->modulation; }
 
@@ -121,13 +192,8 @@ const char *RADIO_GetBWName(Radio r, BK4819_FilterBandwidth_t i) {
 }
 
 void RADIO_SetupRegisters(void) {
-  /* GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
-  BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN, false);
-  BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false); */
   BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, false);
-  // BK4819_SetupPowerAmplifier(0, 0); // 0 is default
-
-  // BK4819_SetFilterBandwidth(BK4819_FILTER_BW_14k);
+  BK4819_SetupPowerAmplifier(0, 0); // 0 is default, but...
 
   while (BK4819_ReadRegister(BK4819_REG_0C) & 1U) {
     BK4819_WriteRegister(BK4819_REG_02, 0);
@@ -147,16 +213,10 @@ void RADIO_SetupRegisters(void) {
           (56 << 4) |  // AF Rx Gain-2
           (8 << 0));   // AF DAC Gain (after Gain-1 and Gain-2)
 
-  // BK4819_DisableScramble(); // default is off
-  // BK4819_DisableVox() // default is off;
   BK4819_DisableDTMF();
 
-  // BK4819_WriteRegister(BK4819_REG_3F, 0);
-  /* BK4819_WriteRegister(BK4819_REG_3F, BK4819_REG_3F_SQUELCH_FOUND |
-                                          BK4819_REG_3F_SQUELCH_LOST); */
-  BK4819_WriteRegister(0x40, (BK4819_ReadRegister(0x40) & ~(0b11111111111)) |
-                                 1000 | (1 << 12));
-  // BK4819_WriteRegister(0x40, (1 << 12) | (1450));
+  BK4819_WriteRegister(0x40, (BK4819_ReadRegister(0x40) & ~(0x7FF)) | 1000 |
+                                 (1 << 12));
 }
 
 static void setSI4732Modulation(ModulationType mod) {
@@ -623,14 +683,6 @@ void RADIO_SelectPresetSave(int8_t num) {
   }
 }
 
-static void loadVFO(uint8_t num) {
-  CHANNELS_Load(CHANNELS_GetCountMax() - 2 + num, &gVFO[num]);
-}
-
-static void saveVFO(uint8_t num) {
-  CHANNELS_Save(CHANNELS_GetCountMax() - 2 + num, &gVFO[num]);
-}
-
 void RADIO_LoadCurrentVFO(void) {
   for (uint8_t i = 0; i < 2; ++i) {
     loadVFO(i);
@@ -999,67 +1051,6 @@ bool RADIO_NextPresetFreqXBandEx(bool next, bool tune, bool precise) {
 
 void RADIO_NextPresetFreqXBand(bool next) {
   RADIO_NextPresetFreqXBandEx(next, true, true);
-}
-
-static ModulationType MODS_BK4819[] = {
-    MOD_FM,
-    MOD_AM,
-    MOD_USB,
-    MOD_WFM,
-};
-
-static ModulationType MODS_BK1080[] = {
-    MOD_WFM,
-};
-
-static ModulationType MODS_SI4732_HF[] = {
-    MOD_AM,
-    MOD_LSB,
-    MOD_USB,
-};
-
-static ModulationType MODS_SI4732_WFM[] = {
-    MOD_WFM,
-};
-
-static int8_t indexOf(ModulationType *arr, uint8_t n, ModulationType t) {
-  for (uint8_t i = 0; i < n; ++i) {
-    if (arr[i] == t) {
-      return i;
-    }
-  }
-  return 0;
-}
-
-static ModulationType getNextModulation() {
-  const Radio r = RADIO_GetRadio();
-  uint8_t sz;
-  ModulationType *items;
-
-  if (r == RADIO_BK4819) {
-    items = MODS_BK4819;
-    sz = ARRAY_SIZE(MODS_BK4819);
-  } else if (r == RADIO_BK1080) {
-    items = MODS_BK1080;
-    sz = ARRAY_SIZE(MODS_BK1080);
-  } else {
-    // si4732
-    if (radio->rxF <= 3000000) {
-      items = MODS_SI4732_HF;
-      sz = ARRAY_SIZE(MODS_SI4732_HF);
-    } else {
-      items = MODS_SI4732_WFM;
-      sz = ARRAY_SIZE(MODS_SI4732_WFM);
-    }
-  }
-  int8_t curIndex =
-      indexOf(items, ARRAY_SIZE(MODS_BK4819), RADIO_GetModulation());
-  if (curIndex >= 0) {
-    IncDecI8(&curIndex, 0, sz, 1);
-  } else {
-    return items[0];
-  }
-  return items[curIndex];
 }
 
 void RADIO_ToggleModulation(void) {
