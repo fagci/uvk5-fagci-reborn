@@ -72,12 +72,21 @@ void RESET_Update(void) {
     p->squelch.value = 4;
     p->squelch.type = SQUELCH_RSSI_NOISE_GLITCH;
     p->meta.type = TYPE_PRESET;
-    if (p->txF < 3000000) {
-      p->radio = RADIO_SI4732; // TODO: if SI existing
-                               // default is RADIO_BK4819
+    p->radio = RADIO_BK4819;
+    if (hasSi) {
+      if (p->txF < 3000000) {
+        p->radio = RADIO_SI4732;
+      }
+    } else if (p->txF < 1500000) {
+      // skip not supported presets
+      presetsWrote++;
+      return;
     }
-    CHANNELS_Save(channelsMax - 2 - ARRAY_SIZE(defaultPresets) + presetsWrote,
-                  p);
+
+    if (p->rxF >= 6400000 && p->txF <= 10800000) {
+      p->radio = hasSi ? RADIO_SI4732 : RADIO_BK1080;
+    }
+    CHANNELS_Save(channelsMax - 2 - presetsWrote - 1, p);
     presetsWrote++;
     return;
   }
