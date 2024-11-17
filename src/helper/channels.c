@@ -12,7 +12,6 @@ static int8_t presetlistSize = 0;
 uint16_t gScanlist[SCANLIST_MAX] = {0};
 static uint16_t presetChannel[PRESETS_COUNT_MAX] = {0};
 
-static const uint8_t CH_NAME_OFFSET = offsetof(CH, name);
 static const uint8_t CH_BANKS_OFFSET = offsetof(CH, scanlists);
 
 Preset gCurrentPreset;
@@ -22,8 +21,11 @@ Preset defaultPreset = {
     .name = "default",
     .step = STEP_25_0kHz,
     .bw = BK4819_FILTER_BW_12k,
-    .squelch.type = SQUELCH_RSSI_NOISE_GLITCH,
-    .squelch = 3,
+    .squelch =
+        {
+            .type = SQUELCH_RSSI_NOISE_GLITCH,
+            .value = 4,
+        },
     .gainIndex = 18,
     .rxF = 0,
     .txF = 130000000,
@@ -549,10 +551,6 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
 };
 // char (*__defpres)[sizeof(defaultPresets)/sizeof(Preset)] = 1;
 
-static uint32_t presetsSizeBytes(void) {
-  return ARRAY_SIZE(defaultPresets) * CH_SIZE;
-}
-
 static uint32_t getChannelsStart() { return CHANNELS_OFFSET; }
 
 static uint32_t getChannelsEnd() {
@@ -687,7 +685,7 @@ uint32_t CHANNELS_GetChannel(CH *p, uint32_t f) {
 }
 
 void PRESETS_SaveCurrent(void) {
-  CHANNELS_Save(gSettings.activePreset, &gCurrentPreset);
+  CHANNELS_Save(presetChannel[gSettings.activePreset], &gCurrentPreset);
 }
 
 int8_t PRESETS_Size(void) { return presetlistSize < 0 ? 0 : presetlistSize; }
@@ -695,10 +693,9 @@ int8_t PRESETS_Size(void) { return presetlistSize < 0 ? 0 : presetlistSize; }
 Preset PRESETS_Item(int8_t i) { return defaultPresets[i]; }
 
 void PRESETS_SelectPresetRelative(bool next) {
-  int8_t activePreset = gSettings.activePreset;
-  Log("PRST Select CH=%u", gSettings.activePreset);
-  IncDecI8(&activePreset, 0, PRESETS_Size(), next ? 1 : -1);
-  gSettings.activePreset = activePreset;
+  int8_t presetIndex = gSettings.activePreset;
+  IncDecI8(&presetIndex, 0, PRESETS_Size(), next ? 1 : -1);
+  gSettings.activePreset = presetIndex;
   gCurrentPreset = PRESETS_Item(gSettings.activePreset);
   radio->rxF = gCurrentPreset.rxF;
   SETTINGS_DelayedSave();
@@ -711,7 +708,7 @@ int8_t PRESET_GetCurrentIndex(void) {
 
 void PRESET_Select(int8_t i) {
   gCurrentPreset = PRESETS_Item(i);
-  gSettings.activePreset = presetChannel[i];
+  gSettings.activePreset = i;
   Log("PRST Select %u, CH=%u", i, gSettings.activePreset);
 }
 
@@ -722,7 +719,7 @@ bool PRESET_InRange(const uint32_t f, const Preset p) {
 int8_t PRESET_IndexOf(Preset p) {
   for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
     Preset tmp = PRESETS_Item(i);
-    if (memcmp(&tmp, &p, sizeof(p))) {
+    if (memcmp(&tmp, &p, sizeof(p)) == 0) {
       return i;
     }
   }
@@ -731,7 +728,7 @@ int8_t PRESET_IndexOf(Preset p) {
 
 Preset PRESET_ByFrequency(uint32_t f) {
   uint32_t smallerBW = 134000000;
-  uint16_t index = -1;
+  int16_t index = -1;
   for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
     Preset item = PRESETS_Item(i);
     if (PRESET_InRange(f, item)) {
@@ -742,7 +739,7 @@ Preset PRESET_ByFrequency(uint32_t f) {
       }
     }
   }
-  if (index) {
+  if (index >= 0) {
     return PRESETS_Item(index);
   }
   return defaultPreset;
@@ -750,12 +747,24 @@ Preset PRESET_ByFrequency(uint32_t f) {
 
 int8_t PRESET_SelectByFrequency(uint32_t f) {
   gCurrentPreset = PRESET_ByFrequency(f);
-  Log("Select PRST %s", gCurrentPreset.name);
   int8_t i = PRESET_IndexOf(gCurrentPreset);
   if (i >= 0) {
-    gSettings.activePreset = presetChannel[i];
+    gSettings.activePreset = i;
   }
   return i;
+}
+
+void PRESETS_SelectPresetRelativeByScanlist(bool next) {
+  uint8_t index = gSettings.activePreset;
+  uint8_t sl = gSettings.currentScanlist;
+  uint8_t scanlistMask = 1 << sl;
+  PRESETS_SelectPresetRelative(next);
+  while (gSettings.activePreset != index) {
+    if (sl == 15 || (gCurrentPreset.scanlists & scanlistMask) == scanlistMask) {
+      return;
+    }
+    PRESETS_SelectPresetRelative(next);
+  }
 }
 
 CHMeta CHANNELS_GetMeta(int16_t num) {
@@ -770,7 +779,6 @@ bool PRESETS_Load(void) {
       continue;
     }
 
-    Log("Load PRST %s", defaultPresets[presetlistSize].name);
     CHANNELS_Load(chNum, &defaultPresets[presetlistSize]);
 
     presetChannel[presetlistSize] = chNum;

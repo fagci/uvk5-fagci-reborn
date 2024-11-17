@@ -30,6 +30,7 @@ int8_t PRESETS_Size();
 Preset PRESETS_Item(int8_t i);
 int8_t PRESET_IndexOf(Preset p);
 void PRESETS_SelectPresetRelative(bool next);
+void PRESETS_SelectPresetRelativeByScanlist(bool next);
 int8_t PRESET_GetCurrentIndex();
 void PRESET_Select(int8_t i);
 Preset PRESET_ByFrequency(uint32_t f);

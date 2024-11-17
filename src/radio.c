@@ -975,22 +975,6 @@ void RADIO_NextFreqNoClicks(bool next) {
   onVfoUpdate();
 }
 
-static void selectPreset(bool next) {
-  if (gSettings.crossBandScan) {
-    uint8_t index = gSettings.activePreset;
-    uint8_t sl = gSettings.currentScanlist;
-    uint8_t scanlistMask = 1 << sl;
-    PRESETS_SelectPresetRelative(next);
-    while (gSettings.activePreset != index) {
-      if (sl == 15 ||
-          (gCurrentPreset.scanlists & scanlistMask) == scanlistMask) {
-        return;
-      }
-      PRESETS_SelectPresetRelative(next);
-    }
-  }
-}
-
 bool RADIO_NextPresetFreqXBandEx(bool next, bool tune, bool precise) {
   uint32_t steps = CHANNELS_GetSteps(&gCurrentPreset);
   int64_t step = CHANNELS_GetChannel(&gCurrentPreset, radio->rxF);
@@ -1005,13 +989,17 @@ bool RADIO_NextPresetFreqXBandEx(bool next, bool tune, bool precise) {
   if (step < 0) {
     // get previous preset
     switchBand = true;
-    selectPreset(false);
+    if (gSettings.crossBandScan) {
+      PRESETS_SelectPresetRelativeByScanlist(false);
+    }
     steps = CHANNELS_GetSteps(&gCurrentPreset);
     step = steps - 1;
   } else if (step >= steps) {
     // get next preset
     switchBand = true;
-    selectPreset(true);
+    if (gSettings.crossBandScan) {
+      PRESETS_SelectPresetRelativeByScanlist(true);
+    }
     step = 0;
   }
   radio->rxF = CHANNELS_GetF(&gCurrentPreset, step);

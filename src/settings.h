@@ -145,7 +145,7 @@ typedef struct {
   uint8_t contrast : 4;
   AppType_t mainApp : 8;
 
-  int16_t activePreset : 8;
+  uint8_t activePreset : 8; // preset index
   uint16_t batteryCalibration : 12;
   BatteryType batteryType : 2;
   BatteryStyle batteryStyle : 2;
