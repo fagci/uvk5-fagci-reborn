@@ -222,37 +222,41 @@ typedef struct {
     int16_t channel;
   };
   char name[10];
-  uint32_t rxF : 27;
-  uint32_t txF : 27;
-  OffsetDirection offsetDir : 2; // =0 -> tx=rxF
-                                 // =1 -> tx=rxF+txF
-                                 // =2 -> tx=rxF-txF
-                                 // =4 -> tx=txF
-
-  // Common radio settings
-  Step step : 4;
-  ModulationType modulation : 4;
-  BK4819_FilterBandwidth_t bw : 4;
-  Radio radio : 2;
-  TXOutputPower power : 2;
-  bool allowTx : 1;
-
-  uint8_t scrambler : 4;
-  Squelch squelch;
-
   union {
-    // Only VFO/MR
-    CodeRXTX code;
-
-    // Only PRESET
     struct {
-      uint8_t bank;
-      PowerCalibration powCalib;
-      uint32_t lastUsedFreq : 27;
-    } misc;
-  };
+      uint32_t rxF : 27;
+      uint32_t txF : 27;
+      OffsetDirection offsetDir : 2; // =0 -> tx=rxF
+                                     // =1 -> tx=rxF+txF
+                                     // =2 -> tx=rxF-txF
+                                     // =4 -> tx=txF
 
-  uint8_t gainIndex : 5; // Common rest
+      // Common radio settings
+      Step step : 4;
+      ModulationType modulation : 4;
+      BK4819_FilterBandwidth_t bw : 4;
+      Radio radio : 2;
+      TXOutputPower power : 2;
+      bool allowTx : 1;
+
+      uint8_t scrambler : 4;
+      Squelch squelch;
+
+      union {
+        // Only VFO/MR
+        CodeRXTX code;
+
+        // Only PRESET
+        struct {
+          uint8_t bank;
+          PowerCalibration powCalib;
+          uint32_t lastUsedFreq : 27;
+        } misc;
+      };
+
+      uint8_t gainIndex : 5; // Common rest
+    } __attribute__((packed));
+  };
 } __attribute__((packed)) CH;
 // getsize(CH);
 typedef CH Band;

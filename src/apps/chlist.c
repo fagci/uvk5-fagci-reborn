@@ -131,7 +131,6 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_PTT:
       RADIO_TuneToCH(chNum);
-      RADIO_SaveCurrentVFO();
       gVfo1ProMode = true;
       APPS_run(APP_VFO1);
       return true;

@@ -67,7 +67,7 @@ static void getMenuItemValue(PresetCfgMenu type, char *Output) {
     strncpy(Output, gChEd.name, 31);
     break;
   case M_BW:
-    strncpy(Output, RADIO_GetBWName(gChEd.bw), 31);
+    strncpy(Output, RADIO_GetBWName(gChEd.radio, gChEd.bw), 31);
     break;
   case M_SQ_TYPE:
     strncpy(Output, sqTypeNames[gChEd.squelch.type], 31);
@@ -300,7 +300,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     strncpy(name, modulationTypeOptions[index], 31);
     return;
   case M_BW:
-    strncpy(name, RADIO_GetBWName(index), 15);
+    strncpy(name, RADIO_GetBWName(gChEd.radio, index), 15);
     return;
   case M_RX_CODE_TYPE:
     strncpy(name, TX_CODE_TYPES[index], 15);

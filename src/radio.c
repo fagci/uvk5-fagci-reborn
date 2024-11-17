@@ -11,6 +11,7 @@
 #include "driver/st7565.h"
 #include "driver/system.h"
 #include "driver/uart.h"
+#include "external/printf/printf.h"
 #include "helper/battery.h"
 #include "helper/channels.h"
 #include "helper/lootlist.h"
@@ -21,7 +22,16 @@
 #include "svc.h"
 
 CH *radio;
-CH gVFO[2] = {0};
+VFO gVFO[2] = {
+    (VFO){
+        .name = "VFO1",
+        .rxF = 14550000,
+    },
+    (VFO){
+        .name = "VFO2",
+        .rxF = 43307500,
+    },
+};
 
 Loot gLoot[2] = {0};
 
@@ -98,8 +108,8 @@ Radio RADIO_GetRadio() { return radio->radio; }
 
 ModulationType RADIO_GetModulation() { return radio->modulation; }
 
-const char *RADIO_GetBWName(BK4819_FilterBandwidth_t i) {
-  switch (RADIO_GetRadio()) {
+const char *RADIO_GetBWName(Radio r, BK4819_FilterBandwidth_t i) {
+  switch (r) {
   case RADIO_SI4732:
     if (RADIO_IsSSB()) {
       return bwNamesSiSSB[i];
@@ -571,6 +581,7 @@ void RADIO_SetupByCurrentVFO(void) {
 void RADIO_TuneTo(uint32_t f) {
   if (radio->channel != -1) {
     radio->channel = -1;
+    snprintf(radio->name, 5, "VFO%u", gSettings.activeVFO + 1);
     // radio->radio = RADIO_UNKNOWN;
     // radio->modulation = MOD_PRST;
   }
@@ -589,9 +600,21 @@ void RADIO_TuneToSave(uint32_t f) {
 }
 
 void RADIO_SaveCurrentVFO(void) {
-  int16_t chNum = CHANNELS_GetCountMax() - 2 + gSettings.activeVFO;
-  Log("save current vfo at %u", chNum);
-  CHANNELS_Save(chNum, radio);
+  int16_t vfoChNum = CHANNELS_GetCountMax() - 2 + gSettings.activeVFO;
+  Log("Save current vfo at %u", vfoChNum);
+  int16_t chToSave = radio->channel;
+  if (chToSave >= 0) {
+    // save only active channel number
+    // to load it instead of full VFO
+    // and to prevent overwrite VFO with MR
+    Log("--save only ch num");
+    VFO oldVfo;
+    CHANNELS_Load(vfoChNum, &oldVfo);
+    oldVfo.channel = chToSave;
+    CHANNELS_Save(vfoChNum, &oldVfo);
+    return;
+  }
+  CHANNELS_Save(vfoChNum, radio);
 }
 
 void RADIO_SelectPresetSave(int8_t num) {
@@ -607,10 +630,19 @@ void RADIO_SelectPresetSave(int8_t num) {
   }
 }
 
+static void loadVFO(uint8_t num) {
+  Log("Load VFO %u", num + 1);
+  CHANNELS_Load(CHANNELS_GetCountMax() - 2 + num, &gVFO[num]);
+}
+
+static void saveVFO(uint8_t num) {
+  Log("Save VFO %u", num + 1);
+  CHANNELS_Save(CHANNELS_GetCountMax() - 2 + num, &gVFO[num]);
+}
+
 void RADIO_LoadCurrentVFO(void) {
   for (uint8_t i = 0; i < 2; ++i) {
-    Log("Load VFO %u", i + 1);
-    CHANNELS_Load(CHANNELS_GetCountMax() - 2 + i, &gVFO[i]);
+    loadVFO(i);
     Log("gVFO(%u)= (f=%u, radio=%u)", i + 1, gVFO[i].rxF, gVFO[i].radio);
     if (gVFO[i].channel >= 0) {
       RADIO_VfoLoadCH(i);
@@ -865,11 +897,13 @@ void RADIO_VfoLoadCH(uint8_t i) {
   gVFO[i].channel = chNum;
 }
 
+// TODO:
+// keep CH in memory, not save in VFO, only save channel
 bool RADIO_TuneToCH(int32_t num) {
   if (CHANNELS_Existing(num)) {
     radio->channel = num;
     RADIO_VfoLoadCH(gSettings.activeVFO);
-    onVfoUpdate();
+    RADIO_SaveCurrentVFO();
     RADIO_SetupByCurrentVFO();
     return true;
   }
@@ -890,8 +924,11 @@ void RADIO_NextVFO(void) {
 
 void RADIO_ToggleVfoMR(void) {
   if (radio->channel >= 0) {
+    loadVFO(gSettings.activeVFO);
     radio->channel += 1; // 0 -> 1
     radio->channel *= -1;
+    saveVFO(gSettings.activeVFO);
+    RADIO_SetupByCurrentVFO();
   } else {
     radio->channel *= -1;
     radio->channel -= 1; // 1 -> 0

@@ -3,6 +3,7 @@
 #include "../external/CMSIS_5/Device/ARM/ARMCM0/Include/ARMCM0.h"
 #include "../helper/channels.h"
 #include "../helper/measurements.h"
+#include "../radio.h"
 #include "../settings.h"
 #include "../ui/graphics.h"
 
@@ -13,17 +14,6 @@ static uint8_t vfosWrote = 0;
 static bool settingsWrote = 0;
 
 static uint8_t eepromType = 255;
-
-static VFO defaultVFOs[2] = {
-    (VFO){
-        .name = "VFO 1",
-        .rxF = 14550000,
-    },
-    (VFO){
-        .name = "VFO 2",
-        .rxF = 43307500,
-    },
-};
 
 static void startReset(EEPROMType t) {
   eepromType = t;
@@ -55,8 +45,8 @@ void RESET_Update(void) {
     return;
   }
 
-  if (vfosWrote < ARRAY_SIZE(defaultVFOs)) {
-    VFO *vfo = &defaultVFOs[vfosWrote];
+  if (vfosWrote < ARRAY_SIZE(gVFO)) {
+    VFO *vfo = &gVFO[vfosWrote];
     vfo->channel = -1;
     vfo->modulation = MOD_FM;
     vfo->radio = RADIO_BK4819;

@@ -113,13 +113,11 @@ bool CHSCANNER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_PTT:
       RADIO_TuneToCH(gScanlist[currentIndex]);
-      RADIO_SaveCurrentVFO();
       gVfo1ProMode = true;
       APPS_run(APP_VFO1);
       return true;
     case KEY_5:
       RADIO_TuneToCH(gScanlist[currentIndex]);
-      RADIO_SaveCurrentVFO();
       APPS_run(APP_ANALYZER);
       return true;
     case KEY_SIDE1:

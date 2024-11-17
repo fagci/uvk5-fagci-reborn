@@ -576,13 +576,13 @@ uint16_t CHANNELS_GetCountMax(void) {
 void CHANNELS_Load(int16_t num, CH *p) {
   if (num >= 0) {
     EEPROM_ReadBuffer(GetChannelOffset(num), p, CH_SIZE);
-    Log("Load CH%u: %s f=%u, radio=%u", num, p->name, p->rxF, p->radio);
+    Log("----Load CH%u: %s f=%u, radio=%u", num, p->name, p->rxF, p->radio);
   }
 }
 
 void CHANNELS_Save(int16_t num, CH *p) {
   if (num >= 0) {
-    Log("Save CH: %s to %u f=%u, radio=%u", p->name, num, p->rxF, p->radio);
+    Log("----Save CH: %s to %u f=%u, radio=%u", p->name, num, p->rxF, p->radio);
     EEPROM_WriteBuffer(GetChannelOffset(num), p, CH_SIZE);
   }
 }

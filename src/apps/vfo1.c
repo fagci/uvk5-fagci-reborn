@@ -584,7 +584,8 @@ void VFO1_render(void) {
     PrintSmall(30, 18, "%u/%u", sq.no, sq.nc);
     PrintSmall(60, 18, "%u/%u", sq.go, sq.gc);
 
-    PrintSmallEx(LCD_WIDTH - 1, 18, POS_R, true, RADIO_GetBWName(radio->bw));
+    PrintSmallEx(LCD_WIDTH - 1, 18, POS_R, true,
+                 RADIO_GetBWName(radio->radio, radio->bw));
 
     const uint32_t step = StepFrequencyTable[radio->step];
     PrintSmallEx(0, BASE, POS_L, C_FILL, "STP %d.%02d", step / 100, step % 100);
