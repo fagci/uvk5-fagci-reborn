@@ -1,6 +1,7 @@
 #include "vfo1.h"
 #include "../apps/textinput.h"
 #include "../driver/bk4819.h"
+#include "../driver/uart.h"
 #include "../helper/channels.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
@@ -47,8 +48,9 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   uint16_t v, maxValue;
 
   if (s.num == BK4819_REG_13) {
-    v = gCurrentPreset.gainIndex;
+    v = radio->gainIndex;
     maxValue = ARRAY_SIZE(gainTable) - 1;
+    Log("GAIN v=%u, max=%u", v, maxValue);
   } else if (s.num == 0x73) {
     v = BK4819_GetAFC();
     maxValue = 8;
@@ -62,6 +64,7 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   } else if (!add && v >= 0 + s.inc) {
     v -= s.inc;
   }
+  Log("GAIN v=%u, max=%u", v, maxValue);
 
   if (s.num == BK4819_REG_13) {
     RADIO_SetGain(v);
@@ -270,8 +273,7 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         registerActive = false;
         return true;
       }
-      APPS_exit();
-      return true;
+      break;
     default:
       break;
     }
@@ -370,7 +372,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
   // long held
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
-    OffsetDirection offsetDirection = gCurrentPreset.offsetDir;
+    OffsetDirection offsetDirection = radio->offsetDir;
     switch (key) {
     case KEY_EXIT:
       prepareABScan();
@@ -405,7 +407,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_8:
       IncDec8(&offsetDirection, 0, OFFSET_MINUS, 1);
-      gCurrentPreset.offsetDir = offsetDirection;
+      radio->offsetDir = offsetDirection;
       return true;
     case KEY_9: // call
       gTextInputSize = 15;
