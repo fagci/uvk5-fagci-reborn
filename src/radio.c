@@ -534,7 +534,7 @@ void RADIO_SetSquelchPure(uint32_t f, uint8_t sql) {
 void RADIO_TuneToPure(uint32_t f, bool precise) {
   LOOT_Replace(&gLoot[gSettings.activeVFO], f);
   Radio r = RADIO_GetRadio();
-  Log("Tune %s to %u", radioNames[r], f);
+  // Log("Tune %s to %u", radioNames[r], f);
   switch (r) {
   case RADIO_BK4819:
     BK4819_TuneTo(f, precise);

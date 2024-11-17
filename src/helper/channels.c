@@ -683,6 +683,12 @@ uint32_t CHANNELS_GetChannel(CH *p, uint32_t f) {
   return (f - p->rxF) / CHANNELS_GetStepSize(p);
 }
 
+CHMeta CHANNELS_GetMeta(int16_t num) {
+  CHMeta meta;
+  EEPROM_ReadBuffer(GetChannelOffset(num) + offsetof(CH, meta), &meta, 1);
+  return meta;
+}
+
 void PRESETS_SaveCurrent(void) {
   CHANNELS_Save(presetChannel[gSettings.activePreset], &gCurrentPreset);
 }
@@ -759,12 +765,6 @@ void PRESETS_SelectPresetRelativeByScanlist(bool next) {
     }
     PRESETS_SelectPresetRelative(next);
   }
-}
-
-CHMeta CHANNELS_GetMeta(int16_t num) {
-  CHMeta meta;
-  EEPROM_ReadBuffer(GetChannelOffset(num) + offsetof(CH, meta), &meta, 1);
-  return meta;
 }
 
 bool PRESETS_Load(void) {
