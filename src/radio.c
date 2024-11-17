@@ -54,7 +54,7 @@ const uint16_t StepFrequencyTable[15] = {
 };
 
 const char *modulationTypeOptions[8] = {"FM",  "AM",  "LSB", "USB",
-                                        "BYP", "RAW", "WFM", "Preset"};
+                                        "BYP", "RAW", "WFM"};
 const char *powerNames[4] = {"ULOW, LOW", "MID", "HIGH"};
 const char *bwNames[10] = {"W26k", "W23k", "W20k", "W17k", "W14k", "W12k",
                            "N10k", "N9k",  "U7K",  "U6K"
@@ -72,7 +72,7 @@ const char *bwNamesSiSSB[6] = {
     [BK4819_FILTER_BW_12k] = "3k",  [BK4819_FILTER_BW_14k] = "4k",
 
 };
-const char *radioNames[4] = {"BK4819", "BK1080", "SI4732", "Preset"};
+const char *radioNames[4] = {"BK4819", "BK1080", "SI4732"};
 const char *shortRadioNames[4] = {"BK", "BC", "SI", "PR"};
 const char *TX_STATE_NAMES[7] = {"TX Off",   "TX On",  "CHARGING", "BAT LOW",
                                  "DISABLED", "UPCONV", "HIGH POW"};

@@ -30,13 +30,12 @@ static MenuItem menu[] = {
     {"SQ type", M_SQ_TYPE, ARRAY_SIZE(sqTypeNames)},
     {"SQ level", M_SQ, 10},
     {"RX freq", M_F_RX, 0},
-    {"TX freq", M_F_TX, 0},
+    {"TX freq / offset", M_F_TX, 0},
+    {"TX offset dir", M_TX_OFFSET_DIR, ARRAY_SIZE(TX_OFFSET_NAMES)},
     {"RX code type", M_RX_CODE_TYPE, ARRAY_SIZE(TX_CODE_TYPES)},
     {"RX code", M_RX_CODE, 0},
     {"TX code type", M_TX_CODE_TYPE, ARRAY_SIZE(TX_CODE_TYPES)},
     {"TX code", M_TX_CODE, 0},
-    {"TX offset", M_TX_OFFSET, 0},
-    {"TX offset dir", M_TX_OFFSET_DIR, ARRAY_SIZE(TX_OFFSET_NAMES)},
     {"TX power", M_F_TXP, ARRAY_SIZE(TX_POWER_NAMES)},
     {"Radio", M_RADIO, 2},
     {"Scrambler", M_SCRAMBLER, 16},
@@ -46,6 +45,29 @@ static MenuItem menu[] = {
     {"Save", M_SAVE, 0},
 };
 static const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
+
+static void apply() {
+  switch (gChEd.meta.type) {
+  case TYPE_VFO:
+    gVFO[gSettings.activeVFO] = gChEd;
+    RADIO_SetupByCurrentVFO();
+    break;
+  case TYPE_CH:
+    break;
+  default:
+    break;
+  }
+}
+
+static void setRXF(uint32_t f) {
+  gChEd.rxF = f;
+  apply();
+}
+
+static void setTXF(uint32_t f) {
+  gChEd.txF = f;
+  apply();
+}
 
 static void getMenuItemValue(PresetCfgMenu type, char *Output) {
   uint32_t fs = gChEd.rxF;
@@ -187,16 +209,7 @@ static void acceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
     break;
   }
 
-  switch (gChEd.meta.type) {
-  case TYPE_VFO:
-    gVFO[gSettings.activeVFO] = gChEd;
-    RADIO_SetupByCurrentVFO();
-    break;
-  case TYPE_CH:
-    break;
-  default:
-    break;
-  }
+  apply();
 }
 
 static void setInitialSubmenuIndex(void) {
@@ -347,16 +360,6 @@ static void getSubmenuItemText(uint16_t index, char *name) {
   }
 }
 
-static void setTXF(uint32_t f) {
-  radio->txF = f;
-  RADIO_SaveCurrentVFO();
-}
-
-static void setTXOffset(uint32_t f) {
-  gCurrentPreset.txF = f;
-  PRESETS_SaveCurrent();
-}
-
 void CHCFG_init(void) {
   Log("Editing CH %s", gChEd.name);
   updateTxCodeListSize();
@@ -375,18 +378,13 @@ static bool accept(void) {
   // RUN APPS HERE
   switch (item->type) {
   case M_F_RX:
-    gFInputCallback = RADIO_TuneTo;
+    gFInputCallback = setRXF;
     gFInputTempFreq = radio->rxF;
     APPS_run(APP_FINPUT);
     return true;
   case M_F_TX:
     gFInputCallback = setTXF;
     gFInputTempFreq = radio->txF;
-    APPS_run(APP_FINPUT);
-    return true;
-  case M_TX_OFFSET:
-    gFInputCallback = setTXOffset;
-    gFInputTempFreq = gCurrentPreset.txF;
     APPS_run(APP_FINPUT);
     return true;
   case M_NAME:
