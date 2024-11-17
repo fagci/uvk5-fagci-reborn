@@ -7,14 +7,13 @@
 #include <stddef.h>
 #include <string.h>
 
-int16_t gScanlistSize = 0;
-static int8_t presetlistSize = 0;
-uint16_t gScanlist[SCANLIST_MAX] = {0};
-static uint16_t presetChannel[PRESETS_COUNT_MAX] = {0};
-
-static const uint8_t CH_BANKS_OFFSET = offsetof(CH, scanlists);
-
 Preset gCurrentPreset;
+
+int16_t gScanlistSize = 0;
+uint16_t gScanlist[SCANLIST_MAX] = {0};
+
+static int8_t presetlistSize = 0;
+static uint16_t presetChannel[PRESETS_COUNT_MAX] = {0};
 
 // to use instead of predefined when we need to keep step, etc
 Preset defaultPreset = {
@@ -574,13 +573,13 @@ uint16_t CHANNELS_GetCountMax(void) {
 void CHANNELS_Load(int16_t num, CH *p) {
   if (num >= 0) {
     EEPROM_ReadBuffer(GetChannelOffset(num), p, CH_SIZE);
-    Log("----Load CH%u: %s f=%u, radio=%u", num, p->name, p->rxF, p->radio);
+    Log(">> R CH%u '%s': f=%u, radio=%u", num, p->name, p->rxF, p->radio);
   }
 }
 
 void CHANNELS_Save(int16_t num, CH *p) {
   if (num >= 0) {
-    Log("----Save CH: %s to %u f=%u, radio=%u", p->name, num, p->rxF, p->radio);
+    Log(">> W CH%u '%s': f=%u, radio=%u", num, p->name, p->rxF, p->radio);
     EEPROM_WriteBuffer(GetChannelOffset(num), p, CH_SIZE);
   }
 }
@@ -600,7 +599,7 @@ bool CHANNELS_Existing(int16_t num) {
 
 uint8_t CHANNELS_Scanlists(int16_t num) {
   uint8_t scanlists;
-  uint32_t addr = GetChannelOffset(num) + CH_BANKS_OFFSET;
+  uint32_t addr = GetChannelOffset(num) + offsetof(CH, scanlists);
   EEPROM_ReadBuffer(addr, &scanlists, 1);
   return scanlists;
 }
@@ -701,15 +700,10 @@ void PRESETS_SelectPresetRelative(bool next) {
   SETTINGS_DelayedSave();
 }
 
-int8_t PRESET_GetCurrentIndex(void) {
-  // FIXME: выстроить правильную схему работы с текущим пресетом
-  return PRESET_IndexOf(gCurrentPreset);
-}
-
 void PRESET_Select(int8_t i) {
   gCurrentPreset = PRESETS_Item(i);
   gSettings.activePreset = i;
-  Log("PRST Select %u, CH=%u", i, gSettings.activePreset);
+  Log("[i] PRST Select %u", i);
 }
 
 bool PRESET_InRange(const uint32_t f, const Preset p) {

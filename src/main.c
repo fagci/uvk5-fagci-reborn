@@ -94,7 +94,6 @@ void Main(void) {
   gSettings.contrast = 6;
   BOARD_Init();
   hasSi = RADIO_HasSi();
-  Log("hasSi=%u", hasSi);
 
   BACKLIGHT_SetBrightness(7);
 

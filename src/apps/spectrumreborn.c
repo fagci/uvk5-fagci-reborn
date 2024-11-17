@@ -23,8 +23,6 @@
 
 static uint8_t noiseOpenDiff = 14;
 
-static Band *currentBand;
-
 static uint32_t currentStepSize;
 
 static bool newScan = true;
@@ -85,7 +83,6 @@ static void scanFn(bool _) {
       msm.f = radio->rxF;
     } else {
       // rewind
-      Log("rewind to prst index %u", oldPresetIndex);
       updateStats();
       PRESET_Select(oldPresetIndex);
     }
@@ -112,14 +109,12 @@ static void init() {
 }
 
 static void startNewScan() {
-  currentBand = &gCurrentPreset;
-  currentStepSize = CHANNELS_GetStepSize(currentBand);
+  currentStepSize = CHANNELS_GetStepSize(&gCurrentPreset);
 
-  msm.f = currentBand->rxF;
+  msm.f = gCurrentPreset.rxF;
 
   if (gSettings.activePreset != oldPresetIndex) {
     init();
-    Log("oldPresetIndex(%u) = %u", oldPresetIndex, gSettings.activePreset);
     oldPresetIndex = gSettings.activePreset;
     gLastActiveLoot = NULL;
   } else {
@@ -253,10 +248,10 @@ void SPECTRUM_update(void) {
 }
 
 void SPECTRUM_render(void) {
-  STATUSLINE_SetText(currentBand->name);
+  STATUSLINE_SetText(gCurrentPreset.name);
 
   SP_Render(&gCurrentPreset);
-  UI_DrawSpectrumElements(SPECTRUM_Y, msmDelay, noiseOpenDiff, currentBand);
+  UI_DrawSpectrumElements(SPECTRUM_Y, msmDelay, noiseOpenDiff, &gCurrentPreset);
 
   const uint8_t bl = 16 + 6;
   if (gLastActiveLoot) {

@@ -46,10 +46,12 @@ static void startNewScan(bool reset) {
     BK4819_SetModulation(opt.modulation);
     if (step > 5000) {
       BK4819_SetModulation(MOD_WFM);
+    } else if (step >= 1300) {
+      BK4819_SetFilterBandwidth(BK4819_FILTER_BW_26k);
     } else if (step >= 1200) {
-      BK4819_SetFilterBandwidth(BK4819_FILTER_BW_14k);
+      BK4819_SetFilterBandwidth(BK4819_FILTER_BW_20k);
     } else if (step >= 625) {
-      BK4819_SetFilterBandwidth(BK4819_FILTER_BW_9k);
+      BK4819_SetFilterBandwidth(BK4819_FILTER_BW_12k);
     } else {
       BK4819_SetFilterBandwidth(BK4819_FILTER_BW_6k);
     }

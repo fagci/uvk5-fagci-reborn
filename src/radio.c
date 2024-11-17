@@ -555,8 +555,8 @@ void RADIO_SwitchRadio() {
   if (oldRadio == r) {
     return;
   }
-  Log("Switch radio from %s to %s",
-      oldRadio == UINT8_MAX ? "-" : radioNames[oldRadio], radioNames[r]);
+  /* Log("Switch radio from %s to %s",
+      oldRadio == UINT8_MAX ? "-" : radioNames[oldRadio], radioNames[r]); */
   rxTurnOff(oldRadio);
   rxTurnOn(r);
   oldRadio = r;
@@ -568,7 +568,7 @@ void RADIO_SetupByCurrentVFO(void) {
   lastMsmUpdate = 0;
   PRESET_SelectByFrequency(f);
 
-  Log("Switch radio");
+  // Log("Switch radio");
   RADIO_SwitchRadio();
 
   RADIO_SetupBandParams();
@@ -582,8 +582,6 @@ void RADIO_TuneTo(uint32_t f) {
   if (radio->channel != -1) {
     radio->channel = -1;
     snprintf(radio->name, 5, "VFO%u", gSettings.activeVFO + 1);
-    // radio->radio = RADIO_UNKNOWN;
-    // radio->modulation = MOD_PRST;
   }
   radio->txF = 0;
   radio->rxF = f;
@@ -601,13 +599,11 @@ void RADIO_TuneToSave(uint32_t f) {
 
 void RADIO_SaveCurrentVFO(void) {
   int16_t vfoChNum = CHANNELS_GetCountMax() - 2 + gSettings.activeVFO;
-  Log("Save current vfo at %u", vfoChNum);
   int16_t chToSave = radio->channel;
   if (chToSave >= 0) {
     // save only active channel number
     // to load it instead of full VFO
     // and to prevent overwrite VFO with MR
-    Log("--save only ch num");
     VFO oldVfo;
     CHANNELS_Load(vfoChNum, &oldVfo);
     oldVfo.channel = chToSave;
@@ -619,10 +615,7 @@ void RADIO_SaveCurrentVFO(void) {
 
 void RADIO_SelectPresetSave(int8_t num) {
   // TODO: copy settings from preset
-  // radio->radio = RADIO_UNKNOWN;
-  // radio->modulation = MOD_PRST;
   PRESET_Select(num);
-  // PRESETS_SaveCurrent();
   if (PRESET_InRange(radio->misc.lastUsedFreq, gCurrentPreset)) {
     RADIO_TuneToSave(radio->misc.lastUsedFreq);
   } else {
@@ -631,12 +624,10 @@ void RADIO_SelectPresetSave(int8_t num) {
 }
 
 static void loadVFO(uint8_t num) {
-  Log("Load VFO %u", num + 1);
   CHANNELS_Load(CHANNELS_GetCountMax() - 2 + num, &gVFO[num]);
 }
 
 static void saveVFO(uint8_t num) {
-  Log("Save VFO %u", num + 1);
   CHANNELS_Save(CHANNELS_GetCountMax() - 2 + num, &gVFO[num]);
 }
 
@@ -652,8 +643,6 @@ void RADIO_LoadCurrentVFO(void) {
   }
 
   radio = &gVFO[gSettings.activeVFO];
-  Log("radio(VFO%u)= (f=%u, radio=%u)", gSettings.activeVFO + 1, radio->rxF,
-      radio->radio);
   RADIO_SetupByCurrentVFO();
 }
 
@@ -670,7 +659,7 @@ void RADIO_SetSquelchType(SquelchType t) {
 
 void RADIO_SetGain(uint8_t gainIndex) {
   radio->gainIndex = gainIndex;
-  bool disableAGC = false;
+  bool disableAGC;
   switch (RADIO_GetRadio()) {
   case RADIO_BK4819:
     BK4819_SetAGC(radio->modulation != MOD_AM, gainIndex);
@@ -678,8 +667,8 @@ void RADIO_SetGain(uint8_t gainIndex) {
   case RADIO_SI4732:
     // 0 - max gain
     // 26 - min gain
+    disableAGC = gainIndex != AUTO_GAIN_INDEX;
     gainIndex = ARRAY_SIZE(gainTable) - 1 - gainIndex;
-    disableAGC = gainIndex != 0;
     gainIndex = ConvertDomain(gainIndex, 0, ARRAY_SIZE(gainTable) - 1, 0, 26);
     SI47XX_SetAutomaticGainControl(disableAGC, gainIndex);
     break;
@@ -712,7 +701,6 @@ void RADIO_SetFilterBandwidth(BK4819_FilterBandwidth_t bw) {
 
 void RADIO_SetupBandParams() {
   Log("RADIO_SetupBandParams");
-  uint32_t fMid = radio->rxF + (radio->txF - radio->rxF) / 2;
   ModulationType mod = RADIO_GetModulation();
   RADIO_SetGain(radio->gainIndex);
   // Log("Set mod %s", modulationTypeOptions[mod]);
@@ -720,7 +708,7 @@ void RADIO_SetupBandParams() {
   switch (RADIO_GetRadio()) {
   case RADIO_BK4819:
     BK4819_SquelchType(radio->squelch.type);
-    BK4819_Squelch(radio->squelch.value, fMid, gSettings.sqlOpenTime,
+    BK4819_Squelch(radio->squelch.value, radio->rxF, gSettings.sqlOpenTime,
                    gSettings.sqlCloseTime);
     BK4819_SetModulation(mod);
     if (gSettings.scrambler) {
