@@ -52,7 +52,7 @@ static void tuneToLoot(const Loot *loot, bool save) {
   radio->rx.codeType = radio->tx.codeType = CODE_TYPE_OFF;
   radio->rx.code = radio->tx.code = 0;
 
-  radio->radio = p->radio;
+  radio->radio = RADIO_Selector(loot->f);
   radio->modulation = p->band.modulation;
   radio->power = p->power;
 
@@ -165,7 +165,7 @@ static void saveLootToCh(const Loot *loot, int16_t chnum, uint8_t scanlist) {
   CH ch = {
       .rx = {loot->f, CODE_TYPE_OFF, 0},
       .tx = {0, CODE_TYPE_OFF, 0},
-      .radio = p->radio,
+      .radio = RADIO_Selector(loot->f),
       .modulation = p->band.modulation,
       .memoryBanks = 1 << scanlist,
       .power = p->power,
