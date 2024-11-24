@@ -8,6 +8,7 @@
 #include "i2c.h"
 #include "system.h"
 #include "systick.h"
+#include <stdint.h>
 
 static const uint8_t SI47XX_I2C_ADDR = 0x22;
 
@@ -20,6 +21,7 @@ static SsbMode currentSsbMode;
 SI47XX_MODE si4732mode = SI47XX_FM;
 uint16_t siCurrentFreq = 0;
 bool isSi4732On = false;
+bool isSi4732present = false;
 
 static uint16_t fDiv() { return si4732mode == SI47XX_FM ? 1000 : 100; }
 
@@ -151,6 +153,22 @@ void SI47XX_SetAutomaticGainControl(uint8_t AGCDIS, uint8_t AGCIDX) {
   SI47XX_WriteBuffer(cmd2, 3);
 }
 
+void SI47XX_Check() {
+  RST_HIGH;
+  uint8_t cmd[3] = {CMD_POWER_UP, FLG_XOSCEN , OUT_ANALOG};
+
+  waitToSend();
+  SI47XX_WriteBuffer(cmd, 3);
+  SYSTEM_DelayMs(500);
+  uint8_t stat = 0;
+  SI47XX_ReadBuffer(&stat, 1);
+  if (stat != 0) {
+    isSi4732present = true;
+  } 
+
+  SI47XX_PowerDown();
+}
+
 void SI47XX_PowerUp() {
   RST_HIGH;
   uint8_t cmd[3] = {CMD_POWER_UP, FLG_XOSCEN | FUNC_FM, OUT_ANALOG};
@@ -160,7 +178,7 @@ void SI47XX_PowerUp() {
   waitToSend();
   SI47XX_WriteBuffer(cmd, 3);
   SYSTEM_DelayMs(500);
-
+  
   isSi4732On = true;
 
   AUDIO_ToggleSpeaker(true);

@@ -82,6 +82,13 @@ static const SI47XX_FilterBW SI_BW_MAP_AMFM[] = {
 };
 
 Radio RADIO_GetRadio() {
+  if (radio->radio == RADIO_UNKNOWN) {
+    if (radio->rx.f > 30000000 ) {
+      return RADIO_BK4819;
+    } else {
+      return isSi4732present ? RADIO_SI4732 : RADIO_BK1080;
+    }
+  }
   return radio->radio == RADIO_UNKNOWN ? gCurrentPreset->radio : radio->radio;
 }
 
