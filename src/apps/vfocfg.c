@@ -32,6 +32,7 @@ static MenuItem menu[] = {
     {"TX offset", M_TX_OFFSET, 0},
     {"TX offset dir", M_TX_OFFSET_DIR, ARRAY_SIZE(TX_OFFSET_NAMES)},
     {"TX power", M_F_TXP, ARRAY_SIZE(TX_POWER_NAMES)},
+    {"Radio", M_RADIO, ARRAY_SIZE(radioNames)},
     {"Save", M_SAVE, 0},
 };
 static const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
@@ -39,6 +40,9 @@ static const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
 static void setInitialSubmenuIndex(void) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
+  case M_RADIO:
+    subMenuIndex = radio->radio;
+    break;
   case M_BW:
     subMenuIndex = gCurrentPreset->band.bw;
     break;
@@ -109,6 +113,9 @@ static void updateTxCodeListSize() {
 static void getSubmenuItemText(uint16_t index, char *name) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
+  case M_RADIO:
+    strncpy(name, radioNames[index], 31);
+    return;
   case M_MODULATION:
     strncpy(name, modulationTypeOptions[index], 31);
     return;

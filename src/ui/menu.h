@@ -12,6 +12,7 @@ extern const char *onOff[];
 extern const char *yesNo[];
 
 typedef enum {
+  M_RADIO,
   M_START,
   M_END,
   M_NAME,

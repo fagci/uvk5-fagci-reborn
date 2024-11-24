@@ -75,7 +75,7 @@ static void render2VFOPart(uint8_t i) {
     }
   }
 
-  Radio r = vfo->radio == RADIO_UNKNOWN ? RADIO_Selector(vfo->rx.f) : vfo->radio;
+  Radio r = RADIO_Selector(vfo->tx.f, vfo->modulation) ;
 
   uint32_t est = loot->lastTimeOpen ? (Now() - loot->lastTimeOpen) / 1000 : 0;
   if (r == RADIO_BK4819) {
