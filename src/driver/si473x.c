@@ -20,7 +20,6 @@ static SsbMode currentSsbMode;
 SI47XX_MODE si4732mode = SI47XX_FM;
 uint16_t siCurrentFreq = 0;
 bool isSi4732On = false;
-bool isSi4732present = false;
 
 static uint16_t fDiv() { return si4732mode == SI47XX_FM ? 1000 : 100; }
 

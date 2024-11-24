@@ -561,7 +561,6 @@ typedef union {
   uint8_t raw[2];
 } SI47XX_BW_Config; // AM_CHANNEL_FILTER
 
-
 void SI47XX_PowerUp();
 void SI47XX_PatchPowerUp();
 void SI47XX_PowerDown();
