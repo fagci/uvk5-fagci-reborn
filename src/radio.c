@@ -86,13 +86,9 @@ static const SI47XX_FilterBW SI_BW_MAP_AMFM[] = {
 void RADIO_HasSi() { hasSI = BK1080_ReadRegister(1) != 0x1080; }
 
 Radio RADIO_GetRadio() {
-  if (radio->radio == RADIO_UNKNOWN) {
-    if (radio->rx.f > 30000000 ) {
-      radio->rx.codeType = *"BK";
-      return RADIO_BK4819;
-    }
+  if (radio->rx.f > 30000000 ) {
+    return RADIO_BK4819;
   }
-  radio->rx.codeType = hasSI ? *"SI" : *"BK";
   return hasSI ? RADIO_SI4732 : RADIO_BK1080;
 }
 
