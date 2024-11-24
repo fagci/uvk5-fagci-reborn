@@ -8,7 +8,6 @@
 #include "driver/system.h"
 #include "driver/systick.h"
 #include "driver/uart.h"
-#include "driver/si473x.h"
 #include "external/CMSIS_5/Device/ARM/ARMCM0/Include/ARMCM0.h"
 #include "helper/battery.h"
 #include "helper/presetlist.h"
@@ -81,7 +80,7 @@ static void Intro(void) {
 
     TaskRemove(Intro);
 
-    SI47XX_Check();
+    RADIO_HasSi();
     Boot(gSettings.mainApp);
 
     if (gSettings.beep) {

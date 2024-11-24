@@ -152,22 +152,6 @@ void SI47XX_SetAutomaticGainControl(uint8_t AGCDIS, uint8_t AGCIDX) {
   SI47XX_WriteBuffer(cmd2, 3);
 }
 
-void SI47XX_Check() {
-  RST_HIGH;
-  uint8_t cmd[3] = {CMD_POWER_UP, FLG_XOSCEN , OUT_ANALOG};
-
-  waitToSend();
-  SI47XX_WriteBuffer(cmd, 3);
-  SYSTEM_DelayMs(500);
-  uint8_t stat = 0;
-  SI47XX_ReadBuffer(&stat, 1);
-  if (stat != 0) {
-    isSi4732present = true;
-  } 
-
-  SI47XX_PowerDown();
-}
-
 void SI47XX_PowerUp() {
   RST_HIGH;
   uint8_t cmd[3] = {CMD_POWER_UP, FLG_XOSCEN | FUNC_FM, OUT_ANALOG};

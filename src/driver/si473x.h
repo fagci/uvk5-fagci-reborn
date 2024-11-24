@@ -562,7 +562,6 @@ typedef union {
 } SI47XX_BW_Config; // AM_CHANNEL_FILTER
 
 
-void SI47XX_Check();
 void SI47XX_PowerUp();
 void SI47XX_PatchPowerUp();
 void SI47XX_PowerDown();
@@ -592,6 +591,5 @@ extern SI47XX_MODE si4732mode;
 extern RSQStatus rsqStatus;
 extern uint16_t siCurrentFreq;
 extern bool isSi4732On;
-extern bool isSi4732present;
 
 #endif /* end of include guard: SI473X_H */

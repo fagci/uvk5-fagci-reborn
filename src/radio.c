@@ -37,6 +37,8 @@ bool gMonitorMode = false;
 TXState gTxState = TX_UNKNOWN;
 bool gShowAllRSSI = false;
 
+bool hasSI = false;
+
 static Radio oldRadio = RADIO_UNKNOWN;
 static uint32_t lastTailTone = 0;
 static uint32_t lastMsmUpdate = 0;
@@ -81,15 +83,17 @@ static const SI47XX_FilterBW SI_BW_MAP_AMFM[] = {
     [BK4819_FILTER_BW_SOMETHING] = SI47XX_BW_1_kHz,
 };
 
+void RADIO_HasSi() { hasSI = BK1080_ReadRegister(1) != 0x1080; }
+
 Radio RADIO_GetRadio() {
   if (radio->radio == RADIO_UNKNOWN) {
     if (radio->rx.f > 30000000 ) {
+      radio->rx.codeType = *"BK";
       return RADIO_BK4819;
-    } else {
-      return isSi4732present ? RADIO_SI4732 : RADIO_BK1080;
     }
   }
-  return radio->radio == RADIO_UNKNOWN ? gCurrentPreset->radio : radio->radio;
+  radio->rx.codeType = hasSI ? *"SI" : *"BK";
+  return hasSI ? RADIO_SI4732 : RADIO_BK1080;
 }
 
 ModulationType RADIO_GetModulation() {
