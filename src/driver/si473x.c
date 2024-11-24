@@ -8,7 +8,6 @@
 #include "i2c.h"
 #include "system.h"
 #include "systick.h"
-#include <stdint.h>
 
 static const uint8_t SI47XX_I2C_ADDR = 0x22;
 
@@ -178,7 +177,7 @@ void SI47XX_PowerUp() {
   waitToSend();
   SI47XX_WriteBuffer(cmd, 3);
   SYSTEM_DelayMs(500);
-  
+
   isSi4732On = true;
 
   AUDIO_ToggleSpeaker(true);
