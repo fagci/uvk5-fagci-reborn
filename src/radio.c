@@ -89,12 +89,12 @@ Radio RADIO_Selector(uint32_t freq, ModulationType mod) {
   if (freq > 3000000) {
     return RADIO_BK4819;
   }
-  // if ((freq > 1588000) && (mod != MOD_AM)) {
-  //   return RADIO_BK4819;
-  // }
-  // if ( !(freq > 6400000 && freq < 10800000) && mod != MOD_WFM ) {
-  //   return RADIO_BK4819;
-  // }
+  if ((freq > 1588000) && (mod != MOD_AM)) {
+    return RADIO_BK4819;
+  }
+  if ( !(freq > 6400000 && freq < 10800000) && mod != MOD_WFM ) {
+    return RADIO_BK4819;
+  }
 
   return hasSI ? RADIO_SI4732 : RADIO_BK1080;
 }
