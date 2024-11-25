@@ -86,12 +86,18 @@ static const SI47XX_FilterBW SI_BW_MAP_AMFM[] = {
 void RADIO_HasSi() { hasSI = BK1080_ReadRegister(1) != 0x1080; }
 
 Radio RADIO_Selector(uint32_t freq, ModulationType mod) {
-  if ((freq > 6400000 && freq < 10800000) && mod == MOD_WFM ) {
-    return hasSI ? RADIO_SI4732 : RADIO_BK1080;
+  if (mod == MOD_PRST) {
+    mod = gCurrentPreset->band.modulation;
   }
+
+  if ((freq > 6400000 && freq < 10800000) && mod == MOD_WFM ) {
+    return hasSI ? RADIO_SI4732 : RADIO_BK1080;;
+  }
+
   if (freq > 3000000) {
     return RADIO_BK4819;
   }
+
   if ((freq > 1588000) && !(mod == MOD_AM || mod == MOD_LSB || mod == MOD_USB)) {
     return RADIO_BK4819;
   }
@@ -1033,22 +1039,14 @@ static ModulationType getNextModulation() {
   uint8_t sz;
   ModulationType *items;
 
-  if (r == RADIO_BK4819) {
+  if (r == RADIO_BK4819 || r == RADIO_SI4732) {
     items = MODS_BK4819;
     sz = ARRAY_SIZE(MODS_BK4819);
   } else if (r == RADIO_BK1080) {
     items = MODS_BK1080;
     sz = ARRAY_SIZE(MODS_BK1080);
-  } else {
-    // si4732
-    if (radio->rx.f <= 3000000) {
-      items = MODS_SI4732_HF;
-      sz = ARRAY_SIZE(MODS_SI4732_HF);
-    } else {
-      items = MODS_SI4732_WFM;
-      sz = ARRAY_SIZE(MODS_SI4732_WFM);
-    }
-  }
+  } 
+
   int8_t curIndex =
       indexOf(items, ARRAY_SIZE(MODS_BK4819), RADIO_GetModulation());
   if (curIndex >= 0) {
