@@ -1,4 +1,5 @@
 #include "radio.h"
+#include "config.h"
 #include "apps/apps.h"
 #include "board.h"
 #include "dcs.h"
@@ -86,19 +87,22 @@ static const SI47XX_FilterBW SI_BW_MAP_AMFM[] = {
 void RADIO_HasSi() { hasSI = BK1080_ReadRegister(1) != 0x1080; }
 
 Radio RADIO_Selector(uint32_t freq, ModulationType mod) {
+  if (gVFO[gSettings.activeVFO].radio != RADIO_UNKNOWN) {
+    return gVFO[gSettings.activeVFO].radio;
+  }
   if (mod == MOD_PRST) {
     mod = gCurrentPreset->band.modulation;
   }
 
-  if ((freq > 6400000 && freq < 10800000) && mod == MOD_WFM ) {
-    return hasSI ? RADIO_SI4732 : RADIO_BK1080;;
+  if ((freq > WFM_LOW && freq < WFM_HI) && mod == MOD_WFM ) {
+    return hasSI ? RADIO_SI4732 : RADIO_BK1080;
   }
 
-  if (freq > 3000000) {
+  if (freq > SI_AM_BORDER) {
     return RADIO_BK4819;
   }
 
-  if ((freq > 1588000) && !(mod == MOD_AM || mod == MOD_LSB || mod == MOD_USB)) {
+  if ((freq > SI_ALL_BORDER) && !(mod == MOD_AM || mod == MOD_LSB || mod == MOD_USB)) {
     return RADIO_BK4819;
   }
   

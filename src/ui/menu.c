@@ -96,10 +96,10 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
   uint32_t fe = band->bounds.end;
   bool isVfo = gCurrentApp == APP_VFO_CFG;
   switch (type) {
-  // case M_RADIO:
-  //   strncpy(Output, radioNames[radio->radio],
-  //           31);
-  //   break;
+  case M_RADIO:
+    strncpy(Output, radioNames[radio->radio],
+            31);
+    break;
   case M_START:
     sprintf(Output, "%lu.%03lu", fs / MHZ, fs / 100 % 1000);
     break;
@@ -235,12 +235,12 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
     radio->tx.code = subMenuIndex;
     RADIO_SaveCurrentVFO();
     break;
-  // case M_RADIO:
-  //   if (isVfo) {
-  //     radio->radio = subMenuIndex;
-  //     RADIO_SaveCurrentVFO();
-  //   }
-  //   break;
+  case M_RADIO:
+     if (isVfo) {
+      radio->radio = subMenuIndex;
+      RADIO_SaveCurrentVFO();
+    }
+    break;
   default:
     break;
   }
