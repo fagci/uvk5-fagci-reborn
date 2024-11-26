@@ -57,7 +57,7 @@ const char *powerNames[4] = {"ULOW, LOW", "MID", "HIGH"};
 const char *bwNames[5] = {"25k", "12.5k", "6.25k", "25k+"};
 const char *bwNamesSiAMFM[5] = {"6k", "4k", "3k", "1k"};
 const char *bwNamesSiSSB[5] = {"4k", "3k", "2.2k", "0.5k"};
-const char *radioNames[4] = {"BK4819", "BK1080", "SI4732", "Preset"};
+const char *radioNames[4] = {"BK4819", "BK1080", "SI4732", "Auto"};
 const char *shortRadioNames[4] = {"BK", "BC", "SI", "PR"};
 const char *TX_STATE_NAMES[7] = {"TX Off",   "TX On",  "CHARGING", "BAT LOW",
                                  "DISABLED", "UPCONV", "HIGH POW"};
@@ -640,7 +640,7 @@ void RADIO_LoadCurrentVFO(void) {
     LOOT_Replace(&gLoot[i], gVFO[i].rx.f);
   }
 
-  radio = &gVFO[gSettings.activeVFO];
+  *radio = gVFO[gSettings.activeVFO];
   RADIO_SetupByCurrentVFO();
 }
 
