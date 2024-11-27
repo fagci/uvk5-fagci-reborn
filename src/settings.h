@@ -264,7 +264,7 @@ extern const char *rogerNames[4];
 extern const char *dwNames[3];
 extern bool isPatchPresent;
 
-bool SETTINGS_checkSSBPatch();
+void SETTINGS_checkSSBPatch();
 void SETTINGS_Save();
 void SETTINGS_Load();
 void SETTINGS_DelayedSave();
