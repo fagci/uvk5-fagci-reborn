@@ -98,11 +98,11 @@ Radio RADIO_Selector(uint32_t freq, ModulationType mod) {
     return hasSI ? RADIO_SI4732 : RADIO_BK1080;
   }
 
-  if (freq > SI_AM_BORDER) {
+  if (freq > SI_BORDER) {
     return RADIO_BK4819;
   }
 
-  if ((freq > SI_ALL_BORDER) && !(mod == MOD_AM || mod == MOD_LSB || mod == MOD_USB)) {
+  if ((freq > BAKEN_BORDER) && !(mod == MOD_AM || mod == MOD_LSB || mod == MOD_USB)) {
     return RADIO_BK4819;
   }
   
@@ -171,14 +171,18 @@ void RADIO_SetupRegisters(void) {
 }
 
 static void setSI4732Modulation(ModulationType mod) {
-  if (mod == MOD_AM) {
-    SI47XX_SwitchMode(SI47XX_AM);
-  } else if (mod == MOD_LSB) {
-    SI47XX_SwitchMode(SI47XX_LSB);
-  } else if (mod == MOD_USB) {
-    SI47XX_SwitchMode(SI47XX_USB);
-  } else {
-    SI47XX_SwitchMode(SI47XX_FM);
+  switch (mod) {
+    case MOD_AM:
+      SI47XX_SwitchMode(SI47XX_AM);
+      return;
+    case MOD_LSB:
+      SI47XX_SwitchMode(SI47XX_LSB);
+      return;
+    case MOD_USB:
+      SI47XX_SwitchMode(SI47XX_USB);
+      return;
+    default: 
+      SI47XX_SwitchMode(SI47XX_FM);
   }
 }
 
@@ -640,7 +644,7 @@ void RADIO_LoadCurrentVFO(void) {
     LOOT_Replace(&gLoot[i], gVFO[i].rx.f);
   }
 
-  *radio = gVFO[gSettings.activeVFO];
+  radio = &gVFO[gSettings.activeVFO];
   RADIO_SetupByCurrentVFO();
 }
 
@@ -703,9 +707,6 @@ void RADIO_SetupBandParams() {
   Band *b = &gCurrentPreset->band;
   uint32_t fMid = b->bounds.start + (b->bounds.end - b->bounds.start) / 2;
   ModulationType mod = RADIO_GetModulation();
-  RADIO_SetGain(b->gainIndex);
-  // Log("Set mod %s", modulationTypeOptions[mod]);
-  RADIO_SetFilterBandwidth(b->bw);
   switch (RADIO_GetRadio()) {
   case RADIO_BK4819:
     BK4819_SquelchType(b->squelchType);
@@ -722,6 +723,7 @@ void RADIO_SetupBandParams() {
   case RADIO_BK1080:
     break;
   case RADIO_SI4732:
+    setSI4732Modulation(mod);
     if (mod == MOD_FM) {
       SI47XX_SetSeekFmLimits(b->bounds.start, b->bounds.end);
       SI47XX_SetSeekFmSpacing(StepFrequencyTable[b->step]);
@@ -732,12 +734,13 @@ void RADIO_SetupBandParams() {
       }
     }
 
-    setSI4732Modulation(mod);
-
     break;
   default:
     break;
   }
+  RADIO_SetGain(b->gainIndex);
+  // Log("Set mod %s", modulationTypeOptions[mod]);
+  RADIO_SetFilterBandwidth(b->bw);
   // Log("RADIO_SetupBandParams end");
 }
 
@@ -1015,18 +1018,18 @@ static ModulationType MODS_BK4819[] = {
     MOD_FM, MOD_AM, MOD_USB, MOD_BYP, MOD_RAW, MOD_WFM,
 };
 
+static ModulationType MODS_BOTH[] = {
+    MOD_FM, MOD_AM, MOD_USB, MOD_LSB, MOD_BYP, MOD_RAW, MOD_WFM,
+};
+
 static ModulationType MODS_BK1080[] = {
     MOD_WFM,
 };
 
-static ModulationType MODS_SI4732_HF[] = {
+static ModulationType MODS_SI4732[] = {
     MOD_AM,
     MOD_LSB,
     MOD_USB,
-};
-
-static ModulationType MODS_SI4732_WFM[] = {
-    MOD_WFM,
 };
 
 static int8_t indexOf(ModulationType *arr, uint8_t n, ModulationType t) {
@@ -1044,15 +1047,23 @@ static ModulationType getNextModulation() {
   ModulationType *items;
 
   if (r == RADIO_BK4819 || r == RADIO_SI4732) {
-    items = MODS_BK4819;
-    sz = ARRAY_SIZE(MODS_BK4819);
+    if (radio->rx.f <= SI_BORDER && radio->rx.f >= BAKEN_BORDER){
+        items = MODS_BOTH;
+        sz = ARRAY_SIZE(MODS_BOTH);
+    }else if (radio->rx.f < BAKEN_BORDER) {
+        items = MODS_SI4732;
+        sz = ARRAY_SIZE(MODS_SI4732);
+    }else{
+        items = MODS_BK4819;
+        sz = ARRAY_SIZE(MODS_BK4819);
+    }
   } else if (r == RADIO_BK1080) {
     items = MODS_BK1080;
     sz = ARRAY_SIZE(MODS_BK1080);
-  } 
+  }
 
   int8_t curIndex =
-      indexOf(items, ARRAY_SIZE(MODS_BK4819), RADIO_GetModulation());
+      indexOf(items, sz, RADIO_GetModulation());
   if (curIndex >= 0) {
     IncDecI8(&curIndex, 0, sz, 1);
     if (items[curIndex] == gCurrentPreset->band.modulation) {
