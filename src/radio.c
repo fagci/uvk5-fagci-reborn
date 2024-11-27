@@ -102,6 +102,10 @@ Radio RADIO_Selector(uint32_t freq, ModulationType mod) {
     return RADIO_BK4819;
   }
 
+  if (freq > BAKEN_BORDER && mod != MOD_AM && !isPatchPresent){
+    return RADIO_BK4819;
+  }
+
   if ((freq > BAKEN_BORDER) && !(mod == MOD_AM || mod == MOD_LSB || mod == MOD_USB)) {
     return RADIO_BK4819;
   }
@@ -1018,18 +1022,26 @@ static ModulationType MODS_BK4819[] = {
     MOD_FM, MOD_AM, MOD_USB, MOD_BYP, MOD_RAW, MOD_WFM,
 };
 
-static ModulationType MODS_BOTH[] = {
+static ModulationType MODS_BOTH_PATCH[] = {
     MOD_FM, MOD_AM, MOD_USB, MOD_LSB, MOD_BYP, MOD_RAW, MOD_WFM,
+};
+
+static ModulationType MODS_BOTH[] = {
+    MOD_FM, MOD_AM, MOD_USB, MOD_BYP, MOD_RAW, MOD_WFM,
 };
 
 static ModulationType MODS_BK1080[] = {
     MOD_WFM,
 };
 
-static ModulationType MODS_SI4732[] = {
+static ModulationType MODS_SI4732_PATCH[] = {
     MOD_AM,
     MOD_LSB,
     MOD_USB,
+};
+
+static ModulationType MODS_SI4732[] = {
+    MOD_AM,
 };
 
 static int8_t indexOf(ModulationType *arr, uint8_t n, ModulationType t) {
@@ -1048,11 +1060,21 @@ static ModulationType getNextModulation() {
 
   if (r == RADIO_BK4819 || r == RADIO_SI4732) {
     if (radio->rx.f <= SI_BORDER && radio->rx.f >= BAKEN_BORDER){
+      if (isPatchPresent){
+        items = MODS_BOTH_PATCH;
+        sz = ARRAY_SIZE(MODS_BOTH_PATCH);
+      }else{
         items = MODS_BOTH;
         sz = ARRAY_SIZE(MODS_BOTH);
+      }
     }else if (radio->rx.f < BAKEN_BORDER) {
+      if (isPatchPresent){
+        items = MODS_SI4732_PATCH;
+        sz = ARRAY_SIZE(MODS_SI4732_PATCH);
+      }else {
         items = MODS_SI4732;
         sz = ARRAY_SIZE(MODS_SI4732);
+      }
     }else{
         items = MODS_BK4819;
         sz = ARRAY_SIZE(MODS_BK4819);
