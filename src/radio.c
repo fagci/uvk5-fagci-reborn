@@ -241,28 +241,32 @@ static void onPresetUpdate(void) {
 }
 
 static void setupToneDetection() {
+  Log("!!! Setup tone detection");
   uint16_t InterruptMask =
       BK4819_REG_3F_CxCSS_TAIL | BK4819_REG_3F_DTMF_5TONE_FOUND;
   if (gSettings.dtmfdecode) {
     BK4819_EnableDTMF();
+    BK4819_WriteRegister(BK4819_REG_3F, 0x0800); // FIXME: RM
+    Log("!!! Setup DTMF");
+    return;
   } else {
     BK4819_DisableDTMF();
   }
   switch (radio->code.rx.type) {
   case CODE_TYPE_DIGITAL:
   case CODE_TYPE_REVERSE_DIGITAL:
-    // Log("DCS on");
+    Log("DCS on");
     BK4819_SetCDCSSCodeWord(
         DCS_GetGolayCodeWord(radio->code.rx.type, radio->code.rx.value));
     InterruptMask |= BK4819_REG_3F_CDCSS_FOUND | BK4819_REG_3F_CDCSS_LOST;
     break;
   case CODE_TYPE_CONTINUOUS_TONE:
-    // Log("CTCSS on");
+    Log("CTCSS on");
     BK4819_SetCTCSSFrequency(CTCSS_Options[radio->code.rx.value]);
     InterruptMask |= BK4819_REG_3F_CTCSS_FOUND | BK4819_REG_3F_CTCSS_LOST;
     break;
   default:
-    // Log("STE on");
+    Log("STE on");
     BK4819_SetCTCSSFrequency(670);
     BK4819_SetTailDetection(550);
     break;

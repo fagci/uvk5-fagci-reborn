@@ -6,6 +6,7 @@
 #include "svc_listening.h"
 #include "board.h"
 #include "dcs.h"
+#include "driver/bk4819-regs.h"
 #include "driver/bk4819.h"
 #include "driver/si473x.h"
 #include "driver/st7565.h"
@@ -116,7 +117,7 @@ Loot *RADIO_UpdateMeasurements(void) {
         toneFound = true;
       }
 
-      Log("DTMF chk");
+      Log("DTMF chk %x", BK4819_ReadRegister(BK4819_REG_3F));
       if (intBits & BK4819_REG_02_DTMF_5TONE_FOUND) {
         uint8_t code = BK4819_GetDTMF_5TONE_Code();
         Log("DTMF: %u", code);

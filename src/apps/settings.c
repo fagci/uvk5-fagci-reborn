@@ -72,7 +72,7 @@ static const MenuItem menu[] = {
     {"Backlight", M_BRIGHTNESS, 16},
     {"BL time", M_BL_TIME, ARRAY_SIZE(BL_TIME_VALUES)},
     {"BL SQL mode", M_BL_SQL, ARRAY_SIZE(BL_SQL_MODE_NAMES)},
-    {"DTMF decode", M_PTT_LOCK, 2},
+    {"DTMF decode", M_DTMF_DECODE, 2},
     {"SI power off", M_SI4732_POWER_OFF, 2},
     {"Upconv", M_UPCONVERTER, 0},
     {"Filter bound", M_FLT_BOUND, 2},

@@ -433,7 +433,6 @@ void BK4819_SetFilterBandwidth(BK4819_FilterBandwidth_t bw) {
       (1u << 3) |      //  1
       (0u << 2) |      //  0 Gain after FM Demodulation
       (0u << 0);       //  0
-
   BK4819_WriteRegister(BK4819_REG_43, val);
 }
 
