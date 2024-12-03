@@ -15,6 +15,8 @@
 #include "../ui/graphics.h"
 #include "apps.h"
 #include "finput.h"
+#include "../ui/statusline.h"
+
 
 bool gVfo1ProMode = false;
 
@@ -119,6 +121,9 @@ void VFO1_update(void) {
           RADIO_NextFreqNoClicks(false);
         }
         gRedrawScreen = true;
+          if (gVfo1ProMode) {
+          RADIO_UpdateMeasurements();
+    }
       }
     }
   }
@@ -331,9 +336,11 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   // up-down keys
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     bool isSsb = RADIO_IsSSB();
+    
     switch (key) {
     case KEY_UP:
       if (SSB_Seek_ON) {
+        SSB_Seek_ON = false;
         SSB_Seek_UP = true;
         return true;
       }
@@ -344,6 +351,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_DOWN:
       if (SSB_Seek_ON) {
+        SSB_Seek_ON = false;
         SSB_Seek_UP = false;
         return true;
       }
@@ -544,6 +552,13 @@ static void DrawRegs(void) {
 void VFO1_render(void) {
   const uint8_t BASE = 42;
 
+ if (gIsNumNavInput) {
+    STATUSLINE_SetText("Select: %s", gNumNavInput);
+  } else {
+    STATUSLINE_SetText("%s:%u", gCurrentPreset->band.name,
+                       PRESETS_GetChannel(gCurrentPreset, radio->rx.f) + 1);
+  }
+ 
   VFO *vfo = &gVFO[gSettings.activeVFO];
   Preset *p = gVFOPresets[gSettings.activeVFO];
   uint32_t f = gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(vfo->rx.f);
@@ -557,6 +572,8 @@ void VFO1_render(void) {
   if (gIsListening || gVfo1ProMode) {
     UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, RADIO_GetSNR(), vfo->rx.f,
                BASE + 2);
+  
+    
   }
 
   if (radio->channel >= 0) {
