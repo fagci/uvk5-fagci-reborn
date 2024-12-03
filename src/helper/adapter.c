@@ -10,7 +10,7 @@ void VFO2CH(VFO *src, Preset *p, CH *dst) {
   dst->tx.codeType = src->tx.codeType;
   dst->bw = p->band.bw;
   dst->power = src->power;
-  dst->modulation = src->modulation == MOD_PRST ? p->band.modulation : src->modulation;
+  dst->modulation = src->modulation;
   dst->radio = src->radio == RADIO_UNKNOWN ? RADIO_Selector(dst->tx.f, dst->modulation) : src->radio;
 }
 

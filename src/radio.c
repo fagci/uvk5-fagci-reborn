@@ -90,9 +90,6 @@ Radio RADIO_Selector(uint32_t freq, ModulationType mod) {
   if (gVFO[gSettings.activeVFO].radio != RADIO_UNKNOWN) {
     return gVFO[gSettings.activeVFO].radio;
   }
-  if (mod == MOD_PRST) {
-    mod = gCurrentPreset->band.modulation;
-  }
 
   if ((freq > WFM_LOW && freq < WFM_HI) && mod == MOD_WFM ) {
     return hasSI ? RADIO_SI4732 : RADIO_BK1080;
@@ -102,11 +99,11 @@ Radio RADIO_Selector(uint32_t freq, ModulationType mod) {
     return RADIO_BK4819;
   }
 
-  if (freq > BAKEN_BORDER && mod != MOD_AM && !isPatchPresent){
+  if (freq > BEKEN_BORDER && mod != MOD_AM && !isPatchPresent){
     return RADIO_BK4819;
   }
 
-  if ((freq > BAKEN_BORDER) && !(mod == MOD_AM || mod == MOD_LSB || mod == MOD_USB)) {
+  if ((freq > BEKEN_BORDER) && !(mod == MOD_AM || mod == MOD_LSB || mod == MOD_USB)) {
     return RADIO_BK4819;
   }
   
@@ -119,8 +116,7 @@ Radio RADIO_GetRadio() {
 
 ModulationType RADIO_GetModulation() {
   // return gCurrentPreset->band.modulation;
-  return radio->modulation == MOD_PRST ? gCurrentPreset->band.modulation
-                                       : radio->modulation;
+  return getNextModulation(false);
 }
 
 const char *RADIO_GetBWName(BK4819_FilterBandwidth_t i) {
@@ -175,6 +171,16 @@ void RADIO_SetupRegisters(void) {
 }
 
 static void setSI4732Modulation(ModulationType mod) {
+  if (!isPatchPresent) {
+    switch (mod) {
+    case MOD_WFM:
+      SI47XX_SwitchMode(SI47XX_FM);
+      return;
+    default:
+      SI47XX_SwitchMode(SI47XX_AM);
+    }
+    return;
+  }
   switch (mod) {
     case MOD_AM:
       SI47XX_SwitchMode(SI47XX_AM);
@@ -593,7 +599,7 @@ void RADIO_SetupByCurrentVFO(void) {
 
   /* Log("SetupByCurrentVFO, p=%s, r=%s, f=%u", gCurrentPreset->band.name,
       radioNames[RADIO_GetRadio()], f); */
-
+  radio->modulation = getNextModulation(false);
   RADIO_SwitchRadio();
 
   RADIO_SetupBandParams();
@@ -606,11 +612,11 @@ void RADIO_SetupByCurrentVFO(void) {
 void RADIO_TuneTo(uint32_t f) {
   if (radio->channel != -1) {
     radio->channel = -1;
-    radio->radio = RADIO_UNKNOWN;
-    radio->modulation = MOD_PRST;
   }
   radio->tx.f = 0;
   radio->rx.f = f;
+  radio->modulation = getNextModulation(false);
+  radio->radio = RADIO_UNKNOWN;
   RADIO_SetupByCurrentVFO();
   setupToneDetection(); // note: idk where it will be
 }
@@ -626,9 +632,11 @@ void RADIO_TuneToSave(uint32_t f) {
 void RADIO_SaveCurrentVFO(void) { VFOS_Save(gSettings.activeVFO, radio); }
 
 void RADIO_SelectPresetSave(int8_t num) {
-  radio->radio = RADIO_UNKNOWN;
-  radio->modulation = MOD_PRST;
   PRESET_Select(num);
+  radio->modulation = gCurrentPreset->band.modulation;
+  radio->modulation = getNextModulation(false);
+  radio->radio = RADIO_UNKNOWN;
+
   // PRESETS_SaveCurrent();
   if (PRESET_InRange(gCurrentPreset->lastUsedFreq, gCurrentPreset)) {
     RADIO_TuneToSave(gCurrentPreset->lastUsedFreq);
@@ -1053,13 +1061,11 @@ static int8_t indexOf(ModulationType *arr, uint8_t n, ModulationType t) {
   return 0;
 }
 
-static ModulationType getNextModulation() {
-  const Radio r = RADIO_GetRadio();
+ModulationType getNextModulation(bool next) {
   uint8_t sz;
   ModulationType *items;
 
-  if (r == RADIO_BK4819 || r == RADIO_SI4732) {
-    if (radio->rx.f <= SI_BORDER && radio->rx.f >= BAKEN_BORDER){
+    if (radio->rx.f < SI_BORDER && radio->rx.f > BEKEN_BORDER){
       if (isPatchPresent){
         items = MODS_BOTH_PATCH;
         sz = ARRAY_SIZE(MODS_BOTH_PATCH);
@@ -1067,7 +1073,7 @@ static ModulationType getNextModulation() {
         items = MODS_BOTH;
         sz = ARRAY_SIZE(MODS_BOTH);
       }
-    }else if (radio->rx.f < BAKEN_BORDER) {
+    }else if (radio->rx.f <= BEKEN_BORDER) {
       if (isPatchPresent){
         items = MODS_SI4732_PATCH;
         sz = ARRAY_SIZE(MODS_SI4732_PATCH);
@@ -1079,26 +1085,17 @@ static ModulationType getNextModulation() {
         items = MODS_BK4819;
         sz = ARRAY_SIZE(MODS_BK4819);
     }
-  } else if (r == RADIO_BK1080) {
-    items = MODS_BK1080;
-    sz = ARRAY_SIZE(MODS_BK1080);
-  }
 
-  int8_t curIndex =
-      indexOf(items, sz, RADIO_GetModulation());
-  if (curIndex >= 0) {
-    IncDecI8(&curIndex, 0, sz, 1);
-    if (items[curIndex] == gCurrentPreset->band.modulation) {
-      return MOD_PRST;
-    }
-  } else {
-    return items[0];
-  }
+  int8_t curIndex = indexOf(items, sz, radio->modulation);
+  
+  if (next) IncDecI8(&curIndex, 0, sz, 1);
+
   return items[curIndex];
 }
 
 void RADIO_ToggleModulation(void) {
-  radio->modulation = getNextModulation();
+  if (radio->modulation == getNextModulation(true)) return;
+  radio->modulation = getNextModulation(true);
 
   // NOTE: for right BW after switching from WFM to another
   RADIO_SetupBandParams();

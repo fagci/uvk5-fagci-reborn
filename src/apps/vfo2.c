@@ -27,8 +27,7 @@ static void render2VFOPart(uint8_t i) {
   const uint16_t fp2 = f / 100 % 1000;
   const uint8_t fp3 = f % 100;
   const char *mod =
-      modulationTypeOptions[vfo->modulation == MOD_PRST ? p->band.modulation
-                                                        : vfo->modulation];
+      modulationTypeOptions[vfo->modulation];
   const uint32_t step = StepFrequencyTable[p->band.step];
 
   if (isActive && gTxState <= TX_ON) {
@@ -70,9 +69,6 @@ static void render2VFOPart(uint8_t i) {
       PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "VFO");
     }
     PrintSmallEx(LCD_WIDTH - 1, bl - 9, POS_R, C_FILL, mod);
-    if (vfo->modulation != MOD_PRST) {
-      FillRect(LCD_WIDTH - 17, bl - 14, 17, 7, C_INVERT);
-    }
   }
 
   Radio r = vfo->radio == RADIO_UNKNOWN ? RADIO_Selector(vfo->rx.f, vfo->modulation) : vfo->radio ;

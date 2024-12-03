@@ -122,10 +122,7 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
     sprintf(Output, "%ddB", gainTable[band->gainIndex].gainDb);
     break;
   case M_MODULATION:
-    strncpy(Output,
-            modulationTypeOptions[isVfo ? radio->modulation
-                                        : gCurrentPreset->band.modulation],
-            31);
+    strncpy(Output, modulationTypeOptions[radio->modulation], 31);
     break;
   case M_STEP:
     sprintf(Output, "%u.%02uKHz", StepFrequencyTable[band->step] / 100,
