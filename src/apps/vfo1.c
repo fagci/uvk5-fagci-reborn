@@ -127,9 +127,6 @@ void VFO1_update(void) {
 
   if (gIsListening && Now() - gLastRender >= 500) {
     gRedrawScreen = true;
-    if (gVfo1ProMode) {
-      RADIO_UpdateMeasurements();
-    }
   }
 }
 

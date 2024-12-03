@@ -5,15 +5,22 @@
 
 #include "svc_listening.h"
 #include "board.h"
+#include "dcs.h"
 #include "driver/bk4819.h"
+#include "driver/si473x.h"
+#include "driver/st7565.h"
 #include "driver/system.h"
+#include "driver/uart.h"
 #include "radio.h"
 #include "scheduler.h"
 #include "settings.h"
-#include <stddef.h>
+#include "svc.h"
 #include <stdint.h>
 
-Loot *(*gListenFn)(void) = NULL;
+static char dtmfChars[] = "0123456789ABCD*#";
+static char dtmfBuffer[16] = "";
+static uint8_t dtmfBufferLength = 0;
+static uint32_t lastDTMF = 0;
 
 static const uint8_t VFOS_COUNT = 2;
 static const uint8_t DW_CHECK_DELAY = 20;
@@ -63,11 +70,92 @@ static void sync(void) {
   }
 }
 
-void SVC_LISTEN_Init(void) {
-  if (!gListenFn) {
-    gListenFn = RADIO_UpdateMeasurements;
+static uint32_t lastMsmUpdate = 0;
+static uint32_t lastTailTone = 0;
+static bool toneFound = false;
+
+Loot *RADIO_UpdateMeasurements(void) {
+  Loot *msm = &gLoot[gSettings.activeVFO];
+  if (RADIO_GetRadio() == RADIO_SI4732 && SVC_Running(SVC_SCAN)) {
+    bool valid = false;
+    uint32_t f = SI47XX_getFrequency(&valid);
+    radio->rxF = f;
+    gRedrawScreen = true;
+    if (valid) {
+      SVC_Toggle(SVC_SCAN, false, 0);
+    }
+  }
+  if (RADIO_GetRadio() != RADIO_BK4819 && Now() - lastMsmUpdate <= 1000) {
+    return msm;
+  }
+  lastMsmUpdate = Now();
+  msm->rssi = RADIO_GetRSSI();
+  msm->open = RADIO_IsSquelchOpen(msm);
+  if (radio->code.rx.type == CODE_TYPE_OFF) {
+    toneFound = true;
   }
 
+  if (RADIO_GetRadio() == RADIO_BK4819) {
+    while (BK4819_ReadRegister(BK4819_REG_0C) & 1u) {
+      BK4819_WriteRegister(BK4819_REG_02, 0);
+
+      uint16_t intBits = BK4819_ReadRegister(BK4819_REG_02);
+
+      if ((intBits & BK4819_REG_02_CxCSS_TAIL) ||
+          (intBits & BK4819_REG_02_CTCSS_FOUND) ||
+          (intBits & BK4819_REG_02_CDCSS_FOUND)) {
+        // Log("Tail tone or ctcss/dcs found");
+        msm->open = false;
+        toneFound = false;
+        lastTailTone = Now();
+      }
+      if ((intBits & BK4819_REG_02_CTCSS_LOST) ||
+          (intBits & BK4819_REG_02_CDCSS_LOST)) {
+        // Log("ctcss/dcs lost");
+        msm->open = true;
+        toneFound = true;
+      }
+
+      Log("DTMF chk");
+      if (intBits & BK4819_REG_02_DTMF_5TONE_FOUND) {
+        uint8_t code = BK4819_GetDTMF_5TONE_Code();
+        Log("DTMF: %u", code);
+        lastDTMF = Now();
+        dtmfBuffer[dtmfBufferLength++] = dtmfChars[code];
+      }
+    }
+    if (Now() - lastDTMF > 1000 && dtmfBufferLength) {
+      // make an actions with buffer
+      Log("%s", dtmfBuffer);
+      dtmfBufferLength = 0;
+    }
+    // else sql reopens
+    if (!toneFound || (Now() - lastTailTone) < 250) {
+      msm->open = false;
+    }
+  }
+  if (RADIO_GetRadio() == RADIO_BK4819) {
+    LOOT_Update(msm);
+  }
+
+  bool rx = msm->open;
+  if (gTxState != TX_ON) {
+    if (gMonitorMode) {
+      rx = true;
+    } else if (gSettings.noListen &&
+               (gCurrentApp == APP_SPECTRUM || gCurrentApp == APP_ANALYZER)) {
+      rx = false;
+    } else if (gSettings.skipGarbageFrequencies &&
+               (radio->rxF % 1300000 == 0) &&
+               RADIO_GetRadio() == RADIO_BK4819) {
+      rx = false;
+    }
+    RADIO_ToggleRX(rx);
+  }
+  return msm;
+}
+
+void SVC_LISTEN_Init(void) {
   gDW.lastActiveVFO = -1;
   gDW.activityOnVFO = 0;
   gDW.isSync = false;
@@ -117,7 +205,7 @@ void SVC_LISTEN_Update(void) {
     return;
   }
 
-  gListenFn();
+  RADIO_UpdateMeasurements();
   if (gSettings.scanTimeout < 10) {
     BK4819_ResetRSSI();
   }
@@ -148,7 +236,4 @@ void SVC_LISTEN_Update(void) {
   }
 }
 
-void SVC_LISTEN_Deinit(void) {
-  gListenFn = NULL;
-  RADIO_ToggleRX(false);
-}
+void SVC_LISTEN_Deinit(void) { RADIO_ToggleRX(false); }

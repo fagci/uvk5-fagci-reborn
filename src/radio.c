@@ -43,9 +43,6 @@ bool gShowAllRSSI = false;
 bool hasSi = false;
 
 static uint8_t oldRadio = 255;
-static uint32_t lastTailTone = 0;
-static uint32_t lastMsmUpdate = 0;
-static bool toneFound = false;
 
 const uint16_t StepFrequencyTable[15] = {
     2,   5,   50,  100,
@@ -625,7 +622,6 @@ void RADIO_SwitchRadio() {
 void RADIO_SetupByCurrentVFO(void) {
   Log("Setup by current VFO (f=%u, radio=%u)", radio->rxF, radio->radio);
   uint32_t f = radio->rxF;
-  lastMsmUpdate = 0;
   PRESET_SelectByFrequency(f);
 
   // Log("Switch radio");
@@ -848,86 +844,6 @@ bool RADIO_IsSquelchOpen(const Loot *msm) {
     }
   }
   return true;
-}
-
-Loot *RADIO_UpdateMeasurements(void) {
-  Loot *msm = &gLoot[gSettings.activeVFO];
-  if (RADIO_GetRadio() == RADIO_SI4732 && SVC_Running(SVC_SCAN)) {
-    bool valid = false;
-    uint32_t f = SI47XX_getFrequency(&valid);
-    radio->rxF = f;
-    gRedrawScreen = true;
-    if (valid) {
-      SVC_Toggle(SVC_SCAN, false, 0);
-    }
-  }
-  if (RADIO_GetRadio() != RADIO_BK4819 && Now() - lastMsmUpdate <= 1000) {
-    return msm;
-  }
-  lastMsmUpdate = Now();
-  msm->rssi = RADIO_GetRSSI();
-  msm->open = RADIO_IsSquelchOpen(msm);
-  if (radio->code.rx.type == CODE_TYPE_OFF) {
-    toneFound = true;
-  }
-
-  if (RADIO_GetRadio() == RADIO_BK4819) {
-    while (BK4819_ReadRegister(BK4819_REG_0C) & 1u) {
-      BK4819_WriteRegister(BK4819_REG_02, 0);
-
-      uint16_t intBits = BK4819_ReadRegister(BK4819_REG_02);
-
-      if ((intBits & BK4819_REG_02_CxCSS_TAIL) ||
-          (intBits & BK4819_REG_02_CTCSS_FOUND) ||
-          (intBits & BK4819_REG_02_CDCSS_FOUND)) {
-        // Log("Tail tone or ctcss/dcs found");
-        msm->open = false;
-        toneFound = false;
-        lastTailTone = Now();
-      }
-      if ((intBits & BK4819_REG_02_CTCSS_LOST) ||
-          (intBits & BK4819_REG_02_CDCSS_LOST)) {
-        // Log("ctcss/dcs lost");
-        msm->open = true;
-        toneFound = true;
-      }
-
-      /* if (intBits & BK4819_REG_02_DTMF_5TONE_FOUND) {
-        uint8_t code = BK4819_GetDTMF_5TONE_Code();
-        Log("DTMF: %u", code);
-      } */
-    }
-    // else sql reopens
-    if (!toneFound || (Now() - lastTailTone) < 250) {
-      msm->open = false;
-    }
-  }
-  if (RADIO_GetRadio() == RADIO_BK4819) {
-    LOOT_Update(msm);
-  }
-
-  bool rx = msm->open;
-  if (gTxState != TX_ON) {
-    if (gMonitorMode) {
-      rx = true;
-    } else if (gSettings.noListen &&
-               (gCurrentApp == APP_SPECTRUM || gCurrentApp == APP_ANALYZER)) {
-      rx = false;
-    } else if (gSettings.skipGarbageFrequencies &&
-               (radio->rxF % 1300000 == 0) &&
-               RADIO_GetRadio() == RADIO_BK4819) {
-      rx = false;
-    }
-    RADIO_ToggleRX(rx);
-  }
-  return msm;
-}
-
-bool RADIO_UpdateMeasurementsEx(Loot *dest) {
-  Loot *msm = &gLoot[gSettings.activeVFO];
-  RADIO_UpdateMeasurements();
-  LOOT_UpdateEx(dest, msm);
-  return msm->open;
 }
 
 void RADIO_VfoLoadCH(uint8_t i) {

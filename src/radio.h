@@ -80,6 +80,7 @@ void RADIO_SetFilterBandwidth(BK4819_FilterBandwidth_t bw);
 void RADIO_ToggleTxPower(void);
 void RADIO_UpdateStep(bool inc);
 void RADIO_UpdateSquelchLevel(bool next);
+bool RADIO_IsSquelchOpen(const Loot *msm);
 
 bool RADIO_IsSSB();
 uint32_t GetScreenF(uint32_t f);
@@ -92,7 +93,6 @@ uint32_t RADIO_GetTXFEx(CH *vfo, CH *p);
 void RADIO_ToggleBK1080(bool on);
 
 Loot *RADIO_UpdateMeasurements();
-bool RADIO_UpdateMeasurementsEx(Loot *dest);
 
 bool RADIO_HasSi();
 
