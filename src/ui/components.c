@@ -32,7 +32,7 @@ void UI_RSSIBar(uint16_t rssi, uint8_t snr, uint32_t f, uint8_t y) {
   const uint16_t RSSI_MAX = 350;
   const uint16_t SNR_MIN = 0;
   const uint16_t SNR_MAX = 30;
-
+  
   uint8_t rssiW = ConvertDomain(rssi, RSSI_MIN, RSSI_MAX, 0, BAR_WIDTH);
   uint8_t snrW = ConvertDomain(RADIO_GetSNR(), SNR_MIN, SNR_MAX, 0, BAR_WIDTH);
 
@@ -49,7 +49,24 @@ void UI_RSSIBar(uint16_t rssi, uint8_t snr, uint32_t f, uint8_t y) {
   }
 
   PrintMediumEx(LCD_WIDTH - 1, BAR_BASE, 2, true, "%d", Rssi2DBm(rssi));
-}
+
+  uint8_t dBm=Rssi2DBm(rssi)*-1;
+  uint8_t dBmMax6=(f>=3000000) ? 93 : 73;
+  uint8_t dBmMax10=(f>=3000000) ? 33 : 13;
+  
+if ((gIsListening || dBmMax6==73) && dBm>0 && dBm<(dBmMax6+49) && y==44) { // active or <30mhz & 1VFO mode - (in 1VFO y=BASE+2)
+  if(dBm>(dBmMax6-10)){ 
+  uint8_t s=((dBm-dBmMax6)/6)+(1*((dBm-dBmMax6)%6)>0); 
+  if (dBm<dBmMax6) s=0;
+  PrintMediumEx(LCD_WIDTH - 1, LCD_HEIGHT - 4, POS_R, C_FILL, "S%u", 9-s);
+    } else {
+     uint8_t s=((dBm-dBmMax10)/10)+(1*((dBm-dBmMax10)%10)>0); 
+     if (dBm<dBmMax10) s=0;
+     PrintMediumEx(LCD_WIDTH - 1, LCD_HEIGHT - 4, POS_R, C_FILL, "S9+%u0", 6-s);
+  }
+  } 
+
+  }
 
 void UI_FSmall(uint32_t f) {
   SQL sq = GetSql(gCurrentPreset->band.squelch);
@@ -68,7 +85,7 @@ void UI_FSmall(uint32_t f) {
   PrintSmallEx(LCD_WIDTH - 1, 18, POS_R, true,
                RADIO_GetBWName(gCurrentPreset->band.bw));
   const uint32_t step = StepFrequencyTable[gCurrentPreset->band.step];
-  PrintSmallEx(0, 27, POS_L, C_FILL, "STP %d.%02dk", step / 100, step % 100);
+  PrintSmallEx(0, 42, POS_L, C_FILL, "STP %d.%02dk", step / 100, step % 100);
 }
 
 void UI_FSmallest(uint32_t f, uint8_t x, uint8_t y) {
