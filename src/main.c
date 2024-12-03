@@ -80,6 +80,8 @@ static void Intro(void) {
 
     TaskRemove(Intro);
 
+    RADIO_HasSi();
+    SETTINGS_checkSSBPatch();
     Boot(gSettings.mainApp);
 
     if (gSettings.beep) {

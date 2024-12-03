@@ -22,7 +22,6 @@ static MenuItem menu[] = {
     {"Gain", M_GAIN, ARRAY_SIZE(gainTable)},
     {"SQ level", M_SQ, 10},
     {"SQ type", M_SQ_TYPE, ARRAY_SIZE(sqTypeNames)},
-    {"Radio", M_RADIO, ARRAY_SIZE(radioNames) - 1},
     {"Enable TX", M_TX, 2},
 };
 
@@ -31,9 +30,6 @@ static const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
 static void setInitialSubmenuIndex(void) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
-  case M_RADIO:
-    subMenuIndex = gCurrentPreset->radio;
-    break;
   case M_BW:
     subMenuIndex = gCurrentPreset->band.bw;
     break;
@@ -68,9 +64,6 @@ static void getMenuItemText(uint16_t index, char *name) {
 static void getSubmenuItemText(uint16_t index, char *name) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
-  case M_RADIO:
-    strncpy(name, radioNames[index], 31);
-    return;
   case M_MODULATION:
     strncpy(name, modulationTypeOptions[index], 31);
     return;

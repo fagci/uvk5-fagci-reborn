@@ -97,7 +97,7 @@ void GetMenuItemValue(PresetCfgMenu type, char *Output) {
   bool isVfo = gCurrentApp == APP_VFO_CFG;
   switch (type) {
   case M_RADIO:
-    strncpy(Output, radioNames[isVfo ? radio->radio : gCurrentPreset->radio],
+    strncpy(Output, radioNames[radio->radio],
             31);
     break;
   case M_START:
@@ -236,15 +236,11 @@ void AcceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
     RADIO_SaveCurrentVFO();
     break;
   case M_RADIO:
-    if (isVfo) {
+     if (isVfo) {
       radio->radio = subMenuIndex;
       RADIO_SaveCurrentVFO();
-    } else {
-      gCurrentPreset->radio = subMenuIndex;
-      PRESETS_SaveCurrent();
     }
     break;
-
   default:
     break;
   }

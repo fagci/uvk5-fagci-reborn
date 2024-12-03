@@ -1,9 +1,13 @@
 #include "settings.h"
 #include "driver/eeprom.h"
 #include "scheduler.h"
+#include "config.h"
+#include <stdint.h>
 
 Settings gSettings;
 DwState gDW;
+
+bool isPatchPresent = false;
 
 uint8_t BL_TIME_VALUES[7] = {0, 5, 10, 20, 60, 120, 255};
 const char *BL_TIME_NAMES[7] = {"Off",  "5s",   "10s", "20s",
@@ -48,6 +52,24 @@ const uint16_t PAGE_SIZES[8] = {
     128, // 110
     128, // 111
 };
+
+void SETTINGS_checkSSBPatch(){
+  if (SETTINGS_GetEEPROMSize() < 32768) {
+    isPatchPresent = false;
+    return;
+  }
+  uint8_t buf[8];
+  const uint8_t patch[8] = PATCH_PREAMBULE;
+  const uint32_t PATCH_START = SETTINGS_GetEEPROMSize() - PATCH_SIZE;
+  EEPROM_ReadBuffer(PATCH_START, buf, 8);
+  for(uint32_t i=0; i < 8; i++){
+     if (patch[i] != buf[i]){
+      isPatchPresent = false;
+      return;
+    }
+  }
+  isPatchPresent = true;
+}
 
 void SETTINGS_Save(void) {
   EEPROM_WriteBuffer(SETTINGS_OFFSET, &gSettings, SETTINGS_SIZE);

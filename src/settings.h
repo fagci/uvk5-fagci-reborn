@@ -262,7 +262,9 @@ extern const char *TX_OFFSET_NAMES[3];
 extern const char *TX_CODE_TYPES[4];
 extern const char *rogerNames[4];
 extern const char *dwNames[3];
+extern bool isPatchPresent;
 
+void SETTINGS_checkSSBPatch();
 void SETTINGS_Save();
 void SETTINGS_Load();
 void SETTINGS_DelayedSave();

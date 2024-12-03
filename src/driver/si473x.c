@@ -145,9 +145,9 @@ void SI47XX_SetAutomaticGainControl(uint8_t AGCDIS, uint8_t AGCIDX) {
   agc.arg.AGCDIS = AGCDIS;
   agc.arg.AGCIDX = AGCIDX;
 
-  waitToSend();
-
   uint8_t cmd2[] = {cmd, agc.raw[0], agc.raw[1]};
+
+  waitToSend();
   SI47XX_WriteBuffer(cmd2, 3);
 }
 
@@ -157,11 +157,14 @@ void SI47XX_PowerUp() {
   if (si4732mode == SI47XX_AM) {
     cmd[1] = FLG_XOSCEN | FUNC_AM;
   }
+  SYSTICK_Delay250ns(250);
   waitToSend();
   SI47XX_WriteBuffer(cmd, 3);
-  SYSTEM_DelayMs(500);
+  SYSTEM_DelayMs(550);
 
   isSi4732On = true;
+  SI47XX_SetFreq(siCurrentFreq);
+
 
   AUDIO_ToggleSpeaker(true);
   SI47XX_SetVolume(63);
@@ -191,7 +194,8 @@ void SI47XX_SsbSetup(SI47XX_SsbFilterBW AUDIOBW, uint8_t SBCUTFLT,
 
 void SI47XX_PatchPowerUp() {
   RST_HIGH;
-  uint8_t cmd[3] = {CMD_POWER_UP, 0b00110001, OUT_ANALOG};
+  uint8_t cmd[3] = {CMD_POWER_UP, FLG_XOSCEN | FLG_PATCH | FUNC_AM, OUT_ANALOG};
+  SYSTICK_Delay250ns(250);
   waitToSend();
   SI47XX_WriteBuffer(cmd, 3);
   SYSTEM_DelayMs(550);

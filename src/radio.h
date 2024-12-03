@@ -44,6 +44,8 @@ extern const char *sqTypeNames[4];
 extern const char *TX_STATE_NAMES[7];
 
 const char *RADIO_GetBWName(BK4819_FilterBandwidth_t i);
+void RADIO_HasSi();
+Radio RADIO_Selector(uint32_t freq, ModulationType mod);
 Radio RADIO_GetRadio();
 ModulationType RADIO_GetModulation();
 void RADIO_SetupRegisters();
