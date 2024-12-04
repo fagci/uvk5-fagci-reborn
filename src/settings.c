@@ -50,7 +50,7 @@ const uint16_t PAGE_SIZES[8] = {
     64,  // 100
     128, // 101
     128, // 110
-    128, // 111
+    256, // 111
 };
 
 void SETTINGS_checkSSBPatch(){

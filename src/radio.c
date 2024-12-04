@@ -107,7 +107,7 @@ Radio RADIO_Selector(uint32_t freq, ModulationType mod) {
     return RADIO_BK4819;
   }
   
-  return hasSI ? RADIO_SI4732 : RADIO_BK1080;
+  return hasSI ? RADIO_SI4732 : RADIO_BK4819;
 }
 
 Radio RADIO_GetRadio() {
