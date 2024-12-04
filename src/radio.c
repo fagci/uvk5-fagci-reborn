@@ -808,7 +808,7 @@ uint16_t RADIO_GetRSSI(void) {
   }
 }
 
-uint16_t RADIO_GetSNR(void) {
+uint8_t RADIO_GetSNR(void) {
   switch (RADIO_GetRadio()) {
   case RADIO_BK4819:
     return ConvertDomain(BK4819_GetSNR(), 24, 170, 0, 30);
@@ -1011,3 +1011,18 @@ void RADIO_ToggleTxPower(void) {
 }
 
 bool RADIO_HasSi() { return BK1080_ReadRegister(1) != 0x1080; }
+
+void RADIO_SendDTMF(const char *pattern, ...) {
+  char str[32] = {0};
+  va_list args;
+  va_start(args, pattern);
+  vsnprintf(str, 31, pattern, args);
+  va_end(args);
+  RADIO_ToggleTX(true);
+  if (gTxState == TX_ON) {
+    SYSTEM_DelayMs(200);
+    BK4819_EnterDTMF_TX(true);
+    BK4819_PlayDTMFString(str, true, 100, 100, 100, 100);
+    RADIO_ToggleTX(false);
+  }
+}

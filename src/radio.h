@@ -86,7 +86,7 @@ bool RADIO_IsSSB();
 uint32_t GetScreenF(uint32_t f);
 uint32_t GetTuneF(uint32_t f);
 uint16_t RADIO_GetRSSI(void);
-uint16_t RADIO_GetSNR(void);
+uint8_t RADIO_GetSNR(void);
 uint16_t RADIO_GetS();
 uint32_t RADIO_GetTXF(void);
 uint32_t RADIO_GetTXFEx(CH *vfo, CH *p);
@@ -95,5 +95,6 @@ void RADIO_ToggleBK1080(bool on);
 Loot *RADIO_UpdateMeasurements();
 
 bool RADIO_HasSi();
+void RADIO_SendDTMF(const char *pattern, ...);
 
 #endif /* end of include guard: RADIO_H */

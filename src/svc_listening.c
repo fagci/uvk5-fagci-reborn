@@ -12,10 +12,13 @@
 #include "driver/st7565.h"
 #include "driver/system.h"
 #include "driver/uart.h"
+#include "external/printf/printf.h"
+#include "misc.h"
 #include "radio.h"
 #include "scheduler.h"
 #include "settings.h"
 #include "svc.h"
+#include "ui/statusline.h"
 #include <stdint.h>
 
 static char dtmfChars[] = "0123456789ABCD*#";
@@ -74,6 +77,7 @@ static void sync(void) {
 static uint32_t lastMsmUpdate = 0;
 static uint32_t lastTailTone = 0;
 static bool toneFound = false;
+static uint8_t lastSNR = 0;
 
 Loot *RADIO_UpdateMeasurements(void) {
   Loot *msm = &gLoot[gSettings.activeVFO];
@@ -117,18 +121,34 @@ Loot *RADIO_UpdateMeasurements(void) {
         toneFound = true;
       }
 
-      Log("DTMF chk %x", BK4819_ReadRegister(BK4819_REG_3F));
       if (intBits & BK4819_REG_02_DTMF_5TONE_FOUND) {
         uint8_t code = BK4819_GetDTMF_5TONE_Code();
         Log("DTMF: %u", code);
         lastDTMF = Now();
+        lastSNR = RADIO_GetSNR();
         dtmfBuffer[dtmfBufferLength++] = dtmfChars[code];
       }
     }
     if (Now() - lastDTMF > 1000 && dtmfBufferLength) {
       // make an actions with buffer
-      Log("%s", dtmfBuffer);
+      Log("DTMF: '%s'", dtmfBuffer);
+      STATUSLINE_SetTickerText("DTMF: '%s'", dtmfBuffer);
+      Log("DTMF[0]=%c", dtmfBuffer[0]);
+      Log("DTMF[1]=%c", dtmfBuffer[1]);
+      if (dtmfBuffer[0] == 'A') {
+        Log("A CMD");
+        if (dtmfBuffer[1] == '1') {
+          SVC_Toggle(SVC_BEACON, !SVC_Running(SVC_BEACON), 15000);
+        }
+        if (dtmfBuffer[1] == '2') {
+          RADIO_SendDTMF("00");
+        }
+        if (dtmfBuffer[1] == '3') {
+          RADIO_SendDTMF("%u", lastSNR);
+        }
+      }
       dtmfBufferLength = 0;
+      memset(dtmfBuffer, 0, ARRAY_SIZE(dtmfBuffer));
     }
     // else sql reopens
     if (!toneFound || (Now() - lastTailTone) < 250) {

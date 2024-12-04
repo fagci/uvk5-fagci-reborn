@@ -13,8 +13,10 @@ static uint8_t previousBatteryLevel = 255;
 static bool showBattery = true;
 
 static bool lastEepromWrite = false;
+static uint32_t lastTickerUpdate = 0;
 
 static char statuslineText[32] = {0};
+static char statuslineTicker[32] = {0};
 
 static void eepromRWReset(void) {
   lastEepromWrite = gEepromWrite = false;
@@ -31,6 +33,19 @@ void STATUSLINE_SetText(const char *pattern, ...) {
     strncpy(statuslineText, statuslineTextNew, 31);
     gRedrawScreen = true;
   }
+}
+
+void STATUSLINE_SetTickerText(const char *pattern, ...) {
+  char statuslineTextNew[32] = {0};
+  va_list args;
+  va_start(args, pattern);
+  vsnprintf(statuslineTextNew, 31, pattern, args);
+  va_end(args);
+  if (strcmp(statuslineTicker, statuslineTextNew)) {
+    strncpy(statuslineTicker, statuslineTextNew, 31);
+    gRedrawScreen = true;
+  }
+  lastTickerUpdate = Now();
 }
 
 void STATUSLINE_update(void) {
@@ -51,6 +66,10 @@ void STATUSLINE_update(void) {
     lastEepromWrite = gEepromWrite;
     gRedrawScreen = true;
     TaskAdd("EEPROM RW-", eepromRWReset, 500, false, 0);
+  }
+
+  if (Now() - lastTickerUpdate > 5000) {
+    statuslineTicker[0] = '\0';
   }
 }
 
@@ -138,5 +157,6 @@ void STATUSLINE_render(void) {
                      (gSettings.batteryStyle == BAT_VOLTAGE ? 38 : 18),
                  BASE_Y, POS_R, C_FILL, "%s", icons);
 
-  PrintSmall(0, BASE_Y, statuslineText);
+  PrintSmall(0, BASE_Y,
+             statuslineTicker[0] == '\0' ? statuslineText : statuslineTicker);
 }
