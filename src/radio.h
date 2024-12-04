@@ -93,6 +93,7 @@ uint16_t RADIO_GetS();
 uint32_t RADIO_GetTXF(void);
 uint32_t RADIO_GetTXFEx(VFO *vfo, Preset *p);
 void RADIO_ToggleBK1080(bool on);
+ModulationType getNextModulation(bool next);
 
 Loot *RADIO_UpdateMeasurements();
 bool RADIO_UpdateMeasurementsEx(Loot *dest);
