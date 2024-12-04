@@ -263,6 +263,7 @@ void SI47XX_PowerDown() {
 }
 
 void SI47XX_SwitchMode(SI47XX_MODE mode) {
+  if (si4732mode != mode) {
     si4732mode = mode;
     if (mode == SI47XX_USB || mode == SI47XX_LSB) {
       if (!SI47XX_IsSSB()) {
@@ -273,6 +274,7 @@ void SI47XX_SwitchMode(SI47XX_MODE mode) {
       SI47XX_PowerDown();
       SI47XX_PowerUp();
     }
+  }
 }
 void SI47XX_SetFreq(uint16_t freq) {
   if (siCurrentFreq == freq) {
