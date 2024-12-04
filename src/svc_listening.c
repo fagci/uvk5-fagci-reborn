@@ -13,6 +13,7 @@
 #include "driver/system.h"
 #include "driver/uart.h"
 #include "external/printf/printf.h"
+#include "helper/battery.h"
 #include "misc.h"
 #include "radio.h"
 #include "scheduler.h"
@@ -131,21 +132,35 @@ Loot *RADIO_UpdateMeasurements(void) {
     }
     if (Now() - lastDTMF > 1000 && dtmfBufferLength) {
       // make an actions with buffer
-      Log("DTMF: '%s'", dtmfBuffer);
-      STATUSLINE_SetTickerText("DTMF: '%s'", dtmfBuffer);
-      Log("DTMF[0]=%c", dtmfBuffer[0]);
-      Log("DTMF[1]=%c", dtmfBuffer[1]);
+      STATUSLINE_SetTickerText("DTMF: %s", dtmfBuffer);
       if (dtmfBuffer[0] == 'A') {
         Log("A CMD");
-        if (dtmfBuffer[1] == '1') {
+        switch (dtmfBuffer[1]) {
+        case '1':
           SVC_Toggle(SVC_BEACON, !SVC_Running(SVC_BEACON), 15000);
-        }
-        if (dtmfBuffer[1] == '2') {
           RADIO_SendDTMF("00");
-        }
-        if (dtmfBuffer[1] == '3') {
+          break;
+        case '2':
+          RADIO_SendDTMF("12345");
+          break;
+        case '3':
           RADIO_SendDTMF("%u", lastSNR);
+          break;
+        case '4':
+          RADIO_SendDTMF("%u", gBatteryPercent);
+          break;
+        default:
+          RADIO_SendDTMF("99");
+          break;
         }
+      } else if (dtmfBuffer[0] == 'D' && dtmfBuffer[1] == 'D' &&
+                 dtmfBuffer[2] == 'D') {
+        gSettings.dtmfdecode = false;
+        SETTINGS_Save();
+      } else if (dtmfBuffer[0] == 'A' && dtmfBuffer[1] == 'A' &&
+                 dtmfBuffer[2] == 'A') {
+        gSettings.dtmfdecode = true;
+        SETTINGS_Save();
       }
       dtmfBufferLength = 0;
       memset(dtmfBuffer, 0, ARRAY_SIZE(dtmfBuffer));
