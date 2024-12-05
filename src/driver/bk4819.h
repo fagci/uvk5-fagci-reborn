@@ -6,11 +6,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define BK4819_F_MIN 1588000
+#define BK4819_F_MAX 134000000
+
 #define VHF_UHF_BOUND1 24000000
 #define VHF_UHF_BOUND2 28000000
-
-#define F_MIN 0
-#define F_MAX 130000000
 
 typedef enum {
   FILTER_VHF,

@@ -103,14 +103,13 @@ typedef enum {
 } ScanTimeout;
 
 typedef enum {
-  EEPROM_A,         // 000
-  EEPROM_B,         // 001
-  EEPROM_BL24C64,   // 010 checkbyte default
-  EEPROM_BL24C128,  // 011
-  EEPROM_BL24C256,  // 100
-  EEPROM_BL24C512,  // 101
-  EEPROM_BL24C1024, // 110
-  EEPROM_M24M02,    // 111
+  EEPROM_BL24C64,   //
+  EEPROM_BL24C128,  //
+  EEPROM_BL24C256,  //
+  EEPROM_BL24C512,  //
+  EEPROM_BL24C1024, //
+  EEPROM_M24M02,    //
+  EEPROM_UNKNOWN,
 } EEPROMType;
 
 extern const char *EEPROM_TYPE_NAMES[6];
@@ -277,6 +276,7 @@ typedef CH Preset;
 // channel 2
 
 extern Settings gSettings;
+extern bool isPatchPresent;
 extern uint8_t BL_TIME_VALUES[7];
 extern const char *BL_TIME_NAMES[7];
 extern const char *BL_SQL_MODE_NAMES[3];
@@ -295,5 +295,6 @@ void SETTINGS_DelayedSave();
 uint32_t SETTINGS_GetFilterBound();
 uint32_t SETTINGS_GetEEPROMSize();
 uint16_t SETTINGS_GetPageSize();
+bool SETTINGS_IsPatchPresent();
 
 #endif /* end of include guard: SETTINGS_H */

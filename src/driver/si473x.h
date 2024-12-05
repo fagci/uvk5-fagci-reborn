@@ -4,6 +4,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define SI47XX_F_MIN 15000
+#define SI47XX_F_MAX 3000000
+
+#define SI47XX_FM_F_MIN 6400000
+#define SI47XX_FM_F_MAX 10800000
+
 typedef enum {
   SI47XX_FM,
   SI47XX_AM,

@@ -172,6 +172,19 @@ static void saveVFO(uint8_t num) {
   CHANNELS_Save(CHANNELS_GetCountMax() - 2 + num, &gVFO[num]);
 }
 
+Radio RADIO_Selector(uint32_t freq, ModulationType mod) {
+  if ((freq >= BK1080_F_MIN && freq <= BK1080_F_MAX) && mod == MOD_WFM) {
+    return hasSi ? RADIO_SI4732 : RADIO_BK1080;
+  }
+
+  if (hasSi && freq <= SI47XX_F_MAX &&
+      (mod == MOD_AM || (isPatchPresent && RADIO_IsSSB()))) {
+    return RADIO_SI4732;
+  }
+
+  return RADIO_BK4819;
+}
+
 inline Radio RADIO_GetRadio() { return radio->radio; }
 
 ModulationType RADIO_GetModulation() { return radio->modulation; }
@@ -612,15 +625,16 @@ void RADIO_TuneToPure(uint32_t f, bool precise) {
 }
 
 void RADIO_SwitchRadio() {
-  Radio r = RADIO_GetRadio();
-  if (oldRadio == r) {
+  // Radio r = RADIO_GetRadio();
+  radio->radio = RADIO_Selector(radio->rxF, radio->modulation);
+  if (oldRadio == radio->radio) {
     return;
   }
   /* Log("Switch radio from %s to %s",
       oldRadio == UINT8_MAX ? "-" : radioNames[oldRadio], radioNames[r]); */
   rxTurnOff(oldRadio);
-  rxTurnOn(r);
-  oldRadio = r;
+  rxTurnOn(radio->radio);
+  oldRadio = radio->radio;
 }
 
 void RADIO_SetupByCurrentVFO(void) {

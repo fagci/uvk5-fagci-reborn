@@ -1,9 +1,11 @@
 #include "settings.h"
 #include "driver/eeprom.h"
 #include "scheduler.h"
+#include <string.h>
 
 Settings gSettings;
 DwState gDW;
+bool isPatchPresent = false;
 
 uint8_t BL_TIME_VALUES[7] = {0, 5, 10, 20, 60, 120, 255};
 const char *BL_TIME_NAMES[7] = {"Off",  "5s",   "10s", "20s",
@@ -29,7 +31,7 @@ const char *CH_TYPE_NAMES[8] = {
 };
 
 Settings defaultSettings = (Settings){
-    .eepromType = EEPROM_BL24C64,
+    .eepromType = EEPROM_UNKNOWN,
     .squelch = 4,
     .scrambler = 0,
     .batsave = 4,
@@ -72,7 +74,7 @@ const uint32_t EEPROM_SIZES[6] = {
 };
 
 const uint16_t PAGE_SIZES[6] = {
-    32, 64, 64, 128, 128, 128,
+    32, 64, 64, 128, 128, 256,
 };
 
 void SETTINGS_Save(void) {
@@ -97,3 +99,13 @@ uint32_t SETTINGS_GetEEPROMSize(void) {
 }
 
 uint16_t SETTINGS_GetPageSize(void) { return PAGE_SIZES[gSettings.eepromType]; }
+
+bool SETTINGS_IsPatchPresent() {
+  if (SETTINGS_GetEEPROMSize() < 32768) {
+    return false;
+  }
+  uint8_t buf[8];
+  const uint8_t patchPreamble[8] = {21, 0, 15, 224, 242, 115, 118, 47};
+  EEPROM_ReadBuffer(SETTINGS_GetEEPROMSize() - PATCH_SIZE, buf, 8);
+  return memcmp(buf, patchPreamble, 8) == 0;
+}

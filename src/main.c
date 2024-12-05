@@ -20,6 +20,8 @@
 #include <stdint.h>
 
 static void Boot(AppType_t appToRun) {
+  hasSi = RADIO_HasSi();
+  isPatchPresent = SETTINGS_IsPatchPresent();
   RADIO_SetupRegisters();
 
   SVC_Toggle(SVC_KEYBOARD, true, 10);
@@ -93,7 +95,6 @@ void Main(void) {
 
   gSettings.contrast = 6;
   BOARD_Init();
-  hasSi = RADIO_HasSi();
 
   BACKLIGHT_SetBrightness(7);
 

@@ -136,7 +136,7 @@ bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_MENU:
     case KEY_F:
     case KEY_PTT:
-      if (gFInputTempFreq <= F_MAX && gFInputCallback) {
+      if (gFInputTempFreq <= BK4819_F_MAX && gFInputCallback) {
         APPS_exit();
         gFInputCallback(gFInputTempFreq);
         gFInputCallback = NULL;

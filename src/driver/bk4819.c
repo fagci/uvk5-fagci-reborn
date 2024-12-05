@@ -9,9 +9,6 @@
 #include "audio.h"
 #include "bk4819-regs.h"
 
-#define BK4819_F_MIN 1600000
-#define BK4819_F_MAX 134000000
-
 uint32_t AUTO_GAIN_INDEX = 20;
 
 static uint16_t gBK4819_GpioOutState;

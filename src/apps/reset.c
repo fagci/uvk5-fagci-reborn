@@ -1,4 +1,6 @@
 #include "reset.h"
+#include "../driver/bk1080.h"
+#include "../driver/si473x.h"
 #include "../driver/st7565.h"
 #include "../external/CMSIS_5/Device/ARM/ARMCM0/Include/ARMCM0.h"
 #include "../helper/channels.h"
@@ -13,11 +15,8 @@ static uint8_t presetsWrote = 0;
 static uint8_t vfosWrote = 0;
 static bool settingsWrote = 0;
 
-static uint8_t eepromType = 255;
-
 static void startReset(EEPROMType t) {
-  eepromType = t;
-  gSettings.eepromType = eepromType;
+  gSettings.eepromType = t;
 
   settingsWrote = false;
   vfosWrote = 0;
@@ -28,19 +27,18 @@ static void startReset(EEPROMType t) {
 }
 
 void RESET_Init(void) {
+  gSettings = defaultSettings;
   gSettings.keylock = false;
-  eepromType = UINT8_MAX;
 }
 
 void RESET_Update(void) {
-  gRedrawScreen = true;
-  if (eepromType == UINT8_MAX) {
+  if (gSettings.eepromType == EEPROM_UNKNOWN) {
     return;
   }
+  gRedrawScreen = true;
 
   if (!settingsWrote) {
-    gSettings = defaultSettings;
-    gSettings.eepromType = eepromType;
+    SETTINGS_Save();
     settingsWrote = true;
     return;
   }
@@ -75,16 +73,16 @@ void RESET_Update(void) {
     p->meta.type = TYPE_PRESET;
     p->radio = RADIO_BK4819;
     if (hasSi) {
-      if (p->txF < 3000000) {
+      if (p->txF < SI47XX_F_MAX) {
         p->radio = RADIO_SI4732;
       }
-    } else if (p->txF < 1500000) {
+    } else if (p->txF < BK4819_F_MIN) {
       // skip not supported presets
       presetsWrote++;
       return;
     }
 
-    if (p->rxF >= 6400000 && p->txF <= 10800000) {
+    if (p->rxF >= BK1080_F_MIN && p->txF <= BK1080_F_MAX) {
       p->radio = hasSi ? RADIO_SI4732 : RADIO_BK1080;
     }
     CHANNELS_Save(channelsMax - 2 - presetsWrote - 1, p);
@@ -97,14 +95,13 @@ void RESET_Update(void) {
     channelsWrote++;
     return;
   }
-  SETTINGS_Save();
   NVIC_SystemReset();
 }
 
 void RESET_Render(void) {
   uint8_t POS_Y = LCD_HEIGHT / 2;
 
-  if (eepromType == UINT8_MAX) {
+  if (gSettings.eepromType == EEPROM_UNKNOWN) {
     for (uint8_t i = 0; i < ARRAY_SIZE(EEPROM_TYPE_NAMES); ++i) {
       PrintMedium(2, 18 + i * 8, "%u: %s", i + 1, EEPROM_TYPE_NAMES[i]);
     }
