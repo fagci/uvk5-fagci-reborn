@@ -108,61 +108,27 @@ static ModulationType MODS_BK4819[] = {
     MOD_WFM,
 };
 
-static ModulationType MODS_BK1080[] = {
+static ModulationType MODS_WFM[] = {
     MOD_WFM,
 };
 
-static ModulationType MODS_SI4732_HF[] = {
+static ModulationType MODS_BOTH_PATCH[] = {
+    MOD_FM, MOD_AM, MOD_USB, MOD_LSB, MOD_BYP, MOD_RAW, MOD_WFM,
+};
+
+static ModulationType MODS_BOTH[] = {
+    MOD_FM, MOD_AM, MOD_USB, MOD_BYP, MOD_RAW, MOD_WFM,
+};
+
+static ModulationType MODS_SI4732_PATCH[] = {
     MOD_AM,
     MOD_LSB,
     MOD_USB,
 };
 
-static ModulationType MODS_SI4732_WFM[] = {
-    MOD_WFM,
+static ModulationType MODS_SI4732[] = {
+    MOD_AM,
 };
-
-static int8_t indexOfMod(ModulationType *arr, uint8_t n, ModulationType t) {
-  for (uint8_t i = 0; i < n; ++i) {
-    if (arr[i] == t) {
-      return i;
-    }
-  }
-  return 0;
-}
-
-static ModulationType getNextModulation() {
-  uint8_t sz;
-  ModulationType *items;
-
-  switch (RADIO_GetRadio()) {
-  case RADIO_BK4819:
-    items = MODS_BK4819;
-    sz = ARRAY_SIZE(MODS_BK4819);
-    break;
-  case RADIO_BK1080:
-    items = MODS_BK1080;
-    sz = ARRAY_SIZE(MODS_BK1080);
-    break;
-  default:
-    if (radio->rxF <= 3000000) {
-      items = MODS_SI4732_HF;
-      sz = ARRAY_SIZE(MODS_SI4732_HF);
-    } else {
-      items = MODS_SI4732_WFM;
-      sz = ARRAY_SIZE(MODS_SI4732_WFM);
-    }
-    break;
-  }
-  int8_t curIndex =
-      indexOfMod(items, ARRAY_SIZE(MODS_BK4819), RADIO_GetModulation());
-  if (curIndex >= 0) {
-    IncDecI8(&curIndex, 0, sz, 1);
-  } else {
-    return items[0];
-  }
-  return items[curIndex];
-}
 
 static void loadVFO(uint8_t num) {
   CHANNELS_Load(CHANNELS_GetCountMax() - 2 + num, &gVFO[num]);
@@ -987,14 +953,6 @@ void RADIO_NextPresetFreqXBand(bool next) {
   RADIO_NextPresetFreqXBandEx(next, true, true);
 }
 
-void RADIO_ToggleModulation(void) {
-  radio->modulation = getNextModulation();
-
-  // NOTE: for right BW after switching from WFM to another
-  RADIO_SetupBandParams();
-  onVfoUpdate();
-}
-
 void RADIO_UpdateStep(bool inc) {
   uint8_t step = radio->step;
   IncDec8(&step, 0, STEP_500_0kHz, inc ? 1 : -1);
@@ -1021,6 +979,59 @@ void RADIO_ToggleTxPower(void) {
     ++radio->power;
   }
 
+  onVfoUpdate();
+}
+
+static uint8_t indexOfMod(ModulationType *arr, uint8_t n, ModulationType t) {
+  for (uint8_t i = 0; i < n; ++i) {
+    if (arr[i] == t) {
+      return i;
+    }
+  }
+  return 0;
+}
+
+static ModulationType getNextModulation(bool next) {
+  uint8_t sz;
+  ModulationType *items;
+
+  if (radio->rxF < SI47XX_F_MAX && radio->rxF > BK4819_F_MIN) {
+    if (isPatchPresent) {
+      items = MODS_BOTH_PATCH;
+      sz = ARRAY_SIZE(MODS_BOTH_PATCH);
+    } else {
+      items = MODS_BOTH;
+      sz = ARRAY_SIZE(MODS_BOTH);
+    }
+  } else if (radio->rxF <= BK4819_F_MIN) {
+    if (isPatchPresent) {
+      items = MODS_SI4732_PATCH;
+      sz = ARRAY_SIZE(MODS_SI4732_PATCH);
+    } else {
+      items = MODS_SI4732;
+      sz = ARRAY_SIZE(MODS_SI4732);
+    }
+  } else {
+    items = MODS_BK4819;
+    sz = ARRAY_SIZE(MODS_BK4819);
+  }
+
+  uint8_t curIndex = indexOfMod(items, sz, radio->modulation);
+
+  if (next) {
+    IncDec8(&curIndex, 0, sz, 1);
+  }
+
+  return items[curIndex];
+}
+
+void RADIO_ToggleModulation(void) {
+  if (radio->modulation == getNextModulation(true))
+    return;
+  radio->modulation = getNextModulation(true);
+
+  // NOTE: for right BW after switching from WFM to another
+  RADIO_SetupBandParams();
   onVfoUpdate();
 }
 
