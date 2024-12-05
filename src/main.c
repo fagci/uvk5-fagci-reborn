@@ -42,11 +42,11 @@ void uartHandle() {
 }
 
 static void unreborn(void) {
-  uint8_t tpl[128];
+  uint8_t tpl[256];
   const uint32_t EEPROM_SIZE = SETTINGS_GetEEPROMSize();
-  const uint8_t PAGE_SIZE = SETTINGS_GetPageSize();
+  const uint16_t PAGE_SIZE = SETTINGS_GetPageSize();
 
-  memset(tpl, 0xFF, 128);
+  memset(tpl, 0xFF, 256);
 
   for (uint16_t i = 0; i < EEPROM_SIZE; i += PAGE_SIZE) {
     EEPROM_WriteBuffer(i, tpl, PAGE_SIZE);
