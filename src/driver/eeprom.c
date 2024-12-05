@@ -7,10 +7,10 @@
 
 bool gEepromWrite = false;
 
-static uint8_t tmpBuffer[128];
+static uint8_t tmpBuffer[256];
 
 void EEPROM_ReadBuffer(uint32_t address, void *pBuffer, uint16_t size) {
-  uint8_t IIC_ADD = (uint8_t)(0xA0 | ((address / 0x10000) << 1));
+  uint8_t IIC_ADD = (uint8_t)(0xA0 | ((address >> 16) << 1));
 
   I2C_Start();
   I2C_Write(IIC_ADD);
@@ -26,7 +26,7 @@ void EEPROM_WriteBuffer(uint32_t address, void *pBuffer, uint16_t size) {
   if (pBuffer == NULL) {
     return;
   }
-  const uint8_t PAGE_SIZE = SETTINGS_GetPageSize();
+  const uint16_t PAGE_SIZE = SETTINGS_GetPageSize();
 
   while (size) {
     uint16_t i = address % PAGE_SIZE;
@@ -34,8 +34,8 @@ void EEPROM_WriteBuffer(uint32_t address, void *pBuffer, uint16_t size) {
     uint16_t n = size < rest ? size : rest;
 
     EEPROM_ReadBuffer(address, tmpBuffer, n);
-    if (memcmp(pBuffer, tmpBuffer, n) != 0) {
-      uint8_t IIC_ADD = (uint8_t)(0xA0 | ((address / 0x10000) << 1));
+    if (memcmp(pBuffer, &tmpBuffer, n) != 0) {
+      uint8_t IIC_ADD = (uint8_t)(0xA0 | ((address >> 16) << 1));
 
       I2C_Start();
       I2C_Write(IIC_ADD);
