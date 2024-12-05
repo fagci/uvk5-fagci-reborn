@@ -27,7 +27,7 @@ static void startReset(EEPROMType t) {
 }
 
 void RESET_Init(void) {
-  gSettings = defaultSettings;
+  gSettings.eepromType = EEPROM_UNKNOWN;
   gSettings.keylock = false;
 }
 

@@ -18,6 +18,7 @@
 #include "ui/graphics.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
 static void Boot(AppType_t appToRun) {
   hasSi = RADIO_HasSi();
@@ -109,24 +110,31 @@ void Main(void) {
   PrintMediumBoldEx(LCD_XCENTER, LCD_YCENTER, POS_C, C_FILL, "(X__X)");
   ST7565_Blit();
 
-  SETTINGS_Load();
-  if (gSettings.batteryCalibration > 2154 ||
-      gSettings.batteryCalibration < 1900) {
-    gSettings = defaultSettings;
-    gSettings.batteryCalibration = 0;
-  }
-  ST7565_Init();
-  BACKLIGHT_Init();
+  uint8_t buf[2];
+  uint8_t deadBuf[] = {0xDE, 0xAD};
+  EEPROM_ReadBuffer(0, buf, 2);
 
-  if (pressedKey == KEY_EXIT || gSettings.batteryCalibration == 0) {
+  if (pressedKey == KEY_EXIT || memcmp(buf, deadBuf, 2) == 0) {
     gSettings.batteryCalibration = 2000;
     Boot(APP_RESET);
-  } else if (KEYBOARD_Poll() == KEY_5) {
-    gSettings.batteryCalibration = 2000;
-    Boot(APP_MEMVIEW);
   } else {
-    BATTERY_UpdateBatteryInfo();
-    TaskAdd("Intro", Intro, 1, true, 5);
+    SETTINGS_Load();
+    if (gSettings.batteryCalibration > 2154 ||
+        gSettings.batteryCalibration < 1900) {
+      gSettings.batteryCalibration = 0;
+      EEPROM_WriteBuffer(0, deadBuf, 2);
+      NVIC_SystemReset();
+    }
+
+    ST7565_Init();
+    BACKLIGHT_Init();
+
+    if (pressedKey == KEY_5) {
+      Boot(APP_MEMVIEW);
+    } else {
+      BATTERY_UpdateBatteryInfo();
+      TaskAdd("Intro", Intro, 1, true, 5);
+    }
   }
 
   TaskAdd("UART", uartHandle, 100, true, 0);

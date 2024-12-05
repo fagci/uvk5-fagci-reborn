@@ -3,7 +3,6 @@
 #include "scheduler.h"
 #include <string.h>
 
-Settings gSettings;
 DwState gDW;
 bool isPatchPresent = false;
 
@@ -30,7 +29,7 @@ const char *CH_TYPE_NAMES[8] = {
     "EMPTY", "CH", "PRESET", "VFO", "FOLDER", "MELODY", "SETTING", "FILE",
 };
 
-Settings defaultSettings = (Settings){
+Settings gSettings = (Settings){
     .eepromType = EEPROM_UNKNOWN,
     .squelch = 4,
     .scrambler = 0,
