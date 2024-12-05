@@ -153,14 +153,6 @@ Loot *RADIO_UpdateMeasurements(void) {
           RADIO_SendDTMF("99");
           break;
         }
-      } else if (dtmfBuffer[0] == 'D' && dtmfBuffer[1] == 'D' &&
-                 dtmfBuffer[2] == 'D') {
-        gSettings.dtmfdecode = false;
-        SETTINGS_Save();
-      } else if (dtmfBuffer[0] == 'A' && dtmfBuffer[1] == 'A' &&
-                 dtmfBuffer[2] == 'A') {
-        gSettings.dtmfdecode = true;
-        SETTINGS_Save();
       }
       dtmfBufferLength = 0;
       memset(dtmfBuffer, 0, ARRAY_SIZE(dtmfBuffer));
