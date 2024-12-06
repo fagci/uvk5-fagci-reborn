@@ -138,6 +138,46 @@ static void saveVFO(uint8_t num) {
   CHANNELS_Save(CHANNELS_GetCountMax() - 2 + num, &gVFO[num]);
 }
 
+static uint8_t indexOfMod(ModulationType *arr, uint8_t n, ModulationType t) {
+  for (uint8_t i = 0; i < n; ++i) {
+    if (arr[i] == t) {
+      return i;
+    }
+  }
+  return 0;
+}
+
+static ModulationType getNextModulation(bool next) {
+  uint8_t sz = ARRAY_SIZE(MODS_BK4819);
+  ModulationType *items = MODS_BK4819;
+
+  if (radio->rxF <= SI47XX_F_MAX && radio->rxF >= BK4819_F_MIN) {
+    if (isPatchPresent) {
+      items = MODS_BOTH_PATCH;
+      sz = ARRAY_SIZE(MODS_BOTH_PATCH);
+    } else {
+      items = MODS_BOTH;
+      sz = ARRAY_SIZE(MODS_BOTH);
+    }
+  } else if (radio->rxF <= SI47XX_F_MAX) {
+    if (isPatchPresent) {
+      items = MODS_SI4732_PATCH;
+      sz = ARRAY_SIZE(MODS_SI4732_PATCH);
+    } else {
+      items = MODS_SI4732;
+      sz = ARRAY_SIZE(MODS_SI4732);
+    }
+  }
+
+  uint8_t curIndex = indexOfMod(items, sz, radio->modulation);
+
+  if (next) {
+    IncDec8(&curIndex, 0, sz, 1);
+  }
+
+  return items[curIndex];
+}
+
 Radio RADIO_Selector(uint32_t freq, ModulationType mod) {
   if ((freq >= BK1080_F_MIN && freq <= BK1080_F_MAX) && mod == MOD_WFM) {
     return hasSi ? RADIO_SI4732 : RADIO_BK1080;
@@ -596,6 +636,7 @@ void RADIO_SwitchRadio() {
   if (oldRadio == radio->radio) {
     return;
   }
+  radio->modulation = getNextModulation(false);
   /* Log("Switch radio from %s to %s",
       oldRadio == UINT8_MAX ? "-" : radioNames[oldRadio], radioNames[r]); */
   rxTurnOff(oldRadio);
@@ -980,49 +1021,6 @@ void RADIO_ToggleTxPower(void) {
   }
 
   onVfoUpdate();
-}
-
-static uint8_t indexOfMod(ModulationType *arr, uint8_t n, ModulationType t) {
-  for (uint8_t i = 0; i < n; ++i) {
-    if (arr[i] == t) {
-      return i;
-    }
-  }
-  return 0;
-}
-
-static ModulationType getNextModulation(bool next) {
-  uint8_t sz;
-  ModulationType *items;
-
-  if (radio->rxF < SI47XX_F_MAX && radio->rxF > BK4819_F_MIN) {
-    if (isPatchPresent) {
-      items = MODS_BOTH_PATCH;
-      sz = ARRAY_SIZE(MODS_BOTH_PATCH);
-    } else {
-      items = MODS_BOTH;
-      sz = ARRAY_SIZE(MODS_BOTH);
-    }
-  } else if (radio->rxF <= BK4819_F_MIN) {
-    if (isPatchPresent) {
-      items = MODS_SI4732_PATCH;
-      sz = ARRAY_SIZE(MODS_SI4732_PATCH);
-    } else {
-      items = MODS_SI4732;
-      sz = ARRAY_SIZE(MODS_SI4732);
-    }
-  } else {
-    items = MODS_BK4819;
-    sz = ARRAY_SIZE(MODS_BK4819);
-  }
-
-  uint8_t curIndex = indexOfMod(items, sz, radio->modulation);
-
-  if (next) {
-    IncDec8(&curIndex, 0, sz, 1);
-  }
-
-  return items[curIndex];
 }
 
 void RADIO_ToggleModulation(void) {
