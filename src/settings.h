@@ -268,7 +268,8 @@ typedef CH Preset;
 #define CH_SIZE sizeof(CH)
 #define CHANNELS_OFFSET (SETTINGS_OFFSET + SETTINGS_SIZE)
 
-#define PATCH_SIZE 15832
+// #define PATCH_SIZE 15832
+#define PATCH_SIZE 8840
 
 // settings
 // VFOs

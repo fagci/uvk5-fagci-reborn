@@ -45,7 +45,7 @@ void waitToSend() {
   uint8_t tmp = 0;
   SI47XX_ReadBuffer((uint8_t *)&tmp, 1);
   while (!(tmp & STATUS_CTS)) {
-    SYSTICK_DelayUs(1);
+    SYSTICK_Delay250ns(1);
     SI47XX_ReadBuffer((uint8_t *)&tmp, 1);
   }
 }
@@ -77,7 +77,7 @@ void sendProperty(uint16_t prop, uint16_t parameter) {
   uint8_t tmp[6] = {CMD_SET_PROPERTY, 0, prop >> 8, prop & 0xff, parameter >> 8,
                     parameter & 0xff};
   SI47XX_WriteBuffer(tmp, 6);
-  SYSTEM_DelayMs(10); // irrespective of CTS coming up earlier than that
+  SYSTEM_DelayMs(8); // irrespective of CTS coming up earlier than that
 }
 
 uint16_t getProperty(uint16_t prop, bool *valid) {

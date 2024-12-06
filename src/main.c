@@ -43,29 +43,6 @@ void uartHandle() {
   }
 }
 
-static void unreborn(void) {
-  uint8_t tpl[128];
-  const uint32_t EEPROM_SIZE = SETTINGS_GetEEPROMSize();
-  const uint8_t PAGE_SIZE = SETTINGS_GetPageSize();
-
-  memset(tpl, 0xFF, 128);
-
-  for (uint16_t i = 0; i < EEPROM_SIZE; i += PAGE_SIZE) {
-    EEPROM_WriteBuffer(i, tpl, PAGE_SIZE);
-    UI_ClearScreen();
-    PrintMediumEx(LCD_XCENTER, LCD_YCENTER, POS_C, C_FILL, "0xFFing... %u",
-                  i * 100 / EEPROM_SIZE);
-    ST7565_Blit();
-  }
-
-  UI_ClearScreen();
-  PrintMediumEx(LCD_XCENTER, LCD_YCENTER, POS_C, C_FILL, "0xFFed !!!");
-  ST7565_Blit();
-
-  while (true)
-    continue;
-}
-
 static void Intro(void) {
   UI_ClearScreen();
   PrintMediumBoldEx(LCD_XCENTER, LCD_YCENTER, POS_C, C_FILL, "r3b0rn");
@@ -102,9 +79,6 @@ void Main(void) {
   SVC_Toggle(SVC_RENDER, true, 25);
 
   KEY_Code_t pressedKey = KEYBOARD_Poll();
-  if (pressedKey == KEY_7) {
-    unreborn();
-  }
 
   UI_ClearScreen();
   PrintMediumBoldEx(LCD_XCENTER, LCD_YCENTER, POS_C, C_FILL, "(X__X)");
@@ -114,8 +88,14 @@ void Main(void) {
   uint8_t deadBuf[] = {0xDE, 0xAD};
   EEPROM_ReadBuffer(0, buf, 2);
 
-  if (pressedKey == KEY_EXIT || memcmp(buf, deadBuf, 2) == 0) {
+  if (pressedKey > KEY_0 && pressedKey < KEY_7) {
     gSettings.batteryCalibration = 2000;
+    gSettings.eepromType = pressedKey - 1;
+    gSettings.backlight = 5;
+    Boot(APP_MEMVIEW);
+  } else if (pressedKey == KEY_EXIT || memcmp(buf, deadBuf, 2) == 0) {
+    gSettings.batteryCalibration = 2000;
+    gSettings.backlight = 5;
     Boot(APP_RESET);
   } else {
     SETTINGS_Load();
@@ -129,12 +109,8 @@ void Main(void) {
     ST7565_Init();
     BACKLIGHT_Init();
 
-    if (pressedKey == KEY_5) {
-      Boot(APP_MEMVIEW);
-    } else {
-      BATTERY_UpdateBatteryInfo();
-      TaskAdd("Intro", Intro, 1, true, 5);
-    }
+    BATTERY_UpdateBatteryInfo();
+    TaskAdd("Intro", Intro, 1, true, 5);
   }
 
   TaskAdd("UART", uartHandle, 100, true, 0);

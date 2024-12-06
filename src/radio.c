@@ -632,11 +632,11 @@ void RADIO_TuneToPure(uint32_t f, bool precise) {
 
 void RADIO_SwitchRadio() {
   // Radio r = RADIO_GetRadio();
+  radio->modulation = getNextModulation(false);
   radio->radio = RADIO_Selector(radio->rxF, radio->modulation);
   if (oldRadio == radio->radio) {
     return;
   }
-  radio->modulation = getNextModulation(false);
   /* Log("Switch radio from %s to %s",
       oldRadio == UINT8_MAX ? "-" : radioNames[oldRadio], radioNames[r]); */
   rxTurnOff(oldRadio);

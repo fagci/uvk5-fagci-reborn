@@ -73,7 +73,7 @@ const uint32_t EEPROM_SIZES[6] = {
 };
 
 const uint16_t PAGE_SIZES[6] = {
-    32, 64, 64, 128, 128, 256,
+    32, 64, 64, 128, 128, 128,
 };
 
 void SETTINGS_Save(void) {
@@ -104,7 +104,8 @@ bool SETTINGS_IsPatchPresent() {
     return false;
   }
   uint8_t buf[8];
-  const uint8_t patchPreamble[8] = {21, 0, 15, 224, 242, 115, 118, 47};
+  // const uint8_t patchPreamble[8] = {21, 0, 15, 224, 242, 115, 118, 47};
+  const uint8_t patch2Preamble[8] = {0x15, 0x00, 0x03, 0x74, 0x0b, 0xd4, 0x84, 0x60,};
   EEPROM_ReadBuffer(SETTINGS_GetEEPROMSize() - PATCH_SIZE, buf, 8);
-  return memcmp(buf, patchPreamble, 8) == 0;
+  return memcmp(buf, patch2Preamble, 8) == 0;
 }
