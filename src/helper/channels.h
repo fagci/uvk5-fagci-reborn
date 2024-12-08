@@ -2,7 +2,7 @@
 #define CHANNELS_H
 
 #define SCANLIST_MAX 1024
-#define PRESETS_COUNT_MAX 40
+#define PRESETS_COUNT_MAX 60
 
 #include "../settings.h"
 #include <stdint.h>

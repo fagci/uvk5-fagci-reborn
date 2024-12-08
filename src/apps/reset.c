@@ -22,18 +22,19 @@ typedef enum {
 } ResetType;
 
 typedef struct {
+  uint32_t bytes;
   uint16_t channels;
   uint8_t presets;
   uint8_t vfos;
-  uint32_t bytes;
   uint8_t settings;
 } Stats;
 
 typedef struct {
   uint32_t eepromSize;
-  uint16_t pageSize;
   uint32_t bytes;
+  uint16_t pageSize;
   uint16_t channels;
+  uint16_t mr;
   uint8_t presets;
   uint8_t vfos;
   uint8_t settings;
@@ -49,18 +50,18 @@ static char *RESET_TYPE_NAMES[] = {
 static Stats stats;
 static Total total;
 static ResetType resetType = RESET_UNKNOWN;
-static uint8_t buf[128];
 
 static void selectEeprom(EEPROMType t) {
   gSettings.eepromType = t;
 
   total.eepromSize = SETTINGS_GetEEPROMSize();
   total.pageSize = SETTINGS_GetPageSize();
+  total.mr = CHANNELS_GetCountMax();
 
   total.settings = 1;
   total.vfos = ARRAY_SIZE(gVFO);
   total.presets = ARRAY_SIZE(defaultPresets);
-  total.channels = CHANNELS_GetCountMax() - total.vfos - total.presets;
+  total.channels = total.mr - total.vfos - total.presets;
 }
 
 static void startReset(ResetType t) {
@@ -123,7 +124,7 @@ static bool resetFull() {
     vfo->meta.type = TYPE_VFO;
     vfo->squelch.value = 4;
     vfo->step = STEP_25_0kHz;
-    CHANNELS_Save(CHANNELS_GetCountMax() - total.vfos + stats.vfos, vfo);
+    CHANNELS_Save(total.mr - total.vfos + stats.vfos, vfo);
     stats.vfos++;
     stats.bytes += CH_SIZE;
     return false;
@@ -166,7 +167,8 @@ static bool resetFull() {
 }
 
 static bool unreborn(void) {
-  EEPROM_WriteBuffer(stats.bytes, buf, total.pageSize);
+  const uint16_t PAGE = stats.bytes / total.pageSize;
+  EEPROM_ClearPage(PAGE);
   stats.bytes += total.pageSize;
   return stats.bytes >= total.bytes;
 }
@@ -175,18 +177,18 @@ void RESET_Init(void) {
   resetType = RESET_UNKNOWN;
   gSettings.eepromType = EEPROM_UNKNOWN;
   gSettings.keylock = false;
-  memset(buf, 0xFF, 128);
 }
 
 void RESET_Update(void) {
   if (gSettings.eepromType == EEPROM_UNKNOWN || resetType == RESET_UNKNOWN) {
     return;
   }
-  if (Now() - gLastRender > 500) {
+
+  if (Now() - gLastRender > 150) {
     gRedrawScreen = true;
   }
 
-  bool status = false;
+  bool status = true;
 
   switch (resetType) {
   case RESET_0xFF:
@@ -227,15 +229,11 @@ void RESET_Render(void) {
 
   uint8_t progress = ConvertDomain(stats.bytes, 0, total.bytes, 0, 100);
 
-  PrintSmall(0, 18 + 8 * 0, "settings: %u/%u", stats.settings, total.settings);
-  PrintSmall(0, 18 + 8 * 1, "vfos: %u/%u", stats.vfos, total.vfos);
-  PrintSmall(0, 18 + 8 * 2, "presets: %u/%u", stats.presets, total.presets);
-  PrintSmall(0, 18 + 8 * 3, "channels: %u/%u", stats.channels, total.channels);
-  PrintSmall(0, 18 + 8 * 4, "bytes: %u/%u", stats.bytes, total.bytes);
+  const uint8_t TOP = 28;
 
-  DrawRect(13, LCD_HEIGHT - 9, 102, 9, C_FILL);
-  FillRect(14, LCD_HEIGHT - 8, progress, 7, C_FILL);
-  PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 2, POS_C, C_INVERT, "%u%", progress);
+  DrawRect(13, TOP, 102, 9, C_FILL);
+  FillRect(14, TOP + 1, progress, 7, C_FILL);
+  PrintMediumEx(LCD_XCENTER, TOP + 7, POS_C, C_INVERT, "%u%", progress);
 }
 
 bool RESET_key(KEY_Code_t k, bool bKeyPressed, bool bKeyHeld) {

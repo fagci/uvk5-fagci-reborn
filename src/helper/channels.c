@@ -31,6 +31,122 @@ Preset defaultPreset = {
 };
 
 Preset defaultPresets[PRESETS_COUNT_MAX] = {
+    // si4732 presets
+    (Preset){.name="LW",.rxF=15300,.txF=27900,.modulation=MOD_AM,.step=STEP_9_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=15300,.gainIndex=22},
+    (Preset){.name="MW",.rxF=52200,.txF=170100,.modulation=MOD_AM,.step=STEP_9_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=52200,.gainIndex=22},
+    (Preset){.name="120m",.rxF=230000,.txF=249500,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=230000,.gainIndex=22},
+    (Preset){.name="90m",.rxF=320000,.txF=340000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=320000,.gainIndex=22},
+    (Preset){.name="75m",.rxF=390000,.txF=400000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=390000,.gainIndex=22},
+    (Preset){.name="60m",.rxF=475000,.txF=506000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=475000,.gainIndex=22},
+    (Preset){.name="49m",.rxF=585000,.txF=635000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=585000,.gainIndex=22},
+    (Preset){.name="41m",.rxF=720000,.txF=750000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=720000,.gainIndex=22},
+    (Preset){.name="31m",.rxF=940000,.txF=999000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=940000,.gainIndex=22},
+    (Preset){.name="25m",.rxF=1160000,.txF=1210000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=1160000,.gainIndex=22},
+    (Preset){.name="22m",.rxF=1350000,.txF=1387000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=1350000,.gainIndex=22},
+    (Preset){.name="19m",.rxF=1510000,.txF=1560000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=1510000,.gainIndex=22},
+    (Preset){.name="16m",.rxF=1755000,.txF=1805000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=1755000,.gainIndex=22},
+    (Preset){.name="15m",.rxF=1890000,.txF=1902000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=1890000,.gainIndex=22},
+    (Preset){.name="13m",.rxF=2145000,.txF=2185000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=2145000,.gainIndex=22},
+    (Preset){.name="11m",.rxF=2560000,.txF=2610000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=2560000,.gainIndex=22},
+    (Preset){
+        .rxF = 181000,
+        .txF = 200000,
+        .name = "160m HAM",
+        .step = STEP_1_0kHz,
+        .modulation = MOD_LSB,
+        .bw = BK4819_FILTER_BW_9k,
+        .misc = {
+            .lastUsedFreq = 181000,
+        },
+    },
+    (Preset){
+        .rxF = 350000,
+        .txF = 380000,
+        .name = "80m HAM",
+        .step = STEP_1_0kHz,
+        .modulation = MOD_LSB,
+        .bw = BK4819_FILTER_BW_9k,
+        .misc = {
+            .lastUsedFreq = 364800,
+        },
+    },
+    (Preset){
+        .rxF = 700000,
+        .txF = 719999,
+        .name = "40m HAM",
+        .step = STEP_1_0kHz,
+        .modulation = MOD_LSB,
+        .bw = BK4819_FILTER_BW_9k,
+        .misc = {
+            .lastUsedFreq = 710000,
+        },
+    },
+    (Preset){
+        .rxF = 1010000,
+        .txF = 1015000,
+        .name = "30m HAM",
+        .step = STEP_1_0kHz,
+        .modulation = MOD_LSB,
+        .bw = BK4819_FILTER_BW_9k,
+        .misc = {
+            .lastUsedFreq = 1010000,
+        },
+    },
+    (Preset){
+        .rxF = 1400000,
+        .txF = 1435000,
+        .name = "20m HAM",
+        .step = STEP_1_0kHz,
+        .modulation = MOD_LSB,
+        .bw = BK4819_FILTER_BW_9k,
+        .misc = {
+            .lastUsedFreq = 1400000,
+        },
+    },
+    (Preset){
+        .rxF = 1806800,
+        .txF = 1816800,
+        .name = "17m HAM",
+        .step = STEP_1_0kHz,
+        .modulation = MOD_USB,
+        .bw = BK4819_FILTER_BW_9k,
+        .misc = {
+            .lastUsedFreq = 1812000,
+        },
+    },
+    (Preset){
+        .rxF = 2100000,
+        .txF = 2145000,
+        .name = "15m HAM",
+        .step = STEP_1_0kHz,
+        .modulation = MOD_USB,
+        .bw = BK4819_FILTER_BW_9k,
+        .misc = {
+            .lastUsedFreq = 2115100,
+        },
+    },
+    (Preset){
+        .rxF = 2489000,
+        .txF = 2499000,
+        .name = "12m HAM",
+        .step = STEP_1_0kHz,
+        .modulation = MOD_USB,
+        .bw = BK4819_FILTER_BW_9k,
+        .misc = {
+            .lastUsedFreq = 2494000,
+        },
+    },
+    (Preset){
+        .rxF = 2800000,
+        .txF = 2969999,
+        .name = "10m HAM",
+        .step = STEP_1_0kHz,
+        .modulation = MOD_USB,
+        .bw = BK4819_FILTER_BW_9k,
+        .misc = {
+            .lastUsedFreq = 2822500,
+        },
+    },
     (Preset){
         .rxF = 1500000,
         .txF = 2696499,
@@ -490,63 +606,6 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
             .powCalib = {50, 100, 140},
         },
     },
-
-    // si4732 presets
-    (Preset){
-        .rxF = 181000,
-        .txF = 200000,
-        .name = "160m HAM",
-        .step = STEP_1_0kHz,
-        .modulation = MOD_LSB,
-        .bw = BK4819_FILTER_BW_9k,
-        .misc = {
-            .lastUsedFreq = 181000,
-        },
-    },
-    (Preset){
-        .rxF = 350000,
-        .txF = 380000,
-        .name = "80m HAM",
-        .step = STEP_1_0kHz,
-        .modulation = MOD_LSB,
-        .bw = BK4819_FILTER_BW_9k,
-        .misc = {
-            .lastUsedFreq = 364800,
-        },
-    },
-    (Preset){
-        .rxF = 700000,
-        .txF = 719999,
-        .name = "40m HAM",
-        .step = STEP_1_0kHz,
-        .modulation = MOD_LSB,
-        .bw = BK4819_FILTER_BW_9k,
-        .misc = {
-            .lastUsedFreq = 710000,
-        },
-    },
-    (Preset){
-        .rxF = 1400000,
-        .txF = 1435000,
-        .name = "20m HAM",
-        .step = STEP_1_0kHz,
-        .modulation = MOD_USB,
-        .bw = BK4819_FILTER_BW_9k,
-        .misc = {
-            .lastUsedFreq = 1400000,
-        },
-    },
-    (Preset){
-        .rxF = 2800000,
-        .txF = 2969999,
-        .name = "10m HAM",
-        .step = STEP_1_0kHz,
-        .modulation = MOD_USB,
-        .bw = BK4819_FILTER_BW_9k,
-        .misc = {
-            .lastUsedFreq = 2800000,
-        },
-    },
 };
 // char (*__defpres)[sizeof(defaultPresets)/sizeof(Preset)] = 1;
 
@@ -708,7 +767,7 @@ int8_t PRESET_IndexOf(Preset p) {
 }
 
 Preset PRESET_ByFrequency(uint32_t f) {
-  uint32_t smallerBW = 134000000;
+  uint32_t smallerBW = BK4819_F_MAX;
   int16_t index = -1;
   for (uint8_t i = 0; i < PRESETS_Size(); ++i) {
     Preset item = PRESETS_Item(i);

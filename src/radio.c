@@ -248,25 +248,21 @@ static void setSI4732Modulation(ModulationType mod) {
 }
 
 static void onVfoUpdate(void) {
-  Log("VFO sav in 2s...");
   TaskRemove(RADIO_SaveCurrentVFO);
   TaskAdd("VFO sav", RADIO_SaveCurrentVFO, 2000, false, 0);
 }
 
 static void onPresetUpdate(void) {
-  Log("PRESET sav in 2s...");
   TaskRemove(PRESETS_SaveCurrent);
   TaskAdd("PRS sav", PRESETS_SaveCurrent, 2000, false, 0);
 }
 
 static void setupToneDetection() {
-  Log("!!! Setup tone detection");
   uint16_t InterruptMask =
       BK4819_REG_3F_CxCSS_TAIL | BK4819_REG_3F_DTMF_5TONE_FOUND;
   if (gSettings.dtmfdecode) {
     BK4819_EnableDTMF();
     BK4819_WriteRegister(BK4819_REG_3F, 0x0800); // FIXME: RM
-    Log("!!! Setup DTMF");
     return;
   } else {
     BK4819_DisableDTMF();
@@ -274,18 +270,18 @@ static void setupToneDetection() {
   switch (radio->code.rx.type) {
   case CODE_TYPE_DIGITAL:
   case CODE_TYPE_REVERSE_DIGITAL:
-    Log("DCS on");
+    // Log("DCS on");
     BK4819_SetCDCSSCodeWord(
         DCS_GetGolayCodeWord(radio->code.rx.type, radio->code.rx.value));
     InterruptMask |= BK4819_REG_3F_CDCSS_FOUND | BK4819_REG_3F_CDCSS_LOST;
     break;
   case CODE_TYPE_CONTINUOUS_TONE:
-    Log("CTCSS on");
+    // Log("CTCSS on");
     BK4819_SetCTCSSFrequency(CTCSS_Options[radio->code.rx.value]);
     InterruptMask |= BK4819_REG_3F_CTCSS_FOUND | BK4819_REG_3F_CTCSS_LOST;
     break;
   default:
-    Log("STE on");
+    // Log("STE on");
     BK4819_SetCTCSSFrequency(670);
     BK4819_SetTailDetection(550);
     break;
@@ -459,6 +455,8 @@ static void rxTurnOn(Radio r) {
     break;
   }
 }
+
+static void setupBandplanParams() {}
 
 uint32_t GetScreenF(uint32_t f) { return f - gSettings.upconverter; }
 
@@ -882,11 +880,25 @@ void RADIO_VfoLoadCH(uint8_t i) {
 // keep CH in memory, not save in VFO, only save channel
 bool RADIO_TuneToCH(int32_t num) {
   if (CHANNELS_Existing(num)) {
-    radio->channel = num;
-    RADIO_VfoLoadCH(gSettings.activeVFO);
-    RADIO_SaveCurrentVFO();
-    RADIO_SetupByCurrentVFO();
-    return true;
+    CH ch;
+    switch (CHANNELS_GetMeta(num).type) {
+    case TYPE_CH:
+      radio->channel = num;
+      RADIO_VfoLoadCH(gSettings.activeVFO);
+      RADIO_SaveCurrentVFO();
+      RADIO_SetupByCurrentVFO();
+      return true;
+    case TYPE_PRESET:
+      CHANNELS_Load(num, &ch);
+      radio->bw = ch.bw;
+      radio->step = ch.step;
+      radio->gainIndex = ch.gainIndex;
+      radio->modulation = ch.modulation;
+      RADIO_TuneToSave(ch.misc.lastUsedFreq);
+      return true;
+    default:
+      return false;
+    }
   }
   radio->channel = -1;
   return false;

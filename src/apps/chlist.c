@@ -18,6 +18,14 @@ typedef enum {
   MODE_SELECT,
 } CHLIST_ViewMode;
 
+static char *VIEW_MODE_NAMES[] = {
+    "INFO",     //
+    "SCANLIST", //
+    "TX",       //
+    "TYPE",     //
+    "SELECT",   //
+};
+
 // TODO:
 // filter
 // - scanlist
@@ -26,7 +34,7 @@ typedef enum {
 bool gChSaveMode = false;
 
 static uint16_t channelIndex = 0;
-static CHLIST_ViewMode viewMode = MODE_INFO;
+static uint8_t viewMode = MODE_INFO;
 static CH ch;
 static uint16_t chCount = 1024;
 static char tempName[9] = {0};
@@ -45,6 +53,11 @@ static uint16_t getChannelNumber(uint16_t menuIndex) {
   return menuIndex;
 }
 
+static inline bool chIsScanlistable(CH *ch) {
+  return ch->meta.type == TYPE_CH || ch->meta.type == TYPE_PRESET ||
+         ch->meta.type == TYPE_FOLDER || ch->meta.type == TYPE_EMPTY;
+}
+
 static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
   index = getChannelNumber(index);
   CHANNELS_Load(index, &ch);
@@ -54,18 +67,34 @@ static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
   }
   if (ch.meta.type) {
     PrintSymbolsEx(2, y + 8, POS_L, C_INVERT, "%c", typeIcons[ch.meta.type]);
-    PrintMediumEx(8 + 8, y + 8, POS_L, C_INVERT, "%s", ch.name);
+    PrintMediumEx(13, y + 8, POS_L, C_INVERT, "%s", ch.name);
   } else {
-    PrintMediumEx(2, y + 8, POS_L, C_INVERT, "CH-%u", index + 1);
+    PrintMediumEx(13, y + 8, POS_L, C_INVERT, "CH-%u", index + 1);
   }
-  if (ch.meta.type == TYPE_CH || ch.meta.type == TYPE_PRESET ||
-      ch.meta.type == TYPE_FOLDER) {
-    char scanlistsStr[9] = "";
-    for (uint8_t n = 0; n < 8; ++n) {
-      scanlistsStr[n] =
-          ch.scanlists & (1 << n) ? (n == 7 ? 'X' : '1' + n) : '-';
+  switch (viewMode) {
+  case MODE_INFO:
+    PrintSmallEx(LCD_WIDTH - 5, y + 5, POS_R, C_INVERT, "%u.%03u %u.%03u",
+                 ch.rxF / MHZ, ch.rxF / 100 % 1000, ch.txF / MHZ,
+                 ch.txF / 100 % 1000);
+    break;
+  case MODE_SCANLIST:
+    if (chIsScanlistable(&ch)) {
+      char scanlistsStr[9] = "";
+      for (uint8_t n = 0; n < 8; ++n) {
+        scanlistsStr[n] =
+            ch.scanlists & (1 << n) ? (n == 7 ? 'X' : '1' + n) : '-';
+      }
+      PrintSmallEx(LCD_WIDTH - 5, y + 7, POS_R, C_INVERT, "%s", scanlistsStr);
     }
-    PrintSmallEx(LCD_WIDTH - 5, y + 8, POS_R, C_INVERT, "%s", scanlistsStr);
+    break;
+  case MODE_TX:
+    PrintSmallEx(LCD_WIDTH - 5, y + 7, POS_R, C_INVERT, "%s",
+                 ch.allowTx ? "ON" : "OFF");
+    break;
+  case MODE_SELECT:
+    break;
+  case MODE_TYPE:
+    break;
   }
 }
 
@@ -98,6 +127,15 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     if (gIsNumNavInput) {
       channelIndex = NUMNAV_Input(key) - 1;
       return true;
+    }
+  }
+  if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
+    switch (key) {
+    case KEY_STAR:
+      IncDec8(&viewMode, 0, ARRAY_SIZE(VIEW_MODE_NAMES), 1);
+      return true;
+    default:
+      break;
     }
   }
 
@@ -136,12 +174,15 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_F:
       CHANNELS_Load(chNum, &ch);
-      Log("Prepare to edit CH #%u %s", chNum, ch.name);
       gChEd = ch;
       gChNum = chNum;
       APPS_run(APP_CH_CFG);
       return true;
     case KEY_EXIT:
+      if (gIsNumNavInput) {
+        NUMNAV_Deinit();
+        return true;
+      }
       APPS_exit();
       return true;
     default:
@@ -153,6 +194,7 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
 void CHLIST_render() {
   UI_ShowMenuEx(getChItem, chCount, channelIndex, MENU_LINES_TO_SHOW + 1);
+  STATUSLINE_SetText("%s", VIEW_MODE_NAMES[viewMode]);
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
   }

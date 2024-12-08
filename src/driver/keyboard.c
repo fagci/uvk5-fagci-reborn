@@ -112,7 +112,7 @@ KEY_Code_t KEYBOARD_Poll(void) {
     // Read all 4 GPIO pins at once .. with de-noise, max of 8 sample loops
     for (i = 0, k = 0, reg = 0; i < 3 && k < 8; i++, k++) {
       uint16_t reg2;
-      SYSTICK_DelayUs(1);
+      // SYSTICK_Delay250ns(1);
       reg2 = GPIOA->DATA;
       if (reg != reg2) { // noise
         reg = reg2;
@@ -136,11 +136,11 @@ KEY_Code_t KEYBOARD_Poll(void) {
 
   // Create I2C stop condition since we might have toggled I2C pins
   // This leaves GPIOA_PIN_KEYBOARD_4 and GPIOA_PIN_KEYBOARD_5 high
-  I2C_Stop();
+  // I2C_Stop();
 
   // Reset VOICE pins
-  GPIO_ClearBit(&GPIOA->DATA, GPIOA_PIN_KEYBOARD_6);
-  GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_KEYBOARD_7);
+  // GPIO_ClearBit(&GPIOA->DATA, GPIOA_PIN_KEYBOARD_6);
+  // GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_KEYBOARD_7);
 
   return Key;
 }

@@ -54,3 +54,24 @@ void EEPROM_WriteBuffer(uint32_t address, void *pBuffer, uint16_t size) {
     gEepromWrite = true;
   }
 }
+
+void EEPROM_ClearPage(uint16_t page) {
+  const uint8_t PAGE_SIZE = SETTINGS_GetPageSize();
+  const uint32_t address = page * PAGE_SIZE;
+
+  uint8_t IIC_ADD = (uint8_t)(0xA0 | ((address / 0x10000) << 1));
+
+  I2C_Start();
+  I2C_Write(IIC_ADD);
+  I2C_Write((address >> 8) & 0xFF);
+  I2C_Write(address & 0xFF);
+
+  for (uint16_t i = 0; i < PAGE_SIZE; ++i) {
+    I2C_Write(0xFF);
+  }
+
+  I2C_Stop();
+  SYSTEM_DelayMs(10);
+
+  gEepromWrite = true;
+}

@@ -125,7 +125,8 @@ void VFO1_update(void) {
     }
   }
 
-  if (gIsListening && Now() - gLastRender >= 500) {
+  if (gIsListening && Now() - gLastRender >= 500 &&
+      (RADIO_GetRadio() != RADIO_SI4732 || gShowAllRSSI)) {
     gRedrawScreen = true;
   }
 }

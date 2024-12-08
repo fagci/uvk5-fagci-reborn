@@ -12,7 +12,6 @@
 #include "driver/st7565.h"
 #include "driver/system.h"
 #include "driver/uart.h"
-#include "external/printf/printf.h"
 #include "helper/battery.h"
 #include "misc.h"
 #include "radio.h"
@@ -21,6 +20,7 @@
 #include "svc.h"
 #include "ui/statusline.h"
 #include <stdint.h>
+#include <string.h>
 
 static char dtmfChars[] = "0123456789ABCD*#";
 static char dtmfBuffer[16] = "";
@@ -233,9 +233,11 @@ void SVC_LISTEN_Update(void) {
     return;
   }
 
-  RADIO_UpdateMeasurements();
-  if (gSettings.scanTimeout < 10) {
-    BK4819_ResetRSSI();
+  if (RADIO_GetRadio() == RADIO_BK4819 || gShowAllRSSI) {
+    RADIO_UpdateMeasurements();
+    if (gSettings.scanTimeout < 10) {
+      BK4819_ResetRSSI();
+    }
   }
 
   bool blinkMode = RADIO_GetRadio() != RADIO_BK4819 || gMonitorMode;

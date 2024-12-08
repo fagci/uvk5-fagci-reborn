@@ -29,6 +29,11 @@ const char *CH_TYPE_NAMES[8] = {
     "EMPTY", "CH", "PRESET", "VFO", "FOLDER", "MELODY", "SETTING", "FILE",
 };
 
+static const uint8_t PATCh1_PREAMBLE[] = {0x15, 0x00, 0x0F, 0xE0,
+                                          0xF2, 0x73, 0x76, 0x2F};
+static const uint8_t PATCH3_PREAMBLE[] = {0x15, 0x00, 0x03, 0x74,
+                                          0x0b, 0xd4, 0x84, 0x60};
+
 Settings gSettings = (Settings){
     .eepromType = EEPROM_UNKNOWN,
     .squelch = 4,
@@ -104,8 +109,6 @@ bool SETTINGS_IsPatchPresent() {
     return false;
   }
   uint8_t buf[8];
-  // const uint8_t patchPreamble[8] = {21, 0, 15, 224, 242, 115, 118, 47};
-  const uint8_t patch2Preamble[8] = {0x15, 0x00, 0x03, 0x74, 0x0b, 0xd4, 0x84, 0x60,};
   EEPROM_ReadBuffer(SETTINGS_GetEEPROMSize() - PATCH_SIZE, buf, 8);
-  return memcmp(buf, patch2Preamble, 8) == 0;
+  return memcmp(buf, PATCH3_PREAMBLE, 8) == 0;
 }
