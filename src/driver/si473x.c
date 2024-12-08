@@ -171,7 +171,7 @@ void SI47XX_PowerUp() {
   } else if (si4732mode == SI47XX_AM) {
     SI47XX_SetAutomaticGainControl(1, 0);
     sendProperty(PROP_AM_SOFT_MUTE_MAX_ATTENUATION, 0);
-    sendProperty(PROP_AM_AUTOMATIC_VOLUME_CONTROL_MAX_GAIN, 0x7800);
+    setAvcAmMaxGain(90);
   }
   SI47XX_SetFreq(siCurrentFreq);
 }
@@ -282,7 +282,7 @@ void SI47XX_SetFreq(uint16_t freq) {
 
   bool isSW = freq > 1800;
 
-  uint8_t size = 4;
+  uint8_t size = 5;
   uint8_t cmd[6] = {CMD_FM_TUNE_FREQ, 0x00, hb, lb, 0, 0};
 
   if (si4732mode == SI47XX_FM || si4732mode == SI47XX_AM) {
@@ -291,7 +291,7 @@ void SI47XX_SetFreq(uint16_t freq) {
 
   if (si4732mode == SI47XX_AM) {
     cmd[0] = CMD_AM_TUNE_FREQ;
-    size = 5;
+    size = 6; // was 5
   }
 
   if (SI47XX_IsSSB()) {
@@ -314,8 +314,8 @@ void SI47XX_SetFreq(uint16_t freq) {
   SI47XX_WriteBuffer(cmd, size);
   siCurrentFreq = freq;
 
-  SYSTEM_DelayMs(30);
-  RSQ_GET();
+  // SYSTEM_DelayMs(30);
+  // RSQ_GET();
 }
 
 void SI47XX_SetAMFrontendAGC(uint8_t minGainIdx, uint8_t attnBackup) {

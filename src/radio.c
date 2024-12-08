@@ -741,7 +741,7 @@ void RADIO_SetGain(uint8_t gainIndex) {
     disableAGC = gainIndex != AUTO_GAIN_INDEX;
     gainIndex = ARRAY_SIZE(gainTable) - 1 - gainIndex;
     gainIndex = ConvertDomain(gainIndex, 0, ARRAY_SIZE(gainTable) - 1, 0, 26);
-    SI47XX_SetAutomaticGainControl(disableAGC, gainIndex);
+    SI47XX_SetAutomaticGainControl(disableAGC, disableAGC ? gainIndex : 0);
     break;
   case RADIO_BK1080:
     break;
