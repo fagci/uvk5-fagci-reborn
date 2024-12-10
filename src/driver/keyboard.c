@@ -18,10 +18,8 @@
 #include "keyboard.h"
 #include "../inc/dp32g030/gpio.h"
 #include "../misc.h"
-#include "../scheduler.h"
 #include "gpio.h"
 #include "i2c.h"
-#include "system.h"
 #include "systick.h"
 
 KEY_Code_t gKeyReading0 = KEY_INVALID;
@@ -95,9 +93,7 @@ Keyboard keyboard[5] = {
 KEY_Code_t KEYBOARD_Poll(void) {
   KEY_Code_t Key = KEY_INVALID;
 
-  // *****************
-
-  for (unsigned int j = 0; j < ARRAY_SIZE(keyboard); j++) {
+  for (uint8_t j = 0; j < ARRAY_SIZE(keyboard); j++) {
     uint16_t reg;
     uint8_t i;
     uint8_t k;
@@ -111,16 +107,16 @@ KEY_Code_t KEYBOARD_Poll(void) {
 
     // Read all 4 GPIO pins at once .. with de-noise, max of 8 sample loops
     for (i = 0, k = 0, reg = 0; i < 3 && k < 8; i++, k++) {
-      uint16_t reg2;
-      // SYSTICK_Delay250ns(1);
-      reg2 = GPIOA->DATA;
+      SYSTICK_DelayUs(1);
+      uint16_t reg2 = GPIOA->DATA;
       if (reg != reg2) { // noise
         reg = reg2;
         i = 0;
       }
     }
-    if (i < 3)
+    if (i < 3) {
       break; // noise is too bad
+    }
 
     for (i = 0; i < ARRAY_SIZE(keyboard[j].pins); i++) {
       const uint16_t mask = 1u << keyboard[j].pins[i].pin;
@@ -130,8 +126,9 @@ KEY_Code_t KEYBOARD_Poll(void) {
       }
     }
 
-    if (Key != KEY_INVALID)
+    if (Key != KEY_INVALID) {
       break;
+    }
   }
 
   // Create I2C stop condition since we might have toggled I2C pins
@@ -139,8 +136,8 @@ KEY_Code_t KEYBOARD_Poll(void) {
   // I2C_Stop();
 
   // Reset VOICE pins
-  // GPIO_ClearBit(&GPIOA->DATA, GPIOA_PIN_KEYBOARD_6);
-  // GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_KEYBOARD_7);
+  GPIO_ClearBit(&GPIOA->DATA, GPIOA_PIN_KEYBOARD_6);
+  GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_KEYBOARD_7);
 
   return Key;
 }
@@ -151,7 +148,6 @@ bool gPttWasReleased;
 uint8_t gPttDebounceCounter;
 bool gRepeatHeld = false;
 
-// static uint8_t gSerialConfigCountDown_500ms = 0;
 static uint8_t KEY_DEBOUNCE = 4;
 static uint8_t KEY_REPEAT_DELAY = 40;
 static uint8_t KEY_REPEAT = 8;
@@ -237,10 +233,10 @@ void KEYBOARD_CheckKeys(void onKey(KEY_Code_t, bool, bool)) {
     // subsequent fast key repeats
     // fast key repeats for up/down buttons
     // if (Key == KEY_UP || Key == KEY_DOWN) {
-      gKeyBeingHeld = true;
-      gRepeatHeld = true;
-      if ((gDebounceCounter % KEY_REPEAT) == 0)
-        onKey(Key, true, true); // key held event
+    gKeyBeingHeld = true;
+    gRepeatHeld = true;
+    if ((gDebounceCounter % KEY_REPEAT) == 0)
+      onKey(Key, true, true); // key held event
     // }
 
     if (gDebounceCounter < 0xFFFF)

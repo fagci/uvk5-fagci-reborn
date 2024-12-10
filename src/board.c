@@ -77,10 +77,6 @@ void BOARD_GPIO_Init(void) {
                   // PTT button
                   | GPIO_DIR_5_MASK // INPUT
   );
-
-#if defined(ENABLE_FMRADIO)
-  GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BK1080);
-#endif
 }
 
 void BOARD_PORTCON_Init(void) {

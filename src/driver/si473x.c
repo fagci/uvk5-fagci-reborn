@@ -43,16 +43,17 @@ bool SI47XX_IsSSB() {
 
 void waitToSend() {
   uint8_t tmp = 0;
-  SI47XX_ReadBuffer((uint8_t *)&tmp, 1);
-  while (!(tmp & STATUS_CTS)) {
-    SYSTICK_Delay250ns(1);
+  do {
+    SYSTICK_DelayUs(300);
     SI47XX_ReadBuffer((uint8_t *)&tmp, 1);
-  }
+  } while (!(tmp & STATUS_CTS));
 }
 
 #include "../ui/components.h" // HACK: \(X_X)/
+#include "uart.h"
 
 bool SI47XX_downloadPatch() {
+  Log("DL patch");
   UI_ShowWait();
 
   uint8_t buf[248];
@@ -64,11 +65,13 @@ bool SI47XX_downloadPatch() {
     EEPROM_ReadBuffer(PATCH_START + offset, buf, eepromN);
 
     for (uint8_t i = 0; i < eepromN; i += 8) {
-      waitToSend();
+      // waitToSend();
       SI47XX_WriteBuffer(buf + i, 8);
+      SYSTICK_DelayUs(300);
     }
   }
   // SYSTEM_DelayMs(250);
+  Log("DL patch OK");
   return true;
 }
 
@@ -194,7 +197,7 @@ void SI47XX_PatchPowerUp() {
   uint8_t cmd[3] = {CMD_POWER_UP, 0b00110001, OUT_ANALOG};
   waitToSend();
   SI47XX_WriteBuffer(cmd, 3);
-  SYSTEM_DelayMs(550);
+  SYSTEM_DelayMs(60);
 
   isSi4732On = true;
 
@@ -208,6 +211,9 @@ void SI47XX_PatchPowerUp() {
   SI47XX_SetFreq(siCurrentFreq);
   sendProperty(PROP_SSB_SOFT_MUTE_MAX_ATTENUATION, 0);
   sendProperty(PROP_AM_AUTOMATIC_VOLUME_CONTROL_MAX_GAIN, 0x7800);
+
+  si4732mode = SI47XX_USB; // FIXME: modulation must be set before power on to
+                           // prevent repowering
 }
 
 void SI47XX_SetSsbBandwidth(SI47XX_SsbFilterBW bw) {
@@ -287,27 +293,17 @@ void SI47XX_SetFreq(uint16_t freq) {
 
   if (si4732mode == SI47XX_FM || si4732mode == SI47XX_AM) {
     cmd[1] = 0x01; // FAST
+  } else {
+    cmd[1] = si4732mode == SI47XX_USB ? 0b10000000 : 0b01000000;
   }
 
-  if (si4732mode == SI47XX_AM) {
+  if (si4732mode != SI47XX_FM) {
     cmd[0] = CMD_AM_TUNE_FREQ;
     size = 6; // was 5
   }
 
-  if (SI47XX_IsSSB()) {
-    cmd[0] = CMD_AM_TUNE_FREQ; // same as AM 0x40
-    if (si4732mode == SI47XX_USB) {
-      cmd[1] = 0b10000000;
-    } else {
-      cmd[1] = 0b01000000;
-    }
-    size = 6;
-  }
-
-  if (si4732mode != SI47XX_FM) {
-    if (isSW) {
-      cmd[5] = 1;
-    }
+  if (si4732mode == SI47XX_AM && isSW) {
+    cmd[5] = 1;
   }
 
   waitToSend();

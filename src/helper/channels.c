@@ -54,7 +54,7 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .name = "160m HAM",
         .step = STEP_1_0kHz,
         .modulation = MOD_LSB,
-        .bw = BK4819_FILTER_BW_9k,
+        .bw = BK4819_FILTER_BW_12k,
         .misc = {
             .lastUsedFreq = 181000,
         },
@@ -65,7 +65,7 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .name = "80m HAM",
         .step = STEP_1_0kHz,
         .modulation = MOD_LSB,
-        .bw = BK4819_FILTER_BW_9k,
+        .bw = BK4819_FILTER_BW_12k,
         .misc = {
             .lastUsedFreq = 364800,
         },
@@ -76,7 +76,7 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .name = "40m HAM",
         .step = STEP_1_0kHz,
         .modulation = MOD_LSB,
-        .bw = BK4819_FILTER_BW_9k,
+        .bw = BK4819_FILTER_BW_12k,
         .misc = {
             .lastUsedFreq = 710000,
         },
@@ -87,7 +87,7 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .name = "30m HAM",
         .step = STEP_1_0kHz,
         .modulation = MOD_LSB,
-        .bw = BK4819_FILTER_BW_9k,
+        .bw = BK4819_FILTER_BW_12k,
         .misc = {
             .lastUsedFreq = 1010000,
         },
@@ -98,7 +98,7 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .name = "20m HAM",
         .step = STEP_1_0kHz,
         .modulation = MOD_LSB,
-        .bw = BK4819_FILTER_BW_9k,
+        .bw = BK4819_FILTER_BW_12k,
         .misc = {
             .lastUsedFreq = 1400000,
         },
@@ -109,7 +109,7 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .name = "17m HAM",
         .step = STEP_1_0kHz,
         .modulation = MOD_USB,
-        .bw = BK4819_FILTER_BW_9k,
+        .bw = BK4819_FILTER_BW_12k,
         .misc = {
             .lastUsedFreq = 1812000,
         },
@@ -120,7 +120,7 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .name = "15m HAM",
         .step = STEP_1_0kHz,
         .modulation = MOD_USB,
-        .bw = BK4819_FILTER_BW_9k,
+        .bw = BK4819_FILTER_BW_12k,
         .misc = {
             .lastUsedFreq = 2115100,
         },
@@ -131,7 +131,7 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .name = "12m HAM",
         .step = STEP_1_0kHz,
         .modulation = MOD_USB,
-        .bw = BK4819_FILTER_BW_9k,
+        .bw = BK4819_FILTER_BW_12k,
         .misc = {
             .lastUsedFreq = 2494000,
         },
@@ -142,7 +142,7 @@ Preset defaultPresets[PRESETS_COUNT_MAX] = {
         .name = "10m HAM",
         .step = STEP_1_0kHz,
         .modulation = MOD_USB,
-        .bw = BK4819_FILTER_BW_9k,
+        .bw = BK4819_FILTER_BW_12k,
         .misc = {
             .lastUsedFreq = 2822500,
         },
