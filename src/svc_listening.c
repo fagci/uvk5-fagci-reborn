@@ -124,7 +124,7 @@ Loot *RADIO_UpdateMeasurements(void) {
 
       if (intBits & BK4819_REG_02_DTMF_5TONE_FOUND) {
         uint8_t code = BK4819_GetDTMF_5TONE_Code();
-        Log("DTMF: %u", code);
+        // Log("DTMF: %u", code);
         lastDTMF = Now();
         lastSNR = RADIO_GetSNR();
         dtmfBuffer[dtmfBufferLength++] = dtmfChars[code];
@@ -132,9 +132,9 @@ Loot *RADIO_UpdateMeasurements(void) {
     }
     if (Now() - lastDTMF > 1000 && dtmfBufferLength) {
       // make an actions with buffer
-      STATUSLINE_SetTickerText("DTMF: %s", dtmfBuffer);
+      // STATUSLINE_SetTickerText("DTMF: %s", dtmfBuffer);
       if (dtmfBuffer[0] == 'A') {
-        Log("A CMD");
+        // Log("A CMD");
         switch (dtmfBuffer[1]) {
         case '1':
           SVC_Toggle(SVC_BEACON, !SVC_Running(SVC_BEACON), 15000);

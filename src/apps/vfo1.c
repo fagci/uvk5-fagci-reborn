@@ -13,6 +13,7 @@
 #include "../svc_scan.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
+#include "../ui/statusline.h"
 #include "apps.h"
 #include "chcfg.h"
 #include "finput.h"
@@ -76,7 +77,11 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
 }
 
 static void setChannel(uint16_t v) { RADIO_TuneToCH(v - 1); }
-static void tuneTo(uint32_t f) { RADIO_TuneToSave(GetTuneF(f)); }
+static void tuneTo(uint32_t f) {
+  RADIO_TuneToSave(GetTuneF(f));
+  gSettings.vfoFixedBoundsMode = false;
+  SETTINGS_Save();
+}
 
 static bool SSB_Seek_ON = false;
 static bool SSB_Seek_UP = true;
@@ -152,10 +157,10 @@ static void prepareABScan() {
 static void initChannelScan() {
   scanIndex = 0;
   LOOT_Clear();
-  CHANNELS_LoadScanlist(gSettings.currentScanlist);
+  CHANNELS_LoadScanlist(TYPE_CH, gSettings.currentScanlist);
   if (gScanlistSize == 0) {
     gSettings.currentScanlist = 15;
-    CHANNELS_LoadScanlist(gSettings.currentScanlist);
+    CHANNELS_LoadScanlist(TYPE_CH, gSettings.currentScanlist);
     SETTINGS_DelayedSave();
   }
   for (uint16_t i = 0; i < gScanlistSize; ++i) {
@@ -294,7 +299,7 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       }
       return true;
     case KEY_5:
-      gFInputCallback = RADIO_TuneToSave;
+      gFInputCallback = tuneTo;
       APPS_run(APP_FINPUT);
       return true;
     default:
@@ -541,6 +546,8 @@ static void DrawRegs(void) {
 }
 
 void VFO1_render(void) {
+  STATUSLINE_renderCurrentPreset();
+
   const uint8_t BASE = 38;
 
   VFO *vfo = &gVFO[gSettings.activeVFO];

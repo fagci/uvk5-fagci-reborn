@@ -114,7 +114,7 @@ typedef enum {
 
 extern const char *EEPROM_TYPE_NAMES[6];
 extern const uint32_t EEPROM_SIZES[6];
-extern const char *CH_TYPE_NAMES[8];
+extern const char *CH_TYPE_NAMES[9];
 
 typedef struct {
   EEPROMType eepromType : 3;
@@ -128,7 +128,7 @@ typedef struct {
   uint8_t micGain : 4;
   uint8_t currentScanlist : 4;
   uint8_t iAmPro : 1;
-  uint8_t reserved2 : 1;
+  bool vfoFixedBoundsMode : 1;
   uint8_t roger : 2;
   uint8_t scanmode : 2;
   CHDisplayMode chDisplayMode : 2;
@@ -206,6 +206,7 @@ typedef enum {
   TYPE_MELODY,
   TYPE_SETTING,
   TYPE_FILE,
+  TYPE_ALL,
 } CHType;
 
 typedef struct {

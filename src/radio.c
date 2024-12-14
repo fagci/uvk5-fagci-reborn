@@ -705,7 +705,7 @@ void RADIO_SelectPresetSave(int8_t num) {
 void RADIO_LoadCurrentVFO(void) {
   for (uint8_t i = 0; i < 2; ++i) {
     loadVFO(i);
-    Log("gVFO(%u)= (f=%u, radio=%u)", i + 1, gVFO[i].rxF, gVFO[i].radio);
+    // Log("gVFO(%u)= (f=%u, radio=%u)", i + 1, gVFO[i].rxF, gVFO[i].radio);
     if (gVFO[i].channel >= 0) {
       RADIO_VfoLoadCH(i);
     }
@@ -890,6 +890,8 @@ bool RADIO_TuneToCH(int32_t num) {
       return true;
     case TYPE_PRESET:
       CHANNELS_Load(num, &ch);
+      gSettings.vfoFixedBoundsMode = true;
+      SETTINGS_Save();
       radio->bw = ch.bw;
       radio->step = ch.step;
       radio->gainIndex = ch.gainIndex;
@@ -951,13 +953,13 @@ void RADIO_NextFreqNoClicks(bool next) {
   const uint32_t step = StepFrequencyTable[radio->step];
 
   uint32_t f = radio->rxF + step * dir;
-  /* if (!PRESET_InRange(f, gCurrentPreset)) {
+  if (gSettings.vfoFixedBoundsMode && !PRESET_InRange(f, gCurrentPreset)) {
     if (next) {
-      RADIO_TuneTo(gCurrentPreset.rxF);
+      f = gCurrentPreset.rxF;
     } else {
-      RADIO_TuneTo(gCurrentPreset.txF - gCurrentPreset.txF % step);
+      f = gCurrentPreset.txF - gCurrentPreset.txF % step;
     }
-  } else { */
+  }
   // f = CHANNELS_GetF(&gCurrentPreset, CHANNELS_GetChannel(&gCurrentPreset,
   // f));
   radio->channel = -1;

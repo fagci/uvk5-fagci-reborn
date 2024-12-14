@@ -3,6 +3,8 @@
 #include "../driver/si473x.h"
 #include "../driver/st7565.h"
 #include "../helper/battery.h"
+#include "../helper/channels.h"
+#include "../helper/numnav.h"
 #include "../scheduler.h"
 #include "../svc.h"
 #include "components.h"
@@ -159,4 +161,14 @@ void STATUSLINE_render(void) {
 
   PrintSmall(0, BASE_Y,
              statuslineTicker[0] == '\0' ? statuslineText : statuslineTicker);
+}
+
+void STATUSLINE_renderCurrentPreset() {
+  if (gIsNumNavInput) {
+    STATUSLINE_SetText("Select: %s", gNumNavInput);
+  } else {
+    STATUSLINE_SetText(gSettings.vfoFixedBoundsMode ? "[ %s:%u ]" : "%s:%u",
+                       gCurrentPreset.name,
+                       CHANNELS_GetChannel(&gCurrentPreset, radio->rxF) + 1);
+  }
 }

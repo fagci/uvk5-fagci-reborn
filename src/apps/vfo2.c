@@ -126,13 +126,7 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 void VFO2_update(void) { VFO1_update(); }
 
 void VFO2_render(void) {
-  if (gIsNumNavInput) {
-    STATUSLINE_SetText("Select: %s", gNumNavInput);
-  } else {
-    STATUSLINE_SetText("%s:%u", gCurrentPreset.name,
-                       CHANNELS_GetChannel(&gCurrentPreset, radio->rxF) + 1);
-  }
-
+  STATUSLINE_renderCurrentPreset();
   render2VFOPart(0);
   render2VFOPart(1);
 }

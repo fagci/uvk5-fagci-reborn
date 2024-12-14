@@ -32,11 +32,11 @@ static char *VIEW_MODE_NAMES[] = {
 // - type
 
 bool gChSaveMode = false;
+CHType gChListFilter = TYPE_ALL;
 
 static uint16_t channelIndex = 0;
 static uint8_t viewMode = MODE_INFO;
 static CH ch;
-static uint16_t chCount = 1024;
 static char tempName[9] = {0};
 
 static const Symbol typeIcons[] = {
@@ -47,15 +47,16 @@ static const Symbol typeIcons[] = {
 };
 
 static uint16_t getChannelNumber(uint16_t menuIndex) {
-  if (gSettings.currentScanlist != 15) {
-    menuIndex = gScanlist[menuIndex];
-  }
-  return menuIndex;
+  return gScanlist[menuIndex];
 }
 
 static inline bool chIsScanlistable(CH *ch) {
   return ch->meta.type == TYPE_CH || ch->meta.type == TYPE_PRESET ||
          ch->meta.type == TYPE_FOLDER || ch->meta.type == TYPE_EMPTY;
+}
+
+static inline bool chIsFreqable(CH *ch) {
+  return ch->meta.type == TYPE_CH || ch->meta.type == TYPE_PRESET;
 }
 
 static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
@@ -73,9 +74,11 @@ static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
   }
   switch (viewMode) {
   case MODE_INFO:
-    PrintSmallEx(LCD_WIDTH - 5, y + 5, POS_R, C_INVERT, "%u.%03u %u.%03u",
-                 ch.rxF / MHZ, ch.rxF / 100 % 1000, ch.txF / MHZ,
-                 ch.txF / 100 % 1000);
+    if (chIsFreqable(&ch)) {
+      PrintSmallEx(LCD_WIDTH - 5, y + 5, POS_R, C_INVERT, "%u.%03u %u.%03u",
+                   ch.rxF / MHZ, ch.rxF / 100 % 1000, ch.txF / MHZ,
+                   ch.txF / 100 % 1000);
+    }
     break;
   case MODE_SCANLIST:
     if (chIsScanlistable(&ch)) {
@@ -110,17 +113,14 @@ static void saveNamed() {
   RADIO_LoadCurrentVFO();
 }
 
-void CHLIST_init() {
-  CHANNELS_LoadScanlist(15);
-  chCount = CHANNELS_GetCountMax();
-}
+void CHLIST_init() { CHANNELS_LoadScanlist(gChListFilter, 15); }
 
 void CHLIST_deinit() { gChSaveMode = false; }
 
 bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld) {
     if (!gIsNumNavInput && key == KEY_STAR) {
-      NUMNAV_Init(channelIndex + 1, 1, chCount);
+      NUMNAV_Init(channelIndex + 1, 1, gScanlistSize);
       gNumNavCallback = setMenuIndex;
       return true;
     }
@@ -143,10 +143,10 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyPressed || !bKeyHeld) {
     switch (key) {
     case KEY_UP:
-      IncDec16(&channelIndex, 0, chCount, -1);
+      IncDec16(&channelIndex, 0, gScanlistSize, -1);
       return true;
     case KEY_DOWN:
-      IncDec16(&channelIndex, 0, chCount, 1);
+      IncDec16(&channelIndex, 0, gScanlistSize, 1);
       return true;
     default:
       break;
@@ -154,6 +154,14 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   }
   if (!bKeyPressed && !bKeyHeld) {
     switch (key) {
+    case KEY_0:
+      if (gChListFilter == TYPE_ALL) {
+        gChListFilter = TYPE_EMPTY;
+      } else {
+        gChListFilter++;
+      }
+      CHANNELS_LoadScanlist(gChListFilter, gSettings.currentScanlist);
+      return true;
     case KEY_MENU:
       if (gChSaveMode) {
         gTextinputText = tempName;
@@ -193,8 +201,9 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void CHLIST_render() {
-  UI_ShowMenuEx(getChItem, chCount, channelIndex, MENU_LINES_TO_SHOW + 1);
-  STATUSLINE_SetText("%s", VIEW_MODE_NAMES[viewMode]);
+  UI_ShowMenuEx(getChItem, gScanlistSize, channelIndex, MENU_LINES_TO_SHOW + 1);
+  STATUSLINE_SetText("%s %s", CH_TYPE_NAMES[gChListFilter],
+                     VIEW_MODE_NAMES[viewMode]);
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
   }

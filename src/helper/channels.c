@@ -11,6 +11,7 @@ Preset gCurrentPreset;
 
 int16_t gScanlistSize = 0;
 uint16_t gScanlist[SCANLIST_MAX] = {0};
+CHType gScanlistType = TYPE_CH;
 
 static int8_t presetlistSize = 0;
 static uint16_t presetChannel[PRESETS_COUNT_MAX] = {0};
@@ -32,22 +33,22 @@ Preset defaultPreset = {
 
 Preset defaultPresets[PRESETS_COUNT_MAX] = {
     // si4732 presets
-    (Preset){.name="LW",.rxF=15300,.txF=27900,.modulation=MOD_AM,.step=STEP_9_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=15300,.gainIndex=22},
-    (Preset){.name="MW",.rxF=52200,.txF=170100,.modulation=MOD_AM,.step=STEP_9_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=52200,.gainIndex=22},
-    (Preset){.name="120m",.rxF=230000,.txF=249500,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=230000,.gainIndex=22},
-    (Preset){.name="90m",.rxF=320000,.txF=340000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=320000,.gainIndex=22},
-    (Preset){.name="75m",.rxF=390000,.txF=400000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=390000,.gainIndex=22},
-    (Preset){.name="60m",.rxF=475000,.txF=506000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=475000,.gainIndex=22},
-    (Preset){.name="49m",.rxF=585000,.txF=635000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=585000,.gainIndex=22},
-    (Preset){.name="41m",.rxF=720000,.txF=750000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=720000,.gainIndex=22},
-    (Preset){.name="31m",.rxF=940000,.txF=999000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=940000,.gainIndex=22},
-    (Preset){.name="25m",.rxF=1160000,.txF=1210000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=1160000,.gainIndex=22},
-    (Preset){.name="22m",.rxF=1350000,.txF=1387000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=1350000,.gainIndex=22},
-    (Preset){.name="19m",.rxF=1510000,.txF=1560000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=1510000,.gainIndex=22},
-    (Preset){.name="16m",.rxF=1755000,.txF=1805000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=1755000,.gainIndex=22},
-    (Preset){.name="15m",.rxF=1890000,.txF=1902000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=1890000,.gainIndex=22},
-    (Preset){.name="13m",.rxF=2145000,.txF=2185000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=2145000,.gainIndex=22},
-    (Preset){.name="11m",.rxF=2560000,.txF=2610000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=2560000,.gainIndex=22},
+    (Preset){.name="LW",.rxF=15300,.txF=27900,.modulation=MOD_AM,.step=STEP_9_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=15300,.gainIndex=27},
+    (Preset){.name="MW",.rxF=52200,.txF=170100,.modulation=MOD_AM,.step=STEP_9_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=52200,.gainIndex=27},
+    (Preset){.name="120m",.rxF=230000,.txF=249500,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=230000,.gainIndex=27},
+    (Preset){.name="90m",.rxF=320000,.txF=340000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=320000,.gainIndex=27},
+    (Preset){.name="75m",.rxF=390000,.txF=400000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=390000,.gainIndex=27},
+    (Preset){.name="60m",.rxF=475000,.txF=506000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=475000,.gainIndex=27},
+    (Preset){.name="49m",.rxF=585000,.txF=635000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=585000,.gainIndex=27},
+    (Preset){.name="41m",.rxF=720000,.txF=750000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=720000,.gainIndex=27},
+    (Preset){.name="31m",.rxF=940000,.txF=999000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=940000,.gainIndex=27},
+    (Preset){.name="25m",.rxF=1160000,.txF=1210000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=1160000,.gainIndex=27},
+    (Preset){.name="22m",.rxF=1350000,.txF=1387000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=1350000,.gainIndex=27},
+    (Preset){.name="19m",.rxF=1510000,.txF=1560000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=1510000,.gainIndex=27},
+    (Preset){.name="16m",.rxF=1755000,.txF=1805000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=1755000,.gainIndex=27},
+    (Preset){.name="15m",.rxF=1890000,.txF=1902000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=1890000,.gainIndex=27},
+    (Preset){.name="13m",.rxF=2145000,.txF=2185000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=2145000,.gainIndex=27},
+    (Preset){.name="11m",.rxF=2560000,.txF=2610000,.modulation=MOD_AM,.step=STEP_5_0kHz,.bw=BK4819_FILTER_BW_14k,.misc.lastUsedFreq=2560000,.gainIndex=27},
     (Preset){
         .rxF = 181000,
         .txF = 200000,
@@ -692,12 +693,12 @@ int16_t CHANNELS_Next(int16_t base, bool next) {
   return -1;
 }
 
-void CHANNELS_LoadScanlist(uint8_t n) {
+void CHANNELS_LoadScanlist(CHType type, uint8_t n) {
   gSettings.currentScanlist = n;
   uint8_t scanlistMask = 1 << n;
   gScanlistSize = 0;
   for (int16_t i = 0; i < CHANNELS_GetCountMax(); ++i) {
-    if (!CHANNELS_Existing(i)) {
+    if (type != TYPE_ALL && CHANNELS_GetMeta(i).type != type) {
       continue;
     }
     if (n == 15 || (CHANNELS_Scanlists(i) & scanlistMask) == scanlistMask) {

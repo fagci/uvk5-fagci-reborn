@@ -16,7 +16,7 @@ int16_t CHANNELS_Next(int16_t base, bool next);
 void CHANNELS_Delete(int16_t i);
 bool CHANNELS_Existing(int16_t i);
 uint8_t CHANNELS_Scanlists(int16_t i);
-void CHANNELS_LoadScanlist(uint8_t n);
+void CHANNELS_LoadScanlist(CHType type, uint8_t n);
 void CHANNELS_LoadBlacklistToLoot();
 
 uint16_t CHANNELS_GetStepSize(CH *p);

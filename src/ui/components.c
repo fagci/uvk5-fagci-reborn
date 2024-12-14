@@ -101,3 +101,4 @@ void UI_ShowWait() {
   PrintMediumBoldEx(64, 32 + 2, POS_C, C_CLEAR, "WAIT");
   ST7565_Blit();
 }
+
