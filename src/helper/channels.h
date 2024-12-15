@@ -16,7 +16,7 @@ int16_t CHANNELS_Next(int16_t base, bool next);
 void CHANNELS_Delete(int16_t i);
 bool CHANNELS_Existing(int16_t i);
 uint8_t CHANNELS_Scanlists(int16_t i);
-void CHANNELS_LoadScanlist(CHType type, uint8_t n);
+void CHANNELS_LoadScanlist(CHType type, uint16_t n);
 void CHANNELS_LoadBlacklistToLoot();
 
 uint16_t CHANNELS_GetStepSize(CH *p);
@@ -36,6 +36,9 @@ Preset PRESET_ByFrequency(uint32_t f);
 int8_t PRESET_SelectByFrequency(uint32_t f);
 void PRESETS_SaveCurrent();
 bool PRESET_InRange(const uint32_t f, const Preset p);
+bool CHANNELS_IsScanlistable(CHType type);
+bool CHANNELS_IsFreqable(CHType type);
+uint16_t CHANNELS_ScanlistByKey(uint16_t sl, KEY_Code_t key, bool longPress);
 
 extern Preset defaultPresets[PRESETS_COUNT_MAX];
 extern Preset defaultPreset;

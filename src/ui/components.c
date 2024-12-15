@@ -102,3 +102,15 @@ void UI_ShowWait() {
   ST7565_Blit();
 }
 
+void UI_Scanlists(uint8_t baseX, uint8_t baseY, uint16_t sl) {
+  for (uint8_t i = 0; i < 16; ++i) {
+    uint16_t mask = 1 << i;
+    uint8_t xi = i % 8;
+    uint8_t yi = i / 8;
+    bool isActive = (sl & mask) == mask;
+    uint8_t x = baseX + xi * 3 + (xi > 3 ? 2 : 0);
+    uint8_t y = baseY + yi * 3;
+    FillRect(x, y + ((yi > 0) && isActive ? 1 : 0), 2, isActive ? 1 : 2,
+             C_INVERT);
+  }
+}

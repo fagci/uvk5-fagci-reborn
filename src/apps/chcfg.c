@@ -342,7 +342,6 @@ static void getSubmenuItemText(uint16_t index, char *name) {
 }
 
 void CHCFG_init(void) {
-  Log("Editing CH %s", gChEd.name);
   updateTxCodeListSize();
 }
 

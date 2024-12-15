@@ -7,6 +7,8 @@
 
 #define getsize(V) char (*__ #V)(void)[sizeof(V)] = 1;
 
+#define SCANLIST_ALL 0
+
 typedef struct {
   int8_t lastActiveVFO : 2;
   uint8_t activityOnVFO : 1; // activity on VFO#
@@ -116,19 +118,24 @@ extern const char *EEPROM_TYPE_NAMES[6];
 extern const uint32_t EEPROM_SIZES[6];
 extern const char *CH_TYPE_NAMES[9];
 
+// TODO: align fields
 typedef struct {
-  EEPROMType eepromType : 3;
+  uint32_t upconverter : 27;
   uint8_t checkbyte : 5;
+  uint16_t currentScanlist;
+  AppType_t mainApp : 8;
+  uint8_t activePreset : 8; // preset index
+  uint16_t batteryCalibration : 12;
+  uint8_t contrast : 4;
+  uint8_t backlight : 4;
   uint8_t squelch : 4;
   uint8_t scrambler : 4;
   uint8_t batsave : 4;
   uint8_t vox : 4;
-  uint8_t backlight : 4;
   uint8_t txTime : 4;
   uint8_t micGain : 4;
-  uint8_t currentScanlist : 4;
   uint8_t iAmPro : 1;
-  bool vfoFixedBoundsMode : 1;
+  bool reserved1 : 1;
   uint8_t roger : 2;
   uint8_t scanmode : 2;
   CHDisplayMode chDisplayMode : 2;
@@ -141,27 +148,23 @@ typedef struct {
   uint8_t repeaterSte : 1;
   uint8_t dtmfdecode : 1;
   uint8_t brightness : 4;
-  uint8_t contrast : 4;
-  AppType_t mainApp : 8;
+  EEPROMType eepromType : 3;
 
-  uint8_t activePreset : 8; // preset index
-  uint16_t batteryCalibration : 12;
   BatteryType batteryType : 2;
   BatteryStyle batteryStyle : 2;
-  ScanTimeout sqOpenedTimeout : 4;
   ScanTimeout sqClosedTimeout : 4;
+  ScanTimeout sqOpenedTimeout : 4;
   bool bound_240_280 : 1;
   bool noListen : 1;
   bool si4732PowerOff : 1;
   uint8_t dw : 2;
   bool toneLocal : 1;
   BacklightOnSquelchMode backlightOnSquelch : 2;
-  uint8_t scanTimeout : 8;
+  uint8_t scanTimeout;
   uint8_t sqlOpenTime : 3;
   uint8_t sqlCloseTime : 2;
   bool skipGarbageFrequencies : 1;
   uint8_t activeVFO : 2;
-  uint32_t upconverter : 27;
 } __attribute__((packed)) Settings;
 // getsize(Settings)
 
@@ -244,7 +247,10 @@ typedef struct {
 
       union {
         // Only VFO/MR
-        CodeRXTX code;
+        struct {
+          CodeRXTX code;
+          bool fixedBoundsMode : 1;
+        };
 
         // Only PRESET
         struct {

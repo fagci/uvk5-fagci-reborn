@@ -79,8 +79,8 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
 static void setChannel(uint16_t v) { RADIO_TuneToCH(v - 1); }
 static void tuneTo(uint32_t f) {
   RADIO_TuneToSave(GetTuneF(f));
-  gSettings.vfoFixedBoundsMode = false;
-  SETTINGS_Save();
+  radio->fixedBoundsMode = false;
+  RADIO_SaveCurrentVFO();
 }
 
 static bool SSB_Seek_ON = false;
@@ -159,7 +159,7 @@ static void initChannelScan() {
   LOOT_Clear();
   CHANNELS_LoadScanlist(TYPE_CH, gSettings.currentScanlist);
   if (gScanlistSize == 0) {
-    gSettings.currentScanlist = 15;
+    gSettings.currentScanlist = SCANLIST_ALL;
     CHANNELS_LoadScanlist(TYPE_CH, gSettings.currentScanlist);
     SETTINGS_DelayedSave();
   }
@@ -186,19 +186,10 @@ static void startScan() {
   SVC_Toggle(SVC_SCAN, true, gSettings.scanTimeout);
 }
 
-static void scanlistByKey(KEY_Code_t key) {
-  if (key >= KEY_1 && key <= KEY_8) {
-    gSettings.currentScanlist = key - 1;
-  } else {
-    gSettings.currentScanlist = 15;
-  }
-}
-
 static void selectFirstPresetFromScanlist() {
-  uint8_t sl = gSettings.currentScanlist;
-  uint8_t scanlistMask = 1 << sl;
+  uint16_t scanlistMask = gSettings.currentScanlist;
   for (uint8_t i = 0; i < PRESETS_COUNT_MAX; ++i) {
-    if (sl == 15 ||
+    if (scanlistMask == SCANLIST_ALL ||
         (PRESETS_Item(i).scanlists & scanlistMask) == scanlistMask) {
       PRESET_Select(i);
       RADIO_TuneTo(gCurrentPreset.rxF);
@@ -373,8 +364,31 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     }
   }
 
+  bool longHeld = bKeyHeld && bKeyPressed && !gRepeatHeld;
+  bool simpleKeypress = !bKeyPressed && !bKeyHeld;
+
+  if (SVC_Running(SVC_SCAN) && (longHeld || simpleKeypress) &&
+      (key > KEY_0 && key < KEY_9)) {
+    if (radio->channel <= -1) {
+      if (gSettings.crossBandScan) {
+        gSettings.currentScanlist = CHANNELS_ScanlistByKey(
+            gSettings.currentScanlist, key, longHeld && !simpleKeypress);
+        SETTINGS_DelayedSave();
+        selectFirstPresetFromScanlist();
+      } else {
+        RADIO_SelectPresetSave(key + 6);
+      }
+    } else {
+      gSettings.currentScanlist = CHANNELS_ScanlistByKey(
+          gSettings.currentScanlist, key, longHeld && !simpleKeypress);
+      SETTINGS_DelayedSave();
+      initChannelScan();
+    }
+    return true;
+  }
+
   // long held
-  if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
+  if (longHeld) {
     OffsetDirection offsetDirection = radio->offsetDir;
     switch (key) {
     case KEY_EXIT:
@@ -444,7 +458,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   }
 
   // Simple keypress
-  if (!bKeyPressed && !bKeyHeld) {
+  if (simpleKeypress) {
     switch (key) {
     case KEY_0:
     case KEY_1:
@@ -456,24 +470,9 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_7:
     case KEY_8:
     case KEY_9:
-      if (SVC_Running(SVC_SCAN)) {
-        if (radio->channel <= -1) {
-          if (gSettings.crossBandScan) {
-            scanlistByKey(key);
-            selectFirstPresetFromScanlist();
-          } else {
-            RADIO_SelectPresetSave(key + 6);
-          }
-        } else {
-          scanlistByKey(key);
-          initChannelScan();
-          SETTINGS_DelayedSave();
-        }
-      } else {
-        gFInputCallback = tuneTo;
-        APPS_run(APP_FINPUT);
-        APPS_key(key, bKeyPressed, bKeyHeld);
-      }
+      gFInputCallback = tuneTo;
+      APPS_run(APP_FINPUT);
+      APPS_key(key, bKeyPressed, bKeyHeld);
       return true;
     case KEY_F:
       gChEd = *radio;

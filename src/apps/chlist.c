@@ -2,6 +2,7 @@
 #include "../driver/uart.h"
 #include "../helper/numnav.h"
 #include "../radio.h"
+#include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/menu.h"
 #include "../ui/statusline.h"
@@ -12,24 +13,25 @@
 
 typedef enum {
   MODE_INFO,
-  MODE_SCANLIST,
   MODE_TX,
-  MODE_TYPE,
-  MODE_SELECT,
+  MODE_SCANLIST,
+  MODE_SCANLIST_SELECT,
+  // MODE_TYPE,
+  // MODE_SELECT,
 } CHLIST_ViewMode;
 
 static char *VIEW_MODE_NAMES[] = {
-    "INFO",     //
-    "SCANLIST", //
-    "TX",       //
-    "TYPE",     //
-    "SELECT",   //
+    "INFO",   //
+    "TX",     //
+    "SL",     //
+    "SL SEL", //
+              // "TYPE",     //
+              // "CH SEL",   //
 };
 
 // TODO:
 // filter
 // - scanlist
-// - type
 
 bool gChSaveMode = false;
 CHType gChListFilter = TYPE_ALL;
@@ -46,17 +48,8 @@ static const Symbol typeIcons[] = {
     [TYPE_FOLDER] = SYM_FOLDER, [TYPE_EMPTY] = SYM_MISC2,
 };
 
-static uint16_t getChannelNumber(uint16_t menuIndex) {
+static inline uint16_t getChannelNumber(uint16_t menuIndex) {
   return gScanlist[menuIndex];
-}
-
-static inline bool chIsScanlistable(CH *ch) {
-  return ch->meta.type == TYPE_CH || ch->meta.type == TYPE_PRESET ||
-         ch->meta.type == TYPE_FOLDER || ch->meta.type == TYPE_EMPTY;
-}
-
-static inline bool chIsFreqable(CH *ch) {
-  return ch->meta.type == TYPE_CH || ch->meta.type == TYPE_PRESET;
 }
 
 static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
@@ -74,30 +67,25 @@ static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
   }
   switch (viewMode) {
   case MODE_INFO:
-    if (chIsFreqable(&ch)) {
+    if (CHANNELS_IsFreqable(ch.meta.type)) {
       PrintSmallEx(LCD_WIDTH - 5, y + 5, POS_R, C_INVERT, "%u.%03u %u.%03u",
                    ch.rxF / MHZ, ch.rxF / 100 % 1000, ch.txF / MHZ,
                    ch.txF / 100 % 1000);
     }
     break;
   case MODE_SCANLIST:
-    if (chIsScanlistable(&ch)) {
-      char scanlistsStr[9] = "";
-      for (uint8_t n = 0; n < 8; ++n) {
-        scanlistsStr[n] =
-            ch.scanlists & (1 << n) ? (n == 7 ? 'X' : '1' + n) : '-';
-      }
-      PrintSmallEx(LCD_WIDTH - 5, y + 7, POS_R, C_INVERT, "%s", scanlistsStr);
+    if (CHANNELS_IsScanlistable(ch.meta.type)) {
+      UI_Scanlists(LCD_WIDTH - 32, y + 3, ch.scanlists);
     }
     break;
   case MODE_TX:
     PrintSmallEx(LCD_WIDTH - 5, y + 7, POS_R, C_INVERT, "%s",
                  ch.allowTx ? "ON" : "OFF");
     break;
-  case MODE_SELECT:
-    break;
-  case MODE_TYPE:
-    break;
+    /* case MODE_SELECT:
+      break;
+    case MODE_TYPE:
+      break; */
   }
 }
 
@@ -113,7 +101,9 @@ static void saveNamed() {
   RADIO_LoadCurrentVFO();
 }
 
-void CHLIST_init() { CHANNELS_LoadScanlist(gChListFilter, 15); }
+void CHLIST_init() {
+  CHANNELS_LoadScanlist(gChListFilter, gSettings.currentScanlist);
+}
 
 void CHLIST_deinit() { gChSaveMode = false; }
 
@@ -129,6 +119,26 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     }
   }
+
+  uint16_t chNum = getChannelNumber(channelIndex);
+  bool longHeld = bKeyHeld && bKeyPressed && !gRepeatHeld;
+  bool simpleKeypress = !bKeyPressed && !bKeyHeld;
+
+  if (viewMode == MODE_SCANLIST || viewMode == MODE_SCANLIST_SELECT) {
+    if ((longHeld || simpleKeypress) && (key > KEY_0 && key < KEY_9)) {
+      if (viewMode == MODE_SCANLIST_SELECT) {
+        gSettings.currentScanlist = CHANNELS_ScanlistByKey(
+            gSettings.currentScanlist, key, longHeld && !simpleKeypress);
+        SETTINGS_DelayedSave();
+      } else {
+        CHANNELS_Load(chNum, &ch);
+        ch.scanlists = CHANNELS_ScanlistByKey(ch.scanlists, key, longHeld);
+        CHANNELS_Save(chNum, &ch);
+      }
+      return true;
+    }
+  }
+
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     switch (key) {
     case KEY_STAR:
@@ -139,7 +149,6 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     }
   }
 
-  uint16_t chNum = getChannelNumber(channelIndex);
   if (bKeyPressed || !bKeyHeld) {
     switch (key) {
     case KEY_UP:

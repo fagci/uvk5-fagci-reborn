@@ -643,7 +643,7 @@ void RADIO_SwitchRadio() {
 }
 
 void RADIO_SetupByCurrentVFO(void) {
-  Log("Setup by current VFO (f=%u, radio=%u)", radio->rxF, radio->radio);
+  // Log("Setup by current VFO (f=%u, radio=%u)", radio->rxF, radio->radio);
   uint32_t f = radio->rxF;
   PRESET_SelectByFrequency(f);
 
@@ -771,7 +771,7 @@ void RADIO_SetFilterBandwidth(BK4819_FilterBandwidth_t bw) {
 }
 
 void RADIO_SetupBandParams() {
-  Log("RADIO_SetupBandParams");
+  // Log("RADIO_SetupBandParams");
   ModulationType mod = RADIO_GetModulation();
   RADIO_SetGain(radio->gainIndex);
   // Log("Set mod %s", modulationTypeOptions[mod]);
@@ -807,7 +807,7 @@ void RADIO_SetupBandParams() {
   default:
     break;
   }
-  Log("RADIO_SetupBandParams end");
+  // Log("RADIO_SetupBandParams end");
 }
 
 uint16_t RADIO_GetRSSI(void) {
@@ -890,16 +890,16 @@ bool RADIO_TuneToCH(int32_t num) {
       return true;
     case TYPE_PRESET:
       CHANNELS_Load(num, &ch);
-      gSettings.vfoFixedBoundsMode = true;
-      SETTINGS_Save();
+      radio->fixedBoundsMode = true;
+      RADIO_SaveCurrentVFO();
       radio->bw = ch.bw;
       radio->step = ch.step;
       radio->gainIndex = ch.gainIndex;
       radio->modulation = ch.modulation;
       RADIO_TuneToSave(ch.misc.lastUsedFreq);
-      return true;
+      break;
     default:
-      return false;
+      break;
     }
   }
   radio->channel = -1;
@@ -953,7 +953,7 @@ void RADIO_NextFreqNoClicks(bool next) {
   const uint32_t step = StepFrequencyTable[radio->step];
 
   uint32_t f = radio->rxF + step * dir;
-  if (gSettings.vfoFixedBoundsMode && !PRESET_InRange(f, gCurrentPreset)) {
+  if (radio->fixedBoundsMode && !PRESET_InRange(f, gCurrentPreset)) {
     if (next) {
       f = gCurrentPreset.rxF;
     } else {

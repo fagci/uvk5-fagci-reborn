@@ -631,13 +631,13 @@ uint16_t CHANNELS_GetCountMax(void) {
 void CHANNELS_Load(int16_t num, CH *p) {
   if (num >= 0) {
     EEPROM_ReadBuffer(GetChannelOffset(num), p, CH_SIZE);
-    Log(">> R CH%u '%s': f=%u, radio=%u", num, p->name, p->rxF, p->radio);
+    // Log(">> R CH%u '%s': f=%u, radio=%u", num, p->name, p->rxF, p->radio);
   }
 }
 
 void CHANNELS_Save(int16_t num, CH *p) {
   if (num >= 0) {
-    Log(">> W CH%u '%s': f=%u, radio=%u", num, p->name, p->rxF, p->radio);
+    // Log(">> W CH%u '%s': f=%u, radio=%u", num, p->name, p->rxF, p->radio);
     EEPROM_WriteBuffer(GetChannelOffset(num), p, CH_SIZE);
   }
 }
@@ -693,21 +693,23 @@ int16_t CHANNELS_Next(int16_t base, bool next) {
   return -1;
 }
 
-void CHANNELS_LoadScanlist(CHType type, uint8_t n) {
-  gSettings.currentScanlist = n;
-  uint8_t scanlistMask = 1 << n;
+void CHANNELS_LoadScanlist(CHType type, uint16_t scanlistMask) {
+  if (gSettings.currentScanlist != scanlistMask) {
+    gSettings.currentScanlist = scanlistMask;
+    SETTINGS_Save();
+  }
   gScanlistSize = 0;
   for (int16_t i = 0; i < CHANNELS_GetCountMax(); ++i) {
-    if (type != TYPE_ALL && CHANNELS_GetMeta(i).type != type) {
+    CHType chType = CHANNELS_GetMeta(i).type;
+    if (type != TYPE_ALL && chType != type) {
       continue;
     }
-    if (n == 15 || (CHANNELS_Scanlists(i) & scanlistMask) == scanlistMask) {
+    if (scanlistMask == SCANLIST_ALL ||
+        (CHANNELS_Scanlists(i) & scanlistMask)) {
       gScanlist[gScanlistSize] = i;
-      // Log("gScanlist[%u]=%u", gScanlistSize, i);
       gScanlistSize++;
     }
   }
-  SETTINGS_Save();
 }
 
 void CHANNELS_LoadBlacklistToLoot() {
@@ -844,4 +846,21 @@ bool PRESETS_Load(void) {
 
 void PRESETS_SaveCurrent(void) {
   CHANNELS_Save(presetChannel[gSettings.activePreset], &gCurrentPreset);
+}
+
+bool CHANNELS_IsScanlistable(CHType type) {
+  return type == TYPE_CH || type == TYPE_PRESET || type == TYPE_FOLDER ||
+         type == TYPE_EMPTY;
+}
+
+bool CHANNELS_IsFreqable(CHType type) {
+  return type == TYPE_CH || type == TYPE_PRESET;
+}
+
+uint16_t CHANNELS_ScanlistByKey(uint16_t sl, KEY_Code_t key, bool longPress) {
+  if (key >= KEY_1 && key <= KEY_8) {
+    return sl ^ 1 << ((key - 1) + (longPress ? 8 : 0));
+  } else {
+    return SCANLIST_ALL;
+  }
 }

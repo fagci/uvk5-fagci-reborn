@@ -147,12 +147,7 @@ void STATUSLINE_render(void) {
   if ((gCurrentApp == APP_CH_LIST || gCurrentApp == APP_VFO1 ||
        gCurrentApp == APP_VFO2 || gCurrentApp == APP_SPECTRUM ||
        gCurrentApp == APP_LOOT_LIST)) {
-    if (gSettings.currentScanlist == 15) {
-      PrintSmallEx(LCD_XCENTER, BASE_Y, POS_C, C_FILL, "SL all");
-    } else {
-      PrintSmallEx(LCD_XCENTER, BASE_Y, POS_C, C_FILL, "SL %d",
-                   gSettings.currentScanlist + 1);
-    }
+    UI_Scanlists(LCD_XCENTER - 13, 0, gSettings.currentScanlist);
   }
 
   PrintSymbolsEx(LCD_WIDTH - 1 -
@@ -167,7 +162,7 @@ void STATUSLINE_renderCurrentPreset() {
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
   } else {
-    STATUSLINE_SetText(gSettings.vfoFixedBoundsMode ? "[ %s:%u ]" : "%s:%u",
+    STATUSLINE_SetText(radio->fixedBoundsMode ? "[ %s:%u ]" : "%s:%u",
                        gCurrentPreset.name,
                        CHANNELS_GetChannel(&gCurrentPreset, radio->rxF) + 1);
   }
