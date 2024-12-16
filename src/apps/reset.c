@@ -17,14 +17,14 @@ typedef enum {
   RESET_0xFF,
   RESET_FULL,
   RESET_CHANNELS,
-  RESET_PRESETS,
+  RESET_BANDS,
   RESET_UNKNOWN,
 } ResetType;
 
 typedef struct {
   uint32_t bytes;
   uint16_t channels;
-  uint8_t presets;
+  uint8_t bands;
   uint8_t vfos;
   uint8_t settings;
 } Stats;
@@ -35,7 +35,7 @@ typedef struct {
   uint16_t pageSize;
   uint16_t channels;
   uint16_t mr;
-  uint8_t presets;
+  uint8_t bands;
   uint8_t vfos;
   uint8_t settings;
 } Total;
@@ -44,7 +44,7 @@ static char *RESET_TYPE_NAMES[] = {
     "0xFF",
     "FULL",
     "CHANNELS",
-    "PRESETS",
+    "BANDS",
 };
 
 static Stats stats;
@@ -60,8 +60,8 @@ static void selectEeprom(EEPROMType t) {
 
   total.settings = 1;
   total.vfos = ARRAY_SIZE(gVFO);
-  total.presets = ARRAY_SIZE(defaultPresets);
-  total.channels = total.mr - total.vfos - total.presets;
+  total.bands = ARRAY_SIZE(defaultBands);
+  total.channels = total.mr - total.vfos - total.bands;
 }
 
 static void startReset(ResetType t) {
@@ -69,7 +69,7 @@ static void startReset(ResetType t) {
 
   stats.settings = total.settings;
   stats.vfos = total.vfos;
-  stats.presets = total.presets;
+  stats.bands = total.bands;
   stats.channels = total.channels;
 
   stats.bytes = 0;
@@ -78,8 +78,8 @@ static void startReset(ResetType t) {
   case RESET_0xFF:
     total.bytes = total.eepromSize;
     return;
-  case RESET_PRESETS:
-    stats.presets = 0;
+  case RESET_BANDS:
+    stats.bands = 0;
     break;
   case RESET_CHANNELS:
     stats.channels = 0;
@@ -87,7 +87,7 @@ static void startReset(ResetType t) {
   case RESET_FULL:
     stats.settings = 0;
     stats.vfos = 0;
-    stats.presets = 0;
+    stats.bands = 0;
     stats.channels = 0;
     break;
   default:
@@ -95,7 +95,7 @@ static void startReset(ResetType t) {
   }
   total.bytes = (total.settings - stats.settings) * SETTINGS_SIZE +
                 (total.vfos - stats.vfos) * CH_SIZE +
-                (total.presets - stats.presets) * CH_SIZE +
+                (total.bands - stats.bands) * CH_SIZE +
                 (total.channels - stats.channels) * CH_SIZE;
 }
 
@@ -130,20 +130,20 @@ static bool resetFull() {
     return false;
   }
 
-  if (stats.presets < total.presets) {
-    Preset *p = &defaultPresets[stats.presets];
+  if (stats.bands < total.bands) {
+    Band *p = &defaultBands[stats.bands];
     p->gainIndex = 18;
     p->squelch.value = 4;
     p->squelch.type = SQUELCH_RSSI_NOISE_GLITCH;
-    p->meta.type = TYPE_PRESET;
+    p->meta.type = TYPE_BAND;
     p->radio = RADIO_BK4819;
     if (hasSi) {
       if (p->txF < SI47XX_F_MAX) {
         p->radio = RADIO_SI4732;
       }
     } else if (p->txF < BK4819_F_MIN) {
-      // skip unsupported presets
-      stats.presets++;
+      // skip unsupported bands
+      stats.bands++;
       stats.bytes += CH_SIZE;
       return false;
     }
@@ -151,8 +151,8 @@ static bool resetFull() {
     if (p->rxF >= BK1080_F_MIN && p->txF <= BK1080_F_MAX) {
       p->radio = hasSi ? RADIO_SI4732 : RADIO_BK1080;
     }
-    CHANNELS_Save(total.channels + stats.presets, p);
-    stats.presets++;
+    CHANNELS_Save(total.channels + stats.bands, p);
+    stats.bands++;
     stats.bytes += CH_SIZE;
     return false;
   }
@@ -194,7 +194,7 @@ void RESET_Update(void) {
   case RESET_0xFF:
     status = unreborn();
     break;
-  case RESET_PRESETS:
+  case RESET_BANDS:
   case RESET_CHANNELS:
   case RESET_FULL:
     status = resetFull();

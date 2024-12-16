@@ -1,4 +1,4 @@
-#include "presetlist.h"
+#include "bandlist.h"
 #include "../helper/channels.h"
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"
@@ -10,8 +10,8 @@
 
 static uint8_t menuIndex = 0;
 
-static void getPresetItem(uint16_t i, uint16_t index, bool isCurrent) {
-  Preset p = PRESETS_Item(index);
+static void getBandItem(uint16_t i, uint16_t index, bool isCurrent) {
+  Band p = BANDS_Item(index);
   const uint8_t y = MENU_Y + i * MENU_ITEM_H;
   if (isCurrent) {
     FillRect(0, y, LCD_WIDTH - 3, MENU_ITEM_H, C_FILL);
@@ -25,26 +25,26 @@ static void getPresetItem(uint16_t i, uint16_t index, bool isCurrent) {
 }
 
 static void toggleScanlist(uint8_t n) {
-  Preset p = PRESETS_Item(menuIndex);
+  Band p = BANDS_Item(menuIndex);
   p.memoryBanks ^= 1 << n;
   CHANNELS_Save(menuIndex, &p);
 }
 
-void PRESETLIST_render(void) {
-  UI_ShowMenuEx(getPresetItem, PRESETS_Size(), menuIndex,
+void BANDLIST_render(void) {
+  UI_ShowMenuEx(getBandItem, BANDS_Size(), menuIndex,
                 MENU_LINES_TO_SHOW + 1);
 }
 
-void PRESETLIST_init(void) { menuIndex = gSettings.activePreset; }
+void BANDLIST_init(void) { menuIndex = gSettings.activeBand; }
 
 static void setMenuIndexAndRun(uint16_t v) {
   menuIndex = v - 1;
-  RADIO_SelectPresetSave(menuIndex);
+  RADIO_SelectBandSave(menuIndex);
   APPS_exit();
 }
 
-bool PRESETLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  const uint8_t MENU_SIZE = PRESETS_Size();
+bool BANDLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  const uint8_t MENU_SIZE = BANDS_Size();
   if (!bKeyPressed && !bKeyHeld) {
     if (!gIsNumNavInput && key == KEY_STAR) {
       NUMNAV_Init(menuIndex + 1, 1, MENU_SIZE);
@@ -68,11 +68,11 @@ bool PRESETLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       APPS_exit();
       return true;
     case KEY_MENU:
-      RADIO_SelectPresetSave(menuIndex);
+      RADIO_SelectBandSave(menuIndex);
       APPS_exit();
       return true;
     case KEY_F:
-      PRESET_Select(menuIndex);
+      BAND_Select(menuIndex);
       APPS_run(APP_CH_CFG);
       return true;
     case KEY_1:

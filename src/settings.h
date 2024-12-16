@@ -124,7 +124,7 @@ typedef struct {
   uint8_t checkbyte : 5;
   uint16_t currentScanlist;
   AppType_t mainApp : 8;
-  uint8_t activePreset : 8; // preset index
+  uint8_t activeBand : 8; // band index
   uint16_t batteryCalibration : 12;
   uint8_t contrast : 4;
   uint8_t backlight : 4;
@@ -203,7 +203,7 @@ typedef struct {
 typedef enum {
   TYPE_EMPTY,
   TYPE_CH,
-  TYPE_PRESET,
+  TYPE_BAND,
   TYPE_VFO,
   TYPE_FOLDER,
   TYPE_MELODY,
@@ -252,7 +252,7 @@ typedef struct {
           bool fixedBoundsMode : 1;
         };
 
-        // Only PRESET
+        // Only BAND
         struct {
           uint8_t bank;
           PowerCalibration powCalib;
@@ -267,7 +267,7 @@ typedef struct {
 // getsize(CH);
 typedef CH Band;
 typedef CH VFO;
-typedef CH Preset;
+typedef CH Band;
 
 #define SETTINGS_OFFSET (0)
 #define SETTINGS_SIZE sizeof(Settings)

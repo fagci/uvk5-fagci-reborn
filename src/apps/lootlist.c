@@ -46,7 +46,7 @@ static bool shortList = true;
 static bool sortRev = false;
 
 static void tuneToLoot(const Loot *loot, bool save) {
-  Preset p = PRESET_ByFrequency(loot->f);
+  Band p = BAND_ByFrequency(loot->f);
   radio->rxF = loot->f;
   radio->txF = 0;
   radio->code.rx.type = radio->code.tx.type = CODE_TYPE_OFF;
@@ -162,7 +162,7 @@ void LOOTLIST_init(void) {
 }
 
 static void saveLootToCh(const Loot *loot, int16_t chnum, uint8_t scanlist) {
-  Preset p = PRESET_ByFrequency(loot->f);
+  Band p = BAND_ByFrequency(loot->f);
   CH ch = {
       .rxF = loot->f,
       .txF = 0,

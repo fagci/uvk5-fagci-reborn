@@ -33,7 +33,7 @@ static uint8_t noiseO = 0;
 static uint8_t msmDelay = 5;
 static Loot msm = {0};
 
-static uint16_t oldPresetIndex = 255;
+static uint16_t oldBandIndex = 255;
 
 static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
 
@@ -77,14 +77,14 @@ static void scanFn(bool _) {
   }
   RADIO_ToggleRX(false);
   radio->rxF = msm.f;
-  if (RADIO_NextPresetFreqXBandEx(true, false, false)) {
+  if (RADIO_NextBandFreqXBandEx(true, false, false)) {
     if (noiseO > 0) {
       // next band scan
       msm.f = radio->rxF;
     } else {
       // rewind
       updateStats();
-      PRESET_Select(oldPresetIndex);
+      BAND_Select(oldBandIndex);
     }
     newScan = true;
   } else {
@@ -96,7 +96,7 @@ static void scanFn(bool _) {
 }
 
 static void init() {
-  oldPresetIndex = 0;
+  oldBandIndex = 0;
   rssiO = UINT16_MAX;
   noiseO = 0;
 
@@ -105,17 +105,17 @@ static void init() {
   LOOT_Standby();
   RADIO_SetupBandParams();
 
-  SP_Init(&gCurrentPreset);
+  SP_Init(&gCurrentBand);
 }
 
 static void startNewScan() {
-  currentStepSize = CHANNELS_GetStepSize(&gCurrentPreset);
+  currentStepSize = CHANNELS_GetStepSize(&gCurrentBand);
 
-  msm.f = gCurrentPreset.rxF;
+  msm.f = gCurrentBand.rxF;
 
-  if (gSettings.activePreset != oldPresetIndex) {
+  if (gSettings.activeBand != oldBandIndex) {
     init();
-    oldPresetIndex = gSettings.activePreset;
+    oldBandIndex = gSettings.activeBand;
     gLastActiveLoot = NULL;
   } else {
     SP_Begin();
@@ -144,13 +144,13 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (Key) {
     case KEY_UP:
-      PRESETS_SelectPresetRelative(true);
-      RADIO_SelectPresetSave(gSettings.activePreset);
+      BANDS_SelectBandRelative(true);
+      RADIO_SelectBandSave(gSettings.activeBand);
       startNewScan();
       return true;
     case KEY_DOWN:
-      PRESETS_SelectPresetRelative(false);
-      RADIO_SelectPresetSave(gSettings.activePreset);
+      BANDS_SelectBandRelative(false);
+      RADIO_SelectBandSave(gSettings.activeBand);
       startNewScan();
       return true;
     case KEY_1:
@@ -248,10 +248,10 @@ void SPECTRUM_update(void) {
 }
 
 void SPECTRUM_render(void) {
-  STATUSLINE_SetText(gCurrentPreset.name);
+  STATUSLINE_SetText(gCurrentBand.name);
 
-  SP_Render(&gCurrentPreset);
-  UI_DrawSpectrumElements(SPECTRUM_Y, msmDelay, noiseOpenDiff, &gCurrentPreset);
+  SP_Render(&gCurrentBand);
+  UI_DrawSpectrumElements(SPECTRUM_Y, msmDelay, noiseOpenDiff, &gCurrentBand);
 
   const uint8_t bl = 16 + 6;
   if (gLastActiveLoot) {

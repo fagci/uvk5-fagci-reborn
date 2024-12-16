@@ -49,10 +49,10 @@ void SVC_SCAN_Init(void) {
   }
 
   if (!gScanFn) {
-    if (radio->channel >= 0) {
+    if (RADIO_IsChMode()) {
       gScanFn = RADIO_NextCH;
     } else {
-      gScanFn = RADIO_NextPresetFreqXBand;
+      gScanFn = RADIO_NextBandFreqXBand;
     }
   }
 }
@@ -91,11 +91,11 @@ void SVC_SCAN_Update(void) {
 void SVC_SCAN_Deinit(void) {
   gScanFn = NULL;
   gScanRedraw = true;
-  if (defaultPreset.name[0] != 'd') {
-    sprintf(defaultPreset.name, "default");
-    defaultPreset.rxF = 0;
-    defaultPreset.txF = 0;
-    RADIO_TuneTo(defaultPreset.misc.lastUsedFreq);
+  if (defaultBand.name[0] != 'd') {
+    sprintf(defaultBand.name, "default");
+    defaultBand.rxF = 0;
+    defaultBand.txF = 0;
+    RADIO_TuneTo(defaultBand.misc.lastUsedFreq);
     SETTINGS_Load();
   }
   if (RADIO_GetRadio() != RADIO_BK4819) {

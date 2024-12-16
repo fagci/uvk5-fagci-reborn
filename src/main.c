@@ -48,7 +48,7 @@ static void Intro(void) {
   PrintMediumBoldEx(LCD_XCENTER, LCD_YCENTER, POS_C, C_FILL, "r3b0rn");
   ST7565_Blit();
 
-  if (PRESETS_Load()) {
+  if (BANDS_Load()) {
     if (gSettings.beep) {
       AUDIO_PlayTone(1400, 50);
     }

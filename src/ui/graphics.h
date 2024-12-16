@@ -24,7 +24,7 @@ typedef enum {
 typedef enum {
   SYM_CONVERTER = 0x30,
   SYM_CH = 0x31,
-  SYM_PRESET = 0x32,
+  SYM_BAND = 0x32,
   SYM_VFO = 0x33,
   SYM_SETTING = 0x34,
   SYM_FILE = 0x35,

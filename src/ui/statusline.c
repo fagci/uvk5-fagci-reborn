@@ -158,12 +158,12 @@ void STATUSLINE_render(void) {
              statuslineTicker[0] == '\0' ? statuslineText : statuslineTicker);
 }
 
-void STATUSLINE_renderCurrentPreset() {
+void STATUSLINE_renderCurrentBand() {
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
   } else {
     STATUSLINE_SetText(radio->fixedBoundsMode ? "[ %s:%u ]" : "%s:%u",
-                       gCurrentPreset.name,
-                       CHANNELS_GetChannel(&gCurrentPreset, radio->rxF) + 1);
+                       gCurrentBand.name,
+                       CHANNELS_GetChannel(&gCurrentBand, radio->rxF) + 1);
   }
 }

@@ -1,15 +1,15 @@
-#ifndef PRESETCFG_H
-#define PRESETCFG_H
+#ifndef BANDCFG_H
+#define BANDCFG_H
 
 #include "../driver/keyboard.h"
 #include <stdbool.h>
 #include <stdint.h>
 
-extern uint8_t presetCfgIndex;
+extern uint8_t bandCfgIndex;
 
-void PRESETCFG_init();
-void PRESETCFG_update();
-bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
-void PRESETCFG_render();
+void BANDCFG_init();
+void BANDCFG_update();
+bool BANDCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
+void BANDCFG_render();
 
-#endif /* end of include guard: PRESETCFG_H */
+#endif /* end of include guard: BANDCFG_H */

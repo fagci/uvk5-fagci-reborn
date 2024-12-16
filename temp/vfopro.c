@@ -3,7 +3,7 @@
 #include "../driver/st7565.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
-#include "../helper/presetlist.h"
+#include "../helper/bandlist.h"
 #include "../misc.h"
 #include "../radio.h"
 #include "../scheduler.h"
@@ -18,7 +18,7 @@
 
 
 void VFOPRO_render(void) {
-  STATUSLINE_SetText(gCurrentPreset.band.name);
+  STATUSLINE_SetText(gCurrentBand.band.name);
   UI_FSmall(gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(radio->rx.f));
   UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, RADIO_GetSNR(), radio->rx.f, 23);
 

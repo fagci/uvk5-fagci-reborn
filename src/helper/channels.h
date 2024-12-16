@@ -2,7 +2,7 @@
 #define CHANNELS_H
 
 #define SCANLIST_MAX 1024
-#define PRESETS_COUNT_MAX 60
+#define BANDS_COUNT_MAX 60
 
 #include "../settings.h"
 #include <stdint.h>
@@ -20,32 +20,32 @@ void CHANNELS_LoadScanlist(CHType type, uint16_t n);
 void CHANNELS_LoadBlacklistToLoot();
 
 uint16_t CHANNELS_GetStepSize(CH *p);
-uint32_t CHANNELS_GetSteps(Preset *p);
-uint32_t CHANNELS_GetF(Preset *p, uint32_t channel);
-uint32_t CHANNELS_GetChannel(Preset *p, uint32_t f);
+uint32_t CHANNELS_GetSteps(Band *p);
+uint32_t CHANNELS_GetF(Band *p, uint32_t channel);
+uint32_t CHANNELS_GetChannel(Band *p, uint32_t f);
 CHMeta CHANNELS_GetMeta(int16_t num);
 
-bool PRESETS_Load();
-int8_t PRESETS_Size();
-Preset PRESETS_Item(int8_t i);
-int8_t PRESET_IndexOf(Preset p);
-void PRESETS_SelectPresetRelative(bool next);
-void PRESETS_SelectPresetRelativeByScanlist(bool next);
-void PRESET_Select(int8_t i);
-Preset PRESET_ByFrequency(uint32_t f);
-int8_t PRESET_SelectByFrequency(uint32_t f);
-void PRESETS_SaveCurrent();
-bool PRESET_InRange(const uint32_t f, const Preset p);
+bool BANDS_Load();
+int8_t BANDS_Size();
+Band BANDS_Item(int8_t i);
+int8_t BAND_IndexOf(Band p);
+void BANDS_SelectBandRelative(bool next);
+void BANDS_SelectBandRelativeByScanlist(bool next);
+void BAND_Select(int8_t i);
+Band BAND_ByFrequency(uint32_t f);
+int8_t BAND_SelectByFrequency(uint32_t f);
+void BANDS_SaveCurrent();
+bool BAND_InRange(const uint32_t f, const Band p);
 bool CHANNELS_IsScanlistable(CHType type);
 bool CHANNELS_IsFreqable(CHType type);
 uint16_t CHANNELS_ScanlistByKey(uint16_t sl, KEY_Code_t key, bool longPress);
 
-extern Preset defaultPresets[PRESETS_COUNT_MAX];
-extern Preset defaultPreset;
-extern Preset gCurrentPreset;
+extern Band defaultBands[BANDS_COUNT_MAX];
+extern Band defaultBand;
+extern Band gCurrentBand;
 
 extern int16_t gScanlistSize;
 extern uint16_t gScanlist[SCANLIST_MAX];
-extern uint16_t gPresetlist[SCANLIST_MAX];
+extern uint16_t gBandlist[SCANLIST_MAX];
 
 #endif /* end of include guard: CHANNELS_H */

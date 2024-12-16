@@ -126,7 +126,7 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 void VFO2_update(void) { VFO1_update(); }
 
 void VFO2_render(void) {
-  STATUSLINE_renderCurrentPreset();
+  STATUSLINE_renderCurrentBand();
   render2VFOPart(0);
   render2VFOPart(1);
 }

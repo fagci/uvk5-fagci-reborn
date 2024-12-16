@@ -2,7 +2,7 @@
 #include "../driver/audio.h"
 #include "../driver/system.h"
 #include "../external/printf/printf.h"
-#include "../helper/presetlist.h"
+#include "../helper/bandlist.h"
 #include "../misc.h"
 #include <string.h>
 
@@ -107,7 +107,7 @@ void MSG_FSKSendData(void) {
 
   BK4819_WriteRegister(BK4819_REG_40,
                        (dev_val & 0xf000) |
-                           (BW_DEVIATIONS[gCurrentPreset.bw] & 0xfff));
+                           (BW_DEVIATIONS[gCurrentBand.bw] & 0xfff));
 
   const uint16_t filt_val = BK4819_ReadRegister(BK4819_REG_2B);
   BK4819_WriteRegister(BK4819_REG_2B, (1u << 2) | (1u << 0));

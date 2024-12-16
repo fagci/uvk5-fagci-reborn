@@ -17,18 +17,7 @@ static uint32_t lastSwitch = 0;
 static bool scanning = false;
 
 static uint32_t delta(uint32_t f1, uint32_t f2) {
-  if (f1 > f2) {
-    return f1 - f2;
-  }
-  return f2 - f1;
-}
-
-void SVC_FC_Init(void) {
-  SVC_Toggle(SVC_LISTEN, false, 10);
-  BK4819_StopScan();
-  BK4819_EnableFrequencyScanEx(T);
-  scanning = true;
-  bound = SETTINGS_GetFilterBound();
+  return f1 > f2 ? f1 - f2 : f2 - f1;
 }
 
 static void gotF(uint32_t f) {
@@ -53,6 +42,14 @@ static void switchBand() {
   lower = !lower;
   BK4819_SelectFilter(lower ? 14500000 : 43300000);
   SVC_FC_Init();
+}
+
+void SVC_FC_Init(void) {
+  SVC_Toggle(SVC_LISTEN, false, 10);
+  BK4819_StopScan();
+  BK4819_EnableFrequencyScanEx(T);
+  scanning = true;
+  bound = SETTINGS_GetFilterBound();
 }
 
 void SVC_FC_Update(void) {

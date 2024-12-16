@@ -59,7 +59,7 @@ void RADIO_TuneTo(uint32_t f);
 bool RADIO_TuneToCH(int32_t num);
 void RADIO_TuneToPure(uint32_t f, bool precise);
 void RADIO_TuneToSave(uint32_t f);
-void RADIO_SelectPresetSave(int8_t num);
+void RADIO_SelectBandSave(int8_t num);
 void RADIO_SetupBandParams();
 
 void RADIO_VfoLoadCH(uint8_t i);
@@ -67,8 +67,8 @@ void RADIO_SetupByCurrentVFO();
 void RADIO_NextVFO(void);
 void RADIO_NextCH(bool next);
 void RADIO_NextFreqNoClicks(bool next);
-bool RADIO_NextPresetFreqXBandEx(bool next, bool tune, bool precise);
-void RADIO_NextPresetFreqXBand(bool next);
+bool RADIO_NextBandFreqXBandEx(bool next, bool tune, bool precise);
+void RADIO_NextBandFreqXBand(bool next);
 void RADIO_ToggleVfoMR();
 
 void RADIO_SetSquelchPure(uint32_t f, uint8_t sql);
@@ -96,5 +96,6 @@ Loot *RADIO_UpdateMeasurements();
 
 bool RADIO_HasSi();
 void RADIO_SendDTMF(const char *pattern, ...);
+bool RADIO_IsChMode();
 
 #endif /* end of include guard: RADIO_H */

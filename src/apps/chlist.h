@@ -12,6 +12,6 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld);
 void CHLIST_render();
 
 extern bool gChSaveMode;
-extern CHType gChListFilter;
+extern uint8_t gChListFilter;
 
 #endif /* end of include guard: CHLIST_H */

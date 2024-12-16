@@ -114,7 +114,7 @@ static VMinMax getV() {
   return (VMinMax){vMin, vMax};
 }
 
-void SP_Render(const Preset *p) {
+void SP_Render(const Band *p) {
   const VMinMax v = getV();
 
   if (p) {
@@ -129,7 +129,7 @@ void SP_Render(const Preset *p) {
   }
 }
 
-void SP_RenderArrow(const Preset *p, uint32_t f) {
+void SP_RenderArrow(const Band *p, uint32_t f) {
   uint8_t cx = ConvertDomain(f, p->rxF, p->txF, 0, MAX_POINTS - 1);
   DrawVLine(cx, SPECTRUM_Y, 4, C_FILL);
   FillRect(cx - 2, SPECTRUM_Y, 5, 2, C_FILL);

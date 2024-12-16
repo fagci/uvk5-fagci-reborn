@@ -1,4 +1,4 @@
-#include "presetcfg.h"
+#include "bandcfg.h"
 #include "../helper/channels.h"
 #include "../helper/measurements.h"
 #include "../misc.h"
@@ -33,28 +33,28 @@ static void setInitialSubmenuIndex(void) {
   const MenuItem *item = &menu[menuIndex];
   switch (item->type) {
   case M_RADIO:
-    subMenuIndex = gCurrentPreset.radio;
+    subMenuIndex = gCurrentBand.radio;
     break;
   case M_BW:
-    subMenuIndex = gCurrentPreset.bw;
+    subMenuIndex = gCurrentBand.bw;
     break;
   case M_MODULATION:
-    subMenuIndex = gCurrentPreset.modulation;
+    subMenuIndex = gCurrentBand.modulation;
     break;
   case M_STEP:
-    subMenuIndex = gCurrentPreset.step;
+    subMenuIndex = gCurrentBand.step;
     break;
   case M_SQ_TYPE:
-    subMenuIndex = gCurrentPreset.squelch.type;
+    subMenuIndex = gCurrentBand.squelch.type;
     break;
   case M_SQ:
-    subMenuIndex = gCurrentPreset.squelch.value;
+    subMenuIndex = gCurrentBand.squelch.value;
     break;
   case M_GAIN:
-    subMenuIndex = gCurrentPreset.gainIndex;
+    subMenuIndex = gCurrentBand.gainIndex;
     break;
   case M_TX:
-    subMenuIndex = gCurrentPreset.allowTx;
+    subMenuIndex = gCurrentBand.allowTx;
     break;
   default:
     subMenuIndex = 0;
@@ -101,26 +101,26 @@ static void getSubmenuItemText(uint16_t index, char *name) {
 }
 
 static void setUpperBound(uint32_t f) {
-  gCurrentPreset.txF = f;
-  if (gCurrentPreset.misc.lastUsedFreq > f) {
-    gCurrentPreset.misc.lastUsedFreq = f;
+  gCurrentBand.txF = f;
+  if (gCurrentBand.misc.lastUsedFreq > f) {
+    gCurrentBand.misc.lastUsedFreq = f;
     RADIO_TuneToSave(f);
   }
-  PRESETS_SaveCurrent();
+  BANDS_SaveCurrent();
 }
 
 static void setLowerBound(uint32_t f) {
-  gCurrentPreset.rxF = f;
-  if (gCurrentPreset.misc.lastUsedFreq < f) {
-    gCurrentPreset.misc.lastUsedFreq = f;
+  gCurrentBand.rxF = f;
+  if (gCurrentBand.misc.lastUsedFreq < f) {
+    gCurrentBand.misc.lastUsedFreq = f;
     RADIO_TuneToSave(f);
   }
-  PRESETS_SaveCurrent();
+  BANDS_SaveCurrent();
 }
 
-void PRESETCFG_init(void) {}
+void BANDCFG_init(void) {}
 
-void PRESETCFG_update(void) {}
+void BANDCFG_update(void) {}
 
 static void upDown(uint8_t inc) {
   if (isSubMenu) {
@@ -132,7 +132,7 @@ static void upDown(uint8_t inc) {
 }
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+bool BANDCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   const MenuItem *item = &menu[menuIndex];
   if ((key == KEY_UP || key == KEY_DOWN) && isSubMenu && item->type == M_GAIN) {
     RADIO_SetGain(subMenuIndex);
@@ -149,18 +149,18 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     switch (item->type) {
     case M_NAME:
       gTextInputSize = 9;
-      gTextinputText = gCurrentPreset.name;
-      gTextInputCallback = PRESETS_SaveCurrent;
+      gTextinputText = gCurrentBand.name;
+      gTextInputCallback = BANDS_SaveCurrent;
       APPS_run(APP_TEXTINPUT);
       return true;
     case M_START:
       gFInputCallback = setLowerBound;
-      gFInputTempFreq = gCurrentPreset.rxF;
+      gFInputTempFreq = gCurrentBand.rxF;
       APPS_run(APP_FINPUT);
       return true;
     case M_END:
       gFInputCallback = setUpperBound;
-      gFInputTempFreq = gCurrentPreset.txF;
+      gFInputTempFreq = gCurrentBand.txF;
       APPS_run(APP_FINPUT);
       return true;
     /* case M_SAVE:
@@ -190,7 +190,7 @@ bool PRESETCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void PRESETCFG_render(void) {
+void BANDCFG_render(void) {
   const MenuItem *item = &menu[menuIndex];
   if (isSubMenu) {
     UI_ShowMenu(getSubmenuItemText, item->size, subMenuIndex);

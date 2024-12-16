@@ -36,7 +36,7 @@ typedef enum {
   M_READONLY,
   M_TYPE,
   M_SAVE,
-} PresetCfgMenu;
+} BandCfgMenu;
 
 typedef struct MenuItem {
   const char *name;

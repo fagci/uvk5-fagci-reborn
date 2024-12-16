@@ -26,7 +26,7 @@ const char *EEPROM_TYPE_NAMES[6] = {
     "M24M02",    // 111
 };
 const char *CH_TYPE_NAMES[9] = {
-    "EMPTY", "CH", "PRESET", "VFO", "FOLDER", "MELODY", "SETTING", "FILE", "ALL"
+    "EMPTY", "CH", "BAND", "VFO", "FOLDER", "MELODY", "SETTING", "FILE", "ALL"
 };
 
 static const uint8_t PATCh1_PREAMBLE[] = {0x15, 0x00, 0x0F, 0xE0,
@@ -65,7 +65,7 @@ Settings gSettings = (Settings){
     .skipGarbageFrequencies = true,
     .scanTimeout = 50,
     .activeVFO = 0,
-    .activePreset = 9,
+    .activeBand = 9,
     .backlightOnSquelch = BL_SQL_ON,
     .batteryCalibration = 2000,
     .batteryType = BAT_1600,

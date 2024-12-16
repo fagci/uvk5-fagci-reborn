@@ -34,7 +34,7 @@ static char *VIEW_MODE_NAMES[] = {
 // - scanlist
 
 bool gChSaveMode = false;
-CHType gChListFilter = TYPE_ALL;
+uint8_t gChListFilter = TYPE_ALL;
 
 static uint16_t channelIndex = 0;
 static uint8_t viewMode = MODE_INFO;
@@ -42,7 +42,7 @@ static CH ch;
 static char tempName[9] = {0};
 
 static const Symbol typeIcons[] = {
-    [TYPE_CH] = SYM_CH,         [TYPE_PRESET] = SYM_PRESET,
+    [TYPE_CH] = SYM_CH,         [TYPE_BAND] = SYM_BAND,
     [TYPE_VFO] = SYM_VFO,       [TYPE_SETTING] = SYM_SETTING,
     [TYPE_FILE] = SYM_FILE,     [TYPE_MELODY] = SYM_MELODY,
     [TYPE_FOLDER] = SYM_FOLDER, [TYPE_EMPTY] = SYM_MISC2,
@@ -108,21 +108,20 @@ void CHLIST_init() {
 void CHLIST_deinit() { gChSaveMode = false; }
 
 bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  uint16_t chNum = getChannelNumber(channelIndex);
+  bool longHeld = bKeyHeld && bKeyPressed && !gRepeatHeld;
+  bool simpleKeypress = !bKeyPressed && !bKeyHeld;
+  if (!gIsNumNavInput && longHeld && key == KEY_STAR) {
+    NUMNAV_Init(channelIndex + 1, 1, gScanlistSize);
+    gNumNavCallback = setMenuIndex;
+    return true;
+  }
   if (!bKeyPressed && !bKeyHeld) {
-    if (!gIsNumNavInput && key == KEY_STAR) {
-      NUMNAV_Init(channelIndex + 1, 1, gScanlistSize);
-      gNumNavCallback = setMenuIndex;
-      return true;
-    }
     if (gIsNumNavInput) {
       channelIndex = NUMNAV_Input(key) - 1;
       return true;
     }
   }
-
-  uint16_t chNum = getChannelNumber(channelIndex);
-  bool longHeld = bKeyHeld && bKeyPressed && !gRepeatHeld;
-  bool simpleKeypress = !bKeyPressed && !bKeyHeld;
 
   if (viewMode == MODE_SCANLIST || viewMode == MODE_SCANLIST_SELECT) {
     if ((longHeld || simpleKeypress) && (key > KEY_0 && key < KEY_9)) {
@@ -141,9 +140,6 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     switch (key) {
-    case KEY_STAR:
-      IncDec8(&viewMode, 0, ARRAY_SIZE(VIEW_MODE_NAMES), 1);
-      return true;
     default:
       break;
     }
@@ -164,12 +160,11 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld) {
     switch (key) {
     case KEY_0:
-      if (gChListFilter == TYPE_ALL) {
-        gChListFilter = TYPE_EMPTY;
-      } else {
-        gChListFilter++;
-      }
+      IncDec8(&gChListFilter, 0, ARRAY_SIZE(CH_TYPE_NAMES), 1);
       CHANNELS_LoadScanlist(gChListFilter, gSettings.currentScanlist);
+      return true;
+    case KEY_STAR:
+      IncDec8(&viewMode, 0, ARRAY_SIZE(VIEW_MODE_NAMES), 1);
       return true;
     case KEY_MENU:
       if (gChSaveMode) {

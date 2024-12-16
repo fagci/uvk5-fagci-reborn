@@ -68,7 +68,7 @@ static void setTXF(uint32_t f) {
   apply();
 }
 
-static void getMenuItemValue(PresetCfgMenu type, char *Output) {
+static void getMenuItemValue(BandCfgMenu type, char *Output) {
   uint32_t fs = gChEd.rxF;
   uint32_t fe = gChEd.txF;
   switch (type) {
@@ -260,11 +260,11 @@ static void setInitialSubmenuIndex(void) {
 
 static void getMenuItemText(uint16_t index, char *name) {
   MenuItem *m = &menu[index];
-  if (gChEd.meta.type == TYPE_PRESET && m->type == M_F_RX) {
+  if (gChEd.meta.type == TYPE_BAND && m->type == M_F_RX) {
     strncpy(name, "Start f", 31);
     return;
   }
-  if (gChEd.meta.type == TYPE_PRESET && m->type == M_F_TX) {
+  if (gChEd.meta.type == TYPE_BAND && m->type == M_F_TX) {
     strncpy(name, "End f", 31);
     return;
   }

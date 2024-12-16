@@ -30,7 +30,7 @@ static uint16_t peakRssi = 0;
 static uint16_t squelchRssi = UINT16_MAX;
 static bool useSquelch = false;
 
-static Preset opt = {
+static Band opt = {
     .name = "Analyzer",
 };
 static uint16_t step;
@@ -119,7 +119,7 @@ void ANALYZER_init(void) {
 
   gMonitorMode = false;
 
-  opt.step = gCurrentPreset.step;
+  opt.step = gCurrentBand.step;
   opt.squelch.value = 0;
 
   setCenterF(radio->rxF);

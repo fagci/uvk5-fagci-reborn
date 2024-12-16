@@ -81,7 +81,7 @@ void UI_DrawSpectrumElements(const uint8_t sy, uint8_t msmDelay, int16_t sq,
     PrintSmallEx(LCD_WIDTH - 2, sy - 3, POS_R, C_FILL, "SQ %d", sq);
   }
   PrintSmallEx(LCD_WIDTH - 2, sy - 3 + 6, POS_R, C_FILL, "%s",
-               modulationTypeOptions[currentBand->modulation]);
+               modulationTypeOptions[radio->modulation]);
 
   if (gLastActiveLoot) {
     PrintMediumBoldEx(LCD_XCENTER, 14, POS_C, C_FILL, "%u.%05u",
@@ -104,13 +104,11 @@ void UI_ShowWait() {
 
 void UI_Scanlists(uint8_t baseX, uint8_t baseY, uint16_t sl) {
   for (uint8_t i = 0; i < 16; ++i) {
-    uint16_t mask = 1 << i;
+    bool isActive = (sl >> i) & 1;
     uint8_t xi = i % 8;
     uint8_t yi = i / 8;
-    bool isActive = (sl & mask) == mask;
-    uint8_t x = baseX + xi * 3 + (xi > 3 ? 2 : 0);
-    uint8_t y = baseY + yi * 3;
-    FillRect(x, y + ((yi > 0) && isActive ? 1 : 0), 2, isActive ? 1 : 2,
-             C_INVERT);
+    uint8_t x = baseX + xi * 3 + (xi > 3) * 2;
+    uint8_t y = baseY + yi * 3 + (yi && !isActive);
+    FillRect(x, y, 2, 1 + isActive, C_INVERT);
   }
 }

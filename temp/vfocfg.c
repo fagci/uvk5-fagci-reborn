@@ -44,7 +44,7 @@ static void setInitialSubmenuIndex(void) {
     subMenuIndex = radio->radio;
     break;
   case M_BW:
-    subMenuIndex = gCurrentPreset.bw;
+    subMenuIndex = gCurrentBand.bw;
     break;
   case M_RX_CODE_TYPE:
     subMenuIndex = radio->code.rx.type;
@@ -59,25 +59,25 @@ static void setInitialSubmenuIndex(void) {
     subMenuIndex = radio->code.tx.value;
     break;
   case M_F_TXP:
-    subMenuIndex = gCurrentPreset.power;
+    subMenuIndex = gCurrentBand.power;
     break;
   case M_TX_OFFSET_DIR:
-    subMenuIndex = gCurrentPreset.offsetDir;
+    subMenuIndex = gCurrentBand.offsetDir;
     break;
   case M_MODULATION:
     subMenuIndex = radio->modulation;
     break;
   case M_STEP:
-    subMenuIndex = gCurrentPreset.step;
+    subMenuIndex = gCurrentBand.step;
     break;
   case M_SQ_TYPE:
-    subMenuIndex = gCurrentPreset.squelch.type;
+    subMenuIndex = gCurrentBand.squelch.type;
     break;
   case M_SQ:
-    subMenuIndex = gCurrentPreset.squelch.value;
+    subMenuIndex = gCurrentBand.squelch.value;
     break;
   case M_GAIN:
-    subMenuIndex = gCurrentPreset.gainIndex;
+    subMenuIndex = gCurrentBand.gainIndex;
     break;
   default:
     subMenuIndex = 0;
@@ -163,8 +163,8 @@ static void setTXF(uint32_t f) {
 }
 
 static void setTXOffset(uint32_t f) {
-  gCurrentPreset.txF = f;
-  PRESETS_SaveCurrent();
+  gCurrentBand.txF = f;
+  BANDS_SaveCurrent();
 }
 
 void VFOCFG_init(void) { updateTxCodeListSize(); }
@@ -187,7 +187,7 @@ static bool accept(void) {
     return true;
   case M_TX_OFFSET:
     gFInputCallback = setTXOffset;
-    gFInputTempFreq = gCurrentPreset.txF;
+    gFInputTempFreq = gCurrentBand.txF;
     APPS_run(APP_FINPUT);
     return true;
   case M_SAVE:
