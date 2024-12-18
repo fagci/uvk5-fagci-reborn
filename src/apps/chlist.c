@@ -34,7 +34,7 @@ static char *VIEW_MODE_NAMES[] = {
 // - scanlist
 
 bool gChSaveMode = false;
-uint8_t gChListFilter = TYPE_ALL;
+uint8_t gChListFilter = UINT8_MAX;
 
 static uint16_t channelIndex = 0;
 static uint8_t viewMode = MODE_INFO;

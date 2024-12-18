@@ -368,21 +368,15 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
   if (SVC_Running(SVC_SCAN) && (longHeld || simpleKeypress) &&
       (key > KEY_0 && key < KEY_9)) {
+    gSettings.currentScanlist = CHANNELS_ScanlistByKey(
+        gSettings.currentScanlist, key, longHeld && !simpleKeypress);
+    SETTINGS_DelayedSave();
     if (RADIO_IsChMode()) {
-      gSettings.currentScanlist = CHANNELS_ScanlistByKey(
-          gSettings.currentScanlist, key, longHeld && !simpleKeypress);
-      SETTINGS_DelayedSave();
       initChannelScan();
     } else {
-      if (gSettings.crossBandScan) {
-        gSettings.currentScanlist = CHANNELS_ScanlistByKey(
-            gSettings.currentScanlist, key, longHeld && !simpleKeypress);
-        SETTINGS_DelayedSave();
-        selectFirstBandFromScanlist();
-      } else {
-        RADIO_SelectBandSave(key + 6);
-      }
+      selectFirstBandFromScanlist();
     }
+
     return true;
   }
 

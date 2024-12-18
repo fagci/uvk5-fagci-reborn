@@ -640,17 +640,11 @@ void RADIO_SwitchRadio() {
 }
 
 void RADIO_SetupByCurrentVFO(void) {
-  // Log("Setup by current VFO (f=%u, radio=%u)", radio->rxF, radio->radio);
-  uint32_t f = radio->rxF;
-  BAND_SelectByFrequency(f);
+  BAND_SelectByFrequency(radio->rxF);
 
-  // Log("Switch radio");
   RADIO_SwitchRadio();
-
   RADIO_SetupBandParams();
-  setupToneDetection();
-
-  RADIO_TuneToPure(f, !gMonitorMode); // todo: precise when old band !=new?
+  RADIO_TuneToPure(radio->rxF, !gMonitorMode);
 }
 
 // USE CASE: set vfo temporary for current app
@@ -662,7 +656,6 @@ void RADIO_TuneTo(uint32_t f) {
   radio->txF = 0;
   radio->rxF = f;
   RADIO_SetupByCurrentVFO();
-  setupToneDetection(); // note: idk where it will be
 }
 
 // USE CASE: set vfo and use in another app
@@ -784,18 +777,17 @@ void RADIO_SetupBandParams() {
     } else {
       BK4819_DisableScramble();
     }
+    setupToneDetection();
     break;
   case RADIO_BK1080:
     break;
   case RADIO_SI4732:
     if (mod == MOD_FM) {
-      SI47XX_SetSeekFmLimits(radio->rxF, radio->txF);
-      SI47XX_SetSeekFmSpacing(StepFrequencyTable[radio->step]);
-    } else {
-      if (mod == MOD_AM) {
-        SI47XX_SetSeekAmLimits(radio->rxF, radio->txF);
-        SI47XX_SetSeekAmSpacing(StepFrequencyTable[radio->step]);
-      }
+      SI47XX_SetSeekFmLimits(gCurrentBand.rxF, gCurrentBand.txF);
+      SI47XX_SetSeekFmSpacing(StepFrequencyTable[gCurrentBand.step]);
+    } else if (mod == MOD_AM) {
+      SI47XX_SetSeekAmLimits(gCurrentBand.rxF, gCurrentBand.txF);
+      SI47XX_SetSeekAmSpacing(StepFrequencyTable[gCurrentBand.step]);
     }
 
     setSI4732Modulation(mod);

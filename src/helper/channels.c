@@ -701,7 +701,7 @@ void CHANNELS_LoadScanlist(CHType type, uint16_t scanlistMask) {
   gScanlistSize = 0;
   for (int16_t i = 0; i < CHANNELS_GetCountMax(); ++i) {
     CHType chType = CHANNELS_GetMeta(i).type;
-    if (type != TYPE_ALL && chType != type) {
+    if (chType != type) {
       continue;
     }
     if (scanlistMask == SCANLIST_ALL ||

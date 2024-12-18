@@ -209,7 +209,6 @@ typedef enum {
   TYPE_MELODY,
   TYPE_SETTING,
   TYPE_FILE,
-  TYPE_ALL,
 } CHType;
 
 typedef struct {

@@ -35,6 +35,8 @@ static Loot msm = {0};
 
 static uint16_t oldBandIndex = 255;
 
+static VFO temporaryVfo;
+
 static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
 
 static void updateStats() {
@@ -127,6 +129,11 @@ void SPECTRUM_init(void) {
 
   SVC_Toggle(SVC_LISTEN, false, 0);
   RADIO_LoadCurrentVFO();
+
+  // unbound VFO
+  temporaryVfo = *radio;
+  radio = &temporaryVfo;
+
   newScan = true;
 }
 
