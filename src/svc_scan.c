@@ -66,8 +66,7 @@ void SVC_SCAN_Update(void) {
     return;
   }
   if (lastListenState != gIsListening) {
-    if (gIsListening &&
-        (gCurrentApp != APP_SPECTRUM && gCurrentApp != APP_ANALYZER) &&
+    if (gIsListening && (gCurrentApp != APP_ANALYZER) &&
         lastSavedF != radio->rxF) {
       lastSavedF = radio->rxF;
       RADIO_SaveCurrentVFO();

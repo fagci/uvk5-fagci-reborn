@@ -13,7 +13,6 @@
 #include "memview.h"
 #include "reset.h"
 #include "settings.h"
-#include "spectrumreborn.h"
 #include "textinput.h"
 #include "vfo1.h"
 #include "vfo2.h"
@@ -55,7 +54,6 @@ const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
     APP_VFO1,      //
     APP_VFO2,      //
     APP_CH_LIST,   //
-    APP_SPECTRUM,  //
     APP_ANALYZER,  //
     APP_LOOT_LIST, //
     APP_MEMVIEW,   //
@@ -66,8 +64,6 @@ const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
 const App apps[APPS_COUNT] = {
     {"None", NULL, NULL, NULL, NULL, NULL},
     {"EEPROM view", MEMVIEW_Init, NULL, MEMVIEW_Render, MEMVIEW_key, NULL},
-    {"Band scan", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render, SPECTRUM_key,
-     SPECTRUM_deinit},
     {"Analyzer", ANALYZER_init, ANALYZER_update, ANALYZER_render, ANALYZER_key,
      ANALYZER_deinit},
     {"Channels", CHLIST_init, NULL, CHLIST_render, CHLIST_key, CHLIST_deinit},

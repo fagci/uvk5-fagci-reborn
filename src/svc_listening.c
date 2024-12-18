@@ -95,6 +95,12 @@ Loot *RADIO_UpdateMeasurements(void) {
     return msm;
   }
   lastMsmUpdate = Now();
+  if (!gIsListening && gSettings.scanTimeout < 10) {
+    BK4819_SetFrequency(radio->rxF);
+    BK4819_WriteRegister(BK4819_REG_30, 0x0200);
+    BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
+    SYSTEM_DelayMs(gSettings.scanTimeout); // (X_X)
+  }
   msm->rssi = RADIO_GetRSSI();
   msm->open = RADIO_IsSquelchOpen(msm);
   if (radio->code.rx.type == CODE_TYPE_OFF) {
@@ -170,8 +176,7 @@ Loot *RADIO_UpdateMeasurements(void) {
   if (gTxState != TX_ON) {
     if (gMonitorMode) {
       rx = true;
-    } else if (gSettings.noListen &&
-               (gCurrentApp == APP_SPECTRUM || gCurrentApp == APP_ANALYZER)) {
+    } else if (gSettings.noListen && gCurrentApp == APP_ANALYZER) {
       rx = false;
     } else if (gSettings.skipGarbageFrequencies &&
                (radio->rxF % 1300000 == 0) &&
@@ -235,9 +240,6 @@ void SVC_LISTEN_Update(void) {
 
   if (RADIO_GetRadio() == RADIO_BK4819 || gShowAllRSSI) {
     RADIO_UpdateMeasurements();
-    if (gSettings.scanTimeout < 10) {
-      BK4819_ResetRSSI();
-    }
   }
 
   bool blinkMode = RADIO_GetRadio() != RADIO_BK4819 || gMonitorMode;

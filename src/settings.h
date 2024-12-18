@@ -116,7 +116,7 @@ typedef enum {
 
 extern const char *EEPROM_TYPE_NAMES[6];
 extern const uint32_t EEPROM_SIZES[6];
-extern const char *CH_TYPE_NAMES[9];
+extern const char *CH_TYPE_NAMES[8];
 
 // TODO: align fields
 typedef struct {

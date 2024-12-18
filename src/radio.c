@@ -296,6 +296,8 @@ static bool isSimpleSql() {
 static bool isSqOpenSimple(uint16_t r) {
   SQL sq = GetSql(radio->squelch.value);
 
+  // TODO: automatic sql when msmTime < 10
+
   uint8_t n, g;
 
   bool open;
@@ -932,7 +934,6 @@ void RADIO_UpdateSquelchLevel(bool next) {
 }
 
 void RADIO_NextFreqNoClicks(bool next) {
-
   if (RADIO_IsChMode()) {
     RADIO_NextCH(next);
     return;
@@ -959,42 +960,54 @@ void RADIO_NextFreqNoClicks(bool next) {
   onVfoUpdate();
 }
 
-bool RADIO_NextBandFreqXBandEx(bool next, bool tune, bool precise) {
-  uint32_t steps = CHANNELS_GetSteps(&gCurrentBand);
-  int64_t step = CHANNELS_GetChannel(&gCurrentBand, radio->rxF);
+bool RADIO_NextBandFreqXBandEx(bool next, bool precise) {
   bool switchBand = false;
+  if (radio->fixedBoundsMode) {
+    uint32_t steps = CHANNELS_GetSteps(&gCurrentBand);
+    int64_t step = CHANNELS_GetChannel(&gCurrentBand, radio->rxF);
 
-  if (next) {
-    step++;
+    if (next) {
+      step++;
+    } else {
+      step--;
+    }
+
+    if (step < 0) {
+      // get previous band
+      switchBand = true;
+      if (gSettings.crossBandScan) {
+        BANDS_SelectBandRelativeByScanlist(false);
+      }
+      steps = CHANNELS_GetSteps(&gCurrentBand);
+      step = steps - 1;
+    } else if (step >= steps) {
+      // get next band
+      switchBand = true;
+      if (gSettings.crossBandScan) {
+        BANDS_SelectBandRelativeByScanlist(true);
+      }
+      step = 0;
+    }
+    radio->rxF = CHANNELS_GetF(&gCurrentBand, step);
   } else {
-    step--;
+    if (next) {
+      radio->rxF += StepFrequencyTable[radio->step];
+    } else {
+      radio->rxF -= StepFrequencyTable[radio->step];
+    }
   }
+  // NOTE: was RADIO_TuneToPure,
+  // but unbound scan will not change current band & radio
+  BAND_SelectByFrequency(radio->rxF);
 
-  if (step < 0) {
-    // get previous band
-    switchBand = true;
-    if (gSettings.crossBandScan) {
-      BANDS_SelectBandRelativeByScanlist(false);
-    }
-    steps = CHANNELS_GetSteps(&gCurrentBand);
-    step = steps - 1;
-  } else if (step >= steps) {
-    // get next band
-    switchBand = true;
-    if (gSettings.crossBandScan) {
-      BANDS_SelectBandRelativeByScanlist(true);
-    }
-    step = 0;
-  }
-  radio->rxF = CHANNELS_GetF(&gCurrentBand, step);
-  if (tune) {
-    RADIO_TuneToPure(radio->rxF, precise);
-  }
+  RADIO_SwitchRadio();
+  RADIO_SetupBandParams();
+  RADIO_TuneToPure(radio->rxF, precise);
   return switchBand;
 }
 
 void RADIO_NextBandFreqXBand(bool next) {
-  RADIO_NextBandFreqXBandEx(next, true, true);
+  RADIO_NextBandFreqXBandEx(next, true);
 }
 
 void RADIO_UpdateStep(bool inc) {

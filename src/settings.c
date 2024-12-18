@@ -25,8 +25,8 @@ const char *EEPROM_TYPE_NAMES[6] = {
     "BL24C1024", // 110
     "M24M02",    // 111
 };
-const char *CH_TYPE_NAMES[9] = {
-    "EMPTY", "CH", "BAND", "VFO", "FOLDER", "MELODY", "SETTING", "FILE", "ALL"
+const char *CH_TYPE_NAMES[8] = {
+    "EMPTY", "CH", "BAND", "VFO", "FOLDER", "MELODY", "SETTING", "FILE"
 };
 
 static const uint8_t PATCh1_PREAMBLE[] = {0x15, 0x00, 0x0F, 0xE0,

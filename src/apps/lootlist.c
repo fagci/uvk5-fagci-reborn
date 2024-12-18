@@ -249,6 +249,10 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_4: // freq catch
       SVC_Toggle(SVC_FC, !SVC_Running(SVC_FC), 100);
       return true;
+    case KEY_STAR:
+      // TODO: select any of SL
+      CHANNELS_LoadBlacklistToLoot();
+      return true;
     default:
       break;
     }

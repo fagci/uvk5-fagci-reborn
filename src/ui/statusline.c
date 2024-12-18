@@ -135,8 +135,7 @@ void STATUSLINE_render(void) {
     icons[idx++] = SYM_CONVERTER;
   }
 
-  if (gSettings.noListen &&
-      (gCurrentApp == APP_SPECTRUM || gCurrentApp == APP_ANALYZER)) {
+  if (gSettings.noListen && (gCurrentApp == APP_ANALYZER)) {
     icons[idx++] = SYM_NO_LISTEN;
   }
 
@@ -145,8 +144,7 @@ void STATUSLINE_render(void) {
   }
 
   if ((gCurrentApp == APP_CH_LIST || gCurrentApp == APP_VFO1 ||
-       gCurrentApp == APP_VFO2 || gCurrentApp == APP_SPECTRUM ||
-       gCurrentApp == APP_LOOT_LIST)) {
+       gCurrentApp == APP_VFO2 || gCurrentApp == APP_LOOT_LIST)) {
     UI_Scanlists(LCD_XCENTER - 13, 0, gSettings.currentScanlist);
   }
 

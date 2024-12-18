@@ -16,6 +16,7 @@
 #include "../ui/statusline.h"
 #include "apps.h"
 #include "chcfg.h"
+#include "chlist.h"
 #include "finput.h"
 
 bool gVfo1ProMode = false;
@@ -389,6 +390,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       startScan();
       return true;
     case KEY_1:
+      gChListFilter = TYPE_BAND;
       APPS_run(APP_CH_LIST);
       return true;
     case KEY_2:
@@ -443,7 +445,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       APPS_run(APP_ANALYZER);
       return true;
     case KEY_SIDE2:
-      APPS_run(APP_SPECTRUM);
+      // APPS_run(APP_SPECTRUM);
       return true;
     default:
       break;
