@@ -98,7 +98,6 @@ static void scanFn(bool forward) {
     startNewScan(false);
     return;
   }
-  SP_Next();
 }
 
 static void setCenterF(uint32_t f) {
@@ -112,6 +111,8 @@ static void setCenterF(uint32_t f) {
 }
 
 void ANALYZER_init(void) {
+  SPECTRUM_Y = 16;
+  SPECTRUM_H = 40;
   SVC_Toggle(SVC_SCAN, false, 0);
   SVC_Toggle(SVC_LISTEN, false, 0);
   RADIO_ToggleRX(false);

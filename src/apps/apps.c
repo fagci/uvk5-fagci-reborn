@@ -75,7 +75,7 @@ const App apps[APPS_COUNT] = {
     {"Text input", TEXTINPUT_init, NULL, TEXTINPUT_render, TEXTINPUT_key,
      TEXTINPUT_deinit},
     {"CH cfg", CHCFG_init, NULL, CHCFG_render, CHCFG_key, CHCFG_deinit},
-    {"Settings", SETTINGS_init, NULL, SETTINGS_render, SETTINGS_key, NULL},
+    {"Settings", NULL, NULL, SETTINGS_render, SETTINGS_key, SETTINGS_deinit},
     {"1 VFO", VFO1_init, VFO1_update, VFO1_render, VFO1_key, NULL},
     {"2 VFO", VFO2_init, VFO2_update, VFO2_render, VFO2_key, NULL},
     {"Generator", GENERATOR_init, GENERATOR_update, GENERATOR_render,

@@ -140,7 +140,7 @@ typedef struct {
   uint8_t scanmode : 2;
   CHDisplayMode chDisplayMode : 2;
   uint8_t pttLock : 1;
-  uint8_t crossBandScan : 1;
+  uint8_t reserved2 : 1;
   uint8_t beep : 1;
   uint8_t keylock : 1;
   uint8_t busyChannelTxLock : 1;
@@ -148,6 +148,7 @@ typedef struct {
   uint8_t repeaterSte : 1;
   uint8_t dtmfdecode : 1;
   uint8_t brightness : 4;
+  uint8_t brightnessLow : 4;
   EEPROMType eepromType : 3;
 
   BatteryType batteryType : 2;

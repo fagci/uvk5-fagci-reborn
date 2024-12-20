@@ -22,13 +22,13 @@ typedef enum {
   M_UPCONVERTER,
   M_MAIN_APP,
   M_SCAN_DELAY,
-  M_SCAN_X_BAND,
   M_SQL_OPEN_T,
   M_SQL_CLOSE_T,
   M_SQL_TO_OPEN,
   M_SQL_TO_CLOSE,
   M_DW,
   M_BRIGHTNESS,
+  M_BRIGHTNESS_L,
   M_CONTRAST,
   M_BL_TIME,
   M_BL_SQL,
@@ -63,13 +63,13 @@ static const MenuItem menu[] = {
     {"SQL open t", M_SQL_OPEN_T, 7},
     {"SQL close t", M_SQL_CLOSE_T, 3},
     {"SCAN measure t", M_SCAN_DELAY, 255},
-    {"SCAN multiband", M_SCAN_X_BAND, 2},
     {"SCAN listen t/o", M_SQL_TO_OPEN, ARRAY_SIZE(SCAN_TIMEOUT_NAMES)},
     {"SCAN stay t", M_SQL_TO_CLOSE, ARRAY_SIZE(SCAN_TIMEOUT_NAMES)},
     {"SCAN skip X_X", M_SKIP_GARBAGE_FREQS, 2},
     {"DW", M_DW, 3},
     {"Contrast", M_CONTRAST, 16},
-    {"Backlight", M_BRIGHTNESS, 16},
+    {"BL high", M_BRIGHTNESS, 16},
+    {"BL low", M_BRIGHTNESS_L, 16},
     {"BL time", M_BL_TIME, ARRAY_SIZE(BL_TIME_VALUES)},
     {"BL SQL mode", M_BL_SQL, ARRAY_SIZE(BL_SQL_MODE_NAMES)},
     {"DTMF decode", M_DTMF_DECODE, 2},
@@ -114,6 +114,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     strncpy(name, fltBound[index], 31);
     return;
   case M_BRIGHTNESS:
+  case M_BRIGHTNESS_L:
     sprintf(name, "%u", index);
     return;
   case M_CONTRAST:
@@ -140,7 +141,6 @@ static void getSubmenuItemText(uint16_t index, char *name) {
   case M_PTT_LOCK:
   case M_SKIP_GARBAGE_FREQS:
   case M_SI4732_POWER_OFF:
-  case M_SCAN_X_BAND:
     strncpy(name, yesNo[index], 31);
     return;
   case M_DW:
@@ -202,6 +202,10 @@ static void accept(void) {
     gSettings.brightness = subMenuIndex;
     SETTINGS_Save();
     break;
+  case M_BRIGHTNESS_L:
+    gSettings.brightnessLow = subMenuIndex;
+    SETTINGS_Save();
+    break;
   case M_CONTRAST:
     gSettings.contrast = subMenuIndex;
     SETTINGS_Save();
@@ -251,10 +255,6 @@ static void accept(void) {
     gSettings.ste = subMenuIndex;
     SETTINGS_Save();
     break;
-  case M_SCAN_X_BAND:
-    gSettings.crossBandScan = subMenuIndex;
-    SETTINGS_Save();
-    break;
   case M_TONE_LOCAL:
     gSettings.toneLocal = subMenuIndex;
     SETTINGS_Save();
@@ -280,6 +280,9 @@ static const char *getValue(Menu type) {
   switch (type) {
   case M_BRIGHTNESS:
     sprintf(Output, "%u", gSettings.brightness);
+    return Output;
+  case M_BRIGHTNESS_L:
+    sprintf(Output, "%u", gSettings.brightnessLow);
     return Output;
   case M_CONTRAST:
     sprintf(Output, "%d", gSettings.contrast - 8);
@@ -325,8 +328,6 @@ static const char *getValue(Menu type) {
     return onOff[gSettings.ste];
   case M_SKIP_GARBAGE_FREQS:
     return yesNo[gSettings.skipGarbageFrequencies];
-  case M_SCAN_X_BAND:
-    return yesNo[gSettings.crossBandScan];
   case M_SI4732_POWER_OFF:
     return yesNo[gSettings.si4732PowerOff];
   case M_DW:
@@ -351,6 +352,9 @@ static void onSubChange(void) {
   case M_BRIGHTNESS:
     BACKLIGHT_SetBrightness(subMenuIndex);
     break;
+  case M_BRIGHTNESS_L:
+    BACKLIGHT_SetBrightness(subMenuIndex);
+    break;
   case M_BL_TIME:
     BACKLIGHT_SetDuration(BL_TIME_VALUES[subMenuIndex]);
     break;
@@ -368,6 +372,9 @@ static void setInitialSubmenuIndex(void) {
   switch (item->type) {
   case M_BRIGHTNESS:
     subMenuIndex = gSettings.brightness;
+    break;
+  case M_BRIGHTNESS_L:
+    subMenuIndex = gSettings.brightnessLow;
     break;
   case M_CONTRAST:
     subMenuIndex = gSettings.contrast;
@@ -423,9 +430,6 @@ static void setInitialSubmenuIndex(void) {
   case M_TONE_LOCAL:
     subMenuIndex = gSettings.toneLocal;
     break;
-  case M_SCAN_X_BAND:
-    subMenuIndex = gSettings.crossBandScan;
-    break;
   case M_STE:
     subMenuIndex = gSettings.ste;
     break;
@@ -452,7 +456,7 @@ static void setInitialSubmenuIndex(void) {
   }
 }
 
-void SETTINGS_init(void) {}
+void SETTINGS_deinit(void) { BACKLIGHT_SetBrightness(gSettings.brightness); }
 
 static void setMenuIndexAndRun(uint16_t v) {
   menuIndex = v - 1;

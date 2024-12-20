@@ -176,11 +176,11 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         APPS_run(APP_TEXTINPUT);
         return true;
       }
-      RADIO_TuneToCH(chNum);
+      RADIO_TuneToMR(chNum);
       APPS_exit();
       return true;
     case KEY_PTT:
-      RADIO_TuneToCH(chNum);
+      RADIO_TuneToMR(chNum);
       gVfo1ProMode = true;
       APPS_run(APP_VFO1);
       return true;

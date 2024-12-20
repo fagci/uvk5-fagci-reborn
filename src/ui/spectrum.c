@@ -12,10 +12,10 @@ typedef struct {
   uint16_t vMax;
 } VMinMax;
 
-const uint8_t SPECTRUM_Y = 16;
-const uint8_t SPECTRUM_H = 40;
+uint8_t SPECTRUM_Y = 16;
+uint8_t SPECTRUM_H = 40;
 
-static const uint8_t S_BOTTOM = SPECTRUM_Y + SPECTRUM_H;
+static uint8_t S_BOTTOM;
 
 static uint16_t rssiHistory[MAX_POINTS] = {0};
 static uint8_t noiseHistory[MAX_POINTS] = {0};
@@ -43,9 +43,9 @@ static uint8_t maxNoise(const uint8_t *array, uint8_t n) {
     if (array[i] != UINT8_MAX && array[i] > max) {
       max = array[i];
     }
-    if (array[i] == UINT8_MAX) {
+    /* if (array[i] == UINT8_MAX) {
       Log("!!! NOISE=255 at %u", i); // appears when switching bands
-    }
+    } */
   }
   return max;
 }
@@ -63,18 +63,14 @@ void SP_Begin(void) {
   ox = UINT8_MAX;
 }
 
-void SP_Next(void) {
-  // TODO: remove
-}
-
 void SP_Init(Band *b) {
+  S_BOTTOM = SPECTRUM_Y + SPECTRUM_H;
   range = b;
   step = StepFrequencyTable[b->step];
   SP_ResetHistory();
   SP_Begin();
 }
 
-#include "../driver/uart.h"
 void SP_AddPoint(const Loot *msm) {
   uint32_t xs = ConvertDomain(msm->f, range->rxF, range->txF, 0, MAX_POINTS);
   uint32_t xe =

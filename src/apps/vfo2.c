@@ -6,8 +6,10 @@
 #include "../misc.h"
 #include "../scheduler.h"
 #include "../settings.h"
+#include "../svc.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
+#include "../ui/spectrum.h"
 #include "../ui/statusline.h"
 #include "vfo1.h"
 
@@ -99,8 +101,8 @@ static void render2VFOPart(uint8_t i) {
 }
 
 void VFO2_init(void) {
+  VFO1_init();
   gVfo1ProMode = false;
-  RADIO_LoadCurrentVFO();
 }
 
 bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
@@ -127,6 +129,16 @@ void VFO2_update(void) { VFO1_update(); }
 
 void VFO2_render(void) {
   STATUSLINE_renderCurrentBand();
-  render2VFOPart(0);
-  render2VFOPart(1);
+
+  if (gIsListening || SVC_Running(SVC_SCAN)) {
+    render2VFOPart(gSettings.activeVFO);
+    if (gIsListening) {
+      SP_RenderGraph();
+    } else {
+      SP_Render(&gCurrentBand);
+    }
+  } else {
+    render2VFOPart(0);
+    render2VFOPart(1);
+  }
 }

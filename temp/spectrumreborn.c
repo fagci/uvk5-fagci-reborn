@@ -91,7 +91,6 @@ static void scanFn(bool _) {
     newScan = true;
   } else {
     msm.f = radio->rxF;
-    SP_Next();
   }
   msm.rssi = 0;
   msm.noise = UINT8_MAX;

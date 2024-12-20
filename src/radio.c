@@ -262,8 +262,6 @@ static void setupToneDetection() {
       BK4819_REG_3F_CxCSS_TAIL | BK4819_REG_3F_DTMF_5TONE_FOUND;
   if (gSettings.dtmfdecode) {
     BK4819_EnableDTMF();
-    BK4819_WriteRegister(BK4819_REG_3F, 0x0800); // FIXME: RM
-    return;
   } else {
     BK4819_DisableDTMF();
   }
@@ -684,16 +682,6 @@ void RADIO_SaveCurrentVFO(void) {
   CHANNELS_Save(vfoChNum, radio);
 }
 
-void RADIO_SelectBandSave(int8_t num) {
-  // TODO: copy settings from band
-  BAND_Select(num);
-  if (BAND_InRange(radio->misc.lastUsedFreq, gCurrentBand)) {
-    RADIO_TuneToSave(radio->misc.lastUsedFreq);
-  } else {
-    RADIO_TuneToSave(radio->rxF);
-  }
-}
-
 void RADIO_LoadCurrentVFO(void) {
   for (uint8_t i = 0; i < 2; ++i) {
     loadVFO(i);
@@ -867,27 +855,37 @@ void RADIO_VfoLoadCH(uint8_t i) {
   gVFO[i].channel = chNum;
 }
 
-// TODO:
-// keep CH in memory, not save in VFO, only save channel
-bool RADIO_TuneToCH(int32_t num) {
+void RADIO_TuneToBand(int16_t num) {
+  CH ch;
+  CHANNELS_Load(num, &ch);
+  radio->fixedBoundsMode = true;
+  RADIO_SaveCurrentVFO();
+  radio->bw = ch.bw;
+  radio->step = ch.step;
+  radio->gainIndex = ch.gainIndex;
+  radio->modulation = ch.modulation;
+  if (BAND_InRange(ch.misc.lastUsedFreq, gCurrentBand)) {
+    RADIO_TuneToSave(ch.misc.lastUsedFreq);
+  } else {
+    RADIO_TuneToSave(ch.rxF);
+  }
+}
+
+void RADIO_TuneToCH(int16_t num) {
+  radio->channel = num;
+  RADIO_VfoLoadCH(gSettings.activeVFO);
+  RADIO_SaveCurrentVFO();
+  RADIO_SetupByCurrentVFO();
+}
+
+bool RADIO_TuneToMR(int16_t num) {
   if (CHANNELS_Existing(num)) {
-    CH ch;
     switch (CHANNELS_GetMeta(num).type) {
     case TYPE_CH:
-      radio->channel = num;
-      RADIO_VfoLoadCH(gSettings.activeVFO);
-      RADIO_SaveCurrentVFO();
-      RADIO_SetupByCurrentVFO();
+      RADIO_TuneToCH(num);
       return true;
     case TYPE_BAND:
-      CHANNELS_Load(num, &ch);
-      radio->fixedBoundsMode = true;
-      RADIO_SaveCurrentVFO();
-      radio->bw = ch.bw;
-      radio->step = ch.step;
-      radio->gainIndex = ch.gainIndex;
-      radio->modulation = ch.modulation;
-      RADIO_TuneToSave(ch.misc.lastUsedFreq);
+      RADIO_TuneToBand(num);
       break;
     default:
       break;
@@ -895,6 +893,12 @@ bool RADIO_TuneToCH(int32_t num) {
   }
   radio->channel = -1;
   return false;
+}
+
+// TODO: rewrite into channels.c
+void RADIO_NextBand(bool next) {
+  RADIO_TuneToBand(CHANNELS_Next(gScanlist[gSettings.activeBand], next));
+  SETTINGS_DelayedSave();
 }
 
 void RADIO_NextCH(bool next) {
@@ -919,7 +923,7 @@ void RADIO_ToggleVfoMR(void) {
     radio->channel *= -1;
     radio->channel -= 1; // 1 -> 0
     if (CHANNELS_Existing(radio->channel)) {
-      RADIO_TuneToCH(radio->channel);
+      RADIO_TuneToMR(radio->channel);
     } else {
       RADIO_NextCH(true);
     }
@@ -975,17 +979,13 @@ bool RADIO_NextBandFreqXBandEx(bool next, bool precise) {
     if (step < 0) {
       // get previous band
       switchBand = true;
-      if (gSettings.crossBandScan) {
-        BANDS_SelectBandRelativeByScanlist(false);
-      }
+      BANDS_SelectBandRelativeByScanlist(false);
       steps = CHANNELS_GetSteps(&gCurrentBand);
       step = steps - 1;
     } else if (step >= steps) {
       // get next band
       switchBand = true;
-      if (gSettings.crossBandScan) {
-        BANDS_SelectBandRelativeByScanlist(true);
-      }
+      BANDS_SelectBandRelativeByScanlist(true);
       step = 0;
     }
     radio->rxF = CHANNELS_GetF(&gCurrentBand, step);

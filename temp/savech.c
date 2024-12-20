@@ -219,7 +219,7 @@ bool SAVECH_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       from = currentChannelIndex;
       return true;
     case KEY_PTT:
-      RADIO_TuneToCH(chNum);
+      RADIO_TuneToMR(chNum);
       gVfo1ProMode = true;
       APPS_run(APP_VFO1);
       from = -1;

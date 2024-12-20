@@ -77,7 +77,8 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   }
 }
 
-static void setChannel(uint16_t v) { RADIO_TuneToCH(v - 1); }
+static void setChannel(uint16_t v) { RADIO_TuneToMR(v - 1); }
+
 static void tuneTo(uint32_t f) {
   RADIO_TuneToSave(GetTuneF(f));
   radio->fixedBoundsMode = false;
@@ -108,6 +109,8 @@ static void channelScanFn(bool forward) {
 }
 
 void VFO1_init(void) {
+  CHANNELS_LoadScanlist(RADIO_IsChMode() ? TYPE_CH : TYPE_BAND,
+                        gSettings.currentScanlist);
   gDW.activityOnVFO = -1;
   if (!gVfo1ProMode) {
     gVfo1ProMode = gSettings.iAmPro;
@@ -151,7 +154,6 @@ static void prepareABScan() {
   sprintf(defaultBand.name, "%u-%u", F1 / MHZ, F2 / MHZ);
   gCurrentBand = defaultBand;
   defaultBand.misc.lastUsedFreq = radio->rxF;
-  gSettings.crossBandScan = false;
   RADIO_TuneToPure(F1, true);
 }
 
@@ -187,17 +189,7 @@ static void startScan() {
   SVC_Toggle(SVC_SCAN, true, gSettings.scanTimeout);
 }
 
-static void selectFirstBandFromScanlist() {
-  uint16_t scanlistMask = gSettings.currentScanlist;
-  for (uint8_t i = 0; i < BANDS_COUNT_MAX; ++i) {
-    if (scanlistMask == SCANLIST_ALL ||
-        (BANDS_Item(i).scanlists & scanlistMask) == scanlistMask) {
-      BAND_Select(i);
-      RADIO_TuneTo(gCurrentBand.rxF);
-      return;
-    }
-  }
-}
+static void selectFirstBandFromScanlist() { BAND_Select(0); }
 
 bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (key == KEY_PTT) {
@@ -400,6 +392,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_3:
       RADIO_ToggleVfoMR();
+      VFO1_init();
       return true;
     case KEY_4: // freq catch
       if (RADIO_GetRadio() == RADIO_BK4819) {
@@ -435,7 +428,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         SSB_Seek_ON = true;
         // todo: scan by snr
       } else {
-        if (gSettings.crossBandScan && radio->channel <= -1) {
+        if (!RADIO_IsChMode()) {
           selectFirstBandFromScanlist();
         }
         startScan();

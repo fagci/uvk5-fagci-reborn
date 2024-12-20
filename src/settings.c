@@ -48,7 +48,6 @@ Settings gSettings = (Settings){
     .scanmode = 0,
     .chDisplayMode = 0,
     .dw = false,
-    .crossBandScan = false,
     .beep = false,
     .keylock = false,
     .busyChannelTxLock = false,

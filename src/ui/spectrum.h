@@ -10,7 +10,6 @@ void SP_AddPoint(const Loot *msm);
 void SP_ResetHistory();
 void SP_Init(Band *b);
 void SP_Begin();
-void SP_Next();
 void SP_Render(const Band *p);
 void SP_RenderRssi(uint16_t rssi, char *text, bool top);
 void SP_RenderLine(uint16_t rssi);
@@ -23,7 +22,7 @@ void SP_RenderGraph();
 void SP_AddGraphPoint(const Loot *msm);
 void SP_Shift(int16_t n);
 
-extern const uint8_t SPECTRUM_Y;
-extern const uint8_t SPECTRUM_H;
+extern uint8_t SPECTRUM_Y;
+extern uint8_t SPECTRUM_H;
 
 #endif /* end of include guard: UI_SPECTRUM_H */

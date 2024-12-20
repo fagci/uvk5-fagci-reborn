@@ -18,6 +18,7 @@
 #include "scheduler.h"
 #include "settings.h"
 #include "svc.h"
+#include "ui/spectrum.h"
 #include "ui/statusline.h"
 #include <stdint.h>
 #include <string.h>
@@ -239,7 +240,13 @@ void SVC_LISTEN_Update(void) {
   }
 
   if (RADIO_GetRadio() == RADIO_BK4819 || gShowAllRSSI) {
-    RADIO_UpdateMeasurements();
+    Loot *m = RADIO_UpdateMeasurements();
+    if (gIsListening) {
+      SP_Shift(-1);
+      SP_AddGraphPoint(m);
+    } else {
+      SP_AddPoint(m);
+    }
   }
 
   bool blinkMode = RADIO_GetRadio() != RADIO_BK4819 || gMonitorMode;

@@ -8,6 +8,7 @@
 #include "radio.h"
 #include "scheduler.h"
 #include "settings.h"
+#include "ui/spectrum.h"
 
 bool gScanForward = true;
 bool gScanRedraw = true;
@@ -47,6 +48,9 @@ void SVC_SCAN_Init(void) {
     SI47XX_Seek(gScanForward, true);
     return;
   }
+  SPECTRUM_Y = 34 * (1 - gSettings.activeVFO) + 8;
+  SPECTRUM_H = 22;
+  SP_Init(&gCurrentBand);
 
   if (!gScanFn) {
     if (RADIO_IsChMode()) {

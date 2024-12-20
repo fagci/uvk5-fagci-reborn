@@ -663,34 +663,14 @@ uint8_t CHANNELS_Scanlists(int16_t num) {
 }
 
 int16_t CHANNELS_Next(int16_t base, bool next) {
-  int16_t si = base;
-  int16_t max = CHANNELS_GetCountMax() - 2 - BANDS_COUNT_MAX;
-  IncDecI16(&si, 0, max, next ? 1 : -1);
-  int16_t i = si;
-  if (next) {
-    for (; i < max; ++i) {
-      if (CHANNELS_Existing(i)) {
-        return i;
-      }
-    }
-    for (i = 0; i < base; ++i) {
-      if (CHANNELS_Existing(i)) {
-        return i;
-      }
-    }
-  } else {
-    for (; i >= 0; --i) {
-      if (CHANNELS_Existing(i)) {
-        return i;
-      }
-    }
-    for (i = max - 1; i > base; --i) {
-      if (CHANNELS_Existing(i)) {
-        return i;
-      }
-    }
+  if (gScanlistSize == 0) {
+    return -1;
   }
-  return -1;
+  if (base == -1) {
+    return gScanlist[0];
+  }
+  IncDecI16(&base, 0, gScanlistSize, next);
+  return gScanlist[base];
 }
 
 void CHANNELS_LoadScanlist(CHType type, uint16_t scanlistMask) {
@@ -814,15 +794,8 @@ int8_t BAND_SelectByFrequency(uint32_t f) {
 
 void BANDS_SelectBandRelativeByScanlist(bool next) {
   uint8_t index = gSettings.activeBand;
-  uint8_t sl = gSettings.currentScanlist;
-  uint8_t scanlistMask = 1 << sl;
-  BANDS_SelectBandRelative(next);
-  while (gSettings.activeBand != index) {
-    if (sl == 15 || (gCurrentBand.scanlists & scanlistMask) == scanlistMask) {
-      return;
-    }
-    BANDS_SelectBandRelative(next);
-  }
+  IncDec8(&index, 0, gScanlistSize, next);
+  gSettings.activeBand = index;
 }
 
 bool BANDS_Load(void) {

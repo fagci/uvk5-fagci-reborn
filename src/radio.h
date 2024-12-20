@@ -55,11 +55,14 @@ void RADIO_ToggleRX(bool on);
 void RADIO_ToggleTX(bool on);
 void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power, bool paEnabled);
 
-void RADIO_TuneTo(uint32_t f);
-bool RADIO_TuneToCH(int32_t num);
 void RADIO_TuneToPure(uint32_t f, bool precise);
+void RADIO_TuneTo(uint32_t f);
 void RADIO_TuneToSave(uint32_t f);
-void RADIO_SelectBandSave(int8_t num);
+
+bool RADIO_TuneToMR(int16_t num);
+void RADIO_TuneToCH(int16_t num);
+void RADIO_TuneToBand(int16_t num);
+
 void RADIO_SetupBandParams();
 
 void RADIO_VfoLoadCH(uint8_t i);
