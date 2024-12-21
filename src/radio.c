@@ -20,6 +20,7 @@
 #include "scheduler.h"
 #include "settings.h"
 #include "svc.h"
+#include "ui/spectrum.h"
 
 CH *radio;
 VFO gVFO[2] = {
@@ -998,7 +999,11 @@ bool RADIO_NextBandFreqXBandEx(bool next, bool precise) {
   }
   // NOTE: was RADIO_TuneToPure,
   // but unbound scan will not change current band & radio
+  uint8_t bi = gSettings.activeBand;
   BAND_SelectByFrequency(radio->rxF);
+  if (bi != gSettings.activeBand) {
+    SP_Init(&gCurrentBand);
+  }
 
   RADIO_SwitchRadio();
   RADIO_SetupBandParams();

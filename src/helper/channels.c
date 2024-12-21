@@ -771,7 +771,6 @@ Band BAND_ByFrequency(uint32_t f) {
 void BAND_Select(int8_t i) {
   gCurrentBand = BANDS_Item(i);
   gSettings.activeBand = i;
-  Log("[i] PRST Select %u", i);
 }
 
 void BANDS_SelectBandRelative(bool next) {

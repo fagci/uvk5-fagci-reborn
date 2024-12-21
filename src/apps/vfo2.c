@@ -129,6 +129,8 @@ void VFO2_update(void) { VFO1_update(); }
 
 void VFO2_render(void) {
   STATUSLINE_renderCurrentBand();
+  SPECTRUM_Y = 8 + 32 * (1 - gSettings.activeVFO);
+  SPECTRUM_H = 22;
 
   if (gIsListening || SVC_Running(SVC_SCAN)) {
     render2VFOPart(gSettings.activeVFO);

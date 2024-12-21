@@ -152,14 +152,17 @@ uint8_t SP_GetNoiseMax() { return maxNoise(noiseHistory, filledPoints); }
 uint16_t SP_GetRssiMax() { return Max(rssiHistory, filledPoints); }
 
 void SP_RenderGraph() {
-  const VMinMax v = getV();
+  const VMinMax v = {
+      .vMin = 78,
+      .vMax = 274,
+  };
+  S_BOTTOM = SPECTRUM_Y + SPECTRUM_H; // TODO: mv to separate function
+  Log("Y:%u H:%u", SPECTRUM_Y, SPECTRUM_H);
 
-  uint8_t oVal =
-      ConvertDomain(rssiHistory[0] * 2, v.vMin * 2, v.vMax * 2, 0, SPECTRUM_H);
+  uint8_t oVal = ConvertDomain(rssiHistory[0], v.vMin, v.vMax, 0, SPECTRUM_H);
 
   for (uint8_t i = 1; i < MAX_POINTS; ++i) {
-    uint8_t yVal = ConvertDomain(rssiHistory[i] * 2, v.vMin * 2, v.vMax * 2, 0,
-                                 SPECTRUM_H);
+    uint8_t yVal = ConvertDomain(rssiHistory[i], v.vMin, v.vMax, 0, SPECTRUM_H);
     DrawLine(i - 1, S_BOTTOM - oVal, i, S_BOTTOM - yVal, C_FILL);
     oVal = yVal;
   }

@@ -242,8 +242,12 @@ void SVC_LISTEN_Update(void) {
   if (RADIO_GetRadio() == RADIO_BK4819 || gShowAllRSSI) {
     Loot *m = RADIO_UpdateMeasurements();
     if (gIsListening) {
-      SP_Shift(-1);
-      SP_AddGraphPoint(m);
+      static uint32_t lastGraphMsm;
+      if (Now() - lastGraphMsm > 250) {
+        SP_Shift(-1);
+        SP_AddGraphPoint(m);
+        lastGraphMsm = Now();
+      }
     } else {
       SP_AddPoint(m);
     }
