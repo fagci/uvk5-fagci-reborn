@@ -124,7 +124,6 @@ typedef struct {
   uint8_t checkbyte : 5;
   uint16_t currentScanlist;
   AppType_t mainApp : 8;
-  uint8_t activeBand : 8; // band index
   uint16_t batteryCalibration : 12;
   uint8_t contrast : 4;
   uint8_t backlight : 4;

@@ -13,8 +13,11 @@ int16_t gScanlistSize = 0;
 uint16_t gScanlist[SCANLIST_MAX] = {0};
 CHType gScanlistType = TYPE_CH;
 
-static int8_t bandlistSize = 0;
+static uint8_t bandlistSize = 0;
 static uint16_t bandChannel[BANDS_COUNT_MAX] = {0};
+
+static uint8_t activeScanlistBandIndex;
+static uint8_t activeDisplayBandIndex;
 
 // to use instead of predefined when we need to keep step, etc
 Band defaultBand = {
@@ -690,6 +693,8 @@ void CHANNELS_LoadScanlist(CHType type, uint16_t scanlistMask) {
       gScanlistSize++;
     }
   }
+  Log("SL t=%s, sl=%u, %u items", CH_TYPE_NAMES[type], scanlistMask,
+      gScanlistSize);
 }
 
 void CHANNELS_LoadBlacklistToLoot() {
@@ -729,9 +734,30 @@ CHMeta CHANNELS_GetMeta(int16_t num) {
   return meta;
 }
 
+bool CHANNELS_IsScanlistable(CHType type) {
+  return type == TYPE_CH || type == TYPE_BAND || type == TYPE_FOLDER ||
+         type == TYPE_EMPTY;
+}
+
+bool CHANNELS_IsFreqable(CHType type) {
+  return type == TYPE_CH || type == TYPE_BAND;
+}
+
+uint16_t CHANNELS_ScanlistByKey(uint16_t sl, KEY_Code_t key, bool longPress) {
+  if (key >= KEY_1 && key <= KEY_8) {
+    return sl ^ 1 << ((key - 1) + (longPress ? 8 : 0));
+  } else {
+    return SCANLIST_ALL;
+  }
+}
+
 // --- BANDS ---
 
-int8_t BANDS_Size(void) { return bandlistSize < 0 ? 0 : bandlistSize; }
+// NOTE
+// for SCAN use cached band by index
+// for DISPLAY use bands in memory to select it by frequency faster
+
+// TODO: scan band select
 
 Band BANDS_Item(int8_t i) { return defaultBands[i]; }
 
@@ -740,7 +766,7 @@ bool BAND_InRange(const uint32_t f, const Band p) {
 }
 
 int8_t BAND_IndexOf(Band p) {
-  for (uint8_t i = 0; i < BANDS_Size(); ++i) {
+  for (uint8_t i = 0; i < bandlistSize; ++i) {
     Band tmp = BANDS_Item(i);
     if (memcmp(&tmp, &p, sizeof(p)) == 0) {
       return i;
@@ -752,7 +778,7 @@ int8_t BAND_IndexOf(Band p) {
 Band BAND_ByFrequency(uint32_t f) {
   uint32_t smallerBW = BK4819_F_MAX;
   int16_t index = -1;
-  for (uint8_t i = 0; i < BANDS_Size(); ++i) {
+  for (uint8_t i = 0; i < bandlistSize; ++i) {
     Band item = BANDS_Item(i);
     if (BAND_InRange(f, item)) {
       uint32_t bw = item.txF - item.rxF;
@@ -768,33 +794,49 @@ Band BAND_ByFrequency(uint32_t f) {
   return defaultBand;
 }
 
+void BAND_SelectScan(int8_t i) {
+  activeScanlistBandIndex = i;
+  RADIO_TuneToBand(gScanlist[i]);
+  Log("Select band 4 scan %s", gCurrentBand.name);
+}
+
 void BAND_Select(int8_t i) {
   gCurrentBand = BANDS_Item(i);
-  gSettings.activeBand = i;
+  activeDisplayBandIndex = i;
 }
 
 void BANDS_SelectBandRelative(bool next) {
-  int8_t bandIndex = gSettings.activeBand;
-  IncDecI8(&bandIndex, 0, BANDS_Size(), next ? 1 : -1);
-  gSettings.activeBand = bandIndex;
-  gCurrentBand = BANDS_Item(gSettings.activeBand);
+  int8_t bandIndex = activeDisplayBandIndex;
+  IncDecI8(&bandIndex, 0, bandlistSize, next ? 1 : -1);
+  activeDisplayBandIndex = bandIndex;
+  gCurrentBand = BANDS_Item(activeDisplayBandIndex);
   radio->rxF = gCurrentBand.rxF;
   SETTINGS_DelayedSave();
 }
 
-int8_t BAND_SelectByFrequency(uint32_t f) {
+/**
+ * Select band, return if changed
+ */
+bool BAND_SelectByFrequency(uint32_t f) {
+  int8_t oi = BAND_IndexOf(gCurrentBand);
   gCurrentBand = BAND_ByFrequency(f);
   int8_t i = BAND_IndexOf(gCurrentBand);
   if (i >= 0) {
-    gSettings.activeBand = i;
+    activeDisplayBandIndex = i;
   }
-  return i;
+  return i != oi;
 }
 
-void BANDS_SelectBandRelativeByScanlist(bool next) {
-  uint8_t index = gSettings.activeBand;
+bool BANDS_SelectBandRelativeByScanlist(bool next) {
+  uint8_t index = activeScanlistBandIndex;
+  uint8_t oi = index;
   IncDec8(&index, 0, gScanlistSize, next);
-  gSettings.activeBand = index;
+  activeScanlistBandIndex = index;
+  CHANNELS_Load(gScanlist[activeScanlistBandIndex], &gCurrentBand);
+  if (oi != index) {
+    Log("new band %u <=> %u", oi, index);
+  }
+  return oi != index;
 }
 
 bool BANDS_Load(void) {
@@ -817,22 +859,5 @@ bool BANDS_Load(void) {
 }
 
 void BANDS_SaveCurrent(void) {
-  CHANNELS_Save(bandChannel[gSettings.activeBand], &gCurrentBand);
-}
-
-bool CHANNELS_IsScanlistable(CHType type) {
-  return type == TYPE_CH || type == TYPE_BAND || type == TYPE_FOLDER ||
-         type == TYPE_EMPTY;
-}
-
-bool CHANNELS_IsFreqable(CHType type) {
-  return type == TYPE_CH || type == TYPE_BAND;
-}
-
-uint16_t CHANNELS_ScanlistByKey(uint16_t sl, KEY_Code_t key, bool longPress) {
-  if (key >= KEY_1 && key <= KEY_8) {
-    return sl ^ 1 << ((key - 1) + (longPress ? 8 : 0));
-  } else {
-    return SCANLIST_ALL;
-  }
+  CHANNELS_Save(bandChannel[activeDisplayBandIndex], &gCurrentBand);
 }

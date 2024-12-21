@@ -641,7 +641,9 @@ void RADIO_SwitchRadio() {
 }
 
 void RADIO_SetupByCurrentVFO(void) {
-  BAND_SelectByFrequency(radio->rxF);
+  if (!SVC_Running(SVC_SCAN)) {
+    BAND_SelectByFrequency(radio->rxF);
+  }
 
   RADIO_SwitchRadio();
   RADIO_SetupBandParams();
@@ -857,18 +859,17 @@ void RADIO_VfoLoadCH(uint8_t i) {
 }
 
 void RADIO_TuneToBand(int16_t num) {
-  CH ch;
-  CHANNELS_Load(num, &ch);
+  CHANNELS_Load(num, &gCurrentBand);
   radio->fixedBoundsMode = true;
   RADIO_SaveCurrentVFO();
-  radio->bw = ch.bw;
-  radio->step = ch.step;
-  radio->gainIndex = ch.gainIndex;
-  radio->modulation = ch.modulation;
-  if (BAND_InRange(ch.misc.lastUsedFreq, gCurrentBand)) {
-    RADIO_TuneToSave(ch.misc.lastUsedFreq);
+  radio->bw = gCurrentBand.bw;
+  radio->step = gCurrentBand.step;
+  radio->gainIndex = gCurrentBand.gainIndex;
+  radio->modulation = gCurrentBand.modulation;
+  if (BAND_InRange(gCurrentBand.misc.lastUsedFreq, gCurrentBand)) {
+    RADIO_TuneToSave(gCurrentBand.misc.lastUsedFreq);
   } else {
-    RADIO_TuneToSave(ch.rxF);
+    RADIO_TuneToSave(gCurrentBand.rxF);
   }
 }
 
@@ -897,10 +898,9 @@ bool RADIO_TuneToMR(int16_t num) {
 }
 
 // TODO: rewrite into channels.c
-void RADIO_NextBand(bool next) {
+/* void RADIO_NextBand(bool next) {
   RADIO_TuneToBand(CHANNELS_Next(gScanlist[gSettings.activeBand], next));
-  SETTINGS_DelayedSave();
-}
+} */
 
 void RADIO_NextCH(bool next) {
   RADIO_TuneToCH(CHANNELS_Next(radio->channel, next));
@@ -979,14 +979,12 @@ bool RADIO_NextBandFreqXBandEx(bool next, bool precise) {
 
     if (step < 0) {
       // get previous band
-      switchBand = true;
-      BANDS_SelectBandRelativeByScanlist(false);
+      switchBand = BANDS_SelectBandRelativeByScanlist(false);
       steps = CHANNELS_GetSteps(&gCurrentBand);
       step = steps - 1;
     } else if (step >= steps) {
       // get next band
-      switchBand = true;
-      BANDS_SelectBandRelativeByScanlist(true);
+      switchBand = BANDS_SelectBandRelativeByScanlist(true);
       step = 0;
     }
     radio->rxF = CHANNELS_GetF(&gCurrentBand, step);
@@ -997,11 +995,7 @@ bool RADIO_NextBandFreqXBandEx(bool next, bool precise) {
       radio->rxF -= StepFrequencyTable[radio->step];
     }
   }
-  // NOTE: was RADIO_TuneToPure,
-  // but unbound scan will not change current band & radio
-  uint8_t bi = gSettings.activeBand;
-  BAND_SelectByFrequency(radio->rxF);
-  if (bi != gSettings.activeBand) {
+  if (switchBand) {
     SP_Init(&gCurrentBand);
   }
 

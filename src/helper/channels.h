@@ -26,14 +26,14 @@ uint32_t CHANNELS_GetChannel(Band *p, uint32_t f);
 CHMeta CHANNELS_GetMeta(int16_t num);
 
 bool BANDS_Load();
-int8_t BANDS_Size();
 Band BANDS_Item(int8_t i);
 int8_t BAND_IndexOf(Band p);
 void BANDS_SelectBandRelative(bool next);
-void BANDS_SelectBandRelativeByScanlist(bool next);
+bool BANDS_SelectBandRelativeByScanlist(bool next);
 void BAND_Select(int8_t i);
+void BAND_SelectScan(int8_t i);
 Band BAND_ByFrequency(uint32_t f);
-int8_t BAND_SelectByFrequency(uint32_t f);
+bool BAND_SelectByFrequency(uint32_t f);
 void BANDS_SaveCurrent();
 bool BAND_InRange(const uint32_t f, const Band p);
 bool CHANNELS_IsScanlistable(CHType type);

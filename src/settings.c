@@ -64,7 +64,6 @@ Settings gSettings = (Settings){
     .skipGarbageFrequencies = true,
     .scanTimeout = 50,
     .activeVFO = 0,
-    .activeBand = 9,
     .backlightOnSquelch = BL_SQL_ON,
     .batteryCalibration = 2000,
     .batteryType = BAT_1600,

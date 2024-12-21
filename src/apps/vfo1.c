@@ -109,13 +109,14 @@ static void channelScanFn(bool forward) {
 }
 
 void VFO1_init(void) {
-  CHANNELS_LoadScanlist(RADIO_IsChMode() ? TYPE_CH : TYPE_BAND,
-                        gSettings.currentScanlist);
   gDW.activityOnVFO = -1;
   if (!gVfo1ProMode) {
     gVfo1ProMode = gSettings.iAmPro;
   }
   RADIO_LoadCurrentVFO();
+  Log("VFO sl is ch: %u, CH:%d", RADIO_IsChMode(), radio->channel);
+  CHANNELS_LoadScanlist(RADIO_IsChMode() ? TYPE_CH : TYPE_BAND,
+                        gSettings.currentScanlist);
 }
 
 void VFO1_update(void) {
@@ -189,7 +190,7 @@ static void startScan() {
   SVC_Toggle(SVC_SCAN, true, gSettings.scanTimeout);
 }
 
-static void selectFirstBandFromScanlist() { BAND_Select(0); }
+static void selectFirstBandFromScanlist() { BAND_SelectScan(0); }
 
 bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (key == KEY_PTT) {
@@ -364,6 +365,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     gSettings.currentScanlist = CHANNELS_ScanlistByKey(
         gSettings.currentScanlist, key, longHeld && !simpleKeypress);
     SETTINGS_DelayedSave();
+    VFO1_init();
     if (RADIO_IsChMode()) {
       initChannelScan();
     } else {
@@ -428,10 +430,12 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         SSB_Seek_ON = true;
         // todo: scan by snr
       } else {
+        startScan();
+        // NOTE: important to tune to scanlist band,
+        // not to band by frequency in radio.h
         if (!RADIO_IsChMode()) {
           selectFirstBandFromScanlist();
         }
-        startScan();
       }
       return true;
     case KEY_SIDE1:
