@@ -979,12 +979,16 @@ bool RADIO_NextBandFreqXBandEx(bool next, bool precise) {
 
     if (step < 0) {
       // get previous band
-      switchBand = BANDS_SelectBandRelativeByScanlist(false);
+      if (gSettings.currentScanlist) {
+        switchBand = BANDS_SelectBandRelativeByScanlist(false);
+      }
       steps = CHANNELS_GetSteps(&gCurrentBand);
       step = steps - 1;
     } else if (step >= steps) {
       // get next band
-      switchBand = BANDS_SelectBandRelativeByScanlist(true);
+      if (gSettings.currentScanlist) {
+        switchBand = BANDS_SelectBandRelativeByScanlist(true);
+      }
       step = 0;
     }
     radio->rxF = CHANNELS_GetF(&gCurrentBand, step);

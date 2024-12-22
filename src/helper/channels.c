@@ -795,9 +795,10 @@ Band BAND_ByFrequency(uint32_t f) {
 }
 
 void BAND_SelectScan(int8_t i) {
-  activeScanlistBandIndex = i;
-  RADIO_TuneToBand(gScanlist[i]);
-  Log("Select band 4 scan %s", gCurrentBand.name);
+  if (gScanlistSize) {
+    activeScanlistBandIndex = i;
+    RADIO_TuneToBand(gScanlist[i]);
+  }
 }
 
 void BAND_Select(int8_t i) {
@@ -828,6 +829,9 @@ bool BAND_SelectByFrequency(uint32_t f) {
 }
 
 bool BANDS_SelectBandRelativeByScanlist(bool next) {
+  if (gScanlistSize == 0) {
+    return false;
+  }
   uint8_t index = activeScanlistBandIndex;
   uint8_t oi = index;
   IncDec8(&index, 0, gScanlistSize, next);

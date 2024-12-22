@@ -190,7 +190,11 @@ static void startScan() {
   SVC_Toggle(SVC_SCAN, true, gSettings.scanTimeout);
 }
 
-static void selectFirstBandFromScanlist() { BAND_SelectScan(0); }
+static void selectFirstBandFromScanlist() {
+  if (gSettings.currentScanlist) {
+    BAND_SelectScan(0);
+  }
+}
 
 bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (key == KEY_PTT) {
@@ -326,7 +330,11 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         return true;
       }
       if (SVC_Running(SVC_SCAN)) {
-        gScanForward = true;
+        if (gScanForward) {
+          BANDS_SelectBandRelative(true);
+        } else {
+          gScanForward = true;
+        }
       }
       RADIO_NextFreqNoClicks(true);
       return true;
@@ -336,7 +344,11 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         return true;
       }
       if (SVC_Running(SVC_SCAN)) {
-        gScanForward = false;
+        if (!gScanForward) {
+          BANDS_SelectBandRelative(false);
+        } else {
+          gScanForward = false;
+        }
       }
       RADIO_NextFreqNoClicks(false);
       return true;
