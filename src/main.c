@@ -48,22 +48,21 @@ static void Intro(void) {
   PrintMediumBoldEx(LCD_XCENTER, LCD_YCENTER, POS_C, C_FILL, "r3b0rn");
   ST7565_Blit();
 
-  if (BANDS_Load()) {
-    if (gSettings.beep) {
-      AUDIO_PlayTone(1400, 50);
-    }
+  BANDS_Load();
+  if (gSettings.beep) {
+    AUDIO_PlayTone(1400, 50);
+  }
 
-    UI_ClearScreen();
-    PrintMediumBoldEx(LCD_XCENTER, LCD_YCENTER, POS_C, C_FILL, "(^__^)");
-    ST7565_Blit();
+  UI_ClearScreen();
+  PrintMediumBoldEx(LCD_XCENTER, LCD_YCENTER, POS_C, C_FILL, "(^__^)");
+  ST7565_Blit();
 
-    TaskRemove(Intro);
+  TaskRemove(Intro);
 
-    Boot(gSettings.mainApp);
+  Boot(gSettings.mainApp);
 
-    if (gSettings.beep) {
-      AUDIO_PlayTone(1400, 50);
-    }
+  if (gSettings.beep) {
+    AUDIO_PlayTone(1400, 50);
   }
 }
 

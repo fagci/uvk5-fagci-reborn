@@ -2,10 +2,138 @@
 #define CHANNELS_H
 
 #define SCANLIST_MAX 1024
-#define BANDS_COUNT_MAX 60
+#define BANDS_COUNT_MAX 70
 
 #include "../settings.h"
 #include <stdint.h>
+
+typedef struct {
+  uint8_t value;
+  uint8_t type : 4;
+} Code;
+
+typedef struct {
+  Code rx;
+  Code tx;
+} CodeRXTX;
+
+typedef struct {
+  uint8_t s;
+  uint8_t m;
+  uint8_t e;
+} __attribute__((packed)) PowerCalibration;
+
+typedef struct {
+  uint8_t value : 4;
+  SquelchType type : 2;
+} Squelch;
+
+typedef enum {
+  TYPE_EMPTY,
+  TYPE_CH,
+  TYPE_BAND,
+  TYPE_VFO,
+  TYPE_FOLDER,
+  TYPE_MELODY,
+  TYPE_SETTING,
+  TYPE_FILE,
+} CHType;
+
+typedef enum {
+  STEP_0_02kHz,
+  STEP_0_05kHz,
+  STEP_0_5kHz,
+  STEP_1_0kHz,
+
+  STEP_2_5kHz,
+  STEP_5_0kHz,
+  STEP_6_25kHz,
+  STEP_8_33kHz,
+  STEP_9_0kHz,
+  STEP_10_0kHz,
+  STEP_12_5kHz,
+  STEP_25_0kHz,
+  STEP_50_0kHz,
+  STEP_100_0kHz,
+  STEP_500_0kHz,
+} Step;
+
+typedef enum {
+  OFFSET_NONE,
+  OFFSET_PLUS,
+  OFFSET_MINUS,
+  OFFSET_FREQ,
+} OffsetDirection;
+
+typedef enum {
+  TX_POW_ULOW,
+  TX_POW_LOW,
+  TX_POW_MID,
+  TX_POW_HIGH,
+} TXOutputPower;
+
+typedef enum {
+  RADIO_BK4819,
+  RADIO_BK1080,
+  RADIO_SI4732,
+} Radio;
+
+typedef struct {
+  CHType type : 3;
+  bool readonly : 1;
+} CHMeta;
+
+typedef struct {
+  // Common fields
+  CHMeta meta;
+  union {
+    uint16_t scanlists;
+    int16_t channel;
+  };
+  char name[10];
+  union {
+    struct {
+      uint32_t rxF : 27;
+      uint32_t txF : 27;
+      OffsetDirection offsetDir : 2; // =0 -> tx=rxF
+                                     // =1 -> tx=rxF+txF
+                                     // =2 -> tx=rxF-txF
+                                     // =4 -> tx=txF
+
+      // Common radio settings
+      Step step : 4;
+      ModulationType modulation : 4;
+      BK4819_FilterBandwidth_t bw : 4;
+      Radio radio : 2;
+      TXOutputPower power : 2;
+      bool allowTx : 1;
+
+      uint8_t scrambler : 4;
+      Squelch squelch;
+
+      union {
+        // Only VFO/MR
+        struct {
+          CodeRXTX code;
+          bool fixedBoundsMode : 1;
+        };
+
+        // Only BAND
+        struct {
+          uint8_t bank;
+          PowerCalibration powCalib;
+          uint32_t lastUsedFreq : 27;
+        } misc;
+      };
+
+      uint8_t gainIndex : 5; // Common rest
+    } __attribute__((packed));
+  };
+} __attribute__((packed)) MR;
+// getsize(CH);
+typedef MR Band;
+typedef MR VFO;
+typedef MR CH;
 
 uint16_t CHANNELS_GetCountMax();
 
@@ -25,27 +153,14 @@ uint32_t CHANNELS_GetF(Band *p, uint32_t channel);
 uint32_t CHANNELS_GetChannel(Band *p, uint32_t f);
 CHMeta CHANNELS_GetMeta(int16_t num);
 
-bool BANDS_Load();
-Band BANDS_Item(int8_t i);
-int8_t BAND_IndexOf(Band p);
-void BANDS_SelectBandRelative(bool next);
-bool BANDS_SelectBandRelativeByScanlist(bool next);
-void BAND_Select(int8_t i);
-void BAND_SelectScan(int8_t i);
-Band BAND_ByFrequency(uint32_t f);
-bool BAND_SelectByFrequency(uint32_t f);
-void BANDS_SaveCurrent();
-bool BAND_InRange(const uint32_t f, const Band p);
 bool CHANNELS_IsScanlistable(CHType type);
 bool CHANNELS_IsFreqable(CHType type);
 uint16_t CHANNELS_ScanlistByKey(uint16_t sl, KEY_Code_t key, bool longPress);
 
-extern Band defaultBands[BANDS_COUNT_MAX];
-extern Band defaultBand;
-extern Band gCurrentBand;
-
 extern int16_t gScanlistSize;
 extern uint16_t gScanlist[SCANLIST_MAX];
-extern uint16_t gBandlist[SCANLIST_MAX];
+extern const char *TX_POWER_NAMES[4];
+extern const char *TX_OFFSET_NAMES[3];
+extern const char *TX_CODE_TYPES[4];
 
 #endif /* end of include guard: CHANNELS_H */

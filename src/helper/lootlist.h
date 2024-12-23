@@ -2,6 +2,7 @@
 
 #define LOOTLIST_HELPER_H
 
+#include "channels.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -44,8 +45,10 @@ bool LOOT_SortByF(const Loot *a, const Loot *b);
 bool LOOT_SortByBlacklist(const Loot *a, const Loot *b);
 
 void LOOT_RemoveBlacklisted(void);
+CH LOOT_ToCh(const Loot *loot);
 
 extern Loot *gLastActiveLoot;
 extern int16_t gLastActiveLootIndex;
+extern const char *CH_TYPE_NAMES[8];
 
 #endif

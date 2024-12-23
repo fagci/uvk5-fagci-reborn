@@ -1,6 +1,6 @@
 #include "vfo2.h"
 #include "../dcs.h"
-#include "../helper/channels.h"
+#include "../helper/bands.h"
 #include "../helper/lootlist.h"
 #include "../helper/numnav.h"
 #include "../misc.h"

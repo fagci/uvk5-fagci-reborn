@@ -4,6 +4,7 @@
 #include "../driver/si473x.h"
 #include "../driver/st7565.h"
 #include "../external/CMSIS_5/Device/ARM/ARMCM0/Include/ARMCM0.h"
+#include "../helper/bands.h"
 #include "../helper/channels.h"
 #include "../helper/measurements.h"
 #include "../radio.h"
@@ -60,7 +61,7 @@ static void selectEeprom(EEPROMType t) {
 
   total.settings = 1;
   total.vfos = ARRAY_SIZE(gVFO);
-  total.bands = ARRAY_SIZE(defaultBands);
+  total.bands = BANDS_DefaultCount();
   total.channels = total.mr - total.vfos - total.bands;
 }
 
@@ -131,27 +132,16 @@ static bool resetFull() {
   }
 
   if (stats.bands < total.bands) {
-    Band *p = &defaultBands[stats.bands];
-    p->gainIndex = 18;
-    p->squelch.value = 4;
-    p->squelch.type = SQUELCH_RSSI_NOISE_GLITCH;
-    p->meta.type = TYPE_BAND;
-    p->radio = RADIO_BK4819;
-    if (hasSi) {
-      if (p->txF < SI47XX_F_MAX) {
-        p->radio = RADIO_SI4732;
-      }
-    } else if (p->txF < BK4819_F_MIN) {
+
+    Band p = BANDS_GetDefaultBand(stats.bands);
+    if (!hasSi && p.txF < BK4819_F_MIN) {
       // skip unsupported bands
       stats.bands++;
       stats.bytes += CH_SIZE;
       return false;
     }
 
-    if (p->rxF >= BK1080_F_MIN && p->txF <= BK1080_F_MAX) {
-      p->radio = hasSi ? RADIO_SI4732 : RADIO_BK1080;
-    }
-    CHANNELS_Save(total.channels + stats.bands, p);
+    CHANNELS_Save(total.channels + stats.bands, &p);
     stats.bands++;
     stats.bytes += CH_SIZE;
     return false;

@@ -12,6 +12,7 @@
 #include "driver/system.h"
 #include "driver/uart.h"
 #include "external/printf/printf.h"
+#include "helper/bands.h"
 #include "helper/battery.h"
 #include "helper/channels.h"
 #include "helper/lootlist.h"
@@ -361,24 +362,25 @@ static void toggleBK1080SI4732(bool on) {
   }
 }
 
-static uint8_t calculateOutputPower(Band *p) {
+static uint8_t calculateOutputPower(uint32_t f) {
   uint8_t power_bias;
+  PowerCalibration cal = BANDS_GetPowerCalib(f);
 
-  switch (p->power) {
+  switch (radio->power) {
   case TX_POW_LOW:
-    power_bias = p->misc.powCalib.s;
+    power_bias = cal.s;
     break;
 
   case TX_POW_MID:
-    power_bias = p->misc.powCalib.m;
+    power_bias = cal.m;
     break;
 
   case TX_POW_HIGH:
-    power_bias = p->misc.powCalib.e;
+    power_bias = cal.e;
     break;
 
   default:
-    power_bias = p->misc.powCalib.s;
+    power_bias = cal.s;
     if (power_bias > 10)
       power_bias -= 10; // 10mw if Low=500mw
   }
@@ -548,8 +550,7 @@ TXState RADIO_GetTXState(uint32_t txF) {
 }
 
 uint32_t RADIO_GetTxPower(uint32_t txF) {
-  Band txBand = BAND_ByFrequency(txF);
-  return Clamp(calculateOutputPower(&txBand), 0, 0x91);
+  return Clamp(calculateOutputPower(txF), 0, 0x91);
 }
 
 void RADIO_ToggleTX(bool on) {

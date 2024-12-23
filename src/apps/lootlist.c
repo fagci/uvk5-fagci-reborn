@@ -2,6 +2,7 @@
 #include "../dcs.h"
 #include "../driver/st7565.h"
 #include "../driver/uart.h"
+#include "../helper/bands.h"
 #include "../helper/channels.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
@@ -46,23 +47,8 @@ static bool shortList = true;
 static bool sortRev = false;
 
 static void tuneToLoot(const Loot *loot, bool save) {
-  Band p = BAND_ByFrequency(loot->f);
-  radio->rxF = loot->f;
-  radio->txF = 0;
-  radio->code.rx.type = radio->code.tx.type = CODE_TYPE_OFF;
-  radio->code.rx.value = radio->code.tx.value = 0;
-
-  radio->radio = p.radio;
-  radio->modulation = p.modulation;
-  radio->power = p.power;
-
-  if (loot->cd != 0xFF) {
-    radio->code.tx.type = CODE_TYPE_DIGITAL;
-    radio->code.tx.value = loot->cd;
-  } else if (loot->ct != 0xFF) {
-    radio->code.tx.type = CODE_TYPE_CONTINUOUS_TONE;
-    radio->code.tx.value = loot->ct;
-  }
+  CH ch = LOOT_ToCh(loot);
+  *radio = ch; // TODO: keep name?
 
   if (save) {
     RADIO_TuneToSave(loot->f);
@@ -161,35 +147,9 @@ void LOOTLIST_init(void) {
   }
 }
 
-static void saveLootToCh(const Loot *loot, int16_t chnum, uint8_t scanlist) {
-  Band p = BAND_ByFrequency(loot->f);
-  CH ch = {
-      .rxF = loot->f,
-      .txF = 0,
-      .code =
-          (CodeRXTX){
-              .rx.type = CODE_TYPE_OFF,
-              .tx.type = CODE_TYPE_OFF,
-              .rx.value = 0,
-              .tx.value = 0,
-          },
-      .radio = p.radio,
-      .modulation = p.modulation,
-      .scanlists = 1 << scanlist,
-      .power = p.power,
-      .bw = p.bw,
-  };
-
-  snprintf(ch.name, 9, "%u.%05u", ch.rxF / MHZ, ch.rxF % MHZ);
-
-  if (loot->ct != 255) {
-    ch.code.tx.type = CODE_TYPE_CONTINUOUS_TONE;
-    ch.code.tx.value = loot->ct;
-  } else if (loot->cd != 255) {
-    ch.code.tx.type = CODE_TYPE_DIGITAL;
-    ch.code.tx.value = loot->cd;
-  }
-
+static void saveLootToCh(const Loot *loot, int16_t chnum, uint16_t scanlist) {
+  CH ch = LOOT_ToCh(loot);
+  ch.scanlists = scanlist;
   CHANNELS_Save(chnum, &ch);
 }
 

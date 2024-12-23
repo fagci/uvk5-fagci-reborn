@@ -12,9 +12,6 @@ const char *BL_TIME_NAMES[7] = {"Off",  "5s",   "10s", "20s",
 
 const char *BL_SQL_MODE_NAMES[3] = {"Off", "On", "Open"};
 const char *CH_DISPLAY_MODE_NAMES[3] = {"Name+F", "F", "Name"};
-const char *TX_POWER_NAMES[4] = {"ULow", "Low", "Mid", "High"};
-const char *TX_OFFSET_NAMES[3] = {"None", "+", "-"};
-const char *TX_CODE_TYPES[4] = {"None", "CT", "DCS", "-DCS"};
 const char *rogerNames[4] = {"None", "Moto", "Tiny", "Call"};
 const char *dwNames[3] = {"Off", "TX Stay", "TX Switch"};
 const char *EEPROM_TYPE_NAMES[6] = {
@@ -25,11 +22,8 @@ const char *EEPROM_TYPE_NAMES[6] = {
     "BL24C1024", // 110
     "M24M02",    // 111
 };
-const char *CH_TYPE_NAMES[8] = {
-    "EMPTY", "CH", "BAND", "VFO", "FOLDER", "MELODY", "SETTING", "FILE"
-};
 
-static const uint8_t PATCh1_PREAMBLE[] = {0x15, 0x00, 0x0F, 0xE0,
+static const uint8_t PATCH1_PREAMBLE[] = {0x15, 0x00, 0x0F, 0xE0,
                                           0xF2, 0x73, 0x76, 0x2F};
 static const uint8_t PATCH3_PREAMBLE[] = {0x15, 0x00, 0x03, 0x74,
                                           0x0b, 0xd4, 0x84, 0x60};

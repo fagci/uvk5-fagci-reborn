@@ -2,6 +2,7 @@
 #include "../apps/textinput.h"
 #include "../driver/bk4819.h"
 #include "../driver/uart.h"
+#include "../helper/bands.h"
 #include "../helper/channels.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
@@ -299,6 +300,21 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
+static void upDown(bool up) {
+  if (SSB_Seek_ON) {
+    SSB_Seek_UP = up;
+    return;
+  }
+  if (SVC_Running(SVC_SCAN)) {
+    if (gScanForward == up) {
+      BANDS_SelectBandRelative(up);
+      return;
+    }
+    gScanForward = up;
+  }
+  RADIO_NextFreqNoClicks(up);
+}
+
 bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!SVC_Running(SVC_SCAN) && !bKeyPressed && !bKeyHeld && RADIO_IsChMode()) {
     if (!gIsNumNavInput && key <= KEY_9) {
@@ -320,37 +336,15 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     return true;
   }
 
-  // up-down keys
+  // pressed or hold continue
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     bool isSsb = RADIO_IsSSB();
     switch (key) {
     case KEY_UP:
-      if (SSB_Seek_ON) {
-        SSB_Seek_UP = true;
-        return true;
-      }
-      if (SVC_Running(SVC_SCAN)) {
-        if (gScanForward) {
-          BANDS_SelectBandRelative(true);
-        } else {
-          gScanForward = true;
-        }
-      }
-      RADIO_NextFreqNoClicks(true);
+      upDown(true);
       return true;
     case KEY_DOWN:
-      if (SSB_Seek_ON) {
-        SSB_Seek_UP = false;
-        return true;
-      }
-      if (SVC_Running(SVC_SCAN)) {
-        if (!gScanForward) {
-          BANDS_SelectBandRelative(false);
-        } else {
-          gScanForward = false;
-        }
-      }
-      RADIO_NextFreqNoClicks(false);
+      upDown(false);
       return true;
     case KEY_SIDE1:
       if (RADIO_GetRadio() == RADIO_SI4732 && isSsb) {

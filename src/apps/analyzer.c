@@ -1,7 +1,7 @@
 #include "analyzer.h"
 #include "../apps/finput.h"
 #include "../driver/st7565.h"
-#include "../helper/channels.h"
+#include "../helper/bands.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
 #include "../radio.h"

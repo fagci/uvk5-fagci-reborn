@@ -1,9 +1,11 @@
 #include "lootlist.h"
 #include "../dcs.h"
 #include "../driver/bk4819.h"
+#include "../external/printf/printf.h"
 #include "../radio.h"
 #include "../scheduler.h"
 #include "../svc.h"
+#include "bands.h"
 #include <stdint.h>
 
 static Loot loot[LOOT_SIZE_MAX] = {0};
@@ -216,4 +218,36 @@ void LOOT_RemoveBlacklisted(void) {
       return;
     }
   }
+}
+
+CH LOOT_ToCh(const Loot *loot) {
+  // TODO: automatic params by simple "band plan"
+  Band p = BAND_ByFrequency(loot->f);
+  CH ch = {
+      .rxF = loot->f,
+      .txF = 0,
+      .code =
+          (CodeRXTX){
+              .rx.type = CODE_TYPE_OFF,
+              .tx.type = CODE_TYPE_OFF,
+              .rx.value = 0,
+              .tx.value = 0,
+          },
+      .radio = p.radio,
+      .modulation = p.modulation,
+      .power = p.power,
+      .bw = p.bw,
+  };
+
+  snprintf(ch.name, 9, "%u.%05u", ch.rxF / MHZ, ch.rxF % MHZ);
+
+  if (loot->ct != 255) {
+    ch.code.tx.type = CODE_TYPE_CONTINUOUS_TONE;
+    ch.code.tx.value = loot->ct;
+  } else if (loot->cd != 255) {
+    ch.code.tx.type = CODE_TYPE_DIGITAL;
+    ch.code.tx.value = loot->cd;
+  }
+
+  return ch;
 }

@@ -20,32 +20,6 @@ typedef struct {
 extern DwState gDW;
 
 typedef enum {
-  STEP_0_02kHz,
-  STEP_0_05kHz,
-  STEP_0_5kHz,
-  STEP_1_0kHz,
-
-  STEP_2_5kHz,
-  STEP_5_0kHz,
-  STEP_6_25kHz,
-  STEP_8_33kHz,
-  STEP_9_0kHz,
-  STEP_10_0kHz,
-  STEP_12_5kHz,
-  STEP_25_0kHz,
-  STEP_50_0kHz,
-  STEP_100_0kHz,
-  STEP_500_0kHz,
-} Step;
-
-typedef enum {
-  OFFSET_NONE,
-  OFFSET_PLUS,
-  OFFSET_MINUS,
-  OFFSET_FREQ,
-} OffsetDirection;
-
-typedef enum {
   BL_SQL_OFF,
   BL_SQL_ON,
   BL_SQL_OPEN,
@@ -76,19 +50,6 @@ typedef enum {
 } BatteryStyle;
 
 typedef enum {
-  TX_POW_ULOW,
-  TX_POW_LOW,
-  TX_POW_MID,
-  TX_POW_HIGH,
-} TXOutputPower;
-
-typedef enum {
-  RADIO_BK4819,
-  RADIO_BK1080,
-  RADIO_SI4732,
-} Radio;
-
-typedef enum {
   SCAN_TO_0,
   SCAN_TO_100ms,
   SCAN_TO_250ms,
@@ -116,7 +77,6 @@ typedef enum {
 
 extern const char *EEPROM_TYPE_NAMES[6];
 extern const uint32_t EEPROM_SIZES[6];
-extern const char *CH_TYPE_NAMES[8];
 
 // TODO: align fields
 typedef struct {
@@ -168,106 +128,6 @@ typedef struct {
 } __attribute__((packed)) Settings;
 // getsize(Settings)
 
-typedef struct {
-  uint32_t f : 27;
-
-} __attribute__((packed)) F; // 5 B
-// getsize(F)
-
-typedef struct {
-  uint8_t value;
-  uint8_t type : 4;
-} Code;
-
-typedef struct {
-  Code rx;
-  Code tx;
-} CodeRXTX;
-
-typedef struct {
-  uint32_t start : 27;
-  uint32_t end : 27;
-} __attribute__((packed)) FRange;
-
-typedef struct {
-  uint8_t s;
-  uint8_t m;
-  uint8_t e;
-} __attribute__((packed)) PowerCalibration;
-
-typedef struct {
-  uint8_t value : 4;
-  SquelchType type : 2;
-} Squelch;
-
-typedef enum {
-  TYPE_EMPTY,
-  TYPE_CH,
-  TYPE_BAND,
-  TYPE_VFO,
-  TYPE_FOLDER,
-  TYPE_MELODY,
-  TYPE_SETTING,
-  TYPE_FILE,
-} CHType;
-
-typedef struct {
-  CHType type : 3;
-  bool readonly : 1;
-} CHMeta;
-
-typedef struct {
-  // Common fields
-  CHMeta meta;
-  union {
-    uint16_t scanlists;
-    int16_t channel;
-  };
-  char name[10];
-  union {
-    struct {
-      uint32_t rxF : 27;
-      uint32_t txF : 27;
-      OffsetDirection offsetDir : 2; // =0 -> tx=rxF
-                                     // =1 -> tx=rxF+txF
-                                     // =2 -> tx=rxF-txF
-                                     // =4 -> tx=txF
-
-      // Common radio settings
-      Step step : 4;
-      ModulationType modulation : 4;
-      BK4819_FilterBandwidth_t bw : 4;
-      Radio radio : 2;
-      TXOutputPower power : 2;
-      bool allowTx : 1;
-
-      uint8_t scrambler : 4;
-      Squelch squelch;
-
-      union {
-        // Only VFO/MR
-        struct {
-          CodeRXTX code;
-          bool fixedBoundsMode : 1;
-        };
-
-        // Only BAND
-        struct {
-          uint8_t bank;
-          PowerCalibration powCalib;
-          uint32_t lastUsedFreq : 27;
-        } misc;
-      };
-
-      uint8_t gainIndex : 5; // Common rest
-    } __attribute__((packed));
-  };
-} __attribute__((packed)) CH;
-// getsize(CH);
-typedef CH Band;
-typedef CH VFO;
-typedef CH Band;
-
 #define SETTINGS_OFFSET (0)
 #define SETTINGS_SIZE sizeof(Settings)
 
@@ -290,9 +150,6 @@ extern uint8_t BL_TIME_VALUES[7];
 extern const char *BL_TIME_NAMES[7];
 extern const char *BL_SQL_MODE_NAMES[3];
 extern const char *CH_DISPLAY_MODE_NAMES[3];
-extern const char *TX_POWER_NAMES[4];
-extern const char *TX_OFFSET_NAMES[3];
-extern const char *TX_CODE_TYPES[4];
 extern const char *rogerNames[4];
 extern const char *dwNames[3];
 

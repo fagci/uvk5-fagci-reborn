@@ -2,6 +2,7 @@
 #include "../driver/eeprom.h"
 #include "../driver/si473x.h"
 #include "../driver/st7565.h"
+#include "../helper/bands.h"
 #include "../helper/battery.h"
 #include "../helper/channels.h"
 #include "../helper/numnav.h"
