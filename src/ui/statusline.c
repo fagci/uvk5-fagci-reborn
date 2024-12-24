@@ -161,7 +161,7 @@ void STATUSLINE_renderCurrentBand() {
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
   } else {
-    STATUSLINE_SetText(radio->fixedBoundsMode ? "[ %s:%u ]" : "%s:%u",
+    STATUSLINE_SetText(radio->fixedBoundsMode ? "=%s:%u" : "%s:%u",
                        gCurrentBand.name,
                        CHANNELS_GetChannel(&gCurrentBand, radio->rxF) + 1);
   }
