@@ -165,7 +165,7 @@ Band BANDS_GetDefaultBand(uint8_t i) {
     snprintf(b.name, 8, "BC %um", BC_M[i - OFS2]);
   } else if (i < OFS4) {
     sb = BANDS_SSB_HAM[i - OFS3];
-    b.modulation = sb.s >= 1000000 ? MOD_USB : MOD_USB;
+    b.modulation = sb.s >= 1000000 ? MOD_USB : MOD_LSB;
     b.step = STEP_1_0kHz;
     snprintf(b.name, 8, "HAM %um", HAM_M[i - OFS3]);
   } else if (i < OFS5) {

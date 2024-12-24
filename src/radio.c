@@ -627,7 +627,9 @@ void RADIO_SwitchRadio() {
 }
 
 void RADIO_SetupByCurrentVFO(void) {
-  if (!SVC_Running(SVC_SCAN)) {
+  if (!SVC_Running(SVC_SCAN) &&
+      // to not change current band if overlapping
+      !(radio->fixedBoundsMode && gCurrentBand.rxF > 0)) {
     BANDS_SelectByFrequency(radio->rxF);
   }
 
