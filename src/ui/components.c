@@ -17,7 +17,8 @@ void UI_Battery(uint8_t Level) {
   }
 }
 
-void UI_RSSIBar(uint16_t rssi, uint8_t snr, uint32_t f, uint8_t y) {
+void UI_RSSIBar(uint8_t y) {
+  uint16_t rssi = gLoot[gSettings.activeVFO].rssi;
   if (rssi == 0) {
     return;
   }

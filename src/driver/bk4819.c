@@ -465,9 +465,7 @@ void BK4819_SetupSquelch(SQL sq, uint8_t delayO, uint8_t delayC) {
   BK4819_WriteRegister(BK4819_REG_78, (sq.ro << 8) | sq.rc);
 }
 
-void BK4819_Squelch(uint8_t sql, uint32_t f, uint8_t OpenDelay,
-                    uint8_t CloseDelay) {
-  // const uint8_t band = f > SETTINGS_GetFilterBound() ? 1 : 0;
+void BK4819_Squelch(uint8_t sql, uint8_t OpenDelay, uint8_t CloseDelay) {
   BK4819_SetupSquelch(GetSql(sql), OpenDelay, CloseDelay);
 }
 

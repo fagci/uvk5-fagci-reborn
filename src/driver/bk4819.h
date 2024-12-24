@@ -110,8 +110,7 @@ void BK4819_SetupPowerAmplifier(uint8_t Bias, uint32_t Frequency);
 void BK4819_SetFrequency(uint32_t Frequency);
 uint32_t BK4819_GetFrequency(void);
 void BK4819_SetupSquelch(SQL sq, uint8_t delayO, uint8_t delayC);
-void BK4819_Squelch(uint8_t sql, uint32_t f, uint8_t OpenDelay,
-                    uint8_t CloseDelay);
+void BK4819_Squelch(uint8_t sql, uint8_t OpenDelay, uint8_t CloseDelay);
 void BK4819_SquelchType(SquelchType t);
 
 void BK4819_SetAF(BK4819_AF_Type_t AF);

@@ -552,8 +552,7 @@ void VFO1_render(void) {
   uint8_t fp3 = f % 100;
   const char *mod = modulationTypeOptions[vfo->modulation];
   if (gIsListening || gVfo1ProMode) {
-    UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, RADIO_GetSNR(), vfo->rxF,
-               BASE + 2);
+    UI_RSSIBar(BASE + 2);
   }
 
   if (RADIO_IsChMode()) {

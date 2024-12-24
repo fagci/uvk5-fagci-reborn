@@ -82,49 +82,62 @@ extern const uint32_t EEPROM_SIZES[6];
 typedef struct {
   uint32_t upconverter : 27;
   uint8_t checkbyte : 5;
+
   uint16_t currentScanlist;
   AppType_t mainApp : 8;
+
   uint16_t batteryCalibration : 12;
   uint8_t contrast : 4;
+
   uint8_t backlight : 4;
   uint8_t squelch : 4;
+
   uint8_t scrambler : 4;
   uint8_t batsave : 4;
+
   uint8_t vox : 4;
   uint8_t txTime : 4;
+
   uint8_t micGain : 4;
   uint8_t iAmPro : 1;
   bool reserved1 : 1;
   uint8_t roger : 2;
+
   uint8_t scanmode : 2;
   CHDisplayMode chDisplayMode : 2;
   uint8_t pttLock : 1;
   uint8_t reserved2 : 1;
   uint8_t beep : 1;
   uint8_t keylock : 1;
+
   uint8_t busyChannelTxLock : 1;
   uint8_t ste : 1;
   uint8_t repeaterSte : 1;
   uint8_t dtmfdecode : 1;
   uint8_t brightness : 4;
+
   uint8_t brightnessLow : 4;
   EEPROMType eepromType : 3;
+  bool bound_240_280 : 1;
+
+  ScanTimeout sqClosedTimeout : 4;
+  ScanTimeout sqOpenedTimeout : 4;
 
   BatteryType batteryType : 2;
   BatteryStyle batteryStyle : 2;
-  ScanTimeout sqClosedTimeout : 4;
-  ScanTimeout sqOpenedTimeout : 4;
-  bool bound_240_280 : 1;
   bool noListen : 1;
   bool si4732PowerOff : 1;
   uint8_t dw : 2;
-  bool toneLocal : 1;
-  BacklightOnSquelchMode backlightOnSquelch : 2;
+
   uint8_t scanTimeout;
+
+  BacklightOnSquelchMode backlightOnSquelch : 2;
+  bool toneLocal : 1;
   uint8_t sqlOpenTime : 3;
   uint8_t sqlCloseTime : 2;
-  bool skipGarbageFrequencies : 1;
+
   uint8_t activeVFO : 2;
+  bool skipGarbageFrequencies : 1;
 } __attribute__((packed)) Settings;
 // getsize(Settings)
 

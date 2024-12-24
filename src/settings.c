@@ -23,8 +23,8 @@ const char *EEPROM_TYPE_NAMES[6] = {
     "M24M02",    // 111
 };
 
-static const uint8_t PATCH1_PREAMBLE[] = {0x15, 0x00, 0x0F, 0xE0,
-                                          0xF2, 0x73, 0x76, 0x2F};
+/* static const uint8_t PATCH1_PREAMBLE[] = {0x15, 0x00, 0x0F, 0xE0,
+                                          0xF2, 0x73, 0x76, 0x2F}; */
 static const uint8_t PATCH3_PREAMBLE[] = {0x15, 0x00, 0x03, 0x74,
                                           0x0b, 0xd4, 0x84, 0x60};
 

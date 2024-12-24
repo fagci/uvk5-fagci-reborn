@@ -330,7 +330,7 @@ static void CMD_051D(const uint8_t *pBuffer) {
 
     if ((Offset < 0x0E98 || Offset >= 0x0EA0) || !bIsInLockScreen ||
         pCmd->bAllowPassword) {
-      EEPROM_WriteBuffer(Offset, &pCmd->Data[i * 8U], 8);
+      EEPROM_WriteBuffer(Offset, (void *)&pCmd->Data[i * 8U], 8);
     }
   }
 
@@ -524,7 +524,6 @@ void UART_HandleCommand(void) {
 }
 
 void LogUart(const char *const str) { UART_Send(str, strlen(str)); }
-
 
 void UART_printf(const char *str, ...) {
   char text[128];

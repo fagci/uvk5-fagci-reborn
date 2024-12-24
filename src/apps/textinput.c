@@ -21,7 +21,7 @@ static const char *letters[9] = {
     "wxyz"  // 9
 };
 
-static char *lettersCapital[9] = {
+static const char *lettersCapital[9] = {
     "",
     "ABC",  // 2
     "DEF",  // 3
@@ -33,8 +33,8 @@ static char *lettersCapital[9] = {
     "WXYZ"  // 9
 };
 
-static char *numbers[10] = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0"};
-static char *symbols[9] = {
+static const char *numbers[10] = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0"};
+static const char *symbols[9] = {
     "",
     ".,!?:;",   // 2
     "()[]<>{}", // 3
@@ -46,7 +46,7 @@ static char *symbols[9] = {
     ""          // 9
 };
 
-static char **currentSet = lettersCapital;
+static const char **currentSet = lettersCapital;
 static const char *currentRow;
 static char inputField[16] = {0};
 static uint8_t inputIndex = 0;

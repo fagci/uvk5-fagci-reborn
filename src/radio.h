@@ -74,7 +74,6 @@ bool RADIO_NextBandFreqXBandEx(bool next, bool precise);
 void RADIO_NextBandFreqXBand(bool next);
 void RADIO_ToggleVfoMR();
 
-void RADIO_SetSquelchPure(uint32_t f, uint8_t sql);
 void RADIO_SetSquelch(uint8_t sq);
 void RADIO_SetGain(uint8_t gainIndex);
 void RADIO_ToggleModulation();

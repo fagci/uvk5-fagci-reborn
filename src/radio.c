@@ -110,10 +110,6 @@ static ModulationType MODS_BK4819[] = {
     MOD_WFM,
 };
 
-static ModulationType MODS_WFM[] = {
-    MOD_WFM,
-};
-
 static ModulationType MODS_BOTH_PATCH[] = {
     MOD_FM, MOD_AM, MOD_USB, MOD_LSB, MOD_BYP, MOD_RAW, MOD_WFM,
 };
@@ -252,11 +248,6 @@ static void setSI4732Modulation(ModulationType mod) {
 static void onVfoUpdate(void) {
   TaskRemove(RADIO_SaveCurrentVFO);
   TaskAdd("VFO sav", RADIO_SaveCurrentVFO, 2000, false, 0);
-}
-
-static void onBandUpdate(void) {
-  TaskRemove(BANDS_SaveCurrent);
-  TaskAdd("PRS sav", BANDS_SaveCurrent, 2000, false, 0);
 }
 
 static void setupToneDetection() {
@@ -459,8 +450,6 @@ static void rxTurnOn(Radio r) {
   }
 }
 
-static void setupBandplanParams() {}
-
 uint32_t GetScreenF(uint32_t f) { return f - gSettings.upconverter; }
 
 uint32_t GetTuneF(uint32_t f) { return f + gSettings.upconverter; }
@@ -604,10 +593,6 @@ void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power, bool paEnabled) {
   }
 }
 
-void RADIO_SetSquelchPure(uint32_t f, uint8_t sql) {
-  BK4819_Squelch(sql, f, gSettings.sqlOpenTime, gSettings.sqlCloseTime);
-}
-
 void RADIO_TuneToPure(uint32_t f, bool precise) {
   LOOT_Replace(&gLoot[gSettings.activeVFO], f);
   Radio r = RADIO_GetRadio();
@@ -707,7 +692,7 @@ void RADIO_LoadCurrentVFO(void) {
 
 void RADIO_SetSquelch(uint8_t sq) {
   radio->squelch.value = sq;
-  RADIO_SetSquelchPure(radio->rxF, sq);
+  BK4819_Squelch(sq, gSettings.sqlOpenTime, gSettings.sqlCloseTime);
   onVfoUpdate();
 }
 
@@ -767,7 +752,7 @@ void RADIO_SetupBandParams() {
   switch (RADIO_GetRadio()) {
   case RADIO_BK4819:
     BK4819_SquelchType(radio->squelch.type);
-    BK4819_Squelch(radio->squelch.value, radio->rxF, gSettings.sqlOpenTime,
+    BK4819_Squelch(radio->squelch.value, gSettings.sqlOpenTime,
                    gSettings.sqlCloseTime);
     BK4819_SetModulation(mod);
     if (gSettings.scrambler) {
