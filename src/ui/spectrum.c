@@ -153,8 +153,10 @@ uint16_t SP_GetRssiMax() { return Max(rssiHistory, filledPoints); }
 
 void SP_RenderGraph() {
   const VMinMax v = {
-      .vMin = 78,
-      .vMax = 274,
+      /* .vMin = 78,
+      .vMax = 274, */
+      .vMin = RSSI_MIN,
+      .vMax = RSSI_MAX,
   };
   S_BOTTOM = SPECTRUM_Y + SPECTRUM_H; // TODO: mv to separate function
 

@@ -29,8 +29,6 @@ void UI_RSSIBar(uint8_t y) {
 
   FillRect(0, y, LCD_WIDTH, 8, C_CLEAR);
 
-  const uint16_t RSSI_MIN = 10;
-  const uint16_t RSSI_MAX = 350;
   const uint16_t SNR_MIN = 0;
   const uint16_t SNR_MAX = 30;
 

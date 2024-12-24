@@ -28,7 +28,7 @@ Band defaultBand = {
     .txF = 130000000,
 };
 
-static DBand allBands[60];
+static DBand allBands[BANDS_COUNT_MAX];
 static int16_t allBandIndex; // -1 if default is current
 static uint8_t allBandsSize = 0;
 
@@ -108,6 +108,10 @@ SBand BANDS_VHF_UHF[] = {
     (SBand){.s = 44600625, .e = 44619375}, // PMR
 };
 
+static char *BANDS_VHF_UHF_NAMES[] = {
+    "Air", "2m HAM", "Railway", "Sea", "Satcom", "LPD", "PMR",
+};
+
 static const uint8_t OFS1 = 0;
 static const uint8_t OFS2 = OFS1 + ARRAY_SIZE(BANDS_LW_MW_BCAST);
 static const uint8_t OFS3 = OFS2 + ARRAY_SIZE(BANDS_LOW_BCAST);
@@ -138,7 +142,7 @@ Band BANDS_GetDefaultBand(uint8_t i) {
       .meta.readonly = false,
       .scanlists = 0,
       .offsetDir = 0,
-      .step = STEP_12_5kHz,
+      .step = STEP_25_0kHz,
       .modulation = MOD_FM,
       .bw = BK4819_FILTER_BW_12k,
       .gainIndex = AUTO_GAIN_INDEX + 1, // +2dB
@@ -175,7 +179,7 @@ Band BANDS_GetDefaultBand(uint8_t i) {
     snprintf(b.name, 8, "BcastFM");
   } else if (i < OFS7) {
     sb = BANDS_VHF_UHF[i - OFS6];
-    snprintf(b.name, 8, "%u-%u", sb.s / MHZ, sb.e / MHZ);
+    snprintf(b.name, 8, BANDS_VHF_UHF_NAMES[i - OFS6]);
     if (sb.s == 15172500 || sb.s == 44600625) {
       b.step = STEP_12_5kHz;
     }

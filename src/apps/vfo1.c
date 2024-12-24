@@ -438,6 +438,10 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         // not to band by frequency in radio.h
         if (!RADIO_IsChMode()) {
           selectFirstBandFromScanlist();
+          if (!radio->fixedBoundsMode) {
+            radio->fixedBoundsMode = 1;
+            RADIO_SaveCurrentVFO();
+          }
         }
       }
       return true;

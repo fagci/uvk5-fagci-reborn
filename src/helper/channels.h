@@ -2,7 +2,6 @@
 #define CHANNELS_H
 
 #define SCANLIST_MAX 1024
-#define BANDS_COUNT_MAX 70
 
 #include "../settings.h"
 #include <stdint.h>

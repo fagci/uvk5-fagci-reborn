@@ -4,6 +4,8 @@
 #include "channels.h"
 #include <stdint.h>
 
+#define BANDS_COUNT_MAX 70
+
 typedef struct {
   uint32_t s;
   uint32_t e;

@@ -16,9 +16,9 @@ typedef struct {
   uint8_t noise;
   uint8_t cd;
   uint8_t ct;
-  bool open;
-  bool blacklist;
-  bool whitelist;
+  bool open : 1;
+  bool blacklist : 1;
+  bool whitelist : 1;
 } Loot;
 
 int16_t LOOT_IndexOf(Loot *loot);

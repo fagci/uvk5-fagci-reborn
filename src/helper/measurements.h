@@ -5,6 +5,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+static const uint16_t RSSI_MIN = 28;
+static const uint16_t RSSI_MAX = 226;
+
 typedef struct {
   uint16_t ro;
   uint16_t rc;
