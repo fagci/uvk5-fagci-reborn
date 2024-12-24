@@ -125,6 +125,9 @@ static int16_t bandIndexByFreq(uint32_t f) {
   uint32_t smallestDiff = UINT32_MAX;
   for (uint8_t i = 0; i < allBandsSize; ++i) {
     DBand *b = &allBands[i];
+    if (f < b->s || f > b->e) {
+      continue;
+    }
     uint32_t diff = DeltaF(b->s, f) + DeltaF(b->e, f);
     if (diff < smallestDiff) {
       smallestDiff = diff;
