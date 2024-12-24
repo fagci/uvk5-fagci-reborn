@@ -115,9 +115,6 @@ void VFO1_init(void) {
     gVfo1ProMode = gSettings.iAmPro;
   }
   RADIO_LoadCurrentVFO();
-  Log("VFO sl is ch: %u, CH:%d", RADIO_IsChMode(), radio->channel);
-  CHANNELS_LoadScanlist(RADIO_IsChMode() ? TYPE_CH : TYPE_BAND,
-                        gSettings.currentScanlist);
 }
 
 void VFO1_update(void) {
@@ -193,7 +190,7 @@ static void startScan() {
 
 static void selectFirstBandFromScanlist() {
   if (gSettings.currentScanlist) {
-    BAND_SelectScan(0);
+    BANDS_SelectScan(0);
   }
 }
 
@@ -307,7 +304,7 @@ static void upDown(bool up) {
   }
   if (SVC_Running(SVC_SCAN)) {
     if (gScanForward == up) {
-      BANDS_SelectBandRelative(up);
+      BANDS_SelectBandRelativeByScanlist(up);
       return;
     }
     gScanForward = up;

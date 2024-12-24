@@ -157,7 +157,6 @@ void SP_RenderGraph() {
       .vMax = 274,
   };
   S_BOTTOM = SPECTRUM_Y + SPECTRUM_H; // TODO: mv to separate function
-  Log("Y:%u H:%u", SPECTRUM_Y, SPECTRUM_H);
 
   uint8_t oVal = ConvertDomain(rssiHistory[0], v.vMin, v.vMax, 0, SPECTRUM_H);
 
@@ -165,6 +164,13 @@ void SP_RenderGraph() {
     uint8_t yVal = ConvertDomain(rssiHistory[i], v.vMin, v.vMax, 0, SPECTRUM_H);
     DrawLine(i - 1, S_BOTTOM - oVal, i, S_BOTTOM - yVal, C_FILL);
     oVal = yVal;
+  }
+  DrawHLine(0, SPECTRUM_Y, LCD_WIDTH, C_FILL);
+  // DrawVLine(0, SPECTRUM_Y, SPECTRUM_H, C_FILL);
+  DrawHLine(0, S_BOTTOM, LCD_WIDTH, C_FILL);
+
+  for (uint8_t x = 0; x < LCD_WIDTH; x += 4) {
+    DrawHLine(x, SPECTRUM_Y + SPECTRUM_H / 2, 2, C_FILL);
   }
 }
 

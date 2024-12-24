@@ -2,6 +2,7 @@
 #include "driver/bk4819.h"
 #include "driver/st7565.h"
 #include "helper/lootlist.h"
+#include "helper/measurements.h"
 #include "radio.h"
 #include "scheduler.h"
 #include "settings.h"
@@ -15,10 +16,6 @@ static uint32_t bound;
 static uint32_t lastSwitch = 0;
 
 static bool scanning = false;
-
-static uint32_t delta(uint32_t f1, uint32_t f2) {
-  return f1 > f2 ? f1 - f2 : f2 - f1;
-}
 
 static void gotF(uint32_t f) {
   uint32_t step = 100;
@@ -91,7 +88,7 @@ void SVC_FC_Update(void) {
     return;
   }
 
-  if (delta(f, scanF) < 100) {
+  if (DeltaF(f, scanF) < 100) {
     gotF(f);
   } else {
     // new freq

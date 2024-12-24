@@ -163,3 +163,7 @@ SQL GetSql(uint8_t level) {
   sq.nc = sq.gc = sq.no + 6;
   return sq;
 }
+
+uint32_t DeltaF(uint32_t f1, uint32_t f2) {
+  return f1 > f2 ? f1 - f2 : f2 - f1;
+}

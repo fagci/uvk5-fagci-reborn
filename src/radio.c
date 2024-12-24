@@ -533,7 +533,7 @@ TXState RADIO_GetTXState(uint32_t txF) {
     return TX_DISABLED_UPCONVERTER;
   }
 
-  const Band txBand = BAND_ByFrequency(txF);
+  const Band txBand = BANDS_ByFrequency(txF);
 
   if (!txBand.allowTx || RADIO_GetRadio() != RADIO_BK4819 ||
       SVC_Running(SVC_FC)) {
@@ -643,7 +643,7 @@ void RADIO_SwitchRadio() {
 
 void RADIO_SetupByCurrentVFO(void) {
   if (!SVC_Running(SVC_SCAN)) {
-    BAND_SelectByFrequency(radio->rxF);
+    BANDS_SelectByFrequency(radio->rxF);
   }
 
   RADIO_SwitchRadio();
@@ -696,8 +696,12 @@ void RADIO_LoadCurrentVFO(void) {
 
     LOOT_Replace(&gLoot[i], gVFO[i].rxF);
   }
-
   radio = &gVFO[gSettings.activeVFO];
+
+  // needed to select gCurrentBand & set band index in SL
+  CHANNELS_LoadScanlist(RADIO_IsChMode() ? TYPE_CH : TYPE_BAND,
+                        gSettings.currentScanlist);
+
   RADIO_SetupByCurrentVFO();
 }
 
@@ -860,14 +864,14 @@ void RADIO_VfoLoadCH(uint8_t i) {
 }
 
 void RADIO_TuneToBand(int16_t num) {
-  CHANNELS_Load(num, &gCurrentBand);
+  BANDS_Select(num);
   radio->fixedBoundsMode = true;
   RADIO_SaveCurrentVFO();
   radio->bw = gCurrentBand.bw;
   radio->step = gCurrentBand.step;
   radio->gainIndex = gCurrentBand.gainIndex;
   radio->modulation = gCurrentBand.modulation;
-  if (BAND_InRange(gCurrentBand.misc.lastUsedFreq, gCurrentBand)) {
+  if (BANDS_InRange(gCurrentBand.misc.lastUsedFreq, gCurrentBand)) {
     RADIO_TuneToSave(gCurrentBand.misc.lastUsedFreq);
   } else {
     RADIO_TuneToSave(gCurrentBand.rxF);
@@ -949,7 +953,7 @@ void RADIO_NextFreqNoClicks(bool next) {
   const uint32_t step = StepFrequencyTable[radio->step];
 
   uint32_t f = radio->rxF + step * dir;
-  if (radio->fixedBoundsMode && !BAND_InRange(f, gCurrentBand)) {
+  if (radio->fixedBoundsMode && !BANDS_InRange(f, gCurrentBand)) {
     if (next) {
       f = gCurrentBand.rxF;
     } else {

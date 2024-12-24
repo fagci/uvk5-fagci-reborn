@@ -1,7 +1,9 @@
 #include "bands.h"
+#include "../driver/uart.h"
 #include "../external/printf/printf.h"
 #include "../radio.h"
 #include "channels.h"
+#include "measurements.h"
 #include <stdint.h>
 
 // NOTE
@@ -12,6 +14,7 @@ Band gCurrentBand;
 
 // to use instead of predefined when we need to keep step, etc
 Band defaultBand = {
+    .meta.readonly = true,
     .name = "default",
     .step = STEP_25_0kHz,
     .bw = BK4819_FILTER_BW_12k,
@@ -25,11 +28,11 @@ Band defaultBand = {
     .txF = 130000000,
 };
 
-static DBand defaultBands[80];
-static uint8_t bandlistSize = 0;
-static uint8_t activeDisplayBandIndex;
+static DBand allBands[60];
+static int16_t allBandIndex; // -1 if default is current
+static uint8_t allBandsSize = 0;
 
-static uint8_t activeScanlistBandIndex;
+static uint8_t scanlistBandIndex;
 
 static const PowerCalibration DEFAULT_POWER_CALIB = {40, 65, 140};
 
@@ -67,17 +70,17 @@ SBand BANDS_LOW_BCAST[] = {
     (SBand){.s = 2560000, .e = 2610000}, //
 };
 
-// STEP_1_0kHz MOD_LSB
-SBand BANDS_LSB_HAM[] = {
+static uint8_t BC_M[] = {120, 90, 75, 60, 49, 41, 31,
+                         25,  22, 19, 16, 15, 13, 11};
+static uint8_t HAM_M[] = {160, 80, 40, 30, 20, 17, 15, 12, 10};
+
+// STEP_1_0kHz
+SBand BANDS_SSB_HAM[] = {
     (SBand){.s = 181000, .e = 200000},   //
     (SBand){.s = 350000, .e = 380000},   //
     (SBand){.s = 700000, .e = 719999},   //
     (SBand){.s = 1010000, .e = 1015000}, //
     (SBand){.s = 1400000, .e = 1435000}, //
-};
-
-// STEP_1_0kHz MOD_USB
-SBand BANDS_USB_HAM[] = {
     (SBand){.s = 1806800, .e = 1816800}, //
     (SBand){.s = 2100000, .e = 2145000}, //
     (SBand){.s = 2489000, .e = 2499000}, //
@@ -108,24 +111,42 @@ SBand BANDS_VHF_UHF[] = {
 static const uint8_t OFS1 = 0;
 static const uint8_t OFS2 = OFS1 + ARRAY_SIZE(BANDS_LW_MW_BCAST);
 static const uint8_t OFS3 = OFS2 + ARRAY_SIZE(BANDS_LOW_BCAST);
-static const uint8_t OFS4 = OFS3 + ARRAY_SIZE(BANDS_LSB_HAM);
-static const uint8_t OFS5 = OFS4 + ARRAY_SIZE(BANDS_USB_HAM);
-static const uint8_t OFS6 = OFS5 + ARRAY_SIZE(BANDS_CB);
-static const uint8_t OFS7 = OFS6 + ARRAY_SIZE(BANDS_BCAST_FM);
-static const uint8_t OFS8 = OFS7 + ARRAY_SIZE(BANDS_VHF_UHF);
+static const uint8_t OFS4 = OFS3 + ARRAY_SIZE(BANDS_SSB_HAM);
+static const uint8_t OFS5 = OFS4 + ARRAY_SIZE(BANDS_CB);
+static const uint8_t OFS6 = OFS5 + ARRAY_SIZE(BANDS_BCAST_FM);
+static const uint8_t OFS7 = OFS6 + ARRAY_SIZE(BANDS_VHF_UHF);
 
-uint8_t BANDS_DefaultCount() { return OFS8; }
+static int16_t bandIndexByFreq(uint32_t f) {
+  int16_t newBandIndex = -1;
+  uint32_t smallestDiff = UINT32_MAX;
+  for (uint8_t i = 0; i < allBandsSize; ++i) {
+    DBand *b = &allBands[i];
+    uint32_t diff = DeltaF(b->s, f) + DeltaF(b->e, f);
+    if (diff < smallestDiff) {
+      smallestDiff = diff;
+      newBandIndex = i;
+    }
+  }
+  return newBandIndex;
+}
+
+uint8_t BANDS_DefaultCount() { return OFS7; }
 
 Band BANDS_GetDefaultBand(uint8_t i) {
   Band b = {
-      .gainIndex = AUTO_GAIN_INDEX + 1, // +2dB
-      .modulation = MOD_FM,
-      .allowTx = false,
+      .meta.type = TYPE_BAND,
+      .meta.readonly = false,
+      .scanlists = 0,
+      .offsetDir = 0,
       .step = STEP_12_5kHz,
+      .modulation = MOD_FM,
       .bw = BK4819_FILTER_BW_12k,
-      .code = 0,
+      .gainIndex = AUTO_GAIN_INDEX + 1, // +2dB
+      .allowTx = false,
+      .scrambler = 0,
       .squelch.type = SQUELCH_RSSI_NOISE_GLITCH,
       .squelch.value = 4,
+      .misc.bank = 0,
   };
   SBand sb;
   if (i < OFS2) {
@@ -137,29 +158,24 @@ Band BANDS_GetDefaultBand(uint8_t i) {
     sb = BANDS_LOW_BCAST[i - OFS2];
     b.modulation = MOD_AM;
     b.step = STEP_5_0kHz;
-    snprintf(b.name, 8, "BC %um", 30000000 / b.rxF);
+    snprintf(b.name, 8, "BC %um", BC_M[i - OFS2]);
   } else if (i < OFS4) {
-    sb = BANDS_LSB_HAM[i - OFS3];
-    b.modulation = MOD_LSB;
+    sb = BANDS_SSB_HAM[i - OFS3];
+    b.modulation = sb.s >= 1000000 ? MOD_USB : MOD_USB;
     b.step = STEP_1_0kHz;
-    snprintf(b.name, 8, "HAM %um", 30000000 / b.rxF);
+    snprintf(b.name, 8, "HAM %um", HAM_M[i - OFS3]);
   } else if (i < OFS5) {
-    sb = BANDS_USB_HAM[i - OFS4];
-    b.modulation = MOD_USB;
-    b.step = STEP_1_0kHz;
-    snprintf(b.name, 8, "HAM %um", 30000000 / b.rxF);
-  } else if (i < OFS6) {
-    sb = BANDS_CB[i - OFS5];
+    sb = BANDS_CB[i - OFS4];
     b.step = STEP_10_0kHz;
     snprintf(b.name, 8, "CB");
-  } else if (i < OFS7) {
-    sb = BANDS_BCAST_FM[i - OFS6];
+  } else if (i < OFS6) {
+    sb = BANDS_BCAST_FM[i - OFS5];
     b.modulation = MOD_WFM;
     b.step = STEP_100_0kHz;
-    snprintf(b.name, 8, "Bcast FM");
-  } else if (i < OFS8) {
-    sb = BANDS_VHF_UHF[i - OFS7];
-    snprintf(b.name, 8, "%u-%u", b.rxF / MHZ, b.txF / MHZ);
+    snprintf(b.name, 8, "BcastFM");
+  } else if (i < OFS7) {
+    sb = BANDS_VHF_UHF[i - OFS6];
+    snprintf(b.name, 8, "%u-%u", sb.s / MHZ, sb.e / MHZ);
     if (sb.s == 15172500 || sb.s == 44600625) {
       b.step = STEP_12_5kHz;
     }
@@ -170,6 +186,7 @@ Band BANDS_GetDefaultBand(uint8_t i) {
 
   b.rxF = sb.s;
   b.txF = sb.e;
+  b.misc.lastUsedFreq = sb.s;
 
   b.misc.powCalib = BANDS_GetPowerCalib((b.txF - b.rxF) / 2);
 
@@ -184,101 +201,65 @@ void BANDS_Load(void) {
 
     CH ch;
     CHANNELS_Load(chNum, &ch);
-    defaultBands[bandlistSize] = (DBand){
-        .mr = chNum,
-        .s = ch.rxF,
-        .e = ch.txF,
-        .step = ch.step,
+    allBands[allBandsSize] = (DBand){
+        .mr = chNum, .s = ch.rxF, .e = ch.txF,
+        // .step = ch.step,
     };
 
-    bandlistSize++;
+    allBandsSize++;
 
-    if (bandlistSize >= BANDS_COUNT_MAX) {
+    if (allBandsSize >= BANDS_COUNT_MAX) {
       break;
     }
   }
 }
 
-// TODO: scan band select
-
-Band BANDS_Item(int8_t i) {
-  Band b;
-  CHANNELS_Load(defaultBands[i].mr, &b);
-  return b;
-}
-
-bool BAND_InRange(const uint32_t f, const Band p) {
+bool BANDS_InRange(const uint32_t f, const Band p) {
   return f >= p.rxF && f <= p.txF;
 }
 
-int8_t BAND_IndexOf(Band p) {
-  for (uint8_t i = 0; i < bandlistSize; ++i) {
-    Band tmp = BANDS_Item(i);
-    if (memcmp(&tmp, &p, sizeof(p)) == 0) {
-      return i;
+// Set gCurrentBand, sets internal cursor in SL
+void BANDS_Select(int16_t num) {
+  CHANNELS_Load(num, &gCurrentBand);
+  Log("Load Band %s", gCurrentBand.name);
+  for (int16_t i = 0; i < gScanlistSize; ++i) {
+    if (gScanlist[i] == num) {
+      scanlistBandIndex = i;
+      Log("SL band index %u", i);
+      break;
     }
   }
-  return -1;
 }
 
-void BAND_SelectScan(int8_t i) {
+// Used in vfo1 to select first band from scanlist
+void BANDS_SelectScan(int8_t i) {
   if (gScanlistSize) {
-    activeScanlistBandIndex = i;
+    scanlistBandIndex = i;
     RADIO_TuneToBand(gScanlist[i]);
   }
 }
 
-void BAND_Select(int8_t i) {
-  gCurrentBand = BANDS_Item(i);
-  activeDisplayBandIndex = i;
-}
-
-void BANDS_SelectBandRelative(bool next) {
-  int8_t bandIndex = activeDisplayBandIndex;
-  IncDecI8(&bandIndex, 0, bandlistSize, next ? 1 : -1);
-  activeDisplayBandIndex = bandIndex;
-  gCurrentBand = BANDS_Item(activeDisplayBandIndex);
-  radio->rxF = gCurrentBand.rxF;
-  SETTINGS_DelayedSave();
-}
-
-Band BAND_ByFrequency(uint32_t f) {
-  uint32_t smallerBW = BK4819_F_MAX;
-  int16_t index = -1;
-  for (uint8_t i = 0; i < bandlistSize; ++i) {
-    Band item = BANDS_Item(i);
-    if (BAND_InRange(f, item)) {
-      uint32_t bw = item.txF - item.rxF;
-      if (bw < smallerBW) {
-        smallerBW = bw;
-        index = i;
-      }
-    }
-  }
+Band BANDS_ByFrequency(uint32_t f) {
+  int16_t index = bandIndexByFreq(f);
   if (index >= 0) {
-    return BANDS_Item(index);
+    Band b;
+    CHANNELS_Load(allBands[index].mr, &b);
+    return b;
   }
   return defaultBand;
 }
 
+uint8_t BANDS_GetScanlistIndex() { return scanlistBandIndex; }
+
 /**
  * Select band, return if changed
  */
-bool BAND_SelectByFrequency(uint32_t f) {
-  // TODO: select more precise band from list
-  int16_t oldBandIndex = activeDisplayBandIndex;
-  int16_t newBandIndex = -1;
-  for (uint8_t i = 0; i < bandlistSize; ++i) {
-    DBand *b = &defaultBands[i];
-    if (b->s <= f && f <= b->e) {
-      newBandIndex = b->mr;
-      activeDisplayBandIndex = i;
-      break;
-    }
-  }
-  if (oldBandIndex != newBandIndex) {
-    if (newBandIndex >= 0) {
-      CHANNELS_Load(defaultBands[newBandIndex].mr, &gCurrentBand);
+bool BANDS_SelectByFrequency(uint32_t f) {
+  int16_t newBandIndex = bandIndexByFreq(f);
+  if (allBandIndex != newBandIndex) {
+    allBandIndex = newBandIndex;
+    if (allBandIndex >= 0) {
+      BANDS_Select(allBands[allBandIndex].mr);
     } else {
       gCurrentBand = defaultBand;
     }
@@ -291,16 +272,16 @@ bool BANDS_SelectBandRelativeByScanlist(bool next) {
   if (gScanlistSize == 0) {
     return false;
   }
-  uint8_t index = activeScanlistBandIndex;
-  uint8_t oi = index;
-  IncDec8(&index, 0, gScanlistSize, next);
-  activeScanlistBandIndex = index;
-  CHANNELS_Load(gScanlist[activeScanlistBandIndex], &gCurrentBand);
-  return oi != index;
+  uint8_t oldScanlistBandIndex = scanlistBandIndex;
+  IncDec8(&scanlistBandIndex, 0, gScanlistSize, next);
+  BANDS_Select(gScanlist[scanlistBandIndex]);
+  return oldScanlistBandIndex != scanlistBandIndex;
 }
 
 void BANDS_SaveCurrent(void) {
-  CHANNELS_Save(defaultBands[activeDisplayBandIndex].mr, &gCurrentBand);
+  if (allBandIndex >= 0) {
+    CHANNELS_Save(allBands[allBandIndex].mr, &gCurrentBand);
+  }
 }
 
 PowerCalibration BANDS_GetPowerCalib(uint32_t f) {

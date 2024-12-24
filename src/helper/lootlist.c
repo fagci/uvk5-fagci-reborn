@@ -222,7 +222,7 @@ void LOOT_RemoveBlacklisted(void) {
 
 CH LOOT_ToCh(const Loot *loot) {
   // TODO: automatic params by simple "band plan"
-  Band p = BAND_ByFrequency(loot->f);
+  Band p = BANDS_ByFrequency(loot->f);
   CH ch = {
       .rxF = loot->f,
       .txF = 0,

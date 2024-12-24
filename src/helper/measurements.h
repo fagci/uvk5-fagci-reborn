@@ -40,5 +40,6 @@ void IncDecI32(int32_t *val, int32_t min, int32_t max, int32_t inc);
 void IncDec32(uint32_t *val, uint32_t min, uint32_t max, int32_t inc);
 bool IsReadable(char *name);
 SQL GetSql(uint8_t level);
+uint32_t DeltaF(uint32_t f1, uint32_t f2);
 
 #endif /* end of include guard: MEASUREMENTS_H */

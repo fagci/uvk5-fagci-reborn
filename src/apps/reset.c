@@ -3,6 +3,7 @@
 #include "../driver/eeprom.h"
 #include "../driver/si473x.h"
 #include "../driver/st7565.h"
+#include "../driver/uart.h"
 #include "../external/CMSIS_5/Device/ARM/ARMCM0/Include/ARMCM0.h"
 #include "../helper/bands.h"
 #include "../helper/channels.h"
@@ -62,6 +63,7 @@ static void selectEeprom(EEPROMType t) {
   total.settings = 1;
   total.vfos = ARRAY_SIZE(gVFO);
   total.bands = BANDS_DefaultCount();
+  Log("BANDS COUNT = %u", total.bands);
   total.channels = total.mr - total.vfos - total.bands;
 }
 
@@ -132,16 +134,16 @@ static bool resetFull() {
   }
 
   if (stats.bands < total.bands) {
-
-    Band p = BANDS_GetDefaultBand(stats.bands);
-    if (!hasSi && p.txF < BK4819_F_MIN) {
+    Band b = BANDS_GetDefaultBand(stats.bands);
+    Log("B: %s", b.name);
+    if (!hasSi && b.txF < BK4819_F_MIN) {
       // skip unsupported bands
       stats.bands++;
       stats.bytes += CH_SIZE;
       return false;
     }
 
-    CHANNELS_Save(total.channels + stats.bands, &p);
+    CHANNELS_Save(total.channels + stats.bands, &b);
     stats.bands++;
     stats.bytes += CH_SIZE;
     return false;
