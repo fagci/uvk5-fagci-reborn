@@ -22,6 +22,10 @@ void SP_RenderGraph();
 void SP_AddGraphPoint(const Loot *msm);
 void SP_Shift(int16_t n);
 
+bool SP_HasStats();
+void SP_UpdateScanStats();
+bool SP_IsSquelchOpen(const Loot *msm);
+
 extern uint8_t SPECTRUM_Y;
 extern uint8_t SPECTRUM_H;
 

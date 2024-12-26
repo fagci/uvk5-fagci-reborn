@@ -15,7 +15,8 @@ Band gCurrentBand;
 // to use instead of predefined when we need to keep step, etc
 Band defaultBand = {
     .meta.readonly = true,
-    .name = "default",
+    .meta.type = TYPE_BAND,
+    .name = "-",
     .step = STEP_25_0kHz,
     .bw = BK4819_FILTER_BW_12k,
     .squelch =
@@ -23,7 +24,7 @@ Band defaultBand = {
             .type = SQUELCH_RSSI_NOISE_GLITCH,
             .value = 4,
         },
-    .gainIndex = 18,
+    .gainIndex = 21,
     .rxF = 0,
     .txF = 130000000,
 };
@@ -99,17 +100,41 @@ SBand BANDS_BCAST_FM[] = {
 };
 
 SBand BANDS_VHF_UHF[] = {
-    (SBand){.s = 11800000, .e = 13699999}, // air
+    (SBand){.s = 11800000, .e = 13699999}, // Air
     (SBand){.s = 14400000, .e = 14599999}, // HAM
-    (SBand){.s = 15172500, .e = 15599999}, // railw
-    (SBand){.s = 15600000, .e = 16327500}, // sea
+    (SBand){.s = 14800000, .e = 14900000}, // MVD A
+    (SBand){.s = 15172500, .e = 15599999}, // Railway
+    (SBand){.s = 15600000, .e = 16327500}, // Sea
+    (SBand){.s = 17100000, .e = 17300000}, // MVD B/X
+    (SBand){.s = 17300000, .e = 17800000}, // Top 173
     (SBand){.s = 24300000, .e = 26999999}, // SATCOM
+    (SBand){.s = 30001250, .e = 30051250}, // River1
+    (SBand){.s = 33601250, .e = 33651250}, // River2
     (SBand){.s = 43307500, .e = 43477500}, // LPD
     (SBand){.s = 44600625, .e = 44619375}, // PMR
+    (SBand){.s = 45000000, .e = 45300000}, // MVD 450
+    (SBand){.s = 46000000, .e = 46300000}, // MVD 460
+    (SBand){.s = 80600000, .e = 82500000}, // 800svc1
+    (SBand){.s = 85100000, .e = 87000000}, // 800svc2
 };
 
 static char *BANDS_VHF_UHF_NAMES[] = {
-    "Air", "2m HAM", "Railway", "Sea", "Satcom", "LPD", "PMR",
+    "Air",     //
+    "HAM",     //
+    "MVD A",   //
+    "Railway", //
+    "Sea",     //
+    "MVD B/X", //
+    "Top 173", //
+    "SATCOM",  //
+    "River1",  //
+    "River2",  //
+    "LPD",     //
+    "PMR",     //
+    "MVD 450", //
+    "MVD 460", //
+    "800svc1", //
+    "800svc2", //
 };
 
 static const uint8_t OFS1 = 0;
@@ -126,6 +151,9 @@ static int16_t bandIndexByFreq(uint32_t f) {
   for (uint8_t i = 0; i < allBandsSize; ++i) {
     DBand *b = &allBands[i];
     if (f < b->s || f > b->e) {
+      continue;
+    }
+    if (f % StepFrequencyTable[b->step]) {
       continue;
     }
     uint32_t diff = DeltaF(b->s, f) + DeltaF(b->e, f);
@@ -152,7 +180,7 @@ Band BANDS_GetDefaultBand(uint8_t i) {
       .allowTx = false,
       .scrambler = 0,
       .squelch.type = SQUELCH_RSSI_NOISE_GLITCH,
-      .squelch.value = 4,
+      .squelch.value = 3,
       .misc.bank = 0,
   };
   SBand sb;
@@ -183,12 +211,15 @@ Band BANDS_GetDefaultBand(uint8_t i) {
   } else if (i < OFS7) {
     sb = BANDS_VHF_UHF[i - OFS6];
     snprintf(b.name, 8, BANDS_VHF_UHF_NAMES[i - OFS6]);
-    if (sb.s == 15172500 || sb.s == 44600625) {
+    if (sb.s == 15172500 || sb.s == 30001250 || sb.s == 33601250 ||
+        sb.s == 44600625 || sb.s == 45000000 || sb.s == 46000000 ||
+        sb.s == 80600000 || sb.s == 85100000) {
       b.step = STEP_12_5kHz;
     }
     if (sb.s == 11800000) {
       b.modulation = MOD_AM;
     }
+    b.scanlists = 1;
   }
 
   b.rxF = sb.s;
@@ -209,8 +240,10 @@ void BANDS_Load(void) {
     CH ch;
     CHANNELS_Load(chNum, &ch);
     allBands[allBandsSize] = (DBand){
-        .mr = chNum, .s = ch.rxF, .e = ch.txF,
-        // .step = ch.step,
+        .mr = chNum,
+        .s = ch.rxF,
+        .e = ch.txF,
+        .step = ch.step,
     };
 
     allBandsSize++;

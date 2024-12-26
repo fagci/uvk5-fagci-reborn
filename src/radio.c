@@ -22,6 +22,7 @@
 #include "settings.h"
 #include "svc.h"
 #include "ui/spectrum.h"
+#include <stdint.h>
 
 CH *radio;
 VFO gVFO[2] = {
@@ -55,9 +56,17 @@ const uint16_t StepFrequencyTable[15] = {
 const char *modulationTypeOptions[8] = {"FM",  "AM",  "LSB", "USB",
                                         "BYP", "RAW", "WFM"};
 const char *powerNames[4] = {"ULOW, LOW", "MID", "HIGH"};
-const char *bwNames[10] = {"W26k", "W23k", "W20k", "W17k", "W14k", "W12k",
-                           "N10k", "N9k",  "U7K",  "U6K"
-
+const char *bwNames[10] = {
+    "U6K",  //
+    "U7K",  //
+    "N9k",  //
+    "N10k", //
+    "W12k", //
+    "W14k", //
+    "W17k", //
+    "W20k", //
+    "W23k", //
+    "W26k", //
 };
 const char *bwNamesSiAMFM[7] = {
     [BK4819_FILTER_BW_6k] = "1k",  [BK4819_FILTER_BW_7k] = "1.8k",
@@ -144,6 +153,8 @@ static uint8_t indexOfMod(ModulationType *arr, uint8_t n, ModulationType t) {
   }
   return 0;
 }
+
+bool RADIO_IsFastScan() { return gSettings.scanTimeout < 10; }
 
 static ModulationType getNextModulation(bool next) {
   uint8_t sz = ARRAY_SIZE(MODS_BK4819);
@@ -628,8 +639,11 @@ void RADIO_SwitchRadio() {
 
 void RADIO_SetupByCurrentVFO(void) {
   if (!SVC_Running(SVC_SCAN) &&
-      // to not change current band if overlapping
-      !(radio->fixedBoundsMode && gCurrentBand.rxF > 0)) {
+      (
+          // to not change current band if overlapping
+          !(radio->fixedBoundsMode && gCurrentBand.rxF > 0) ||
+          // if band not in range, try to select one
+          !BANDS_InRange(radio->rxF, gCurrentBand))) {
     BANDS_SelectByFrequency(radio->rxF);
   }
 
@@ -834,7 +848,9 @@ uint16_t RADIO_GetS() {
 
 bool RADIO_IsSquelchOpen(const Loot *msm) {
   if (RADIO_GetRadio() == RADIO_BK4819) {
-    if (isSimpleSql()) {
+    if (RADIO_IsFastScan()) {
+      return SP_IsSquelchOpen(msm);
+    } else if (isSimpleSql()) {
       return isSqOpenSimple(msm->rssi);
     } else {
       return BK4819_IsSquelchOpen();
@@ -969,19 +985,23 @@ bool RADIO_NextBandFreqXBandEx(bool next, bool precise) {
       step--;
     }
 
+    bool canSwitchToNextBand = !(RADIO_IsFastScan() && !SP_HasStats());
+
     if (step < 0) {
       // get previous band
-      if (gSettings.currentScanlist) {
+      if (gSettings.currentScanlist && canSwitchToNextBand) {
         switchBand = BANDS_SelectBandRelativeByScanlist(false);
       }
       steps = CHANNELS_GetSteps(&gCurrentBand);
       step = steps - 1;
+      SP_UpdateScanStats();
     } else if (step >= steps) {
       // get next band
-      if (gSettings.currentScanlist) {
+      if (gSettings.currentScanlist && canSwitchToNextBand) {
         switchBand = BANDS_SelectBandRelativeByScanlist(true);
       }
       step = 0;
+      SP_UpdateScanStats();
     }
     radio->rxF = CHANNELS_GetF(&gCurrentBand, step);
   } else {

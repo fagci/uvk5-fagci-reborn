@@ -96,14 +96,18 @@ Loot *RADIO_UpdateMeasurements(void) {
     return msm;
   }
   lastMsmUpdate = Now();
-  if (!gIsListening && gSettings.scanTimeout < 10) {
+  if (!gIsListening && RADIO_IsFastScan()) {
     BK4819_SetFrequency(radio->rxF);
     BK4819_WriteRegister(BK4819_REG_30, 0x0200);
     BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
     SYSTEM_DelayMs(gSettings.scanTimeout); // (X_X)
   }
   msm->rssi = RADIO_GetRSSI();
+  if (RADIO_IsFastScan()) {
+    msm->noise = BK4819_GetNoise();
+  }
   msm->open = RADIO_IsSquelchOpen(msm);
+
   if (radio->code.rx.type == CODE_TYPE_OFF) {
     toneFound = true;
   }
@@ -256,7 +260,6 @@ void SVC_LISTEN_Update(void) {
   bool blinkMode = RADIO_GetRadio() != RADIO_BK4819 || gMonitorMode;
 
   if (lastListenState != gIsListening) {
-    SP_ResetHistory();
     lastListenState = gIsListening;
     BOARD_ToggleGreen(gSettings.brightness > 1 && gIsListening);
     if (gIsListening && blinkMode) {

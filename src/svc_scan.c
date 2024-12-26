@@ -30,13 +30,16 @@ static bool lastScanForward = true;
 static uint32_t timeout = 0;
 static bool lastListenState = false;
 
+static uint32_t lastScanRedraw;
+
 void (*gScanFn)(bool) = NULL;
 
 static void next(void) {
   gScanFn(gScanForward);
   lastSettedF = radio->rxF;
   SetTimeout(&timeout, 0); // will be passed at next update
-  if (gScanRedraw) {
+  if (gScanRedraw && Now() - lastScanRedraw > 250) {
+    lastScanRedraw = Now();
     gRedrawScreen = true;
   }
 }
@@ -92,8 +95,8 @@ void SVC_SCAN_Update(void) {
 void SVC_SCAN_Deinit(void) {
   gScanFn = NULL;
   gScanRedraw = true;
-  if (defaultBand.name[0] != 'd') {
-    sprintf(defaultBand.name, "default");
+  if (defaultBand.name[0] != '-') {
+    sprintf(defaultBand.name, "-");
     defaultBand.rxF = 0;
     defaultBand.txF = 0;
     RADIO_TuneTo(defaultBand.misc.lastUsedFreq);

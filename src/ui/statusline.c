@@ -161,8 +161,16 @@ void STATUSLINE_renderCurrentBand() {
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
   } else {
-    STATUSLINE_SetText(radio->fixedBoundsMode ? "=%s:%u" : "%s:%u",
-                       gCurrentBand.name,
-                       CHANNELS_GetChannel(&gCurrentBand, radio->rxF) + 1);
+    if (gCurrentBand.name[0] == '-' && gCurrentBand.name[1] == '\0') {
+      STATUSLINE_SetText("");
+    } else {
+      if (SVC_Running(SVC_SCAN)) {
+        STATUSLINE_SetText("=%s", gCurrentBand.name);
+      } else {
+        STATUSLINE_SetText(radio->fixedBoundsMode ? "=%s:%u" : "%s:%u",
+                           gCurrentBand.name,
+                           CHANNELS_GetChannel(&gCurrentBand, radio->rxF) + 1);
+      }
+    }
   }
 }

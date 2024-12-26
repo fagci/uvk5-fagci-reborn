@@ -12,12 +12,23 @@ typedef struct {
   uint16_t vMax;
 } VMinMax;
 
+typedef struct {
+  uint16_t r;
+  uint8_t n;
+} FastScanSq;
+
+static FastScanSq fastScanSq = {
+    .r = UINT16_MAX,
+    .n = 0,
+};
+
 uint8_t SPECTRUM_Y = 16;
 uint8_t SPECTRUM_H = 40;
 
 static uint8_t S_BOTTOM;
 
 static uint16_t rssiHistory[MAX_POINTS] = {0};
+static uint16_t rssiGraphHistory[MAX_POINTS] = {0};
 static uint8_t noiseHistory[MAX_POINTS] = {0};
 
 static uint8_t x = 0;
@@ -50,12 +61,34 @@ static uint8_t maxNoise(const uint8_t *array, uint8_t n) {
   return max;
 }
 
+static uint8_t noiseOpenDiff = 8; // fast scan SQ level
+
+void SP_UpdateScanStats() {
+  const uint16_t noiseFloor = SP_GetNoiseFloor();
+  const uint8_t noiseMax = SP_GetNoiseMax();
+  fastScanSq.r = noiseFloor;
+  fastScanSq.n = noiseMax - noiseOpenDiff;
+}
+
+bool SP_HasStats() { return fastScanSq.r != UINT16_MAX; }
+
+bool SP_IsSquelchOpen(const Loot *msm) {
+  const uint8_t noiseO = (fastScanSq.n - (gIsListening ? noiseOpenDiff : 0));
+  if (gIsListening) {
+    Log("Update stats r=%u<=>%u,n=%u<=>%u", fastScanSq.r, msm->rssi,
+        fastScanSq.n, msm->noise);
+  }
+  return msm->rssi >= fastScanSq.r && msm->noise <= noiseO;
+}
+
 void SP_ResetHistory(void) {
   filledPoints = 0;
   for (uint8_t i = 0; i < MAX_POINTS; ++i) {
     rssiHistory[i] = 0;
     noiseHistory[i] = UINT8_MAX;
   }
+  fastScanSq.r = UINT16_MAX;
+  fastScanSq.n = 0;
 }
 
 void SP_Begin(void) {
@@ -160,10 +193,12 @@ void SP_RenderGraph() {
   };
   S_BOTTOM = SPECTRUM_Y + SPECTRUM_H; // TODO: mv to separate function
 
-  uint8_t oVal = ConvertDomain(rssiHistory[0], v.vMin, v.vMax, 0, SPECTRUM_H);
+  uint8_t oVal =
+      ConvertDomain(rssiGraphHistory[0], v.vMin, v.vMax, 0, SPECTRUM_H);
 
   for (uint8_t i = 1; i < MAX_POINTS; ++i) {
-    uint8_t yVal = ConvertDomain(rssiHistory[i], v.vMin, v.vMax, 0, SPECTRUM_H);
+    uint8_t yVal =
+        ConvertDomain(rssiGraphHistory[i], v.vMin, v.vMax, 0, SPECTRUM_H);
     DrawLine(i - 1, S_BOTTOM - oVal, i, S_BOTTOM - yVal, C_FILL);
     oVal = yVal;
   }
@@ -177,8 +212,7 @@ void SP_RenderGraph() {
 }
 
 void SP_AddGraphPoint(const Loot *msm) {
-  rssiHistory[MAX_POINTS - 1] = msm->rssi;
-  noiseHistory[MAX_POINTS - 1] = msm->noise;
+  rssiGraphHistory[MAX_POINTS - 1] = msm->rssi;
   filledPoints = MAX_POINTS;
 }
 
@@ -189,20 +223,20 @@ void SP_Shift(int16_t n) {
   if (n > 0) {
     while (n-- > 0) {
       for (int16_t i = MAX_POINTS - 2; i >= 0; --i) {
-        rssiHistory[i + 1] = rssiHistory[i];
-        noiseHistory[i + 1] = noiseHistory[i];
+        rssiGraphHistory[i + 1] = rssiGraphHistory[i];
+        // noiseHistory[i + 1] = noiseHistory[i];
       }
-      rssiHistory[0] = 0;
-      noiseHistory[0] = UINT8_MAX;
+      rssiGraphHistory[0] = 0;
+      // noiseHistory[0] = UINT8_MAX;
     }
   } else {
     while (n++ < 0) {
       for (int16_t i = 0; i < MAX_POINTS - 1; ++i) {
-        rssiHistory[i] = rssiHistory[i + 1];
-        noiseHistory[i] = noiseHistory[i + 1];
+        rssiGraphHistory[i] = rssiGraphHistory[i + 1];
+        // noiseHistory[i] = noiseHistory[i + 1];
       }
-      rssiHistory[MAX_POINTS - 1] = 0;
-      noiseHistory[MAX_POINTS - 1] = UINT8_MAX;
+      rssiGraphHistory[MAX_POINTS - 1] = 0;
+      // noiseHistory[MAX_POINTS - 1] = UINT8_MAX;
     }
   }
 }

@@ -15,7 +15,7 @@ typedef struct {
   uint32_t s;
   uint32_t e;
   uint16_t mr;
-  // Step step;
+  Step step; // needed to select band by freq
 } DBand;
 
 typedef struct {

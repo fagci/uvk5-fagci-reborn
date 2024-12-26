@@ -210,9 +210,8 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
 void CHLIST_render() {
   UI_ShowMenuEx(getChItem, gScanlistSize, channelIndex, MENU_LINES_TO_SHOW + 1);
-  STATUSLINE_SetText("%s %s", CH_TYPE_NAMES[gChListFilter],
-                     VIEW_MODE_NAMES[viewMode]);
-  if (gIsNumNavInput) {
-    STATUSLINE_SetText("Select: %s", gNumNavInput);
+  if (!gIsNumNavInput) {
+    STATUSLINE_SetText("%s %s", CH_TYPE_NAMES[gChListFilter],
+                       VIEW_MODE_NAMES[viewMode]);
   }
 }
