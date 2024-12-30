@@ -83,7 +83,6 @@ void RADIO_ToggleTxPower(void);
 void RADIO_UpdateStep(bool inc);
 void RADIO_UpdateSquelchLevel(bool next);
 bool RADIO_IsSquelchOpen(const Loot *msm);
-bool RADIO_IsFastScan();
 
 bool RADIO_IsSSB();
 uint32_t GetScreenF(uint32_t f);

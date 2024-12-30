@@ -151,6 +151,7 @@ void SP_Render(const Band *p) {
   }
 
   DrawHLine(0, S_BOTTOM, MAX_POINTS, C_FILL);
+  DrawHLine(0, SPECTRUM_Y, LCD_WIDTH, C_FILL);
 
   for (uint8_t i = 0; i < filledPoints; ++i) {
     uint8_t yVal = ConvertDomain(rssiHistory[i], v.vMin, v.vMax, 0, SPECTRUM_H);
@@ -203,7 +204,6 @@ void SP_RenderGraph() {
     oVal = yVal;
   }
   DrawHLine(0, SPECTRUM_Y, LCD_WIDTH, C_FILL);
-  // DrawVLine(0, SPECTRUM_Y, SPECTRUM_H, C_FILL);
   DrawHLine(0, S_BOTTOM, LCD_WIDTH, C_FILL);
 
   for (uint8_t x = 0; x < LCD_WIDTH; x += 4) {

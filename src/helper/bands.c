@@ -99,42 +99,46 @@ SBand BANDS_BCAST_FM[] = {
     (SBand){.s = 8800000, .e = 10799999}, //
 };
 
-SBand BANDS_VHF_UHF[] = {
-    (SBand){.s = 11800000, .e = 13699999}, // Air
-    (SBand){.s = 14400000, .e = 14599999}, // HAM
-    (SBand){.s = 14800000, .e = 14900000}, // MVD A
-    (SBand){.s = 15172500, .e = 15599999}, // Railway
-    (SBand){.s = 15600000, .e = 16327500}, // Sea
-    (SBand){.s = 17100000, .e = 17300000}, // MVD B/X
-    (SBand){.s = 17300000, .e = 17800000}, // Top 173
-    (SBand){.s = 24300000, .e = 26999999}, // SATCOM
-    (SBand){.s = 30001250, .e = 30051250}, // River1
-    (SBand){.s = 33601250, .e = 33651250}, // River2
-    (SBand){.s = 43307500, .e = 43477500}, // LPD
-    (SBand){.s = 44600625, .e = 44619375}, // PMR
-    (SBand){.s = 45000000, .e = 45300000}, // MVD 450
-    (SBand){.s = 46000000, .e = 46300000}, // MVD 460
-    (SBand){.s = 80600000, .e = 82500000}, // 800svc1
-    (SBand){.s = 85100000, .e = 87000000}, // 800svc2
-};
+typedef struct {
+  char name[9];
+  uint32_t s;
+  uint32_t e;
+  Step step; // needed to select band by freq
+} NamedBand;
 
-static char *BANDS_VHF_UHF_NAMES[] = {
-    "Air",     //
-    "HAM",     //
-    "MVD A",   //
-    "Railway", //
-    "Sea",     //
-    "MVD B/X", //
-    "Top 173", //
-    "SATCOM",  //
-    "River1",  //
-    "River2",  //
-    "LPD",     //
-    "PMR",     //
-    "MVD 450", //
-    "MVD 460", //
-    "800svc1", //
-    "800svc2", //
+NamedBand BANDS_VHF_UHF[] = {
+    (NamedBand){
+        .s = 11800000, .e = 13699999, .name = "Air", .step = STEP_50_0kHz},
+    (NamedBand){
+        .s = 14400000, .e = 14599999, .name = "HAM", .step = STEP_25_0kHz},
+    (NamedBand){
+        .s = 14800000, .e = 14900000, .name = "MVD A", .step = STEP_25_0kHz},
+    (NamedBand){
+        .s = 15172500, .e = 15599999, .name = "Railway", .step = STEP_12_5kHz},
+    (NamedBand){
+        .s = 15600000, .e = 16327500, .name = "Sea", .step = STEP_25_0kHz},
+    (NamedBand){
+        .s = 17100000, .e = 17300000, .name = "MVD B/X", .step = STEP_25_0kHz},
+    (NamedBand){
+        .s = 17300000, .e = 17800000, .name = "Top 173", .step = STEP_25_0kHz},
+    (NamedBand){
+        .s = 24300000, .e = 26999999, .name = "SATCOM", .step = STEP_25_0kHz},
+    (NamedBand){
+        .s = 30001250, .e = 30051250, .name = "River1", .step = STEP_12_5kHz},
+    (NamedBand){
+        .s = 33601250, .e = 33651250, .name = "River2", .step = STEP_12_5kHz},
+    (NamedBand){
+        .s = 43307500, .e = 43477500, .name = "LPD", .step = STEP_25_0kHz},
+    (NamedBand){
+        .s = 44600625, .e = 44619375, .name = "PMR", .step = STEP_12_5kHz},
+    (NamedBand){
+        .s = 45000000, .e = 45300000, .name = "MVD 450", .step = STEP_12_5kHz},
+    (NamedBand){
+        .s = 46000000, .e = 46300000, .name = "MVD 460", .step = STEP_12_5kHz},
+    (NamedBand){
+        .s = 80600000, .e = 82500000, .name = "800svc1", .step = STEP_12_5kHz},
+    (NamedBand){
+        .s = 85100000, .e = 87000000, .name = "800svc2", .step = STEP_12_5kHz},
 };
 
 static const uint8_t OFS1 = 0;
@@ -209,17 +213,16 @@ Band BANDS_GetDefaultBand(uint8_t i) {
     b.step = STEP_100_0kHz;
     snprintf(b.name, 8, "BcastFM");
   } else if (i < OFS7) {
-    sb = BANDS_VHF_UHF[i - OFS6];
-    snprintf(b.name, 8, BANDS_VHF_UHF_NAMES[i - OFS6]);
-    if (sb.s == 15172500 || sb.s == 30001250 || sb.s == 33601250 ||
-        sb.s == 44600625 || sb.s == 45000000 || sb.s == 46000000 ||
-        sb.s == 80600000 || sb.s == 85100000) {
-      b.step = STEP_12_5kHz;
-    }
-    if (sb.s == 11800000) {
+    NamedBand nb = BANDS_VHF_UHF[i - OFS6];
+    snprintf(b.name, 8, nb.name);
+    if (nb.s == 11800000) {
       b.modulation = MOD_AM;
+      // b.step = STEP_50_0kHz;
     }
-    b.scanlists = 1;
+    b.scanlists = nb.s == 24300000 ? 2 : 1;
+    b.step = nb.step;
+    nb.s = sb.s;
+    nb.e = sb.e;
   }
 
   b.rxF = sb.s;

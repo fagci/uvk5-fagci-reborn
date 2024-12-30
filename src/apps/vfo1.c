@@ -2,16 +2,15 @@
 #include "../apps/textinput.h"
 #include "../driver/bk4819.h"
 #include "../driver/uart.h"
-#include "../helper/bands.h"
 #include "../helper/channels.h"
 #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"
+#include "../helper/scan.h"
 #include "../radio.h"
 #include "../scheduler.h"
 #include "../svc.h"
 #include "../svc_render.h"
-#include "../svc_scan.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/statusline.h"
@@ -86,11 +85,6 @@ static void tuneTo(uint32_t f) {
   RADIO_SaveCurrentVFO();
 }
 
-static bool SSB_Seek_ON = false;
-static bool SSB_Seek_UP = true;
-
-static int32_t scanIndex = 0;
-
 static char message[16] = {'\0'};
 static void sendDtmf() {
   RADIO_ToggleTX(true);
@@ -99,14 +93,6 @@ static void sendDtmf() {
     BK4819_PlayDTMFString(message, true, 100, 100, 100, 100);
     RADIO_ToggleTX(false);
   }
-}
-
-static void channelScanFn(bool forward) {
-  IncDecI32(&scanIndex, 0, gScanlistSize, forward ? 1 : -1);
-  int32_t chNum = gScanlist[scanIndex];
-  radio->channel = chNum;
-  RADIO_VfoLoadCH(gSettings.activeVFO);
-  RADIO_SetupByCurrentVFO();
 }
 
 void VFO1_init(void) {
@@ -118,79 +104,10 @@ void VFO1_init(void) {
 }
 
 void VFO1_update(void) {
-  if (SSB_Seek_ON) {
-    if (RADIO_GetRadio() == RADIO_SI4732 && RADIO_IsSSB()) {
-      if (Now() - gLastRender >= 150) {
-        if (SSB_Seek_UP) {
-          gScanForward = true;
-          RADIO_NextFreqNoClicks(true);
-        } else {
-          gScanForward = false;
-          RADIO_NextFreqNoClicks(false);
-        }
-        gRedrawScreen = true;
-      }
-    }
-  }
 
   if (gIsListening && Now() - gLastRender >= 500 &&
       (RADIO_GetRadio() != RADIO_SI4732 || gShowAllRSSI)) {
     gRedrawScreen = true;
-  }
-}
-
-static void prepareABScan() {
-  uint32_t F1 = gVFO[0].rxF;
-  uint32_t F2 = gVFO[1].rxF;
-
-  if (F1 > F2) {
-    SWAP(F1, F2);
-  }
-
-  defaultBand.rxF = F1;
-  defaultBand.txF = F2;
-
-  sprintf(defaultBand.name, "%u-%u", F1 / MHZ, F2 / MHZ);
-  gCurrentBand = defaultBand;
-  defaultBand.misc.lastUsedFreq = radio->rxF;
-  RADIO_TuneToPure(F1, true);
-}
-
-static void initChannelScan() {
-  scanIndex = 0;
-  LOOT_Clear();
-  CHANNELS_LoadScanlist(TYPE_CH, gSettings.currentScanlist);
-  if (gScanlistSize == 0) {
-    gSettings.currentScanlist = SCANLIST_ALL;
-    CHANNELS_LoadScanlist(TYPE_CH, gSettings.currentScanlist);
-    SETTINGS_DelayedSave();
-  }
-  for (uint16_t i = 0; i < gScanlistSize; ++i) {
-    CH ch;
-    int32_t num = gScanlist[i];
-    CHANNELS_Load(num, &ch);
-    Loot *loot = LOOT_AddEx(ch.rxF, true);
-    loot->open = false;
-    loot->lastTimeOpen = 0;
-  }
-
-  gScanFn = channelScanFn;
-}
-
-static void startScan() {
-  if (RADIO_IsChMode()) {
-    initChannelScan();
-  }
-  if (RADIO_IsChMode() && gScanlistSize == 0) {
-    SVC_Toggle(SVC_SCAN, false, 0);
-    return;
-  }
-  SVC_Toggle(SVC_SCAN, true, gSettings.scanTimeout);
-}
-
-static void selectFirstBandFromScanlist() {
-  if (gSettings.currentScanlist) {
-    BANDS_SelectScan(0);
   }
 }
 
@@ -297,21 +214,6 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-static void upDown(bool up) {
-  if (SSB_Seek_ON) {
-    SSB_Seek_UP = up;
-    return;
-  }
-  if (SVC_Running(SVC_SCAN)) {
-    if (gScanForward == up) {
-      BANDS_SelectBandRelativeByScanlist(up);
-      return;
-    }
-    gScanForward = up;
-  }
-  RADIO_NextFreqNoClicks(up);
-}
-
 bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!SVC_Running(SVC_SCAN) && !bKeyPressed && !bKeyHeld && RADIO_IsChMode()) {
     if (!gIsNumNavInput && key <= KEY_9) {
@@ -338,10 +240,10 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     bool isSsb = RADIO_IsSSB();
     switch (key) {
     case KEY_UP:
-      upDown(true);
+      SCAN_ToggleDirection(true);
       return true;
     case KEY_DOWN:
-      upDown(false);
+      SCAN_ToggleDirection(false);
       return true;
     case KEY_SIDE1:
       if (RADIO_GetRadio() == RADIO_SI4732 && isSsb) {
@@ -369,11 +271,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         gSettings.currentScanlist, key, longHeld && !simpleKeypress);
     SETTINGS_DelayedSave();
     VFO1_init();
-    if (RADIO_IsChMode()) {
-      initChannelScan();
-    } else {
-      selectFirstBandFromScanlist();
-    }
+    SCAN_Start();
 
     return true;
   }
@@ -383,8 +281,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     OffsetDirection offsetDirection = radio->offsetDir;
     switch (key) {
     case KEY_EXIT:
-      prepareABScan();
-      startScan();
+      SCAN_StartAB();
       return true;
     case KEY_1:
       gChListFilter = TYPE_BAND;
@@ -429,21 +326,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       RADIO_ToggleModulation();
       return true;
     case KEY_STAR:
-      if (RADIO_GetRadio() == RADIO_SI4732 && RADIO_IsSSB()) {
-        SSB_Seek_ON = true;
-        // todo: scan by snr
-      } else {
-        startScan();
-        // NOTE: important to tune to scanlist band,
-        // not to band by frequency in radio.h
-        if (!RADIO_IsChMode()) {
-          selectFirstBandFromScanlist();
-          if (!radio->fixedBoundsMode) {
-            radio->fixedBoundsMode = 1;
-            RADIO_SaveCurrentVFO();
-          }
-        }
-      }
+      SCAN_Start();
       return true;
     case KEY_SIDE1:
       APPS_run(APP_ANALYZER);
@@ -496,16 +379,11 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       }
       break;
     case KEY_EXIT:
-      if (SSB_Seek_ON) {
-        SSB_Seek_ON = false;
-        return true;
-      }
       if (SVC_Running(SVC_SCAN)) {
-        SVC_Toggle(SVC_SCAN, false, 0);
+        SCAN_Stop();
         return true;
       }
       if (!APPS_exit()) {
-        SVC_Toggle(SVC_SCAN, false, 0);
         LOOT_Standby();
         RADIO_NextVFO();
       }

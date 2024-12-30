@@ -24,10 +24,10 @@ char *SCAN_TIMEOUT_NAMES[15] = {
     "5s", "10s",   "30s",   "1min",  "2min",  "5min",  "None",
 };
 
+static uint32_t timeout = 0;
 static uint32_t lastSettedF = 0;
 static uint32_t lastSavedF = 0;
 static bool lastScanForward = true;
-static uint32_t timeout = 0;
 static bool lastListenState = false;
 
 static uint32_t lastScanRedraw;

@@ -13,6 +13,7 @@
 #include "driver/system.h"
 #include "driver/uart.h"
 #include "helper/battery.h"
+#include "helper/scan.h"
 #include "misc.h"
 #include "radio.h"
 #include "scheduler.h"
@@ -96,14 +97,14 @@ Loot *RADIO_UpdateMeasurements(void) {
     return msm;
   }
   lastMsmUpdate = Now();
-  if (!gIsListening && RADIO_IsFastScan()) {
+  if (!gIsListening && SCAN_IsFast()) {
     BK4819_SetFrequency(radio->rxF);
     BK4819_WriteRegister(BK4819_REG_30, 0x0200);
     BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
-    SYSTEM_DelayMs(gSettings.scanTimeout); // (X_X)
+    SYSTEM_DelayMs(SCAN_GetTimeout()); // (X_X)
   }
   msm->rssi = RADIO_GetRSSI();
-  if (RADIO_IsFastScan()) {
+  if (SCAN_IsFast()) {
     msm->noise = BK4819_GetNoise();
   }
   msm->open = RADIO_IsSquelchOpen(msm);

@@ -17,6 +17,7 @@
 #include "helper/channels.h"
 #include "helper/lootlist.h"
 #include "helper/measurements.h"
+#include "helper/scan.h"
 #include "misc.h"
 #include "scheduler.h"
 #include "settings.h"
@@ -153,8 +154,6 @@ static uint8_t indexOfMod(ModulationType *arr, uint8_t n, ModulationType t) {
   }
   return 0;
 }
-
-bool RADIO_IsFastScan() { return gSettings.scanTimeout < 10; }
 
 static ModulationType getNextModulation(bool next) {
   uint8_t sz = ARRAY_SIZE(MODS_BK4819);
@@ -848,7 +847,7 @@ uint16_t RADIO_GetS() {
 
 bool RADIO_IsSquelchOpen(const Loot *msm) {
   if (RADIO_GetRadio() == RADIO_BK4819) {
-    if (RADIO_IsFastScan()) {
+    if (SCAN_IsFast()) {
       return SP_IsSquelchOpen(msm);
     } else if (isSimpleSql()) {
       return isSqOpenSimple(msm->rssi);
@@ -985,7 +984,7 @@ bool RADIO_NextBandFreqXBandEx(bool next, bool precise) {
       step--;
     }
 
-    bool canSwitchToNextBand = !(RADIO_IsFastScan() && !SP_HasStats());
+    bool canSwitchToNextBand = !SCAN_IsFast() || SP_HasStats();
 
     if (step < 0) {
       // get previous band
