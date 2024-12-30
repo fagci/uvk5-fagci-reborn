@@ -699,7 +699,7 @@ void RADIO_LoadCurrentVFO(void) {
   radio = &gVFO[gSettings.activeVFO];
 
   // needed to select gCurrentBand & set band index in SL
-  CHANNELS_LoadScanlist(RADIO_IsChMode() ? TYPE_CH : TYPE_BAND,
+  CHANNELS_LoadScanlist(RADIO_IsChMode() ? TYPE_FILTER_CH : TYPE_FILTER_BAND,
                         gSettings.currentScanlist);
 
   RADIO_SetupByCurrentVFO();

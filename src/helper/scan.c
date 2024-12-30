@@ -5,8 +5,11 @@
 #include "../svc.h"
 #include "../svc_scan.h"
 
+// 50 was default (ok), 60 is better, choose mid =)
+static const uint32_t DEFAULT_SCAN_TIMEOUT = 55;
+
 static int16_t scanIndex = 0;
-static uint32_t scanTimeout = 0;
+static uint32_t scanTimeout = DEFAULT_SCAN_TIMEOUT;
 
 static void channelScanFn(bool forward) {
   IncDecI16(&scanIndex, 0, gScanlistSize, forward ? 1 : -1);
@@ -35,7 +38,7 @@ void prepareABScan() {
 
 static void initChannelScan() {
   scanIndex = 0;
-  scanTimeout = 55; // 50 was default, 60 is better =)
+  scanTimeout = DEFAULT_SCAN_TIMEOUT;
   gScanFn = channelScanFn;
 }
 
@@ -97,4 +100,7 @@ void SCAN_Start() {
   }
 }
 
-void SCAN_Stop() { SVC_Toggle(SVC_SCAN, false, 0); }
+void SCAN_Stop() {
+  scanTimeout = DEFAULT_SCAN_TIMEOUT;
+  SVC_Toggle(SVC_SCAN, false, 0);
+}

@@ -79,15 +79,14 @@ int16_t CHANNELS_Next(int16_t base, bool next) {
   return gScanlist[base];
 }
 
-void CHANNELS_LoadScanlist(CHType type, uint16_t scanlistMask) {
+void CHANNELS_LoadScanlist(CHTypeFilter type, uint16_t scanlistMask) {
   if (gSettings.currentScanlist != scanlistMask) {
     gSettings.currentScanlist = scanlistMask;
     SETTINGS_Save();
   }
   gScanlistSize = 0;
   for (int16_t i = 0; i < CHANNELS_GetCountMax(); ++i) {
-    CHType chType = CHANNELS_GetMeta(i).type;
-    if (chType != type) {
+    if (0 == (type & (1 << CHANNELS_GetMeta(i).type))) {
       continue;
     }
     if (scanlistMask == SCANLIST_ALL ||

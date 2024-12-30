@@ -4,6 +4,7 @@
 #include "../helper/battery.h"
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"
+#include "../helper/scan.h"
 #include "../misc.h"
 #include "../radio.h"
 #include "../settings.h"
@@ -168,7 +169,7 @@ static void accept(void) {
     gSettings.scanTimeout = subMenuIndex;
     if (SVC_Running(SVC_SCAN)) {
       SVC_Toggle(SVC_SCAN, false, 0);
-      SVC_Toggle(SVC_SCAN, true, gSettings.scanTimeout);
+      SVC_Toggle(SVC_SCAN, true, SCAN_GetTimeout());
     }
     SETTINGS_Save();
     break;

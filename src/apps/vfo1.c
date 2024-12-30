@@ -284,7 +284,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       SCAN_StartAB();
       return true;
     case KEY_1:
-      gChListFilter = TYPE_BAND;
+      gChListFilter = TYPE_FILTER_BAND;
       APPS_run(APP_CH_LIST);
       return true;
     case KEY_2:

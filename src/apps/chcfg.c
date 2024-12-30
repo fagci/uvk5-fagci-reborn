@@ -341,9 +341,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
   }
 }
 
-void CHCFG_init(void) {
-  updateTxCodeListSize();
-}
+void CHCFG_init(void) { updateTxCodeListSize(); }
 
 void CHCFG_deinit(void) {
   if (gChEd.meta.type == TYPE_VFO) {
@@ -379,6 +377,7 @@ static bool accept(void) {
       return true;
     }
     gChSaveMode = true;
+    gChListFilter = TYPE_FILTER_CH_SAVE;
     APPS_run(APP_CH_LIST);
     return true;
   default:

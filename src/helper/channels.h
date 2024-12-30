@@ -39,6 +39,13 @@ typedef enum {
 } CHType;
 
 typedef enum {
+  TYPE_FILTER_BAND = (1 << TYPE_BAND),
+  TYPE_FILTER_BAND_SAVE = (1 << TYPE_BAND) | (1 << TYPE_EMPTY),
+  TYPE_FILTER_CH = (1 << TYPE_CH),
+  TYPE_FILTER_CH_SAVE = (1 << TYPE_CH) | (1 << TYPE_EMPTY),
+} CHTypeFilter;
+
+typedef enum {
   STEP_0_02kHz,
   STEP_0_05kHz,
   STEP_0_5kHz,
@@ -143,7 +150,7 @@ int16_t CHANNELS_Next(int16_t base, bool next);
 void CHANNELS_Delete(int16_t i);
 bool CHANNELS_Existing(int16_t i);
 uint8_t CHANNELS_Scanlists(int16_t i);
-void CHANNELS_LoadScanlist(CHType type, uint16_t n);
+void CHANNELS_LoadScanlist(CHTypeFilter type, uint16_t n);
 void CHANNELS_LoadBlacklistToLoot();
 
 uint16_t CHANNELS_GetStepSize(CH *p);

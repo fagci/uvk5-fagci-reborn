@@ -30,12 +30,19 @@ static char *VIEW_MODE_NAMES[] = {
               // "CH SEL",   //
 };
 
+static char *CH_TYPE_FILTER_NAMES[] = {
+    [TYPE_FILTER_CH] = "CH",
+    [TYPE_FILTER_CH_SAVE] = "CH save",
+    [TYPE_FILTER_BAND] = "BAND",
+    [TYPE_FILTER_BAND_SAVE] = "BAND save",
+};
+
 // TODO:
 // filter
 // - scanlist
 
 bool gChSaveMode = false;
-uint8_t gChListFilter = TYPE_CH;
+CHTypeFilter gChListFilter = TYPE_FILTER_CH;
 
 static uint16_t channelIndex = 0;
 static uint8_t viewMode = MODE_INFO;
@@ -104,7 +111,8 @@ static void saveNamed() {
 
 void CHLIST_init() {
   CHANNELS_LoadScanlist(gChListFilter, gSettings.currentScanlist);
-  if (gChListFilter == TYPE_BAND && BANDS_GetScanlistIndex() >= 0) {
+  if (gChListFilter == TYPE_FILTER_BAND ||
+      gChListFilter == TYPE_FILTER_BAND_SAVE) {
     channelIndex = BANDS_GetScanlistIndex();
   }
 }
@@ -133,6 +141,7 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         gSettings.currentScanlist = CHANNELS_ScanlistByKey(
             gSettings.currentScanlist, key, longHeld && !simpleKeypress);
         SETTINGS_DelayedSave();
+        CHLIST_init();
       } else {
         CHANNELS_Load(chNum, &ch);
         ch.scanlists = CHANNELS_ScanlistByKey(ch.scanlists, key, longHeld);
@@ -164,7 +173,20 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld) {
     switch (key) {
     case KEY_0:
-      IncDec8(&gChListFilter, 0, ARRAY_SIZE(CH_TYPE_NAMES), 1);
+      switch (gChListFilter) {
+      case TYPE_FILTER_CH:
+        gChListFilter = TYPE_FILTER_BAND;
+        break;
+      case TYPE_FILTER_BAND:
+        gChListFilter = TYPE_FILTER_CH;
+        break;
+      case TYPE_FILTER_CH_SAVE:
+        gChListFilter = TYPE_FILTER_BAND_SAVE;
+        break;
+      case TYPE_FILTER_BAND_SAVE:
+        gChListFilter = TYPE_FILTER_CH_SAVE;
+        break;
+      }
       CHANNELS_LoadScanlist(gChListFilter, gSettings.currentScanlist);
       return true;
     case KEY_STAR:
@@ -172,6 +194,8 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_MENU:
       if (gChSaveMode) {
+        CHANNELS_LoadScanlist(gChListFilter, gSettings.currentScanlist);
+
         gTextinputText = tempName;
         snprintf(gTextinputText, 9, "%lu.%05lu", gChEd.rxF / MHZ,
                  gChEd.rxF % MHZ);
@@ -211,7 +235,7 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 void CHLIST_render() {
   UI_ShowMenuEx(getChItem, gScanlistSize, channelIndex, MENU_LINES_TO_SHOW + 1);
   if (!gIsNumNavInput) {
-    STATUSLINE_SetText("%s %s", CH_TYPE_NAMES[gChListFilter],
+    STATUSLINE_SetText("%s %s", CH_TYPE_FILTER_NAMES[gChListFilter],
                        VIEW_MODE_NAMES[viewMode]);
   }
 }

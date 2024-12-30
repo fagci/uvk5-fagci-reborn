@@ -15,6 +15,7 @@
 #include "../ui/menu.h"
 #include "../ui/statusline.h"
 #include "apps.h"
+#include "chlist.h"
 #include "vfo1.h"
 
 static uint8_t menuIndex = 0;
@@ -270,6 +271,7 @@ bool LOOTLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_5:
       tuneToLoot(loot, false);
+      gChListFilter = TYPE_FILTER_CH_SAVE;
       APPS_run(APP_CH_LIST);
       return true;
     case KEY_0:
