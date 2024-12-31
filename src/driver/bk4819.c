@@ -364,6 +364,8 @@ void BK4819_SetFilterBandwidth(BK4819_FilterBandwidth_t bw) {
   if (bw > 9)
     return;
 
+  bw = 9 - bw; // fix for incremental order
+
   // REG_43
   // <15>    0 ???
   //

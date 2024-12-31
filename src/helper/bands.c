@@ -110,7 +110,7 @@ NamedBand BANDS_VHF_UHF[] = {
     (NamedBand){
         .s = 11800000, .e = 13699999, .name = "Air", .step = STEP_50_0kHz},
     (NamedBand){
-        .s = 14400000, .e = 14599999, .name = "HAM", .step = STEP_25_0kHz},
+        .s = 14400000, .e = 14599999, .name = "HAM 2m", .step = STEP_25_0kHz},
     (NamedBand){
         .s = 14800000, .e = 14900000, .name = "MVD A", .step = STEP_25_0kHz},
     (NamedBand){
@@ -221,8 +221,8 @@ Band BANDS_GetDefaultBand(uint8_t i) {
     }
     b.scanlists = nb.s == 24300000 ? 2 : 1;
     b.step = nb.step;
-    nb.s = sb.s;
-    nb.e = sb.e;
+    sb.s = nb.s;
+    sb.e = nb.e;
   }
 
   b.rxF = sb.s;
@@ -268,6 +268,7 @@ void BANDS_Select(int16_t num) {
   for (int16_t i = 0; i < gScanlistSize; ++i) {
     if (gScanlist[i] == num) {
       scanlistBandIndex = i;
+      allBandIndex = bandIndexByFreq(gCurrentBand.rxF);
       Log("SL band index %u", i);
       break;
     }

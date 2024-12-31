@@ -868,7 +868,6 @@ void RADIO_VfoLoadCH(uint8_t i) {
 void RADIO_TuneToBand(int16_t num) {
   BANDS_Select(num);
   radio->fixedBoundsMode = true;
-  RADIO_SaveCurrentVFO();
   radio->bw = gCurrentBand.bw;
   radio->step = gCurrentBand.step;
   radio->gainIndex = gCurrentBand.gainIndex;
