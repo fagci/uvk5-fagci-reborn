@@ -257,7 +257,7 @@ static void setSI4732Modulation(ModulationType mod) {
 
 static void onVfoUpdate(void) {
   TaskRemove(RADIO_SaveCurrentVFO);
-  TaskAdd("VFO sav", RADIO_SaveCurrentVFO, 2000, false, 0);
+  TaskAdd("VFO sav", RADIO_SaveCurrentVFO, 1000, false, 0);
 }
 
 static void setupToneDetection() {
