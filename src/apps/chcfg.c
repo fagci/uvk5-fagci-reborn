@@ -50,6 +50,7 @@ static void apply() {
   case TYPE_VFO:
     gVFO[gSettings.activeVFO] = gChEd;
     RADIO_SetupByCurrentVFO();
+    RADIO_SaveCurrentVFO();
     break;
   case TYPE_CH:
     break;
@@ -88,7 +89,7 @@ static void getMenuItemValue(BandCfgMenu type, char *Output) {
     strncpy(Output, sqTypeNames[gChEd.squelch.type], 31);
     break;
   case M_SQ:
-    sprintf(Output, "%u", gChEd.squelch);
+    sprintf(Output, "%u", gChEd.squelch.value);
     break;
   case M_SCRAMBLER:
     sprintf(Output, "%u", gChEd.scrambler);

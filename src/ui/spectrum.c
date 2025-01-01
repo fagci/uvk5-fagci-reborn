@@ -68,6 +68,7 @@ void SP_UpdateScanStats() {
   const uint8_t noiseMax = SP_GetNoiseMax();
   fastScanSq.r = noiseFloor;
   fastScanSq.n = noiseMax - noiseOpenDiff;
+  Log("Update stats r=%u,n=%u", fastScanSq.r, fastScanSq.n);
 }
 
 bool SP_HasStats() { return fastScanSq.r != UINT16_MAX; }
@@ -75,8 +76,8 @@ bool SP_HasStats() { return fastScanSq.r != UINT16_MAX; }
 bool SP_IsSquelchOpen(const Loot *msm) {
   const uint8_t noiseO = (fastScanSq.n - (gIsListening ? noiseOpenDiff : 0));
   if (gIsListening) {
-    Log("Update stats r=%u<=>%u,n=%u<=>%u", fastScanSq.r, msm->rssi,
-        fastScanSq.n, msm->noise);
+    Log("Is sq op? r=%u<=>%u,n=%u<=>%u", fastScanSq.r, msm->rssi, fastScanSq.n,
+        msm->noise);
   }
   return msm->rssi >= fastScanSq.r && msm->noise <= noiseO;
 }

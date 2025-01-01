@@ -513,19 +513,20 @@ void RADIO_EnableCxCSS(void) {
   // SYSTEM_DelayMs(200);
 }
 
-uint32_t RADIO_GetTXFEx(VFO *vfo, Band *p) {
+uint32_t RADIO_GetTXFEx(VFO *vfo) {
   uint32_t txF = vfo->rxF;
 
-  if (vfo->txF && p->offsetDir == OFFSET_FREQ) {
+  if (vfo->txF && radio->offsetDir == OFFSET_FREQ) {
     txF = vfo->txF;
-  } else if (p->txF && p->offsetDir != OFFSET_NONE) {
-    txF = vfo->rxF + (p->offsetDir == OFFSET_PLUS ? p->txF : -p->txF);
+  } else if (radio->txF && radio->offsetDir != OFFSET_NONE) {
+    txF =
+        vfo->rxF + (radio->offsetDir == OFFSET_PLUS ? radio->txF : -radio->txF);
   }
 
   return txF;
 }
 
-uint32_t RADIO_GetTXF(void) { return RADIO_GetTXFEx(radio, &gCurrentBand); }
+uint32_t RADIO_GetTXF(void) { return RADIO_GetTXFEx(radio); }
 
 TXState RADIO_GetTXState(uint32_t txF) {
   if (gSettings.upconverter) {
@@ -867,11 +868,19 @@ void RADIO_VfoLoadCH(uint8_t i) {
 
 void RADIO_TuneToBand(int16_t num) {
   BANDS_Select(num);
+
   radio->fixedBoundsMode = true;
-  radio->bw = gCurrentBand.bw;
+
   radio->step = gCurrentBand.step;
+  radio->bw = gCurrentBand.bw;
   radio->gainIndex = gCurrentBand.gainIndex;
   radio->modulation = gCurrentBand.modulation;
+  radio->squelch.type = gCurrentBand.squelch.type;
+  radio->squelch.value = gCurrentBand.squelch.value;
+  // radio->allowTx = gCurrentBand.allowTx;
+  if (BANDS_InRange(radio->rxF, gCurrentBand)) {
+    return;
+  }
   if (BANDS_InRange(gCurrentBand.misc.lastUsedFreq, gCurrentBand)) {
     RADIO_TuneToSave(gCurrentBand.misc.lastUsedFreq);
   } else {
@@ -976,6 +985,7 @@ bool RADIO_NextBandFreqXBandEx(bool next, bool precise) {
   if (radio->fixedBoundsMode) {
     uint32_t steps = CHANNELS_GetSteps(&gCurrentBand);
     int64_t step = CHANNELS_GetChannel(&gCurrentBand, radio->rxF);
+    Log("NFB STP: %u", StepFrequencyTable[gCurrentBand.step]);
 
     if (next) {
       step++;
@@ -1002,6 +1012,7 @@ bool RADIO_NextBandFreqXBandEx(bool next, bool precise) {
       SP_UpdateScanStats();
     }
     radio->rxF = CHANNELS_GetF(&gCurrentBand, step);
+    Log("NFB f=%u", radio->rxF);
   } else {
     if (next) {
       radio->rxF += StepFrequencyTable[radio->step];

@@ -317,13 +317,13 @@ bool BANDS_SelectBandRelativeByScanlist(bool next) {
     return false;
   }
   uint8_t oldScanlistBandIndex = scanlistBandIndex;
-  IncDec8(&scanlistBandIndex, 0, gScanlistSize, next);
+  IncDec8(&scanlistBandIndex, 0, gScanlistSize, next ? 1 : -1);
   BANDS_Select(gScanlist[scanlistBandIndex]);
   return oldScanlistBandIndex != scanlistBandIndex;
 }
 
 void BANDS_SaveCurrent(void) {
-  if (allBandIndex >= 0) {
+  if (allBandIndex >= 0 && gCurrentBand.meta.type == TYPE_BAND) {
     CHANNELS_Save(allBands[allBandIndex].mr, &gCurrentBand);
   }
 }
@@ -331,7 +331,7 @@ void BANDS_SaveCurrent(void) {
 PowerCalibration BANDS_GetPowerCalib(uint32_t f) {
   for (uint8_t ci = 0; ci < ARRAY_SIZE(POWER_CALIBRATIONS); ++ci) {
     PCal cal = POWER_CALIBRATIONS[ci];
-    if (cal.s < f && f < cal.e) {
+    if (cal.s <= f && f <= cal.e) {
       return cal.c;
       break;
     }

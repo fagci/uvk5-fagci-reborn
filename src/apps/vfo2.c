@@ -85,7 +85,7 @@ static void render2VFOPart(uint8_t i) {
   PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %s SQ%u %c %s %s",
                vfo->allowTx ? TX_POWER_NAMES[vfo->power][0] : ' ',
                RADIO_GetBWName(vfo->radio, vfo->bw), vfo->squelch.value,
-               RADIO_GetTXFEx(vfo, vfo) != vfo->rxF
+               RADIO_GetTXFEx(vfo) != vfo->rxF
                    ? (vfo->offsetDir ? TX_OFFSET_NAMES[vfo->offsetDir][0] : '*')
                    : ' ',
                vfo->code.tx.type ? TX_CODE_TYPES[vfo->code.tx.type] : "",

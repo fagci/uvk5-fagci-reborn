@@ -29,10 +29,6 @@ static uint16_t peakRssi = 0;
 
 static uint16_t squelchRssi = UINT16_MAX;
 static bool useSquelch = false;
-
-static Band opt = {
-    .name = "Analyzer",
-};
 static uint16_t step;
 
 static void startNewScan(bool reset) {
@@ -40,10 +36,10 @@ static void startNewScan(bool reset) {
   peakRssi = 0;
   if (reset) {
     LOOT_Standby();
-    msm.f = opt.rxF;
+    msm.f = gCurrentBand.rxF;
     BK4819_TuneTo(msm.f, true);
     BK4819_SetRegValue(afcDisableRegSpec, true);
-    BK4819_SetModulation(opt.modulation);
+    BK4819_SetModulation(gCurrentBand.modulation);
     if (step > 5000) {
       BK4819_SetModulation(MOD_WFM);
     } else if (step >= 1300) {
@@ -55,7 +51,7 @@ static void startNewScan(bool reset) {
     } else {
       BK4819_SetFilterBandwidth(BK4819_FILTER_BW_6k);
     }
-    SP_Init(&opt);
+    SP_Init(&gCurrentBand);
   } else {
     SP_Begin();
   }
@@ -81,8 +77,8 @@ static void scanFn(bool forward) {
     return;
   }
 
-  if (msm.f + step > opt.txF) {
-    msm.f = opt.rxF;
+  if (msm.f + step > gCurrentBand.txF) {
+    msm.f = gCurrentBand.rxF;
     peakF = _peakF;
     gRedrawScreen = true;
     if (useSquelch && squelchRssi == UINT16_MAX) {
@@ -94,19 +90,19 @@ static void scanFn(bool forward) {
 
   RADIO_TuneToPure(msm.f, false);
 
-  if (msm.f == opt.rxF) {
+  if (msm.f == gCurrentBand.rxF) {
     startNewScan(false);
     return;
   }
 }
 
 static void setCenterF(uint32_t f) {
-  step = StepFrequencyTable[opt.step];
+  step = StepFrequencyTable[gCurrentBand.step];
   const uint32_t halfBW = step * (stepsCount / 2);
   centerF = f;
-  opt.rxF = centerF - halfBW;
-  opt.txF = centerF + halfBW;
-  opt.modulation = RADIO_GetModulation();
+  gCurrentBand.rxF = centerF - halfBW;
+  gCurrentBand.txF = centerF + halfBW;
+  gCurrentBand.modulation = RADIO_GetModulation();
   startNewScan(true);
 }
 
@@ -120,8 +116,7 @@ void ANALYZER_init(void) {
 
   gMonitorMode = false;
 
-  opt.step = gCurrentBand.step;
-  opt.squelch.value = 0;
+  gCurrentBand.squelch.value = 0;
 
   setCenterF(radio->rxF);
   startNewScan(true);
@@ -152,7 +147,7 @@ static void restartScan() {
 }
 
 bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
-  const uint32_t step = StepFrequencyTable[opt.step];
+  const uint32_t step = StepFrequencyTable[gCurrentBand.step];
 
   // repeat or keyup
   if (bKeyPressed || !bKeyHeld) {
@@ -228,14 +223,14 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       LOOT_WhitelistLast();
       return true;
     case KEY_2:
-      if (opt.step < STEP_500_0kHz) {
-        opt.step++;
+      if (gCurrentBand.step < STEP_500_0kHz) {
+        gCurrentBand.step++;
       }
       setCenterF(centerF);
       return true;
     case KEY_8:
-      if (opt.step > 0) {
-        opt.step--;
+      if (gCurrentBand.step > 0) {
+        gCurrentBand.step--;
       }
       setCenterF(centerF);
       return true;
@@ -274,26 +269,27 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 }
 
 void ANALYZER_render(void) {
-  STATUSLINE_SetText(opt.name);
+  STATUSLINE_SetText(gCurrentBand.name);
 
   for (uint8_t i = SPECTRUM_Y; i < SPECTRUM_Y + SPECTRUM_H; i += 4) {
     PutPixel(spectrumWidth / 2, i, C_FILL);
   }
 
-  SP_Render(&opt);
+  SP_Render(&gCurrentBand);
 
   UI_DrawSpectrumElements(SPECTRUM_Y, scanInterval, Rssi2DBm(squelchRssi),
-                          &opt);
+                          &gCurrentBand);
 
-  SP_RenderArrow(&opt, peakF);
+  SP_RenderArrow(&gCurrentBand, peakF);
 
   if (squelchRssi != UINT16_MAX) {
     SP_RenderLine(squelchRssi);
   }
 
-  PrintSmallEx(0, SPECTRUM_Y - 3 + 6, POS_L, C_FILL, "%u.%02uk",
-               StepFrequencyTable[opt.step] / 100,
-               StepFrequencyTable[opt.step] % 100);
+  const uint32_t step = StepFrequencyTable[gCurrentBand.step];
+
+  PrintSmallEx(0, SPECTRUM_Y - 3 + 6, POS_L, C_FILL, "%u.%02uk", step / 100,
+               step % 100);
   PrintSmallEx(LCD_XCENTER, 4, POS_C, C_FILL, "%04d/%04d",
                Rssi2DBm(SP_GetNoiseFloor()), Rssi2DBm(SP_GetRssiMax()));
 

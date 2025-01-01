@@ -1,9 +1,11 @@
 #include "scan.h"
+#include "../driver/uart.h"
 #include "../external/printf/printf.h"
 #include "../helper/bands.h"
 #include "../radio.h"
 #include "../svc.h"
 #include "../svc_scan.h"
+#include "channels.h"
 
 // 50 was default (ok), 60 is better, choose mid =)
 static const uint32_t DEFAULT_SCAN_TIMEOUT = 55;
@@ -44,11 +46,12 @@ static void initChannelScan() {
 
 static void initSsbScan() {
   scanTimeout = 150;
-  gScanFn = RADIO_NextFreqNoClicks;
+  gScanFn = RADIO_NextBandFreqXBand;
 }
 
 static void startScan() {
   scanTimeout = gSettings.scanTimeout; // fast freq scan
+  Log("TO: %u", scanTimeout);
   if (gScanlistSize == 0 && !RADIO_IsSSB()) {
     SCAN_Stop();
     return;
@@ -62,17 +65,18 @@ static void startScan() {
 }
 
 bool SCAN_IsFast() { return scanTimeout < 10; }
-bool SCAN_GetTimeout() { return scanTimeout; }
+
+uint32_t SCAN_GetTimeout() { return scanTimeout; }
 
 void SCAN_ToggleDirection(bool up) {
-  if (SVC_Running(SVC_SCAN)) {
+  if (!gIsListening && SVC_Running(SVC_SCAN)) {
     if (gScanForward == up) {
       BANDS_SelectBandRelativeByScanlist(up);
       return;
     }
     gScanForward = up;
   }
-  RADIO_NextFreqNoClicks(up);
+  RADIO_NextBandFreqXBand(up);
 }
 
 void SCAN_StartAB() {
@@ -91,9 +95,17 @@ void SCAN_Start() {
     if (!RADIO_IsChMode()) {
       if (gSettings.currentScanlist) {
         BANDS_SelectScan(0);
+      } else {
+        if (!radio->fixedBoundsMode && radio->step != gCurrentBand.step) {
+          gCurrentBand.meta.type = TYPE_BAND_DETACHED;
+          uint32_t step = StepFrequencyTable[radio->step];
+          gCurrentBand.step = radio->step;
+          gCurrentBand.rxF += step - gCurrentBand.rxF % step;
+          gCurrentBand.txF -= gCurrentBand.rxF % step;
+        }
       }
       if (!radio->fixedBoundsMode) {
-        radio->fixedBoundsMode = 1;
+        radio->fixedBoundsMode = true;
         RADIO_SaveCurrentVFO();
       }
     }

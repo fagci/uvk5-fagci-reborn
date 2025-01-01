@@ -36,6 +36,8 @@ typedef enum {
   TYPE_MELODY,
   TYPE_SETTING,
   TYPE_FILE,
+
+  TYPE_BAND_DETACHED = TYPE_EMPTY,
 } CHType;
 
 typedef enum {

@@ -122,7 +122,7 @@ uint32_t CHANNELS_GetSteps(CH *p) {
   return (p->txF - p->rxF) / CHANNELS_GetStepSize(p) + 1;
 }
 
-uint32_t CHANNELS_GetF(CH *p, uint32_t channel) {
+uint32_t CHANNELS_GetF(Band *p, uint32_t channel) {
   return p->rxF + channel * CHANNELS_GetStepSize(p);
 }
 

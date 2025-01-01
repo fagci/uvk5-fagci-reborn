@@ -261,6 +261,7 @@ void SVC_LISTEN_Update(void) {
   bool blinkMode = RADIO_GetRadio() != RADIO_BK4819 || gMonitorMode;
 
   if (lastListenState != gIsListening) {
+    // Log("Listen=%u, f=%u", gIsListening, radio->rxF);
     lastListenState = gIsListening;
     BOARD_ToggleGreen(gSettings.brightness > 1 && gIsListening);
     if (gIsListening && blinkMode) {

@@ -36,6 +36,7 @@ void (*gScanFn)(bool) = NULL;
 
 static void next(void) {
   gScanFn(gScanForward);
+  Log("scan new f=%u", radio->rxF);
   lastSettedF = radio->rxF;
   SetTimeout(&timeout, 0); // will be passed at next update
   if (gScanRedraw && Now() - lastScanRedraw > 250) {

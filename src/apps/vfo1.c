@@ -70,6 +70,7 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
 
   if (s.num == BK4819_REG_13) {
     RADIO_SetGain(v);
+    RADIO_SaveCurrentVFO();
   } else if (s.num == 0x73) {
     BK4819_SetAFC(v);
   } else {
