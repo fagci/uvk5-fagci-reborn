@@ -36,6 +36,11 @@ typedef enum {
   M_READONLY,
   M_TYPE,
   M_SAVE,
+  M_BANK,
+  M_P_CAL_L,
+  M_P_CAL_M,
+  M_P_CAL_H,
+  M_LAST_F,
 } BandCfgMenu;
 
 typedef struct MenuItem {

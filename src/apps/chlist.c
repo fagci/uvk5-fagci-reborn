@@ -213,9 +213,9 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       APPS_run(APP_VFO1);
       return true;
     case KEY_F:
-      CHANNELS_Load(chNum, &ch);
-      gChEd = ch;
       gChNum = chNum;
+      CHANNELS_Load(gChNum, &gChEd);
+      Log("CT=%u", gChEd.code.tx.type);
       APPS_run(APP_CH_CFG);
       return true;
     case KEY_EXIT:
