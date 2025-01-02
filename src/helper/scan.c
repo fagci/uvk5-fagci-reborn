@@ -29,13 +29,17 @@ void prepareABScan() {
     SWAP(F1, F2);
   }
 
-  defaultBand.rxF = F1;
-  defaultBand.txF = F2;
-
-  sprintf(defaultBand.name, "%u-%u", F1 / MHZ, F2 / MHZ);
   gCurrentBand = defaultBand;
-  defaultBand.misc.lastUsedFreq = radio->rxF;
+
+  gCurrentBand.meta.type = TYPE_BAND_DETACHED;
+  gCurrentBand.rxF = F1;
+  gCurrentBand.txF = F2;
+  gCurrentBand.step = radio->step;
+
+  sprintf(gCurrentBand.name, "%u-%u", F1 / MHZ, F2 / MHZ);
   RADIO_TuneToPure(F1, true);
+  radio->fixedBoundsMode = true;
+  // RADIO_SaveCurrentVFO();
 }
 
 static void initChannelScan() {
@@ -95,14 +99,6 @@ void SCAN_Start() {
     if (!RADIO_IsChMode()) {
       if (gSettings.currentScanlist) {
         BANDS_SelectScan(0);
-      } else {
-        if (!radio->fixedBoundsMode && radio->step != gCurrentBand.step) {
-          gCurrentBand.meta.type = TYPE_BAND_DETACHED;
-          uint32_t step = StepFrequencyTable[radio->step];
-          gCurrentBand.step = radio->step;
-          gCurrentBand.rxF += step - gCurrentBand.rxF % step;
-          gCurrentBand.txF -= gCurrentBand.rxF % step;
-        }
       }
       if (!radio->fixedBoundsMode) {
         radio->fixedBoundsMode = true;

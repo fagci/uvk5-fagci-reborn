@@ -273,6 +273,13 @@ void BANDS_Select(int16_t num) {
       break;
     }
   }
+  radio->fixedBoundsMode = true;
+  radio->step = gCurrentBand.step;
+  radio->bw = gCurrentBand.bw;
+  radio->gainIndex = gCurrentBand.gainIndex;
+  radio->modulation = gCurrentBand.modulation;
+  radio->squelch = gCurrentBand.squelch;
+  RADIO_SaveCurrentVFO();
 }
 
 // Used in vfo1 to select first band from scanlist

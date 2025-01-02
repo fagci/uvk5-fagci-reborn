@@ -25,6 +25,8 @@ static FastScanSq fastScanSq = {
 uint8_t SPECTRUM_Y = 16;
 uint8_t SPECTRUM_H = 40;
 
+uint8_t gNoiseOpenDiff = 14; // fast scan SQ level
+
 static uint8_t S_BOTTOM;
 
 static uint16_t rssiHistory[MAX_POINTS] = {0};
@@ -61,20 +63,18 @@ static uint8_t maxNoise(const uint8_t *array, uint8_t n) {
   return max;
 }
 
-static uint8_t noiseOpenDiff = 8; // fast scan SQ level
-
 void SP_UpdateScanStats() {
   const uint16_t noiseFloor = SP_GetNoiseFloor();
   const uint8_t noiseMax = SP_GetNoiseMax();
   fastScanSq.r = noiseFloor;
-  fastScanSq.n = noiseMax - noiseOpenDiff;
+  fastScanSq.n = noiseMax - gNoiseOpenDiff;
   Log("Update stats r=%u,n=%u", fastScanSq.r, fastScanSq.n);
 }
 
 bool SP_HasStats() { return fastScanSq.r != UINT16_MAX; }
 
 bool SP_IsSquelchOpen(const Loot *msm) {
-  const uint8_t noiseO = (fastScanSq.n - (gIsListening ? noiseOpenDiff : 0));
+  const uint8_t noiseO = (fastScanSq.n - (gIsListening ? gNoiseOpenDiff : 0));
   if (gIsListening) {
     Log("Is sq op? r=%u<=>%u,n=%u<=>%u", fastScanSq.r, msm->rssi, fastScanSq.n,
         msm->noise);

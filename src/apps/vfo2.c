@@ -13,6 +13,8 @@
 #include "../ui/statusline.h"
 #include "vfo1.h"
 
+static bool isScanTuneMode = false;
+
 static void render2VFOPart(uint8_t i) {
   const uint8_t BASE = 22;
   const uint8_t bl = BASE + 34 * i;
@@ -106,6 +108,30 @@ void VFO2_init(void) {
 }
 
 bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  if (!bKeyPressed && !bKeyHeld && SVC_Running(SVC_SCAN) &&
+      (key == KEY_0 || (isScanTuneMode && key > KEY_0 && key <= KEY_9))) {
+    switch (key) {
+    case KEY_0:
+      isScanTuneMode = !isScanTuneMode;
+      return true;
+    case KEY_1:
+      IncDec8(&gSettings.scanTimeout, 1, 255, 1);
+      SETTINGS_DelayedSave();
+      return true;
+    case KEY_7:
+      IncDec8(&gSettings.scanTimeout, 1, 255, -1);
+      SETTINGS_DelayedSave();
+      return true;
+    case KEY_3:
+      IncDec8(&gNoiseOpenDiff, 1, 32, 1);
+      return true;
+    case KEY_9:
+      IncDec8(&gNoiseOpenDiff, 1, 32, -1);
+      return true;
+    default:
+      break;
+    }
+  }
   if (VFO1_key(key, bKeyPressed, bKeyHeld)) {
     return true;
   }
@@ -132,12 +158,18 @@ void VFO2_render(void) {
   SPECTRUM_Y = 6 + 35 * (1 - gSettings.activeVFO);
   SPECTRUM_H = 22;
 
-  if (gIsListening || SVC_Running(SVC_SCAN)) {
+  if (gIsListening || SVC_Running(SVC_SCAN) || gMonitorMode) {
     render2VFOPart(gSettings.activeVFO);
-    if (gIsListening) {
+    if (gIsListening && gMonitorMode) {
       SP_RenderGraph();
     } else {
       SP_Render(&gCurrentBand);
+      if (isScanTuneMode) {
+        PrintSmallEx(0, SPECTRUM_Y + 6, POS_L, C_FILL, "%ums",
+                     gSettings.scanTimeout);
+        PrintSmallEx(LCD_WIDTH, SPECTRUM_Y + 6, POS_R, C_FILL, "SQ %u",
+                     gNoiseOpenDiff);
+      }
     }
   } else {
     render2VFOPart(0);

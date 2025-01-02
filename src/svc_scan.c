@@ -96,13 +96,6 @@ void SVC_SCAN_Update(void) {
 void SVC_SCAN_Deinit(void) {
   gScanFn = NULL;
   gScanRedraw = true;
-  if (defaultBand.name[0] != '-') {
-    sprintf(defaultBand.name, "-");
-    defaultBand.rxF = 0;
-    defaultBand.txF = 0;
-    RADIO_TuneTo(defaultBand.misc.lastUsedFreq);
-    SETTINGS_Load();
-  }
   if (RADIO_GetRadio() != RADIO_BK4819) {
     uint32_t f = radio->rxF;
 

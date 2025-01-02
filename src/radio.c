@@ -869,14 +869,6 @@ void RADIO_VfoLoadCH(uint8_t i) {
 void RADIO_TuneToBand(int16_t num) {
   BANDS_Select(num);
 
-  radio->fixedBoundsMode = true;
-
-  radio->step = gCurrentBand.step;
-  radio->bw = gCurrentBand.bw;
-  radio->gainIndex = gCurrentBand.gainIndex;
-  radio->modulation = gCurrentBand.modulation;
-  radio->squelch.type = gCurrentBand.squelch.type;
-  radio->squelch.value = gCurrentBand.squelch.value;
   // radio->allowTx = gCurrentBand.allowTx;
   if (BANDS_InRange(radio->rxF, gCurrentBand)) {
     return;
@@ -896,6 +888,7 @@ void RADIO_TuneToCH(int16_t num) {
 }
 
 bool RADIO_TuneToMR(int16_t num) {
+  Log("Tune to MR %u", num);
   if (CHANNELS_Existing(num)) {
     switch (CHANNELS_GetMeta(num).type) {
     case TYPE_CH:
@@ -911,11 +904,6 @@ bool RADIO_TuneToMR(int16_t num) {
   radio->channel = -1;
   return false;
 }
-
-// TODO: rewrite into channels.c
-/* void RADIO_NextBand(bool next) {
-  RADIO_TuneToBand(CHANNELS_Next(gScanlist[gSettings.activeBand], next));
-} */
 
 void RADIO_NextCH(bool next) {
   RADIO_TuneToCH(CHANNELS_Next(radio->channel, next));
@@ -985,7 +973,6 @@ bool RADIO_NextBandFreqXBandEx(bool next, bool precise) {
   if (radio->fixedBoundsMode) {
     uint32_t steps = CHANNELS_GetSteps(&gCurrentBand);
     int64_t step = CHANNELS_GetChannel(&gCurrentBand, radio->rxF);
-    Log("NFB STP: %u", StepFrequencyTable[gCurrentBand.step]);
 
     if (next) {
       step++;
@@ -993,7 +980,8 @@ bool RADIO_NextBandFreqXBandEx(bool next, bool precise) {
       step--;
     }
 
-    bool canSwitchToNextBand = !SCAN_IsFast() || SP_HasStats();
+    bool canSwitchToNextBand = gCurrentBand.meta.type != TYPE_BAND_DETACHED &&
+                               (!SCAN_IsFast() || SP_HasStats());
 
     if (step < 0) {
       // get previous band
@@ -1012,7 +1000,6 @@ bool RADIO_NextBandFreqXBandEx(bool next, bool precise) {
       SP_UpdateScanStats();
     }
     radio->rxF = CHANNELS_GetF(&gCurrentBand, step);
-    Log("NFB f=%u", radio->rxF);
   } else {
     if (next) {
       radio->rxF += StepFrequencyTable[radio->step];
