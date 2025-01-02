@@ -224,6 +224,7 @@ CH LOOT_ToCh(const Loot *loot) {
   // TODO: automatic params by simple "band plan"
   Band p = BANDS_ByFrequency(loot->f);
   CH ch = {
+      .meta.type = TYPE_CH,
       .rxF = loot->f,
       .txF = 0,
       .code =
