@@ -241,6 +241,10 @@ Band BANDS_GetDefaultBand(uint8_t i) {
       .squelch.type = SQUELCH_RSSI_NOISE_GLITCH,
       .squelch.value = 3,
       .misc.bank = 0,
+      .code.rx.type = 0,
+      .code.rx.value = 0,
+      .code.tx.type = 0,
+      .code.tx.value = 0,
   };
   SBand sb;
   if (i < OFS2) {
@@ -285,6 +289,7 @@ Band BANDS_GetDefaultBand(uint8_t i) {
   b.misc.lastUsedFreq = sb.s;
 
   b.misc.powCalib = BANDS_GetPowerCalib((b.txF - b.rxF) / 2);
+  Log("BAND CT=%u", b.code.tx.type);
 
   return b;
 }

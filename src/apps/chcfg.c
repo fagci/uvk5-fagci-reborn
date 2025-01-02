@@ -21,7 +21,8 @@ static bool isSubMenu = false;
 CH gChEd;
 int16_t gChNum = -1;
 
-static MenuItem menu[] = {
+static MenuItem *menu;
+static MenuItem menuChVfo[] = {
     {"Name", M_NAME, 0},
     {"Step", M_STEP, ARRAY_SIZE(StepFrequencyTable)},
     {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions)},
@@ -43,7 +44,33 @@ static MenuItem menu[] = {
     {"Type", M_TYPE, ARRAY_SIZE(CH_TYPE_NAMES)},
     {"Save", M_SAVE, 0},
 };
-static const uint8_t MENU_SIZE = ARRAY_SIZE(menu);
+
+static MenuItem menuBand[] = {
+    {"Name", M_NAME, 0},
+    {"Step", M_STEP, ARRAY_SIZE(StepFrequencyTable)},
+    {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions)},
+    {"BW", M_BW, 10},
+    {"Gain", M_GAIN, ARRAY_SIZE(gainTable)},
+    {"SQ type", M_SQ_TYPE, ARRAY_SIZE(sqTypeNames)},
+    {"SQ level", M_SQ, 10},
+    {"RX freq", M_F_RX, 0},
+    {"TX freq / offset", M_F_TX, 0},
+    {"TX offset dir", M_TX_OFFSET_DIR, ARRAY_SIZE(TX_OFFSET_NAMES)},
+
+    {"Bank", M_BANK, 128},
+    {"P cal L", M_P_CAL_L, 255},
+    {"P cal M", M_P_CAL_M, 255},
+    {"P cal H", M_P_CAL_H, 255},
+    {"Last f", M_LAST_F, 0},
+
+    {"TX power", M_F_TXP, ARRAY_SIZE(TX_POWER_NAMES)},
+    {"Scrambler", M_SCRAMBLER, 16},
+    {"Enable TX", M_TX, 2},
+    {"Readonly", M_READONLY, 2},
+    {"Type", M_TYPE, ARRAY_SIZE(CH_TYPE_NAMES)},
+    {"Save", M_SAVE, 0},
+};
+static uint8_t menuSize = 0;
 
 static void apply() {
   switch (gChEd.meta.type) {
@@ -66,6 +93,11 @@ static void setRXF(uint32_t f) {
 
 static void setTXF(uint32_t f) {
   gChEd.txF = f;
+  apply();
+}
+
+static void setLastF(uint32_t f) {
+  gChEd.misc.lastUsedFreq = f;
   apply();
 }
 
@@ -94,6 +126,18 @@ static void getMenuItemValue(BandCfgMenu type, char *Output) {
   case M_SCRAMBLER:
     sprintf(Output, "%u", gChEd.scrambler);
     break;
+  case M_BANK:
+    sprintf(Output, "%u", gChEd.misc.bank);
+    break;
+  case M_P_CAL_L:
+    sprintf(Output, "%u", gChEd.misc.powCalib.s);
+    break;
+  case M_P_CAL_M:
+    sprintf(Output, "%u", gChEd.misc.powCalib.m);
+    break;
+  case M_P_CAL_H:
+    sprintf(Output, "%u", gChEd.misc.powCalib.e);
+    break;
   case M_GAIN:
     sprintf(Output, "%ddB", -gainTable[gChEd.gainIndex].gainDb + 33);
     break;
@@ -112,6 +156,10 @@ static void getMenuItemValue(BandCfgMenu type, char *Output) {
     break;
   case M_F_TX:
     sprintf(Output, "%u.%05u", gChEd.txF / MHZ, gChEd.txF % MHZ);
+    break;
+  case M_LAST_F:
+    sprintf(Output, "%u.%05u", gChEd.misc.lastUsedFreq / MHZ,
+            gChEd.misc.lastUsedFreq % MHZ);
     break;
   case M_RX_CODE_TYPE:
     strncpy(Output, TX_CODE_TYPES[gChEd.code.rx.type], 31);
@@ -195,6 +243,18 @@ static void acceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
   case M_TYPE:
     gChEd.meta.type = subMenuIndex;
     break;
+  case M_BANK:
+    gChEd.misc.bank = subMenuIndex;
+    break;
+  case M_P_CAL_L:
+    gChEd.misc.powCalib.s = subMenuIndex;
+    break;
+  case M_P_CAL_M:
+    gChEd.misc.powCalib.m = subMenuIndex;
+    break;
+  case M_P_CAL_H:
+    gChEd.misc.powCalib.e = subMenuIndex;
+    break;
   default:
     break;
   }
@@ -253,6 +313,18 @@ static void setInitialSubmenuIndex(void) {
   case M_TYPE:
     subMenuIndex = gChEd.meta.type;
     break;
+  case M_BANK:
+    subMenuIndex = gChEd.misc.bank;
+    break;
+  case M_P_CAL_L:
+    subMenuIndex = gChEd.misc.powCalib.s;
+    break;
+  case M_P_CAL_M:
+    subMenuIndex = gChEd.misc.powCalib.m;
+    break;
+  case M_P_CAL_H:
+    subMenuIndex = gChEd.misc.powCalib.e;
+    break;
   default:
     subMenuIndex = 0;
     break;
@@ -273,7 +345,7 @@ static void getMenuItemText(uint16_t index, char *name) {
 }
 
 static void updateTxCodeListSize() {
-  for (uint8_t i = 0; i < ARRAY_SIZE(menu); ++i) {
+  for (uint8_t i = 0; i < menuSize; ++i) {
     MenuItem *item = &menu[i];
     uint8_t type = CODE_TYPE_OFF;
     if (item->type == M_TX_CODE) {
@@ -324,6 +396,10 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     return;
   case M_SQ:
   case M_SCRAMBLER:
+  case M_BANK:
+  case M_P_CAL_L:
+  case M_P_CAL_M:
+  case M_P_CAL_H:
     sprintf(name, "%u", index);
     return;
   case M_GAIN:
@@ -342,7 +418,18 @@ static void getSubmenuItemText(uint16_t index, char *name) {
   }
 }
 
-void CHCFG_init(void) { updateTxCodeListSize(); }
+void CHCFG_init(void) {
+  if (gChEd.meta.type == TYPE_BAND) {
+    menu = menuBand;
+    menuSize = ARRAY_SIZE(menuBand);
+  }
+  if (gChEd.meta.type == TYPE_CH || gChEd.meta.type == TYPE_VFO) {
+    menu = menuChVfo;
+    menuSize = ARRAY_SIZE(menuChVfo);
+  }
+
+  updateTxCodeListSize();
+}
 
 void CHCFG_deinit(void) {
   if (gChEd.meta.type == TYPE_VFO) {
@@ -358,12 +445,17 @@ static bool accept(void) {
   switch (item->type) {
   case M_F_RX:
     gFInputCallback = setRXF;
-    gFInputTempFreq = radio->rxF;
+    gFInputTempFreq = gChEd.rxF;
     APPS_run(APP_FINPUT);
     return true;
   case M_F_TX:
     gFInputCallback = setTXF;
-    gFInputTempFreq = radio->txF;
+    gFInputTempFreq = gChEd.txF;
+    APPS_run(APP_FINPUT);
+    return true;
+  case M_LAST_F:
+    gFInputCallback = setLastF;
+    gFInputTempFreq = gChEd.misc.lastUsedFreq;
     APPS_run(APP_FINPUT);
     return true;
   case M_NAME:
@@ -409,14 +501,14 @@ static void upDown(uint8_t inc) {
     IncDec8(&subMenuIndex, 0, menu[menuIndex].size, inc);
     acceptRadioConfig(&menu[menuIndex], subMenuIndex);
   } else {
-    IncDec8(&menuIndex, 0, MENU_SIZE, inc);
+    IncDec8(&menuIndex, 0, menuSize, inc);
   }
 }
 
 bool CHCFG_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld) {
     if (!gIsNumNavInput && key <= KEY_9) {
-      NUMNAV_Init(menuIndex + 1, 1, MENU_SIZE);
+      NUMNAV_Init(menuIndex + 1, 1, menuSize);
       gNumNavCallback = setMenuIndexAndRun;
     }
     if (gIsNumNavInput) {
@@ -462,7 +554,7 @@ void CHCFG_render(void) {
     UI_ShowMenu(getSubmenuItemText, item->size, subMenuIndex);
     STATUSLINE_SetText(item->name);
   } else {
-    UI_ShowMenu(getMenuItemText, ARRAY_SIZE(menu), menuIndex);
+    UI_ShowMenu(getMenuItemText, menuSize, menuIndex);
     char Output[32] = "";
     getMenuItemValue(item->type, Output);
     PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 4, POS_C, C_FILL, Output);
