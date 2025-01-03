@@ -73,6 +73,10 @@ bool SCAN_IsFast() { return scanTimeout < 10; }
 uint32_t SCAN_GetTimeout() { return scanTimeout; }
 
 void SCAN_ToggleDirection(bool up) {
+  if (RADIO_IsChMode()) {
+    channelScanFn(up);
+    return;
+  }
   if (!gIsListening && SVC_Running(SVC_SCAN)) {
     if (gScanForward == up) {
       BANDS_SelectBandRelativeByScanlist(up);
