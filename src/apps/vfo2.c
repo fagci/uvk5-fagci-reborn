@@ -103,10 +103,7 @@ static void render2VFOPart(uint8_t i) {
   }
 }
 
-void VFO2_init(void) {
-  VFO1_init();
-  gVfo1ProMode = false;
-}
+void VFO2_init(void) { VFO1_init(); }
 
 bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld && SVC_Running(SVC_SCAN) &&
@@ -133,7 +130,8 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       break;
     }
   }
-  if (VFO1_key(key, bKeyPressed, bKeyHeld)) {
+
+  if (VFO1_keyEx(key, bKeyPressed, bKeyHeld, false)) {
     return true;
   }
 

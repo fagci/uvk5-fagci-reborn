@@ -115,6 +115,6 @@ void Main(void) {
   TaskAdd("UART", uartHandle, 100, true, 0);
 
   while (true) {
-    TasksUpdate(); // TODO: check if delay not needed or something
+    TasksUpdate();
   }
 }

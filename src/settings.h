@@ -138,6 +138,8 @@ typedef struct {
 
   uint8_t activeVFO : 2;
   bool skipGarbageFrequencies : 1;
+
+  uint8_t deviation;
 } __attribute__((packed)) Settings;
 // getsize(Settings)
 

@@ -233,15 +233,15 @@ void RADIO_SetupRegisters(void) {
   BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, true);
   BK4819_WriteRegister(
       BK4819_REG_48,
-      (11u << 12) |    // ??? .. 0 ~ 15, doesn't seem to make any difference
-          (1u << 10) | // AF Rx Gain-1
-          (56 << 4) |  // AF Rx Gain-2
-          (8 << 0));   // AF DAC Gain (after Gain-1 and Gain-2)
+      (11u << 12) |   // ??? .. 0 ~ 15, doesn't seem to make any difference
+          (0 << 10) | // AF Rx Gain-1
+          (58 << 4) | // AF Rx Gain-2
+          (8 << 0));  // AF DAC Gain (after Gain-1 and Gain-2)
 
   BK4819_DisableDTMF();
 
-  BK4819_WriteRegister(0x40, (BK4819_ReadRegister(0x40) & ~(0x7FF)) | 1000 |
-                                 (1 << 12));
+  BK4819_WriteRegister(0x40, (BK4819_ReadRegister(0x40) & ~(0x7FF)) |
+                                 gSettings.deviation | (1 << 12));
 }
 
 static void setSI4732Modulation(ModulationType mod) {

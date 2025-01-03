@@ -74,6 +74,10 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   } else if (s.num == 0x73) {
     BK4819_SetAFC(v);
   } else {
+    if (s.num == BK4819_REG_40) {
+      gSettings.deviation = v * 10;
+      SETTINGS_Save();
+    }
     BK4819_SetRegValue(s, v);
   }
 }
@@ -215,7 +219,8 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+bool VFO1_keyEx(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld,
+                bool isProMode) {
   if (!SVC_Running(SVC_SCAN) && !bKeyPressed && !bKeyHeld && RADIO_IsChMode()) {
     if (!gIsNumNavInput && key <= KEY_9) {
       NUMNAV_Init(radio->channel + 1, 1, CHANNELS_GetCountMax());
@@ -227,7 +232,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     }
   }
 
-  if (gVfo1ProMode && VFOPRO_key(key, bKeyPressed, bKeyHeld)) {
+  if (isProMode && VFOPRO_key(key, bKeyPressed, bKeyHeld)) {
     return true;
   }
 
@@ -394,6 +399,10 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     }
   }
   return false;
+}
+
+bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  return VFO1_keyEx(key, bKeyPressed, bKeyHeld, gVfo1ProMode);
 }
 
 static void DrawRegs(void) {
