@@ -5,6 +5,7 @@
 #include "driver/uart.h"
 #include "external/printf/printf.h"
 #include "helper/bands.h"
+#include "helper/channels.h"
 #include "radio.h"
 #include "scheduler.h"
 #include "settings.h"
@@ -56,7 +57,7 @@ void SVC_SCAN_Init(void) {
 
   if (!gScanFn) {
     if (RADIO_IsChMode()) {
-      gScanFn = RADIO_NextCH;
+      gScanFn = CHANNELS_Next;
     } else {
       gScanFn = RADIO_NextBandFreqXBand;
     }

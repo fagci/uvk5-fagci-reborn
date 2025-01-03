@@ -10,16 +10,7 @@
 // 50 was default (ok), 60 is better, choose mid =)
 static const uint32_t DEFAULT_SCAN_TIMEOUT = 55;
 
-static int16_t scanIndex = 0;
 static uint32_t scanTimeout = DEFAULT_SCAN_TIMEOUT;
-
-static void channelScanFn(bool forward) {
-  IncDecI16(&scanIndex, 0, gScanlistSize, forward ? 1 : -1);
-  int16_t chNum = gScanlist[scanIndex];
-  radio->channel = chNum;
-  RADIO_VfoLoadCH(gSettings.activeVFO);
-  RADIO_SetupByCurrentVFO();
-}
 
 void prepareABScan() {
   uint32_t F1 = gVFO[0].rxF;
@@ -43,9 +34,8 @@ void prepareABScan() {
 }
 
 static void initChannelScan() {
-  scanIndex = 0;
   scanTimeout = DEFAULT_SCAN_TIMEOUT;
-  gScanFn = channelScanFn;
+  gScanFn = CHANNELS_Next;
 }
 
 static void initSsbScan() {
@@ -74,7 +64,7 @@ uint32_t SCAN_GetTimeout() { return scanTimeout; }
 
 void SCAN_ToggleDirection(bool up) {
   if (RADIO_IsChMode()) {
-    channelScanFn(up);
+    CHANNELS_Next(up);
     return;
   }
   if (!gIsListening && SVC_Running(SVC_SCAN)) {

@@ -67,16 +67,14 @@ uint8_t CHANNELS_Scanlists(int16_t num) {
   EEPROM_ReadBuffer(addr, &scanlists, 1);
   return scanlists;
 }
+static int16_t chScanlistIndex = 0;
 
-int16_t CHANNELS_Next(int16_t base, bool next) {
-  if (gScanlistSize == 0) {
-    return -1;
-  }
-  if (base == -1) {
-    return gScanlist[0];
-  }
-  IncDecI16(&base, 0, gScanlistSize, next);
-  return gScanlist[base];
+void CHANNELS_Next(bool next) {
+  IncDecI16(&chScanlistIndex, 0, gScanlistSize, next ? 1 : -1);
+  int16_t chNum = gScanlist[chScanlistIndex];
+  radio->channel = chNum;
+  RADIO_VfoLoadCH(gSettings.activeVFO);
+  RADIO_SetupByCurrentVFO();
 }
 
 void CHANNELS_LoadScanlist(CHTypeFilter type, uint16_t scanlistMask) {

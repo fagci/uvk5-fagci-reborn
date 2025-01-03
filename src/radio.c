@@ -905,10 +905,6 @@ bool RADIO_TuneToMR(int16_t num) {
   return false;
 }
 
-void RADIO_NextCH(bool next) {
-  RADIO_TuneToCH(CHANNELS_Next(radio->channel, next));
-}
-
 void RADIO_NextVFO(void) {
   gSettings.activeVFO = !gSettings.activeVFO;
   radio = &gVFO[gSettings.activeVFO];
@@ -929,7 +925,7 @@ void RADIO_ToggleVfoMR(void) {
     if (CHANNELS_Existing(radio->channel)) {
       RADIO_TuneToMR(radio->channel);
     } else {
-      RADIO_NextCH(true);
+      CHANNELS_Next(true);
     }
   }
   RADIO_SaveCurrentVFO();
@@ -943,7 +939,7 @@ void RADIO_UpdateSquelchLevel(bool next) {
 
 void RADIO_NextFreqNoClicks(bool next) {
   if (RADIO_IsChMode()) {
-    RADIO_NextCH(next);
+    CHANNELS_Next(next);
     return;
   }
 
