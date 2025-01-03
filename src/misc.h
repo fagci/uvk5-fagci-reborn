@@ -10,7 +10,17 @@
     b = t;                                                                     \
   }
 
+#ifndef MIN
+#define MIN(a, b)                                                              \
+  ({                                                                           \
+    __typeof__(a) _a = (a);                                                    \
+    __typeof__(b) _b = (b);                                                    \
+    _a < _b ? _a : _b;                                                         \
+  })
+#endif
+
 char IsPrintable(char ch);
+unsigned int SQRT16(unsigned int value);
 
 #define MHZ 100000
 

@@ -35,29 +35,32 @@ static uint8_t allBandsSize = 0;
 
 static uint8_t scanlistBandIndex;
 
-static const PowerCalibration DEFAULT_POWER_CALIB = {43, 68, 140};    // Standard UV-K6 Power Calibration
-//static const PowerCalibration DEFAULT_POWER_CALIB = {41, 65, 140};  // Modified UV-K6 Power Calibrations BFU550 A + Seperated Coils
-//static const PowerCalibration DEFAULT_POWER_CALIB = {40, 65, 140};  // reborn orginal
+static const PowerCalibration DEFAULT_POWER_CALIB = {
+    43, 68, 140}; // Standard UV-K6 Power Calibration
+// static const PowerCalibration DEFAULT_POWER_CALIB = {41, 65, 140};  //
+// Modified UV-K6 Power Calibrations BFU550 A + Seperated Coils static const
+// PowerCalibration DEFAULT_POWER_CALIB = {40, 65, 140};  // reborn orginal
 
 PCal POWER_CALIBRATIONS[] = {
-   /*
-    (PCal){.s = 14400000, .e = 14799999, .c = {38, 63, 138}},         // reborn original
-    (PCal){.s = 14800000, .e = 17399999, .c = {37, 60, 130}},
-    (PCal){.s = 17400000, .e = 24499999, .c = {46, 55, 140}},
-    (PCal){.s = 24500000, .e = 26999999, .c = {58, 80, 140}},
-    (PCal){.s = 27000000, .e = 42999999, .c = {77, 95, 140}},
-    (PCal){.s = 43000000, .e = 46999999, .c = DEFAULT_POWER_CALIB},
-    (PCal){.s = 47000000, .e = 61999999, .c = {50, 100, 140}},
-    
-  */
-    
+    /*
+     (PCal){.s = 14400000, .e = 14799999, .c = {38, 63, 138}},         // reborn
+     original (PCal){.s = 14800000, .e = 17399999, .c = {37, 60, 130}},
+     (PCal){.s = 17400000, .e = 24499999, .c = {46, 55, 140}},
+     (PCal){.s = 24500000, .e = 26999999, .c = {58, 80, 140}},
+     (PCal){.s = 27000000, .e = 42999999, .c = {77, 95, 140}},
+     (PCal){.s = 43000000, .e = 46999999, .c = DEFAULT_POWER_CALIB},
+     (PCal){.s = 47000000, .e = 61999999, .c = {50, 100, 140}},
+
+   */
+
     // Standard UV-K6 Power Calibration
-   
+
     (PCal){.s = 13500000, .e = 16499999, .c = {38, 65, 140}},
     (PCal){.s = 16500000, .e = 20499999, .c = {36, 52, 140}},
     (PCal){.s = 20500000, .e = 21499999, .c = {41, 64, 135}},
     (PCal){.s = 21500000, .e = 21999999, .c = {44, 46, 50}},
-  //(PCal){.s = 22000000, .e = 23999999, .c = {0, 0, 0}},     // no power output power
+    //(PCal){.s = 22000000, .e = 23999999, .c = {0, 0, 0}},     // no power
+    //output power
     (PCal){.s = 24000000, .e = 26499999, .c = {62, 82, 130}},
     (PCal){.s = 26500000, .e = 26999999, .c = {65, 92, 140}},
     (PCal){.s = 27000000, .e = 27499999, .c = {73, 103, 140}},
@@ -68,37 +71,38 @@ PCal POWER_CALIBRATIONS[] = {
     (PCal){.s = 33500000, .e = 34499999, .c = {63, 98, 140}},
     (PCal){.s = 34500000, .e = 35499999, .c = {52, 89, 140}},
     (PCal){.s = 35500000, .e = 36499999, .c = {46, 74, 140}},
-  //(PCal){.s = 36500000, .e = 46999999, .c = DEFAULT_POWER_CALIB},     // no need to add this line as it will drop to the default if not found ?
+    //(PCal){.s = 36500000, .e = 46999999, .c = DEFAULT_POWER_CALIB},     // no
+    //need to add this line as it will drop to the default if not found ?
     (PCal){.s = 47000000, .e = 61999999, .c = {46, 77, 140}},
 
-/*
+    /*
 
-   
-   // Modified UV-K6 Power Calibrations BFU550 A + Seperated Coils
-   
-  //(PCal){.s = 14400000, .e = 19499999, .c = DEFAULT_POWER_CALIB},
-    (PCal){.s = 19500000, .e = 20499999, .c = {49, 78, 140}},
-    (PCal){.s = 20500000, .e = 21499999, .c = {63, 96, 140}},
-    (PCal){.s = 21500000, .e = 21999999, .c = {82, 108, 140}},
-    (PCal){.s = 22000000, .e = 22499999, .c = {96, 115, 140}},
-    (PCal){.s = 22500000, .e = 23499999, .c = {93, 106, 120}},
-  //(PCal){.s = 23500000, .e = 23999999, .c = {0, 0, 0}},       // no power output power
-    (PCal){.s = 24000000, .e = 25499999, .c = {50, 78, 135}},
-    (PCal){.s = 25500000, .e = 26999999, .c = {48, 62, 108}},
-    (PCal){.s = 27000000, .e = 27499999, .c = {50, 73, 118}},
-    (PCal){.s = 27500000, .e = 28499999, .c = {59, 85, 130}},
-    (PCal){.s = 28500000, .e = 29499999, .c = {51, 90, 140}},
-    (PCal){.s = 29500000, .e = 30499999, .c = {74, 106, 140}},
-    (PCal){.s = 30500000, .e = 33499999, .c = {85, 109, 140}},
-    (PCal){.s = 33500000, .e = 34499999, .c = {79, 106, 140}},
-    (PCal){.s = 34500000, .e = 35499999, .c = {65, 98, 140}},
-    (PCal){.s = 35500000, .e = 38499999, .c = {48, 85, 140}},
-    (PCal){.s = 38500000, .e = 39499999, .c = {44, 68, 140}},
-    (PCal){.s = 39500000, .e = 42499999, .c = {38, 59, 140}},
-  //(PCal){.s = 42500000, .e = 46900000, .c = DEFAULT_POWER_CALIB},
-    (PCal){.s = 47000000, .e = 61999999, .c = {46, 75, 140}},
 
-*/
+       // Modified UV-K6 Power Calibrations BFU550 A + Seperated Coils
+
+      //(PCal){.s = 14400000, .e = 19499999, .c = DEFAULT_POWER_CALIB},
+        (PCal){.s = 19500000, .e = 20499999, .c = {49, 78, 140}},
+        (PCal){.s = 20500000, .e = 21499999, .c = {63, 96, 140}},
+        (PCal){.s = 21500000, .e = 21999999, .c = {82, 108, 140}},
+        (PCal){.s = 22000000, .e = 22499999, .c = {96, 115, 140}},
+        (PCal){.s = 22500000, .e = 23499999, .c = {93, 106, 120}},
+      //(PCal){.s = 23500000, .e = 23999999, .c = {0, 0, 0}},       // no power
+      output power (PCal){.s = 24000000, .e = 25499999, .c = {50, 78, 135}},
+        (PCal){.s = 25500000, .e = 26999999, .c = {48, 62, 108}},
+        (PCal){.s = 27000000, .e = 27499999, .c = {50, 73, 118}},
+        (PCal){.s = 27500000, .e = 28499999, .c = {59, 85, 130}},
+        (PCal){.s = 28500000, .e = 29499999, .c = {51, 90, 140}},
+        (PCal){.s = 29500000, .e = 30499999, .c = {74, 106, 140}},
+        (PCal){.s = 30500000, .e = 33499999, .c = {85, 109, 140}},
+        (PCal){.s = 33500000, .e = 34499999, .c = {79, 106, 140}},
+        (PCal){.s = 34500000, .e = 35499999, .c = {65, 98, 140}},
+        (PCal){.s = 35500000, .e = 38499999, .c = {48, 85, 140}},
+        (PCal){.s = 38500000, .e = 39499999, .c = {44, 68, 140}},
+        (PCal){.s = 39500000, .e = 42499999, .c = {38, 59, 140}},
+      //(PCal){.s = 42500000, .e = 46900000, .c = DEFAULT_POWER_CALIB},
+        (PCal){.s = 47000000, .e = 61999999, .c = {46, 75, 140}},
+
+    */
 
 };
 
@@ -339,6 +343,7 @@ void BANDS_Select(int16_t num) {
   radio->gainIndex = gCurrentBand.gainIndex;
   radio->modulation = gCurrentBand.modulation;
   radio->squelch = gCurrentBand.squelch;
+  radio->allowTx = gCurrentBand.allowTx;
   RADIO_SaveCurrentVFO();
 }
 

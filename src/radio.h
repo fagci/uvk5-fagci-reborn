@@ -92,6 +92,7 @@ uint8_t RADIO_GetSNR(void);
 uint16_t RADIO_GetS();
 uint32_t RADIO_GetTXF(void);
 uint32_t RADIO_GetTXFEx(CH *vfo);
+uint32_t RADIO_GetTxPower(uint32_t txF);
 void RADIO_ToggleBK1080(bool on);
 
 Loot *RADIO_UpdateMeasurements();

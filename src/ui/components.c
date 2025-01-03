@@ -17,6 +17,18 @@ void UI_Battery(uint8_t Level) {
   }
 }
 
+void UI_TxBar(uint8_t y) {
+  const uint8_t BAR_LEFT_MARGIN = 0;
+  const uint8_t BAR_WIDTH = LCD_WIDTH - BAR_LEFT_MARGIN - 22;
+  const uint8_t BAR_BASE = y + 7;
+  PrintMediumEx(LCD_WIDTH - 1, BAR_BASE, 2, true, "%u",
+                RADIO_GetTxPower(RADIO_GetTXF()));
+  const unsigned int level = MIN(BK4819_GetVoiceAmplitude() * 8, 65535u);
+  uint8_t audioW =
+      ConvertDomain(MIN(SQRT16(level), 124u), 0, 124, 0, BAR_WIDTH);
+  FillRect(BAR_LEFT_MARGIN, y + 2, audioW, 4, C_FILL);
+}
+
 void UI_RSSIBar(uint8_t y) {
   uint16_t rssi = gLoot[gSettings.activeVFO].rssi;
   if (rssi == 0) {

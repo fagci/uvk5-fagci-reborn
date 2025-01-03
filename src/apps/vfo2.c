@@ -36,6 +36,7 @@ static void render2VFOPart(uint8_t i) {
     FillRect(0, bl - 14, 28, 7, C_FILL);
     if (gTxState == TX_ON) {
       PrintMedium(0, bl, "TX");
+      UI_TxBar(31);
     }
   }
 
@@ -151,7 +152,13 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   return false;
 }
 
-void VFO2_update(void) { VFO1_update(); }
+#include "../svc_render.h"
+void VFO2_update(void) {
+  VFO1_update();
+  if (gTxState == TX_ON && Now() - gLastRender > 250) {
+    gRedrawScreen = true;
+  }
+}
 
 void VFO2_render(void) {
   STATUSLINE_renderCurrentBand();
