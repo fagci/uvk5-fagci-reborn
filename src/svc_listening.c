@@ -96,6 +96,11 @@ Loot *RADIO_UpdateMeasurements(void) {
   if (RADIO_GetRadio() != RADIO_BK4819 && Now() - lastMsmUpdate <= 1000) {
     return msm;
   }
+  // throttle to prevent hiss
+  if (RADIO_GetRadio() == RADIO_BK4819 && gIsListening &&
+      Now() - lastMsmUpdate <= 250) {
+    return msm;
+  }
   if (!gIsListening && SCAN_IsFast()) {
     BK4819_SetFrequency(radio->rxF);
     BK4819_WriteRegister(BK4819_REG_30, 0x0200);
@@ -114,7 +119,7 @@ Loot *RADIO_UpdateMeasurements(void) {
     toneFound = true;
   }
 
-  if (!SCAN_IsFast() && RADIO_GetRadio() == RADIO_BK4819) {
+  if ((!SCAN_IsFast() || gIsListening) && RADIO_GetRadio() == RADIO_BK4819) {
     while (BK4819_ReadRegister(BK4819_REG_0C) & 1u) {
       BK4819_WriteRegister(BK4819_REG_02, 0);
 
