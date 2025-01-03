@@ -93,8 +93,6 @@ void CHANNELS_LoadScanlist(CHTypeFilter type, uint16_t scanlistMask) {
       gScanlistSize++;
     }
   }
-  Log("SL t=%s, sl=%u, %u items", CH_TYPE_NAMES[type], scanlistMask,
-      gScanlistSize);
 }
 
 void CHANNELS_LoadBlacklistToLoot() {

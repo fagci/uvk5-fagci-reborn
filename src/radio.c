@@ -41,6 +41,7 @@ Loot gLoot[2] = {0};
 
 bool gIsListening = false;
 bool gMonitorMode = false;
+uint8_t gCurrentTxPower = 0;
 TXState gTxState = TX_UNKNOWN;
 bool gShowAllRSSI = false;
 
@@ -553,6 +554,24 @@ uint32_t RADIO_GetTxPower(uint32_t txF) {
   return Clamp(calculateOutputPower(txF), 0, 0x91);
 }
 
+static void RADIO_UpdateAMSSBPower() {
+  uint32_t txF = RADIO_GetTXF();
+  uint8_t amplitude = BK4819_GetVoiceAmplitude() >> 7;
+
+  uint8_t carrierPercentage = RADIO_IsSSB() ? 0 : 50;
+  uint8_t maxPower = RADIO_GetTxPower(txF);
+
+  if (carrierPercentage == 0) {
+    gCurrentTxPower = (uint8_t)((amplitude * maxPower) / 255);
+  } else {
+    uint8_t carrierAmplitude = (carrierPercentage * maxPower) / 100;
+    uint8_t modulationDepth = maxPower - carrierAmplitude;
+    gCurrentTxPower = carrierAmplitude + (modulationDepth * amplitude / 255);
+  }
+
+  BK4819_SetupPowerAmplifier(gCurrentTxPower, txF);
+}
+
 void RADIO_ToggleTX(bool on) {
   uint32_t txF = RADIO_GetTXF();
   uint8_t power = RADIO_GetTxPower(txF);
@@ -583,11 +602,17 @@ void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power, bool paEnabled) {
     SYSTEM_DelayMs(10);
     BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, paEnabled);
     SYSTEM_DelayMs(5);
+    gCurrentTxPower = power;
     BK4819_SetupPowerAmplifier(power, txF);
     SYSTEM_DelayMs(10);
 
     RADIO_EnableCxCSS();
+
+    if (radio->modulation == MOD_AM || RADIO_IsSSB()) {
+      TaskAdd("AM TX", RADIO_UpdateAMSSBPower, 0, true, 0);
+    }
   } else if (lastOn) {
+    TaskRemove(RADIO_UpdateAMSSBPower);
     BK4819_ExitDTMF_TX(true); // also prepares to tx ste
 
     sendEOT();
@@ -595,6 +620,7 @@ void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power, bool paEnabled) {
     BOARD_ToggleRed(false);
     BK4819_TurnsOffTones_TurnsOnRX();
 
+    gCurrentTxPower = 0;
     BK4819_SetupPowerAmplifier(0, 0);
     BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, false);
     BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, true);
