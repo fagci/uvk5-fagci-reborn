@@ -15,7 +15,7 @@ Band gCurrentBand;
 // to use instead of predefined when we need to keep step, etc
 Band defaultBand = {
     .meta.readonly = true,
-    .meta.type = TYPE_BAND,
+    .meta.type = TYPE_BAND_DETACHED,
     .name = "-",
     .step = STEP_25_0kHz,
     .bw = BK4819_FILTER_BW_12k,
@@ -204,7 +204,7 @@ static const uint8_t OFS5 = OFS4 + ARRAY_SIZE(BANDS_CB);
 static const uint8_t OFS6 = OFS5 + ARRAY_SIZE(BANDS_BCAST_FM);
 static const uint8_t OFS7 = OFS6 + ARRAY_SIZE(BANDS_VHF_UHF);
 
-static int16_t bandIndexByFreq(uint32_t f) {
+static int16_t bandIndexByFreq(uint32_t f, bool preciseStep) {
   int16_t newBandIndex = -1;
   uint32_t smallestDiff = UINT32_MAX;
   for (uint8_t i = 0; i < allBandsSize; ++i) {
@@ -212,7 +212,7 @@ static int16_t bandIndexByFreq(uint32_t f) {
     if (f < b->s || f > b->e) {
       continue;
     }
-    if (f % StepFrequencyTable[b->step]) {
+    if (preciseStep & (f % StepFrequencyTable[b->step])) {
       continue;
     }
     uint32_t diff = DeltaF(b->s, f) + DeltaF(b->e, f);
@@ -328,7 +328,7 @@ void BANDS_Select(int16_t num) {
   for (int16_t i = 0; i < gScanlistSize; ++i) {
     if (gScanlist[i] == num) {
       scanlistBandIndex = i;
-      allBandIndex = bandIndexByFreq(gCurrentBand.rxF);
+      allBandIndex = bandIndexByFreq(gCurrentBand.rxF, true);
       Log("SL band index %u", i);
       break;
     }
@@ -351,7 +351,7 @@ void BANDS_SelectScan(int8_t i) {
 }
 
 Band BANDS_ByFrequency(uint32_t f) {
-  int16_t index = bandIndexByFreq(f);
+  int16_t index = bandIndexByFreq(f, false);
   if (index >= 0) {
     Band b;
     CHANNELS_Load(allBands[index].mr, &b);
@@ -366,7 +366,7 @@ uint8_t BANDS_GetScanlistIndex() { return scanlistBandIndex; }
  * Select band, return if changed
  */
 bool BANDS_SelectByFrequency(uint32_t f) {
-  int16_t newBandIndex = bandIndexByFreq(f);
+  int16_t newBandIndex = bandIndexByFreq(f, false);
   if (allBandIndex != newBandIndex) {
     allBandIndex = newBandIndex;
     if (allBandIndex >= 0) {
@@ -396,6 +396,10 @@ void BANDS_SaveCurrent(void) {
 }
 
 PowerCalibration BANDS_GetPowerCalib(uint32_t f) {
+  Band b = BANDS_ByFrequency(f);
+  if (b.meta.type == TYPE_BAND) { // not TYPE_BAND_DETACHED
+    return b.misc.powCalib;
+  }
   for (uint8_t ci = 0; ci < ARRAY_SIZE(POWER_CALIBRATIONS); ++ci) {
     PCal cal = POWER_CALIBRATIONS[ci];
     if (cal.s <= f && f <= cal.e) {
