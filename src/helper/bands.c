@@ -60,7 +60,7 @@ PCal POWER_CALIBRATIONS[] = {
     (PCal){.s = 20500000, .e = 21499999, .c = {41, 64, 135}},
     (PCal){.s = 21500000, .e = 21999999, .c = {44, 46, 50}},
     //(PCal){.s = 22000000, .e = 23999999, .c = {0, 0, 0}},     // no power
-    //output power
+    // output power
     (PCal){.s = 24000000, .e = 26499999, .c = {62, 82, 130}},
     (PCal){.s = 26500000, .e = 26999999, .c = {65, 92, 140}},
     (PCal){.s = 27000000, .e = 27499999, .c = {73, 103, 140}},
@@ -72,7 +72,7 @@ PCal POWER_CALIBRATIONS[] = {
     (PCal){.s = 34500000, .e = 35499999, .c = {52, 89, 140}},
     (PCal){.s = 35500000, .e = 36499999, .c = {46, 74, 140}},
     //(PCal){.s = 36500000, .e = 46999999, .c = DEFAULT_POWER_CALIB},     // no
-    //need to add this line as it will drop to the default if not found ?
+    // need to add this line as it will drop to the default if not found ?
     (PCal){.s = 47000000, .e = 61999999, .c = {46, 77, 140}},
 
     /*
@@ -292,7 +292,7 @@ Band BANDS_GetDefaultBand(uint8_t i) {
   b.txF = sb.e;
   b.misc.lastUsedFreq = sb.s;
 
-  b.misc.powCalib = BANDS_GetPowerCalib((b.txF - b.rxF) / 2);
+  b.misc.powCalib = (PowerCalibration){0, 0, 0};
   Log("BAND CT=%u", b.code.tx.type);
 
   return b;
@@ -402,7 +402,8 @@ void BANDS_SaveCurrent(void) {
 
 PowerCalibration BANDS_GetPowerCalib(uint32_t f) {
   Band b = BANDS_ByFrequency(f);
-  if (b.meta.type == TYPE_BAND) { // not TYPE_BAND_DETACHED
+  if (b.meta.type == TYPE_BAND &&
+      b.misc.powCalib.e > 0) { // not TYPE_BAND_DETACHED
     return b.misc.powCalib;
   }
   for (uint8_t ci = 0; ci < ARRAY_SIZE(POWER_CALIBRATIONS); ++ci) {

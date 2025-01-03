@@ -69,7 +69,7 @@ static void render2VFOPart(uint8_t i) {
     } else {
       PrintBigDigitsEx(LCD_WIDTH - 19, bl, POS_R, C_FILL, "%4u.%03u", fp1, fp2);
       PrintMediumBoldEx(LCD_WIDTH, bl, POS_R, C_FILL, "%02u", fp3);
-      PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "VFO");
+      PrintSmallEx(14, bl - 9, POS_C, C_INVERT, vfo->name);
     }
     PrintSmallEx(LCD_WIDTH - 1, bl - 9, POS_R, C_FILL, mod);
   }
@@ -167,7 +167,7 @@ void VFO2_render(void) {
 
   if (gIsListening || SVC_Running(SVC_SCAN) || gMonitorMode) {
     render2VFOPart(gSettings.activeVFO);
-    if (gIsListening && gMonitorMode) {
+    if (gIsListening) {
       SP_RenderGraph();
     } else {
       SP_Render(&gCurrentBand);

@@ -474,5 +474,8 @@ void VFO1_render(void) {
     PrintSmallEx(0, BASE, POS_L, C_FILL, "STP %d.%02d", step / 100, step % 100);
 
     DrawRegs();
+  } else {
+    FillRect(0, 22 - 14, 28, 7, C_FILL);
+    PrintSmallEx(14, 22 - 9, POS_C, C_INVERT, radio->name);
   }
 }

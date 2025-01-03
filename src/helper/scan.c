@@ -80,7 +80,7 @@ void SCAN_ToggleDirection(bool up) {
     }
     gScanForward = up;
   }
-  RADIO_NextBandFreqXBand(up);
+  RADIO_NextBandFreqXBandEx(up, false);
 }
 
 void SCAN_StartAB() {
