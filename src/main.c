@@ -26,7 +26,7 @@ static void Boot(AppType_t appToRun) {
   RADIO_SetupRegisters();
 
   SVC_Toggle(SVC_KEYBOARD, true, 10);
-  SVC_Toggle(SVC_LISTEN, true, 10);
+  SVC_Toggle(SVC_LISTEN, true, 0);
   SVC_Toggle(SVC_APPS, true, 1);
   SVC_Toggle(SVC_SYS, true, 1000);
 

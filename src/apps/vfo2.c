@@ -163,18 +163,18 @@ void VFO2_render(void) {
   SPECTRUM_Y = 6 + 35 * (1 - gSettings.activeVFO);
   SPECTRUM_H = 22;
 
-  if (gIsListening || SVC_Running(SVC_SCAN) || gMonitorMode) {
+  if (SVC_Running(SVC_SCAN) || gMonitorMode) {
     render2VFOPart(gSettings.activeVFO);
-    if (gIsListening) {
+    if (gMonitorMode) {
       SP_RenderGraph();
     } else {
       SP_Render(&gCurrentBand);
-      if (isScanTuneMode) {
-        PrintSmallEx(0, SPECTRUM_Y + 6, POS_L, C_FILL, "%ums",
-                     gSettings.scanTimeout);
-        PrintSmallEx(LCD_WIDTH, SPECTRUM_Y + 6, POS_R, C_FILL, "SQ %u",
-                     gNoiseOpenDiff);
-      }
+    }
+    if (isScanTuneMode) {
+      PrintSmallEx(0, SPECTRUM_Y + 6, POS_L, C_FILL, "%ums",
+                   gSettings.scanTimeout);
+      PrintSmallEx(LCD_WIDTH, SPECTRUM_Y + 6, POS_R, C_FILL, "SQ %u",
+                   gNoiseOpenDiff);
     }
   } else {
     render2VFOPart(0);

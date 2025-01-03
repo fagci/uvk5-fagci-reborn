@@ -45,7 +45,6 @@ static void initSsbScan() {
 
 static void startScan() {
   scanTimeout = gSettings.scanTimeout; // fast freq scan
-  Log("TO: %u", scanTimeout);
   if (gScanlistSize == 0 && !RADIO_IsSSB()) {
     SCAN_Stop();
     return;

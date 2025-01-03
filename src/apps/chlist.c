@@ -215,7 +215,6 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_F:
       gChNum = chNum;
       CHANNELS_Load(gChNum, &gChEd);
-      Log("CT=%u", gChEd.code.tx.type);
       APPS_run(APP_CH_CFG);
       return true;
     case KEY_EXIT:

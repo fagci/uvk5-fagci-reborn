@@ -96,7 +96,6 @@ Loot *RADIO_UpdateMeasurements(void) {
   if (RADIO_GetRadio() != RADIO_BK4819 && Now() - lastMsmUpdate <= 1000) {
     return msm;
   }
-  lastMsmUpdate = Now();
   if (!gIsListening && SCAN_IsFast()) {
     BK4819_SetFrequency(radio->rxF);
     BK4819_WriteRegister(BK4819_REG_30, 0x0200);
@@ -104,16 +103,18 @@ Loot *RADIO_UpdateMeasurements(void) {
     SYSTEM_DelayMs(SCAN_GetTimeout()); // (X_X)
   }
   msm->rssi = RADIO_GetRSSI();
+  lastMsmUpdate = Now();
   if (SCAN_IsFast()) {
     msm->noise = BK4819_GetNoise();
   }
   msm->open = RADIO_IsSquelchOpen(msm);
+  // Log("U MSM, o=%u, r=%u", msm->open, msm->rssi);
 
   if (radio->code.rx.type == CODE_TYPE_OFF) {
     toneFound = true;
   }
 
-  if (RADIO_GetRadio() == RADIO_BK4819) {
+  if (!SCAN_IsFast() && RADIO_GetRadio() == RADIO_BK4819) {
     while (BK4819_ReadRegister(BK4819_REG_0C) & 1u) {
       BK4819_WriteRegister(BK4819_REG_02, 0);
 
@@ -174,6 +175,7 @@ Loot *RADIO_UpdateMeasurements(void) {
       msm->open = false;
     }
   }
+
   if (RADIO_GetRadio() == RADIO_BK4819) {
     LOOT_Update(msm);
   }

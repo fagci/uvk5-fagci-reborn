@@ -6,6 +6,7 @@
 #include "external/printf/printf.h"
 #include "helper/bands.h"
 #include "helper/channels.h"
+#include "helper/scan.h"
 #include "radio.h"
 #include "scheduler.h"
 #include "settings.h"
@@ -37,7 +38,7 @@ void (*gScanFn)(bool) = NULL;
 
 static void next(void) {
   gScanFn(gScanForward);
-  Log("scan new f=%u", radio->rxF);
+  // Log("SCN f=%u", radio->rxF);
   lastSettedF = radio->rxF;
   SetTimeout(&timeout, 0); // will be passed at next update
   if (gScanRedraw && Now() - lastScanRedraw > 250) {
@@ -84,7 +85,8 @@ void SVC_SCAN_Update(void) {
                              : SCAN_TIMEOUTS[gSettings.sqClosedTimeout]);
   }
 
-  if (CheckTimeout(&timeout)) {
+  if ((SCAN_IsFast() && gLoot[gSettings.activeVFO].rssi && !gIsListening) ||
+      CheckTimeout(&timeout)) {
     next();
     return;
   }

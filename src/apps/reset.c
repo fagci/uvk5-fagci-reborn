@@ -63,7 +63,6 @@ static void selectEeprom(EEPROMType t) {
   total.settings = 1;
   total.vfos = ARRAY_SIZE(gVFO);
   total.bands = BANDS_DefaultCount();
-  Log("BANDS COUNT = %u", total.bands);
   total.channels = total.mr - total.vfos - total.bands;
 }
 
@@ -135,7 +134,6 @@ static bool resetFull() {
 
   if (stats.bands < total.bands) {
     Band b = BANDS_GetDefaultBand(stats.bands);
-    Log("B: %s", b.name);
     if (!hasSi && b.txF < BK4819_F_MIN) {
       // skip unsupported bands
       stats.bands++;

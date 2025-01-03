@@ -293,7 +293,6 @@ Band BANDS_GetDefaultBand(uint8_t i) {
   b.misc.lastUsedFreq = sb.s;
 
   b.misc.powCalib = (PowerCalibration){0, 0, 0};
-  Log("BAND CT=%u", b.code.tx.type);
 
   return b;
 }
@@ -328,12 +327,12 @@ bool BANDS_InRange(const uint32_t f, const Band p) {
 // Set gCurrentBand, sets internal cursor in SL
 void BANDS_Select(int16_t num) {
   CHANNELS_Load(num, &gCurrentBand);
-  Log("Load Band %s", gCurrentBand.name);
+  // Log("Load Band %s", gCurrentBand.name);
   for (int16_t i = 0; i < gScanlistSize; ++i) {
     if (gScanlist[i] == num) {
       scanlistBandIndex = i;
       allBandIndex = bandIndexByFreq(gCurrentBand.rxF, true);
-      Log("SL band index %u", i);
+      // Log("SL band index %u", i);
       break;
     }
   }

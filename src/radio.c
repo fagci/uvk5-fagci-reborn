@@ -241,7 +241,7 @@ void RADIO_SetupRegisters(void) {
   BK4819_DisableDTMF();
 
   BK4819_WriteRegister(0x40, (BK4819_ReadRegister(0x40) & ~(0x7FF)) |
-                                 gSettings.deviation | (1 << 12));
+                                 (gSettings.deviation * 10) | (1 << 12));
 }
 
 static void setSI4732Modulation(ModulationType mod) {
@@ -914,7 +914,7 @@ void RADIO_TuneToCH(int16_t num) {
 }
 
 bool RADIO_TuneToMR(int16_t num) {
-  Log("Tune to MR %u", num);
+  // Log("Tune to MR %u", num);
   if (CHANNELS_Existing(num)) {
     switch (CHANNELS_GetMeta(num).type) {
     case TYPE_CH:
@@ -1031,11 +1031,18 @@ bool RADIO_NextBandFreqXBandEx(bool next, bool precise) {
   }
   if (switchBand) {
     SP_Init(&gCurrentBand);
+    if (SCAN_IsFast()) {
+      RADIO_SetupBandParams();
+    }
   }
 
-  RADIO_SwitchRadio();
-  RADIO_SetupBandParams();
-  RADIO_TuneToPure(radio->rxF, precise);
+  if (!SCAN_IsFast()) {
+    RADIO_SwitchRadio();
+    RADIO_SetupBandParams();
+    RADIO_TuneToPure(radio->rxF, precise);
+  } else {
+    LOOT_Replace(&gLoot[gSettings.activeVFO], radio->rxF);
+  }
   return switchBand;
 }
 

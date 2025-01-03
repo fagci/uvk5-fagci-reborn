@@ -362,6 +362,10 @@ static void onSubChange(void) {
   case M_CONTRAST:
     gSettings.contrast = subMenuIndex;
     break;
+  case M_FLT_BOUND:
+    gSettings.bound_240_280 = subMenuIndex;
+    BK4819_SelectFilter(radio->rxF);
+    break;
   default:
     break;
   }

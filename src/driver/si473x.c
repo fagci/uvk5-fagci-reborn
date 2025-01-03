@@ -53,7 +53,7 @@ void waitToSend() {
 #include "uart.h"
 
 bool SI47XX_downloadPatch() {
-  Log("DL patch");
+  // Log("DL patch");
   UI_ShowWait();
 
   uint8_t buf[248];
@@ -71,7 +71,7 @@ bool SI47XX_downloadPatch() {
     }
   }
   // SYSTEM_DelayMs(250);
-  Log("DL patch OK");
+  // Log("DL patch OK");
   return true;
 }
 

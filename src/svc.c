@@ -1,4 +1,5 @@
 #include "svc.h"
+#include "driver/uart.h"
 #include "scheduler.h"
 #include "svc_apps.h"
 #include "svc_bat_save.h"
@@ -36,6 +37,7 @@ bool SVC_Running(Svc svc) { return TaskExists(services[svc].update); }
 
 void SVC_Toggle(Svc svc, bool on, uint16_t interval) {
   Service *s = &services[svc];
+  Log("%s=%u,t=%u", s->name, on, interval);
   bool exists = TaskExists(s->update);
   if (on) {
     if (!exists) {
