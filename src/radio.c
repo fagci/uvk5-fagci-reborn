@@ -667,10 +667,11 @@ void RADIO_SetupByCurrentVFO(void) {
   if (!SVC_Running(SVC_SCAN) &&
       (
           // to not change current band if overlapping
-          !(radio->fixedBoundsMode && gCurrentBand.rxF > 0) ||
+          !(radio->fixedBoundsMode && gCurrentBand.meta.type == TYPE_BAND)
           // if band not in range, try to select one
-          !BANDS_InRange(radio->rxF, gCurrentBand))) {
-    BANDS_SelectByFrequency(radio->rxF);
+          || !BANDS_InRange(radio->rxF, gCurrentBand))) {
+    // BANDS_SelectByFrequency(radio->rxF);
+    gCurrentBand = BANDS_ByFrequency(radio->rxF);
   }
 
   RADIO_SwitchRadio();
@@ -1043,6 +1044,7 @@ bool RADIO_NextBandFreqXBandEx(bool next, bool precise) {
   } else {
     LOOT_Replace(&gLoot[gSettings.activeVFO], radio->rxF);
   }
+  onVfoUpdate();
   return switchBand;
 }
 
@@ -1054,6 +1056,7 @@ void RADIO_UpdateStep(bool inc) {
   uint8_t step = radio->step;
   IncDec8(&step, 0, STEP_500_0kHz, inc ? 1 : -1);
   radio->step = step;
+  radio->fixedBoundsMode = false;
   onVfoUpdate();
 }
 

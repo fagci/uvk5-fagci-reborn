@@ -23,6 +23,7 @@ int16_t gChNum = -1;
 
 static MenuItem *menu;
 static MenuItem menuChVfo[] = {
+    {"Type", M_TYPE, ARRAY_SIZE(CH_TYPE_NAMES)},
     {"Name", M_NAME, 0},
     {"Step", M_STEP, ARRAY_SIZE(StepFrequencyTable)},
     {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions)},
@@ -41,11 +42,11 @@ static MenuItem menuChVfo[] = {
     {"Scrambler", M_SCRAMBLER, 16},
     {"Enable TX", M_TX, 2},
     {"Readonly", M_READONLY, 2},
-    {"Type", M_TYPE, ARRAY_SIZE(CH_TYPE_NAMES)},
     {"Save", M_SAVE, 0},
 };
 
 static MenuItem menuBand[] = {
+    {"Type", M_TYPE, ARRAY_SIZE(CH_TYPE_NAMES)},
     {"Name", M_NAME, 0},
     {"Step", M_STEP, ARRAY_SIZE(StepFrequencyTable)},
     {"Modulation", M_MODULATION, ARRAY_SIZE(modulationTypeOptions)},
@@ -67,7 +68,6 @@ static MenuItem menuBand[] = {
     {"Scrambler", M_SCRAMBLER, 16},
     {"Enable TX", M_TX, 2},
     {"Readonly", M_READONLY, 2},
-    {"Type", M_TYPE, ARRAY_SIZE(CH_TYPE_NAMES)},
     {"Save", M_SAVE, 0},
 };
 static uint8_t menuSize = 0;
@@ -209,6 +209,9 @@ static void acceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
     break;
   case M_STEP:
     gChEd.step = subMenuIndex;
+    if (gChEd.meta.type == TYPE_VFO) {
+      gChEd.fixedBoundsMode = false;
+    }
     break;
   case M_SQ_TYPE:
     gChEd.squelch.type = subMenuIndex;
@@ -473,10 +476,16 @@ static bool accept(void) {
     gChListFilter = TYPE_FILTER_CH_SAVE;
     APPS_run(APP_CH_LIST);
     return true;
+  case M_STEP:
+    if (gChEd.meta.type == TYPE_VFO) {
+      gChEd.fixedBoundsMode = false;
+    }
+    break;
   default:
     break;
   }
-  updateTxCodeListSize();
+  // updateTxCodeListSize();
+  CHCFG_init();
   if (isSubMenu) {
     acceptRadioConfig(item, subMenuIndex);
     isSubMenu = false;
