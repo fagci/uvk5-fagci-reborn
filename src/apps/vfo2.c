@@ -13,7 +13,7 @@
 #include "../ui/statusline.h"
 #include "vfo1.h"
 
-static bool isScanTuneMode = false;
+static bool isScanTuneMode = true;
 
 static void render2VFOPart(uint8_t i) {
   const uint8_t BASE = 21;
@@ -127,7 +127,7 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       IncDec8(&gNoiseOpenDiff, 1, 32, -1);
       return true;
     default:
-      break;
+      return false;
     }
   }
 

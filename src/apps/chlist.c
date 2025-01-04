@@ -153,6 +153,12 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     switch (key) {
+    case KEY_0:
+      gSettings.currentScanlist = 0;
+      SETTINGS_Save();
+      CHANNELS_LoadScanlist(TYPE_FILTER_CH, gSettings.currentScanlist);
+      CHLIST_init();
+      break;
     default:
       break;
     }
