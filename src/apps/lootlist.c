@@ -154,7 +154,7 @@ static void saveLootToCh(const Loot *loot, int16_t chnum, uint16_t scanlist) {
   CHANNELS_Save(chnum, &ch);
 }
 
-static void saveToFreeChannels(bool saveWhitelist, uint8_t scanlist) {
+static void saveToFreeChannels(bool saveWhitelist, uint16_t scanlist) {
   UI_ShowWait();
   for (uint16_t i = 0; i < LOOT_Size(); ++i) {
     uint16_t chnum = CHANNELS_GetCountMax();
@@ -168,16 +168,16 @@ static void saveToFreeChannels(bool saveWhitelist, uint8_t scanlist) {
 
     while (chnum) {
       chnum--;
-      if (CHANNELS_Existing(chnum)) {
-        CH ch;
-        CHANNELS_Load(chnum, &ch);
-        if (ch.rxF == loot->f) {
-          break;
-        }
-      } else {
+      if (CHANNELS_GetMeta(chnum).type == TYPE_EMPTY) {
         // save new
         saveLootToCh(loot, chnum, scanlist);
         break;
+      } else {
+        CH ch;
+        CHANNELS_Load(chnum, &ch);
+        if (ch.rxF == loot->f && ch.meta.type == TYPE_CH) {
+          break;
+        }
       }
     }
   }

@@ -1023,6 +1023,9 @@ bool RADIO_NextBandFreqXBandEx(bool next, bool precise) {
   } else {
     LOOT_Replace(&gLoot[gSettings.activeVFO], radio->rxF);
   }
+  if (SVC_Running(SVC_SCAN) && gIsListening) {
+    RADIO_ToggleRX(false);
+  }
   onVfoUpdate();
   return switchBand;
 }
