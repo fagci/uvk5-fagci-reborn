@@ -67,10 +67,10 @@ bool GENERATOR_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (key) {
     case KEY_UP:
-      RADIO_NextFreqNoClicks(true);
+      RADIO_NextBandFreqXBand(true);
       return true;
     case KEY_DOWN:
-      RADIO_NextFreqNoClicks(false);
+      RADIO_NextBandFreqXBand(false);
       return true;
     case KEY_2:
       updatePower(1);

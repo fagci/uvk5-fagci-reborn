@@ -663,7 +663,8 @@ void RADIO_SwitchRadio() {
   oldRadio = radio->radio;
 }
 
-void RADIO_SetupByCurrentVFO(void) {
+static void checkVisibleBand() {
+
   if (!SVC_Running(SVC_SCAN) &&
       (
           // to not change current band if overlapping
@@ -673,6 +674,10 @@ void RADIO_SetupByCurrentVFO(void) {
     // BANDS_SelectByFrequency(radio->rxF);
     gCurrentBand = BANDS_ByFrequency(radio->rxF);
   }
+}
+
+void RADIO_SetupByCurrentVFO(void) {
+  checkVisibleBand();
 
   RADIO_SwitchRadio();
   RADIO_SetupBandParams();
@@ -964,33 +969,6 @@ void RADIO_UpdateSquelchLevel(bool next) {
   RADIO_SetSquelch(sq);
 }
 
-void RADIO_NextFreqNoClicks(bool next) {
-  if (RADIO_IsChMode()) {
-    CHANNELS_Next(next);
-    return;
-  }
-
-  const int8_t dir = next ? 1 : -1;
-  const uint32_t step = StepFrequencyTable[radio->step];
-
-  uint32_t f = radio->rxF + step * dir;
-  if (radio->fixedBoundsMode && !BANDS_InRange(f, gCurrentBand)) {
-    if (next) {
-      f = gCurrentBand.rxF;
-    } else {
-      f = gCurrentBand.txF - gCurrentBand.txF % step;
-    }
-  }
-  // f = CHANNELS_GetF(&gCurrentBand, CHANNELS_GetChannel(&gCurrentBand,
-  // f));
-  radio->channel = -1;
-  radio->txF = 0;
-  radio->rxF = f;
-  RADIO_SetupByCurrentVFO();
-  // }
-  onVfoUpdate();
-}
-
 bool RADIO_NextBandFreqXBandEx(bool next, bool precise) {
   bool switchBand = false;
   if (radio->fixedBoundsMode) {
@@ -1037,10 +1015,11 @@ bool RADIO_NextBandFreqXBandEx(bool next, bool precise) {
     }
   }
 
-  if (!SCAN_IsFast()) {
+  if (!SVC_Running(SVC_SCAN) || !SCAN_IsFast()) {
     RADIO_SwitchRadio();
     RADIO_SetupBandParams();
     RADIO_TuneToPure(radio->rxF, precise);
+    checkVisibleBand();
   } else {
     LOOT_Replace(&gLoot[gSettings.activeVFO], radio->rxF);
   }

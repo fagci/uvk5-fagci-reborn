@@ -88,7 +88,7 @@ static void fillFromTempFreq(void) {
 }
 
 void FINPUT_init(void) {
-  UI_ClearStatus();
+  // UI_ClearStatus();
   freqInputIndex = 0;
   freqInputDotIndex = 0;
   fillFromTempFreq();

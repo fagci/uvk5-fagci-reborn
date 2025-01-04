@@ -2,7 +2,6 @@
 #include "../dcs.h"
 #include "../driver/st7565.h"
 #include "../helper/measurements.h"
-#include "../radio.h"
 #include "graphics.h"
 
 const char *onOff[] = {"Off", "On"};
@@ -10,19 +9,19 @@ const char *yesNo[] = {"No", "Yes"};
 
 void UI_DrawScrollBar(const uint16_t size, const uint16_t iCurrent,
                       const uint8_t nLines) {
-  const uint8_t sbY =
-      ConvertDomain(iCurrent, 0, size, 0, nLines * MENU_ITEM_H - 3);
+  const uint8_t y =
+      ConvertDomain(iCurrent, 0, size - 1, MENU_Y, LCD_HEIGHT - 3);
 
   DrawVLine(LCD_WIDTH - 2, MENU_Y, LCD_HEIGHT - MENU_Y, C_FILL);
 
-  FillRect(LCD_WIDTH - 3, MENU_Y + sbY, 3, 3, C_FILL);
+  FillRect(LCD_WIDTH - 3, y, 3, 3, C_FILL);
 }
 
 void UI_ShowMenuItem(uint8_t line, const char *name, bool isCurrent) {
   uint8_t by = MENU_Y + line * MENU_ITEM_H + 8;
   PrintMedium(4, by, "%s", name);
   if (isCurrent) {
-    FillRect(0, MENU_Y + line * MENU_ITEM_H, LCD_WIDTH - 3, MENU_ITEM_H,
+    FillRect(0, MENU_Y + line * MENU_ITEM_H, LCD_WIDTH - 4, MENU_ITEM_H,
              C_INVERT);
   }
 }
@@ -55,7 +54,7 @@ void UI_ShowMenu(void (*getItemText)(uint16_t index, char *name), uint16_t size,
     char name[32] = "";
     uint16_t itemIndex = i + offset;
     getItemText(itemIndex, name);
-    PrintSmallEx(LCD_WIDTH - 4, MENU_Y + i * MENU_ITEM_H + 8, POS_R, C_FILL,
+    PrintSmallEx(LCD_WIDTH - 5, MENU_Y + i * MENU_ITEM_H + 8, POS_R, C_FILL,
                  "%u", itemIndex + 1);
     UI_ShowMenuItem(i, name, currentIndex == itemIndex);
   }

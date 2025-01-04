@@ -17,13 +17,15 @@ static const GFXfont *fontBig = &dig_11;
 static const GFXfont *fontBiggest = &dig_14;
 
 void UI_ClearStatus(void) {
-  memset(gFrameBuffer[0], 0, sizeof(gFrameBuffer[0]));
+  // memset(gFrameBuffer[0], 0, sizeof(gFrameBuffer[0]));
+  FillRect(0, 0, LCD_WIDTH, 7, C_CLEAR);
 }
 
 void UI_ClearScreen(void) {
-  for (uint8_t i = 1; i < 8; ++i) {
+  /* for (uint8_t i = 1; i < 8; ++i) {
     memset(gFrameBuffer[i], 0, sizeof(gFrameBuffer[i]));
-  }
+  } */
+  FillRect(0, 7, LCD_WIDTH, LCD_HEIGHT - 7, C_CLEAR);
 }
 
 void PutPixel(uint8_t x, uint8_t y, uint8_t fill) {

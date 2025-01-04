@@ -16,7 +16,7 @@
 static bool isScanTuneMode = false;
 
 static void render2VFOPart(uint8_t i) {
-  const uint8_t BASE = 22;
+  const uint8_t BASE = 21;
   const uint8_t bl = BASE + 34 * i;
 
   VFO *vfo = &gVFO[i];

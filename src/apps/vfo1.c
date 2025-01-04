@@ -11,6 +11,7 @@
 #include "../scheduler.h"
 #include "../svc.h"
 #include "../svc_render.h"
+#include "../svc_scan.h"
 #include "../ui/components.h"
 #include "../ui/graphics.h"
 #include "../ui/statusline.h"
@@ -372,7 +373,7 @@ bool VFO1_keyEx(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld,
     case KEY_SIDE1:
       if (SVC_Running(SVC_SCAN)) {
         LOOT_BlacklistLast();
-        RADIO_NextFreqNoClicks(true);
+        RADIO_NextBandFreqXBand(gScanForward);
         return true;
       }
       gMonitorMode = !gMonitorMode;
@@ -380,7 +381,7 @@ bool VFO1_keyEx(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld,
     case KEY_SIDE2:
       if (SVC_Running(SVC_SCAN)) {
         LOOT_WhitelistLast();
-        RADIO_NextFreqNoClicks(true);
+        RADIO_NextBandFreqXBand(gScanForward);
         return true;
       }
       break;
@@ -434,7 +435,7 @@ static void DrawRegs(void) {
 void VFO1_render(void) {
   STATUSLINE_renderCurrentBand();
 
-  const uint8_t BASE = 38;
+  const uint8_t BASE = 40;
 
   VFO *vfo = &gVFO[gSettings.activeVFO];
   uint32_t f = gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(vfo->rxF);
@@ -461,30 +462,25 @@ void VFO1_render(void) {
     PrintMediumEx(LCD_WIDTH - 1, BASE - 12, POS_R, C_FILL, mod);
   }
 
+  FillRect(0, 21 - 14, 28, 7, C_FILL);
+  PrintSmallEx(14, 21 - 9, POS_C, C_INVERT, radio->name);
   if (gVfo1ProMode) {
     SQL sq = GetSql(radio->squelch.value);
 
-    PrintSmall(0, 12, "R %u", RADIO_GetRSSI());
-    PrintSmall(30, 12, "N %u", BK4819_GetNoise());
-    PrintSmall(60, 12, "G %u", BK4819_GetGlitch());
-    PrintSmall(90, 12, "SNR %u", RADIO_GetSNR());
+    PrintSmall(34, 12, "r %+3u %+3u/%+3u", RADIO_GetRSSI(), sq.ro, sq.rc);
+    PrintSmall(34, 18, "n %+3u %+3u/%+3u", BK4819_GetNoise(), sq.no, sq.nc);
+    PrintSmall(34, 24, "g %+3u %+3u/%+3u", BK4819_GetGlitch(), sq.go, sq.gc);
 
     PrintSmallEx(LCD_WIDTH - 1, 12, POS_R, C_FILL, "SQ %u",
                  radio->squelch.value);
-
-    PrintSmall(0, 18, "%u/%u", sq.ro, sq.rc);
-    PrintSmall(30, 18, "%u/%u", sq.no, sq.nc);
-    PrintSmall(60, 18, "%u/%u", sq.go, sq.gc);
 
     PrintSmallEx(LCD_WIDTH - 1, 18, POS_R, true,
                  RADIO_GetBWName(radio->radio, radio->bw));
 
     const uint32_t step = StepFrequencyTable[radio->step];
+    PrintSmall(0, BASE - 7, "SNR %u", RADIO_GetSNR());
     PrintSmallEx(0, BASE, POS_L, C_FILL, "STP %d.%02d", step / 100, step % 100);
 
     DrawRegs();
-  } else {
-    FillRect(0, 22 - 14, 28, 7, C_FILL);
-    PrintSmallEx(14, 22 - 9, POS_C, C_INVERT, radio->name);
   }
 }
