@@ -33,11 +33,11 @@ PowerCalibration BANDS_GetPowerCalib(uint32_t f);
 bool BANDS_SelectBandRelativeByScanlist(bool next);
 void BANDS_SelectScan(int8_t i);
 Band BANDS_ByFrequency(uint32_t f);
-bool BANDS_SelectByFrequency(uint32_t f);
+bool BANDS_SelectByFrequency(uint32_t f, bool copyToVfo);
 void BANDS_SaveCurrent();
 bool BANDS_InRange(const uint32_t f, const Band p);
 uint8_t BANDS_GetScanlistIndex();
-void BANDS_Select(int16_t num);
+void BANDS_Select(int16_t num, bool copyToVfo);
 
 extern Band defaultBand;
 extern Band gCurrentBand;

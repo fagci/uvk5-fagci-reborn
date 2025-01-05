@@ -48,8 +48,8 @@ static bool shortList = true;
 static bool sortRev = false;
 
 static void tuneToLoot(const Loot *loot, bool save) {
-  CH ch = LOOT_ToCh(loot);
-  *radio = ch; // TODO: keep name?
+  // CH ch = LOOT_ToCh(loot);
+  // *radio = ch; // TODO: keep name?
 
   if (save) {
     RADIO_TuneToSave(loot->f);

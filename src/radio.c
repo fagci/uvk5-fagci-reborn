@@ -671,8 +671,8 @@ static void checkVisibleBand() {
           !(radio->fixedBoundsMode && gCurrentBand.meta.type == TYPE_BAND)
           // if band not in range, try to select one
           || !BANDS_InRange(radio->rxF, gCurrentBand))) {
-    // BANDS_SelectByFrequency(radio->rxF);
-    gCurrentBand = BANDS_ByFrequency(radio->rxF);
+    BANDS_SelectByFrequency(radio->rxF, radio->fixedBoundsMode);
+    // gCurrentBand = BANDS_ByFrequency(radio->rxF);
   }
 }
 
@@ -899,7 +899,7 @@ void RADIO_VfoLoadCH(uint8_t i) {
 }
 
 void RADIO_TuneToBand(int16_t num) {
-  BANDS_Select(num);
+  BANDS_Select(num, true);
 
   // radio->allowTx = gCurrentBand.allowTx;
   if (BANDS_InRange(radio->rxF, gCurrentBand)) {

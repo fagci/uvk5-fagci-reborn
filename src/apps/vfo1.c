@@ -76,7 +76,7 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
     BK4819_SetAFC(v);
   } else {
     if (s.num == BK4819_REG_40) {
-      gSettings.deviation = v * 10;
+      gSettings.deviation = v / 10;
       SETTINGS_Save();
     }
     BK4819_SetRegValue(s, v);

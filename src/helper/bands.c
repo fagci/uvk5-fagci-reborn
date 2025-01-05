@@ -325,9 +325,9 @@ bool BANDS_InRange(const uint32_t f, const Band p) {
 }
 
 // Set gCurrentBand, sets internal cursor in SL
-void BANDS_Select(int16_t num) {
+void BANDS_Select(int16_t num, bool copyToVfo) {
   CHANNELS_Load(num, &gCurrentBand);
-  Log("Load Band %s", gCurrentBand.name);
+  // Log("Load Band %s", gCurrentBand.name);
   for (int16_t i = 0; i < gScanlistSize; ++i) {
     if (gScanlist[i] == num) {
       scanlistBandIndex = i;
@@ -336,14 +336,16 @@ void BANDS_Select(int16_t num) {
       break;
     }
   }
-  radio->fixedBoundsMode = true;
-  radio->step = gCurrentBand.step;
-  radio->bw = gCurrentBand.bw;
-  radio->gainIndex = gCurrentBand.gainIndex;
-  radio->modulation = gCurrentBand.modulation;
-  radio->squelch = gCurrentBand.squelch;
-  radio->allowTx = gCurrentBand.allowTx;
-  RADIO_SaveCurrentVFO();
+  if (copyToVfo) {
+    radio->fixedBoundsMode = true;
+    radio->step = gCurrentBand.step;
+    radio->bw = gCurrentBand.bw;
+    radio->gainIndex = gCurrentBand.gainIndex;
+    radio->modulation = gCurrentBand.modulation;
+    radio->squelch = gCurrentBand.squelch;
+    radio->allowTx = gCurrentBand.allowTx;
+    RADIO_SaveCurrentVFO();
+  }
 }
 
 // Used in vfo1 to select first band from scanlist
@@ -369,12 +371,12 @@ uint8_t BANDS_GetScanlistIndex() { return scanlistBandIndex; }
 /**
  * Select band, return if changed
  */
-bool BANDS_SelectByFrequency(uint32_t f) {
+bool BANDS_SelectByFrequency(uint32_t f, bool copyToVfo) {
   int16_t newBandIndex = bandIndexByFreq(f, false);
   if (allBandIndex != newBandIndex) {
     allBandIndex = newBandIndex;
     if (allBandIndex >= 0) {
-      BANDS_Select(allBands[allBandIndex].mr);
+      BANDS_Select(allBands[allBandIndex].mr, copyToVfo);
     } else {
       gCurrentBand = defaultBand;
     }
@@ -389,7 +391,7 @@ bool BANDS_SelectBandRelativeByScanlist(bool next) {
   }
   uint8_t oldScanlistBandIndex = scanlistBandIndex;
   IncDec8(&scanlistBandIndex, 0, gScanlistSize, next ? 1 : -1);
-  BANDS_Select(gScanlist[scanlistBandIndex]);
+  BANDS_Select(gScanlist[scanlistBandIndex], true);
   return oldScanlistBandIndex != scanlistBandIndex;
 }
 
