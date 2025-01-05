@@ -53,7 +53,7 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   if (s.num == BK4819_REG_13) {
     v = radio->gainIndex;
     maxValue = ARRAY_SIZE(gainTable) - 1;
-    Log("GAIN v=%u, max=%u", v, maxValue);
+    // Log("GAIN v=%u, max=%u", v, maxValue);
   } else if (s.num == 0x73) {
     v = BK4819_GetAFC();
     maxValue = 8;
@@ -67,7 +67,7 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   } else if (!add && v >= 0 + s.inc) {
     v -= s.inc;
   }
-  Log("GAIN v=%u, max=%u", v, maxValue);
+  // Log("GAIN v=%u, max=%u", v, maxValue);
 
   if (s.num == BK4819_REG_13) {
     RADIO_SetGain(v);

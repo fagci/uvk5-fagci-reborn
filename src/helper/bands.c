@@ -163,41 +163,25 @@ typedef struct {
   uint32_t s;
   uint32_t e;
   Step step; // needed to select band by freq
-} NamedBand;
+} NB;        // named band
 
-NamedBand BANDS_VHF_UHF[] = {
-    (NamedBand){
-        .s = 11800000, .e = 13699999, .name = "Air", .step = STEP_50_0kHz},
-    (NamedBand){
-        .s = 14400000, .e = 14599999, .name = "HAM 2m", .step = STEP_25_0kHz},
-    (NamedBand){
-        .s = 14800000, .e = 14900000, .name = "MVD A", .step = STEP_25_0kHz},
-    (NamedBand){
-        .s = 15172500, .e = 15599999, .name = "Railway", .step = STEP_12_5kHz},
-    (NamedBand){
-        .s = 15600000, .e = 16327500, .name = "Sea", .step = STEP_25_0kHz},
-    (NamedBand){
-        .s = 17100000, .e = 17300000, .name = "MVD B/X", .step = STEP_25_0kHz},
-    (NamedBand){
-        .s = 17300000, .e = 17800000, .name = "Top 173", .step = STEP_25_0kHz},
-    (NamedBand){
-        .s = 24300000, .e = 26999999, .name = "SATCOM", .step = STEP_25_0kHz},
-    (NamedBand){
-        .s = 30001250, .e = 30051250, .name = "River1", .step = STEP_12_5kHz},
-    (NamedBand){
-        .s = 33601250, .e = 33651250, .name = "River2", .step = STEP_12_5kHz},
-    (NamedBand){
-        .s = 43307500, .e = 43477500, .name = "LPD", .step = STEP_25_0kHz},
-    (NamedBand){
-        .s = 44600625, .e = 44619375, .name = "PMR", .step = STEP_12_5kHz},
-    (NamedBand){
-        .s = 45000000, .e = 45300000, .name = "MVD 450", .step = STEP_12_5kHz},
-    (NamedBand){
-        .s = 46000000, .e = 46300000, .name = "MVD 460", .step = STEP_12_5kHz},
-    (NamedBand){
-        .s = 80600000, .e = 82500000, .name = "800svc1", .step = STEP_12_5kHz},
-    (NamedBand){
-        .s = 85100000, .e = 87000000, .name = "800svc2", .step = STEP_12_5kHz},
+NB BANDS_VHF_UHF[] = {
+    (NB){.s = 11800000, .e = 13699999, .name = "Air", .step = STEP_50_0kHz},
+    (NB){.s = 14400000, .e = 14599999, .name = "HAM 2m", .step = STEP_25_0kHz},
+    (NB){.s = 14800000, .e = 14900000, .name = "MVD A", .step = STEP_25_0kHz},
+    (NB){.s = 15172500, .e = 15599999, .name = "Railway", .step = STEP_12_5kHz},
+    (NB){.s = 15600000, .e = 16327500, .name = "Sea", .step = STEP_25_0kHz},
+    (NB){.s = 17100000, .e = 17300000, .name = "MVD B/X", .step = STEP_25_0kHz},
+    (NB){.s = 17300000, .e = 17800000, .name = "Top 173", .step = STEP_25_0kHz},
+    (NB){.s = 24300000, .e = 26999999, .name = "SATCOM", .step = STEP_25_0kHz},
+    (NB){.s = 30001250, .e = 30051250, .name = "River1", .step = STEP_12_5kHz},
+    (NB){.s = 33601250, .e = 33651250, .name = "River2", .step = STEP_12_5kHz},
+    (NB){.s = 43307500, .e = 43477500, .name = "LPD", .step = STEP_25_0kHz},
+    (NB){.s = 44600625, .e = 44619375, .name = "PMR", .step = STEP_12_5kHz},
+    (NB){.s = 45000000, .e = 45300000, .name = "MVD 450", .step = STEP_12_5kHz},
+    (NB){.s = 46000000, .e = 46300000, .name = "MVD 460", .step = STEP_12_5kHz},
+    (NB){.s = 80600000, .e = 82500000, .name = "800svc1", .step = STEP_12_5kHz},
+    (NB){.s = 85100000, .e = 87000000, .name = "800svc2", .step = STEP_12_5kHz},
 };
 
 static const uint8_t OFS1 = 0;
@@ -239,7 +223,7 @@ Band BANDS_GetDefaultBand(uint8_t i) {
       .step = STEP_25_0kHz,
       .modulation = MOD_FM,
       .bw = BK4819_FILTER_BW_12k,
-      .gainIndex = AUTO_GAIN_INDEX + 1, // +2dB
+      .gainIndex = ARRAY_SIZE(gainTable) - 1, // +33dB
       .allowTx = false,
       .scrambler = 0,
       .squelch.type = SQUELCH_RSSI_NOISE_GLITCH,
@@ -276,13 +260,19 @@ Band BANDS_GetDefaultBand(uint8_t i) {
     b.step = STEP_100_0kHz;
     snprintf(b.name, 8, "BcastFM");
   } else if (i < OFS7) {
-    NamedBand nb = BANDS_VHF_UHF[i - OFS6];
+    NB nb = BANDS_VHF_UHF[i - OFS6];
     snprintf(b.name, 8, nb.name);
     if (nb.s == 11800000) {
       b.modulation = MOD_AM;
       // b.step = STEP_50_0kHz;
     }
-    b.scanlists = nb.s == 24300000 ? 2 : 1;
+    if (nb.s == 24300000) {
+      b.scanlists = 2;
+    } else {
+      b.scanlists = 1;
+      b.gainIndex = AUTO_GAIN_INDEX;
+    }
+
     b.step = nb.step;
     sb.s = nb.s;
     sb.e = nb.e;
@@ -336,6 +326,7 @@ void BANDS_Select(int16_t num, bool copyToVfo) {
       break;
     }
   }
+  radio->allowTx = gCurrentBand.allowTx;
   if (copyToVfo) {
     radio->fixedBoundsMode = true;
     radio->step = gCurrentBand.step;
@@ -343,9 +334,8 @@ void BANDS_Select(int16_t num, bool copyToVfo) {
     radio->gainIndex = gCurrentBand.gainIndex;
     radio->modulation = gCurrentBand.modulation;
     radio->squelch = gCurrentBand.squelch;
-    radio->allowTx = gCurrentBand.allowTx;
-    RADIO_SaveCurrentVFO();
   }
+  RADIO_SaveCurrentVFO();
 }
 
 // Used in vfo1 to select first band from scanlist

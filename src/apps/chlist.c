@@ -17,6 +17,7 @@ typedef enum {
   MODE_TX,
   MODE_SCANLIST,
   MODE_SCANLIST_SELECT,
+  MODE_DELETE,
   // MODE_TYPE,
   // MODE_SELECT,
 } CHLIST_ViewMode;
@@ -26,6 +27,7 @@ static char *VIEW_MODE_NAMES[] = {
     "TX",     //
     "SL",     //
     "SL SEL", //
+    "DELETE", //
               // "TYPE",     //
               // "CH SEL",   //
 };
@@ -149,6 +151,17 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       }
       return true;
     }
+  }
+
+  if (viewMode == MODE_DELETE && simpleKeypress && key == KEY_1) {
+    CHANNELS_Delete(chNum);
+    return true;
+  }
+  if (viewMode == MODE_TX && simpleKeypress && key == KEY_1) {
+    CHANNELS_Load(chNum, &ch);
+    ch.allowTx = !ch.allowTx;
+    CHANNELS_Save(chNum, &ch);
+    return true;
   }
 
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {

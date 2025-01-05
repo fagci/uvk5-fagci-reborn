@@ -262,10 +262,10 @@ static void onVfoUpdate(void) {
 }
 
 static void setupToneDetection() {
-  uint16_t InterruptMask =
-      BK4819_REG_3F_CxCSS_TAIL | BK4819_REG_3F_DTMF_5TONE_FOUND;
+  uint16_t InterruptMask = BK4819_REG_3F_CxCSS_TAIL;
   if (gSettings.dtmfdecode) {
     BK4819_EnableDTMF();
+    InterruptMask |= BK4819_REG_3F_DTMF_5TONE_FOUND;
   } else {
     BK4819_DisableDTMF();
   }
@@ -809,6 +809,10 @@ void RADIO_SetupBandParams() {
     } else {
       BK4819_DisableScramble();
     }
+
+    // HACK: to enable STE RX
+    BK4819_PrepareTransmit(), BK4819_TurnsOffTones_TurnsOnRX();
+
     setupToneDetection();
     break;
   case RADIO_BK1080:

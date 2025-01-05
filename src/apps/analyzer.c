@@ -137,7 +137,7 @@ void ANALYZER_update(void) {
 
 void ANALYZER_deinit(void) {
   SVC_Toggle(SVC_SCAN, false, 0);
-  SVC_Toggle(SVC_LISTEN, true, 1);
+  SVC_Toggle(SVC_LISTEN, true, 10);
 }
 
 static void restartScan() {

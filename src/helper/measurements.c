@@ -159,8 +159,8 @@ SQL GetSql(uint8_t level) {
   sq.no = ConvertDomain(level, 0, 10, 64, 12);
   sq.go = ConvertDomain(level, 0, 10, 32, 6);
 
-  sq.rc = sq.ro - 6;
-  sq.nc = sq.gc = sq.no + 6;
+  sq.rc = sq.ro - 4;
+  sq.nc = sq.gc = sq.no + 4;
   return sq;
 }
 

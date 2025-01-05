@@ -37,7 +37,7 @@ bool SVC_Running(Svc svc) { return TaskExists(services[svc].update); }
 
 void SVC_Toggle(Svc svc, bool on, uint16_t interval) {
   Service *s = &services[svc];
-  Log("%s=%u,t=%u", s->name, on, interval);
+  // Log("%s=%u,t=%u", s->name, on, interval);
   bool exists = TaskExists(s->update);
   if (on) {
     if (!exists) {

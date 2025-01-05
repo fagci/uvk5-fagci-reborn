@@ -97,10 +97,10 @@ Loot *RADIO_UpdateMeasurements(void) {
     return msm;
   }
   // throttle to prevent hiss
-  if (RADIO_GetRadio() == RADIO_BK4819 && gIsListening &&
+  /* if (RADIO_GetRadio() == RADIO_BK4819 && gIsListening &&
       Now() - lastMsmUpdate < 250) {
     return msm;
-  }
+  } */
   if (!gIsListening && SCAN_IsFast()) {
     BK4819_SetFrequency(radio->rxF);
     BK4819_WriteRegister(BK4819_REG_30, 0x0200);
@@ -119,7 +119,8 @@ Loot *RADIO_UpdateMeasurements(void) {
     toneFound = true;
   }
 
-  if ((!SCAN_IsFast() || gIsListening) && RADIO_GetRadio() == RADIO_BK4819) {
+  if (!(SVC_Running(SVC_SCAN) && SCAN_IsFast()) &&
+      RADIO_GetRadio() == RADIO_BK4819) {
     while (BK4819_ReadRegister(BK4819_REG_0C) & 1u) {
       BK4819_WriteRegister(BK4819_REG_02, 0);
 
@@ -252,17 +253,17 @@ void SVC_LISTEN_Update(void) {
   }
 
   // if (RADIO_GetRadio() == RADIO_BK4819 || gShowAllRSSI) {
-    Loot *m = RADIO_UpdateMeasurements();
-    if (gIsListening) {
-      static uint32_t lastGraphMsm;
-      if (Now() - lastGraphMsm > 250) {
-        SP_Shift(-1);
-        SP_AddGraphPoint(m);
-        lastGraphMsm = Now();
-      }
-    } else {
-      SP_AddPoint(m);
+  Loot *m = RADIO_UpdateMeasurements();
+  if (gIsListening) {
+    static uint32_t lastGraphMsm;
+    if (Now() - lastGraphMsm > 250) {
+      SP_Shift(-1);
+      SP_AddGraphPoint(m);
+      lastGraphMsm = Now();
     }
+  } else {
+    SP_AddPoint(m);
+  }
   // }
 
   bool blinkMode = RADIO_GetRadio() != RADIO_BK4819 || gMonitorMode;
