@@ -93,12 +93,12 @@ Loot *RADIO_UpdateMeasurements(void) {
       SVC_Toggle(SVC_SCAN, false, 0);
     }
   }
-  if (RADIO_GetRadio() != RADIO_BK4819 && Now() - lastMsmUpdate <= 1000) {
+  if (RADIO_GetRadio() != RADIO_BK4819 && Now() - lastMsmUpdate < 1000) {
     return msm;
   }
   // throttle to prevent hiss
   if (RADIO_GetRadio() == RADIO_BK4819 && gIsListening &&
-      Now() - lastMsmUpdate <= 250) {
+      Now() - lastMsmUpdate < 250) {
     return msm;
   }
   if (!gIsListening && SCAN_IsFast()) {
@@ -251,7 +251,7 @@ void SVC_LISTEN_Update(void) {
     return;
   }
 
-  if (RADIO_GetRadio() == RADIO_BK4819 || gShowAllRSSI) {
+  // if (RADIO_GetRadio() == RADIO_BK4819 || gShowAllRSSI) {
     Loot *m = RADIO_UpdateMeasurements();
     if (gIsListening) {
       static uint32_t lastGraphMsm;
@@ -263,7 +263,7 @@ void SVC_LISTEN_Update(void) {
     } else {
       SP_AddPoint(m);
     }
-  }
+  // }
 
   bool blinkMode = RADIO_GetRadio() != RADIO_BK4819 || gMonitorMode;
 

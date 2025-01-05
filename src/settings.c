@@ -63,7 +63,7 @@ Settings gSettings = (Settings){
     .batteryType = BAT_1600,
     .batteryStyle = BAT_PERCENT,
     .upconverter = 0,
-    .deviation = 145, // 1450
+    .deviation = 130, // 1300
 };
 
 const uint32_t EEPROM_SIZES[6] = {

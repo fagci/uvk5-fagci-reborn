@@ -55,6 +55,8 @@ static void startScan() {
   }
 
   SVC_Toggle(SVC_SCAN, true, scanTimeout);
+  SVC_Toggle(SVC_LISTEN, false, 0);
+  SVC_Toggle(SVC_LISTEN, true, 0);
 }
 
 bool SCAN_IsFast() { return scanTimeout < 10; }
@@ -104,4 +106,6 @@ void SCAN_Start() {
 void SCAN_Stop() {
   scanTimeout = DEFAULT_SCAN_TIMEOUT;
   SVC_Toggle(SVC_SCAN, false, 0);
+  SVC_Toggle(SVC_LISTEN, false, 0);
+  SVC_Toggle(SVC_LISTEN, true, 10);
 }

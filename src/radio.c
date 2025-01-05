@@ -657,7 +657,8 @@ void RADIO_SwitchRadio() {
     return;
   }
   /* Log("Switch radio from %s to %s",
-      oldRadio == UINT8_MAX ? "-" : radioNames[oldRadio], radioNames[r]); */
+      oldRadio == UINT8_MAX ? "-" : radioNames[oldRadio],
+      radioNames[radio->radio]); */
   rxTurnOff(oldRadio);
   rxTurnOn(radio->radio);
   oldRadio = radio->radio;
@@ -882,12 +883,15 @@ bool RADIO_IsSquelchOpen(const Loot *msm) {
   if (RADIO_GetRadio() == RADIO_BK4819) {
     if (SCAN_IsFast()) {
       return SP_IsSquelchOpen(msm);
-    } else if (isSimpleSql()) {
-      return isSqOpenSimple(msm->rssi);
-    } else {
-      return BK4819_IsSquelchOpen();
     }
+
+    if (isSimpleSql()) {
+      return isSqOpenSimple(msm->rssi);
+    }
+
+    return BK4819_IsSquelchOpen();
   }
+
   return true;
 }
 
