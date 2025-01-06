@@ -111,6 +111,18 @@ static void saveNamed() {
   RADIO_LoadCurrentVFO();
 }
 
+static void exportScanList() {
+  /* UART_printf("--- 8< ---\r\n");
+  UART_printf("CH#,Name,fRX,fTX,mod,bw\r\n"); */
+  for (uint8_t i = 0; i < gScanlistSize; ++i) {
+    CH _ch;
+    uint16_t chNum = gScanlist[i];
+    CHANNELS_Load(chNum, &_ch);
+    PrintCh(chNum, &_ch);
+  }
+  // UART_printf("--- >8 ---\r\n");
+}
+
 void CHLIST_init() {
   CHANNELS_LoadScanlist(gChListFilter, gSettings.currentScanlist);
   if (gChListFilter == TYPE_FILTER_BAND ||
@@ -172,6 +184,9 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       CHANNELS_LoadScanlist(TYPE_FILTER_CH, gSettings.currentScanlist);
       CHLIST_init();
       break;
+    case KEY_9:
+      exportScanList();
+      return true;
     default:
       break;
     }

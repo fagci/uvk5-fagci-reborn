@@ -62,7 +62,7 @@ static void selectEeprom(EEPROMType t) {
 
   total.settings = 1;
   total.vfos = ARRAY_SIZE(gVFO);
-  total.bands = BANDS_DefaultCount();
+  total.bands = 0; // default bands
   total.channels = total.mr - total.vfos - total.bands;
 }
 
@@ -133,7 +133,7 @@ static bool resetFull() {
   }
 
   if (stats.bands < total.bands) {
-    Band b = BANDS_GetDefaultBand(stats.bands);
+    /* Band b = BANDS_GetDefaultBand(stats.bands);
     if (!hasSi && b.txF < BK4819_F_MIN) {
       // skip unsupported bands
       stats.bands++;
@@ -143,7 +143,7 @@ static bool resetFull() {
 
     CHANNELS_Save(total.channels + stats.bands, &b);
     stats.bands++;
-    stats.bytes += CH_SIZE;
+    stats.bytes += CH_SIZE; */
     return false;
   }
 

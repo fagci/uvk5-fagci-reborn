@@ -234,9 +234,9 @@ void RADIO_SetupRegisters(void) {
   BK4819_WriteRegister(
       BK4819_REG_48,
       (11u << 12) |   // ??? .. 0 ~ 15, doesn't seem to make any difference
-          (0 << 10) | // AF Rx Gain-1
-          (58 << 4) | // AF Rx Gain-2
-          (8 << 0));  // AF DAC Gain (after Gain-1 and Gain-2)
+          (0 << 10) | // AF Rx Gain-1 00:0dB 01:-6dB 10:-12dB 11:-18dB
+          (58 << 4) | // AF Rx Gain-2 AF RX Gain2 (-26 dB ~ 5.5 dB): 0x00: Mute
+          (8 << 0));  // AF DAC Gain (after Gain-1 and Gain-2) 1111 - max
 
   BK4819_DisableDTMF();
 
@@ -804,15 +804,14 @@ void RADIO_SetupBandParams() {
     BK4819_Squelch(radio->squelch.value, gSettings.sqlOpenTime,
                    gSettings.sqlCloseTime);
     BK4819_SetModulation(mod);
-    if (gSettings.scrambler) {
-      BK4819_EnableScramble(gSettings.scrambler);
+    if (radio->scrambler) {
+      BK4819_EnableScramble(radio->scrambler);
     } else {
       BK4819_DisableScramble();
     }
 
-    // HACK: to enable STE RX
-    BK4819_PrepareTransmit(), BK4819_TurnsOffTones_TurnsOnRX();
-
+    // HACK? to enable STE RX
+    BK4819_WriteRegister(BK4819_REG_7E, 0x302E); // DC flt BW 0=BYP
     setupToneDetection();
     break;
   case RADIO_BK1080:

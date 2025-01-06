@@ -390,6 +390,13 @@ uint64_t xtou64(const char *str) {
   return res;
 }
 
+void PrintCh(uint16_t chNum, CH *ch) {
+  UART_printf("%s%d,%s,%lu,%lu,%d,%d,%d,%d,%d\r\n",
+              ch->meta.type == TYPE_CH ? "CH" : "BAND", chNum, ch->name,
+              ch->rxF, ch->txF, ch->modulation, ch->bw, ch->scanlists,
+              ch->code.tx.type, ch->code.tx.value);
+}
+
 bool UART_IsCommandAvailable(void) {
   uint16_t DmaLength;
   uint16_t CommandLength;
@@ -399,11 +406,52 @@ bool UART_IsCommandAvailable(void) {
   uint16_t CRC;
   uint16_t i;
 
+  /* CH ch;
+  uint32_t chNum;
+  uint32_t rxF, txF;
+  ModulationType modulation;
+  BK4819_FilterBandwidth_t bw;
+  uint16_t scanlists;
+  uint8_t txCodeType; */
+
   DmaLength = DMA_CH0->ST & 0xFFFU;
   while (1) {
     if (gUART_WriteIndex == DmaLength) {
       return false;
     }
+
+    /* char *buf = (char *)UART_DMA_Buffer + gUART_WriteIndex;
+
+    if (strncmp(buf, "RCH", 3) == 0 && c_sscanf(buf, "RCH%u", &chNum) == 1) {
+      CHANNELS_Load(chNum - 1, &ch);
+      PrintCh(chNum, &ch);
+    } else if (strncmp(buf, "DCH", 3) == 0 &&
+               c_sscanf(buf, "DCH%u", &chNum) == 1) {
+      CHANNELS_Delete(chNum - 1);
+    } else if (strncmp(buf, "CH", 2) == 0 || strncmp(buf, "BAND", 2) == 0) {
+      bool isBand = c_sscanf(buf, "BAND%u,%s,%lu,%lu,%d,%d,%d,%d,%d", &chNum,
+                             ch.name, &rxF, &txF, &modulation, &bw, &scanlists,
+                             &txCodeType, &ch.code.tx.value) == 9;
+      bool isCh = c_sscanf(buf, "CH%u,%s,%lu,%lu,%d,%d,%d,%d,%d", &chNum,
+                           ch.name, &rxF, &txF, &modulation, &bw, &scanlists,
+                           &txCodeType, &ch.code.tx.value) == 9;
+      if (isBand || isCh) {
+        if (isBand) {
+          ch.meta.type = TYPE_BAND;
+        }
+        if (isCh) {
+          ch.meta.type = TYPE_CH;
+        }
+        ch.rxF = rxF;
+        ch.txF = txF;
+        ch.bw = bw;
+        ch.scanlists = scanlists;
+        ch.modulation = modulation;
+        ch.code.tx.type = txCodeType;
+        CHANNELS_Save(chNum - 1, &ch);
+        PrintCh(chNum, &ch);
+      }
+    } */
 
     while (gUART_WriteIndex != DmaLength &&
            UART_DMA_Buffer[gUART_WriteIndex] != 0xABU) {

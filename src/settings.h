@@ -90,9 +90,9 @@ typedef struct {
   uint8_t contrast : 4;
 
   uint8_t backlight : 4;
-  uint8_t squelch : 4;
+  uint8_t reserved4 : 4;
 
-  uint8_t scrambler : 4;
+  uint8_t reserved3 : 4;
   uint8_t batsave : 4;
 
   uint8_t vox : 4;
@@ -136,10 +136,11 @@ typedef struct {
   uint8_t sqlOpenTime : 3;
   uint8_t sqlCloseTime : 2;
 
+  uint8_t deviation;
+
   uint8_t activeVFO : 2;
   bool skipGarbageFrequencies : 1;
 
-  uint8_t deviation;
 } __attribute__((packed)) Settings;
 // getsize(Settings)
 

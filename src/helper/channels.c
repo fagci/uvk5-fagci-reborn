@@ -10,8 +10,8 @@
 int16_t gScanlistSize = 0;
 uint16_t gScanlist[SCANLIST_MAX] = {0};
 CHType gScanlistType = TYPE_CH;
-const char *CH_TYPE_NAMES[8] = {"EMPTY",  "CH",     "BAND",    "VFO",
-                                "FOLDER", "MELODY", "SETTING", "FILE"};
+const char *CH_TYPE_NAMES[6] = {"EMPTY",  "CH",     "BAND",    "VFO",
+                                "FOLDER", "MELODY"};
 const char *TX_POWER_NAMES[4] = {"ULow", "Low", "Mid", "High"};
 const char *TX_OFFSET_NAMES[3] = {"None", "+", "-"};
 const char *TX_CODE_TYPES[4] = {"None", "CT", "DCS", "-DCS"};

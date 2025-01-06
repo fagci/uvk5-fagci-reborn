@@ -26,8 +26,6 @@ typedef struct {
 
 void BANDS_Load();
 
-uint8_t BANDS_DefaultCount();
-Band BANDS_GetDefaultBand(uint8_t i);
 PowerCalibration BANDS_GetPowerCalib(uint32_t f);
 
 bool BANDS_SelectBandRelativeByScanlist(bool next);

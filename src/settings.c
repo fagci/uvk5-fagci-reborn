@@ -30,8 +30,6 @@ static const uint8_t PATCH3_PREAMBLE[] = {0x15, 0x00, 0x03, 0x74,
 
 Settings gSettings = (Settings){
     .eepromType = EEPROM_UNKNOWN,
-    .squelch = 4,
-    .scrambler = 0,
     .batsave = 4,
     .vox = 0,
     .backlight = 3,

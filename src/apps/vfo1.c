@@ -471,8 +471,8 @@ void VFO1_render(void) {
     PrintSmall(34, 18, "n %+3u %+3u/%+3u", BK4819_GetNoise(), sq.no, sq.nc);
     PrintSmall(34, 24, "g %+3u %+3u/%+3u", BK4819_GetGlitch(), sq.go, sq.gc);
 
-    PrintSmallEx(LCD_WIDTH - 1, 12, POS_R, C_FILL, "SQ %u",
-                 radio->squelch.value);
+    PrintSmallEx(LCD_WIDTH - 1, 12, POS_R, C_FILL, "%s%u",
+                 sqTypeNames[radio->squelch.type], radio->squelch.value);
 
     PrintSmallEx(LCD_WIDTH - 1, 18, POS_R, true,
                  RADIO_GetBWName(radio->radio, radio->bw));

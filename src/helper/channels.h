@@ -102,19 +102,24 @@ typedef struct {
   union {
     struct {
       uint32_t rxF : 27;
+      uint8_t reserved1 : 5;
+
       uint32_t txF : 27;
+
       OffsetDirection offsetDir : 2; // =0 -> tx=rxF
                                      // =1 -> tx=rxF+txF
                                      // =2 -> tx=rxF-txF
                                      // =4 -> tx=txF
+      bool allowTx : 1;
+      uint8_t reserved2 : 2;
 
       // Common radio settings
       Step step : 4;
       ModulationType modulation : 4;
+
       BK4819_FilterBandwidth_t bw : 4;
       Radio radio : 2;
       TXOutputPower power : 2;
-      bool allowTx : 1;
 
       uint8_t scrambler : 4;
       Squelch squelch;
@@ -138,7 +143,7 @@ typedef struct {
     } __attribute__((packed));
   };
 } __attribute__((packed)) MR;
-// getsize(CH);
+// getsize(MR);
 typedef MR Band;
 typedef MR VFO;
 typedef MR CH;

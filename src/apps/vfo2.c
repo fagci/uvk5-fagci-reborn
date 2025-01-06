@@ -85,16 +85,25 @@ static void render2VFOPart(uint8_t i) {
       PrintSmallEx(0, bl + 6, POS_L, C_FILL, "D%03oN", DCS_Options[loot->cd]);
     }
   }
-  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%+ddB %s %c SQ%u %c %s %s",
-               -gainTable[vfo->gainIndex].gainDb + 33,
-               RADIO_GetBWName(vfo->radio, vfo->bw),
-               vfo->allowTx ? TX_POWER_NAMES[vfo->power][0] : ' ',
-               vfo->squelch.value,
-               RADIO_GetTXFEx(vfo) != vfo->rxF
-                   ? (vfo->offsetDir ? TX_OFFSET_NAMES[vfo->offsetDir][0] : '*')
-                   : ' ',
-               vfo->code.tx.type ? TX_CODE_TYPES[vfo->code.tx.type] : "",
-               shortRadioNames[r]);
+
+  char str[32];
+  sprintf(str, "%s %s", str, shortRadioNames[r]);
+  sprintf(str, "%+ddB", -gainTable[vfo->gainIndex].gainDb + 33);
+  sprintf(str, "%s %s", str, RADIO_GetBWName(vfo->radio, vfo->bw));
+  sprintf(str, "%s %s%u", str, sqTypeNames[vfo->squelch.type],
+          vfo->squelch.value);
+  if (vfo->allowTx) {
+    sprintf(str, "%s %c", str, TX_POWER_NAMES[vfo->power][0]);
+  }
+  if (vfo->code.tx.type) {
+    sprintf(str, "%s %s", str, TX_CODE_TYPES[vfo->code.tx.type]);
+  }
+  if (RADIO_GetTXFEx(vfo) != vfo->rxF) {
+    sprintf(str, "%s %c", str,
+            vfo->offsetDir ? TX_OFFSET_NAMES[vfo->offsetDir][0] : '*');
+  }
+
+  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, str);
 
   if (loot->lastTimeOpen) {
     PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,

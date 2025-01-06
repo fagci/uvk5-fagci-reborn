@@ -68,7 +68,7 @@ void SP_UpdateScanStats() {
   const uint8_t noiseMax = SP_GetNoiseMax();
   fastScanSq.r = noiseFloor;
   fastScanSq.n = noiseMax - gNoiseOpenDiff;
-  Log("Update stats r=%u,n=%u", fastScanSq.r, fastScanSq.n);
+  // Log("Update stats r=%u,n=%u", fastScanSq.r, fastScanSq.n);
 }
 
 bool SP_HasStats() { return fastScanSq.r != UINT16_MAX; }
