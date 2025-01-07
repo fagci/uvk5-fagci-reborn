@@ -26,16 +26,7 @@
 #include <stdint.h>
 
 CH *radio;
-VFO gVFO[2] = {
-    (VFO){
-        .name = "VFO1",
-        .rxF = 14550000,
-    },
-    (VFO){
-        .name = "VFO2",
-        .rxF = 43307500,
-    },
-};
+VFO gVFO[2];
 
 Loot gLoot[2] = {0};
 

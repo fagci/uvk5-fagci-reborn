@@ -127,7 +127,7 @@ typedef struct {
       union {
         // Only VFO/MR
         struct {
-          CodeRXTX code;
+          CodeRXTX code; // 4B
           bool fixedBoundsMode : 1;
         };
 
@@ -135,6 +135,7 @@ typedef struct {
         struct {
           uint8_t bank;
           PowerCalibration powCalib;
+          // ^4B
           uint32_t lastUsedFreq : 27;
         } misc;
       };
@@ -143,7 +144,7 @@ typedef struct {
     } __attribute__((packed));
   };
 } __attribute__((packed)) MR;
-// getsize(MR);
+// getsize(MR); // 40
 typedef MR Band;
 typedef MR VFO;
 typedef MR CH;

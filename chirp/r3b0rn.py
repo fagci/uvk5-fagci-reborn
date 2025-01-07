@@ -83,8 +83,7 @@ struct {
 } Settings;
 """
 
-def get_mem_ch(count):
-    return """
+MEM_CH_FMT = """
     struct {
       struct {
         u8 
@@ -92,7 +91,7 @@ def get_mem_ch(count):
           readonly : 1,
           type : 4;
       } meta;
-    ul16 scanlists;
+      ul16 scanlists : 16;
       char name[10];
       ul32 unused1:5, rxF: 27;
       ul32 
@@ -119,7 +118,6 @@ def get_mem_ch(count):
           type: 2,
           value : 4;
       } squelch;
-// OK^
 
       struct {
         struct {
@@ -131,13 +129,16 @@ def get_mem_ch(count):
           u8 unused:4, type : 4;
         } tx;
       } code;
-      u8 unused5:7, fixedBoundsMode : 1;
 
-      u8 unused6:3, gainIndex : 5;
-      ul32 boom;
-      ul32 shakalaka;
-      u8 haha;
-    } CH["""+str(count)+"""];"""
+// byte 30
+      ul32 shift4_1:32;
+      u8
+        unused7 : 3,
+        gainIndex : 5;
+// OK^
+
+
+    } CH[%d];"""
 
 @directory.register
 class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
@@ -147,6 +148,7 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
     VARIANT = 'fagci r3b0rn'
 
     BAUD_RATE = 38400    # Replace this with your baud rate
+    BLOCK_SIZE = 80
     MODULATION_LIST = ["FM", "AM", "LSB", "USB",
                        "DV", "RAW", "WFM", "Preset"]
 
@@ -167,6 +169,7 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
     # DOWNLOAD
     def sync_in(self):
         status = chirp_common.Status()
+        self.patch_size = len(self.PATCH_DATA)
         
         self.FIRMWARE_VERSION = self.get_version()
         if not self.FIRMWARE_VERSION:
@@ -176,43 +179,49 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
 
         addr = 0
         data = b""
-
-
-        self.patch_size = len(self.PATCH_DATA)
-        status.max = self.settings_size = bitwise.parse(MEM_SETTINGS, []).size() // 8
         
+        status.msg = f"Reading settings..."
+        status.max = self.settings_size = bitwise.parse(MEM_SETTINGS, []).size() // 8
         while addr < status.max:
-            d = self.readmem(addr, 80)
+            d = self.readmem(addr, self.BLOCK_SIZE)
             data += d
-            addr += len(d)
-            status.msg = f"Reading settings..."
+            addr += self.BLOCK_SIZE
             status.cur = addr
             self.status_fn(status)
 
         self.settings = bitwise.parse(MEM_SETTINGS, data)
         self.eeprom_type = int(self.settings['Settings']['eepromType'])
-        status.max = self.eeprom_size = 0x2000 << self.eeprom_type
+        self.eeprom_size = 0x2000 << self.eeprom_type
+        self.ch_size = bitwise.parse(MEM_CH_FMT % 1, []).size() // 8
+        self.ch_count = self.get_ch_count()
 
         print(f"EEPROM SIZE: {self.eeprom_size}")
+        print(f"CH SIZE: {self.ch_size}")
+        print(f"CH COUNT: {self.ch_count}")
 
-        self.ch_size = 39 # bitwise.parse(get_mem_ch(1), []).size() // 8
+        if self.ch_count > 3:
+            self.ch_count = 3
 
-        if self.eeprom_size < self.patch_size + self.settings_size:
-            self.ch_count = (self.eeprom_size - self.settings_size - self.patch_size) // self.ch_size
-        else:
-            self.ch_count = (self.eeprom_size - self.settings_size) // self.ch_size
-
-        if self.ch_count > 8:
-            self.ch_count = 8
-
+        status.msg = f"Reading channels"
         status.max = self.settings_size + self.ch_size * self.ch_count
         while addr < status.max:
-            d = self.readmem(addr, 80)
+            d = self.readmem(addr, self.BLOCK_SIZE)
             data += d
-            addr += len(d)
-            status.msg = f"Reading channels"
+            addr += self.BLOCK_SIZE
             status.cur = addr
             self.status_fn(status)
+
+        bbi=0
+        for bi, b in enumerate(data):
+            if bi == 22 or bi == 22 + 40 * 1 or bi == 22+40*2:
+                bbi = 0
+                print('-'*30)
+            print('0x%02x (%02d) '%(bbi,bbi), end="")
+            for i in range(8):
+                print(f"{(b >> i) & 1}", end="")
+            print()
+            bbi+=1
+
 
         self._mmap = memmap.MemoryMapBytes(data)
         self.process_mmap()
@@ -220,11 +229,53 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
     # UPLOAD
     def sync_out(self):
         # TODO: implement
+        status = chirp_common.Status()
+
+        addr = 0
+
+        status.msg = f"Uploading..."
+        status.max = self.get_patch_address()
+        while addr < status.max:
+            self.writemem(self.get_mmap()[addr:addr + self.MEM_BLOCK], addr)
+            status.cur = addr
+            addr += self.MEM_BLOCK
+            self.status_fn(status)
+
+
+        if self.is_patch_can_be_sent():
+            addr = self.get_patch_address()
+            i = 0
+            status.max = self.eeprom_size
+            while addr < status.max:
+                left = status.max - addr
+                n = self.BLOCK_SIZE if left > self.BLOCK_SIZE else left
+                self.writemem(bytes(self.PATCH_DATA[i:i+n]), addr)
+                i += n
+                addr += n
+                status.cur = addr
+                status.msg = f"Writing patch for you, c0mr4d3 <3 ({round(i*100/self.patch_size)}%)"
+                self.status_fn(status)
+            self.reset()
         pass
+
+    def get_ch_count(self):
+        if self.is_patch_can_be_sent():
+            return (self.eeprom_size - self.settings_size - self.patch_size) // self.ch_size
+        else:
+            return (self.eeprom_size - self.settings_size) // self.ch_size
+
+    def get_patch_address(self):
+        if self.is_patch_can_be_sent():
+            return self.eeprom_size - self.patch_size
+        else:
+            return self.eeprom_size
+
+    def is_patch_can_be_sent(self):
+        return self.eeprom_size >= self.patch_size + self.settings_size
 
     # Convert the raw byte array into a memory object structure
     def process_mmap(self):
-        self._memobj = bitwise.parse(MEM_SETTINGS + get_mem_ch(self.ch_count), self._mmap)
+        self._memobj = bitwise.parse(MEM_SETTINGS + (MEM_CH_FMT % self.ch_count), self._mmap)
 
     # Return a raw representation of the memory object, which
     # is very helpful for development

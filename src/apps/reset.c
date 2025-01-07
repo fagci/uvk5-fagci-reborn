@@ -110,7 +110,18 @@ static bool resetFull() {
   }
 
   if (stats.vfos < total.vfos) {
+    memset(&gVFO[0], 0, sizeof(CH));
+    memset(&gVFO[1], 0, sizeof(CH));
     VFO *vfo = &gVFO[stats.vfos];
+
+    if (stats.vfos == 0) {
+      sprintf(vfo->name, "%s", "VFO1");
+      vfo->rxF = 14550000;
+    } else {
+      sprintf(vfo->name, "%s", "VFO2");
+      vfo->rxF = 43307500;
+    }
+
     vfo->channel = -1;
     vfo->modulation = MOD_FM;
     vfo->bw = BK4819_FILTER_BW_12k;
@@ -122,7 +133,6 @@ static bool resetFull() {
     vfo->code.rx.type = 0;
     vfo->code.tx.type = 0;
     vfo->meta.readonly = false;
-    vfo->misc.lastUsedFreq = vfo->rxF;
     vfo->meta.type = TYPE_VFO;
     vfo->squelch.value = 4;
     vfo->step = STEP_25_0kHz;
