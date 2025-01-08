@@ -115,10 +115,10 @@ static bool resetFull() {
     VFO *vfo = &gVFO[stats.vfos];
 
     if (stats.vfos == 0) {
-      sprintf(vfo->name, "%s", "VFO1");
+      sprintf(vfo->name, "%s", "VFO-A");
       vfo->rxF = 14550000;
     } else {
-      sprintf(vfo->name, "%s", "VFO2");
+      sprintf(vfo->name, "%s", "VFO-B");
       vfo->rxF = 43307500;
     }
 

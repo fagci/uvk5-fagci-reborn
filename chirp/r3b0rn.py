@@ -2,7 +2,7 @@ from binascii import crc_hqx
 from itertools import cycle
 from struct import pack
 
-from chirp import chirp_common, memmap, errors, bitwise, directory
+from chirp import chirp_common, memmap, errors, bitwise, directory, settings
 
 ERROR_TIP = "\n\nCheck cable, press M to enter into menu to prevent process interrupting"
 
@@ -140,6 +140,17 @@ MEM_CH_FMT = """
 
     } CH[%d];"""
 
+# Channel types
+TYPE_EMPTY = 0
+TYPE_CH = 1
+TYPE_BAND = 2
+TYPE_VFO =3 
+TYPE_FOLDER = 4
+TYPE_MELODY = 5
+TYPE_SETTING = 6
+TYPE_FILE = 7
+
+
 @directory.register
 class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
     """Quansheng UV-K5"""
@@ -150,16 +161,83 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
     BAUD_RATE = 38400    # Replace this with your baud rate
     BLOCK_SIZE = 80
     MODULATION_LIST = ["FM", "AM", "LSB", "USB",
-                       "DV", "RAW", "WFM", "Preset"]
+                       "DV", "RAW", "WFM"]
+    CH_TYPE_NAMES = [
+        "EMPTY",
+        "CH",
+        "BAND",
+        "VFO",
+        "FOLDER",
+        "MELODY"
+    ]
+    STEP_FREQ_TABLE = [
+    2,   5,   50,  100,
+    250, 500, 625, 833, 900, 1000, 1250, 2500, 5000, 10000, 50000,
+    ]
+    GAIN_NAMES = [
+        '-57dB',
+        '-55dB',
+        '-54dB',
+        '-50dB',
+        '-48dB',
+        '-46dB',
+        '-44dB',
+        '-42dB',
+        '-37dB',
+        '-35dB',
+        '-31dB',
+        '-29dB',
+        '-26dB',
+        '-23dB',
+        '-19dB',
+        '-17dB',
+        '-15dB',
+        '-11dB',
+        '-9dB',
+        '-6dB',
+        'auto',
+        '+2dB',
+        '+5dB',
+        '+10dB',
+        '+13dB',
+        '+16dB',
+        '+20dB',
+        '+24dB',
+        '+25dB',
+        '+30dB',
+        '+31dB',
+        '+33dB',
+    ]
 
 
     def get_features(self):
         rf = chirp_common.RadioFeatures()
         rf.has_bank = False
         
-        rf.valid_characters = chirp_common.CHARSET_ASCII
+        rf.has_settings = True
+        rf.has_nostep_tuning = True
+        rf.valid_characters = chirp_common.CHARSET_ASCII + "\0"
+        rf.valid_duplexes = ["", "-", "+", "split"]
+        # rf.valid_name_length = 9
         rf.valid_modes = self.MODULATION_LIST
-
+        rf.valid_tuning_steps = [
+            .02,
+            .05,
+            .50,
+            1.00,
+            2.50,
+            5.00,
+            6.25,
+            8.33,
+            9.00,
+            10.00,
+            12.50,
+            25.00,
+            50.00,
+            100.00,
+            500.00,
+        ]
+        
         rf.memory_bounds = (0, self.ch_count-1)  # This radio supports memories 0-9
         rf.valid_bands = [(15_800_000, 280_000_000),  # Supports 2-meters
                           (280_000_000, 1340_000_000),  # Supports 70-centimeters
@@ -199,28 +277,18 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
         print(f"CH SIZE: {self.ch_size}")
         print(f"CH COUNT: {self.ch_count}")
 
-        if self.ch_count > 3:
-            self.ch_count = 3
+        if self.ch_count > 1024:
+            self.ch_count = 1024
 
-        status.msg = f"Reading channels"
         status.max = self.settings_size + self.ch_size * self.ch_count
         while addr < status.max:
             d = self.readmem(addr, self.BLOCK_SIZE)
             data += d
             addr += self.BLOCK_SIZE
             status.cur = addr
+            ch_num = addr * self.ch_count // status.max
+            status.msg = f"Reading channels {ch_num}/{self.ch_count}"
             self.status_fn(status)
-
-        bbi=0
-        for bi, b in enumerate(data):
-            if bi == 22 or bi == 22 + 40 * 1 or bi == 22+40*2:
-                bbi = 0
-                print('-'*30)
-            print('0x%02x (%02d) '%(bbi,bbi), end="")
-            for i in range(8):
-                print(f"{(b >> i) & 1}", end="")
-            print()
-            bbi+=1
 
 
         self._mmap = memmap.MemoryMapBytes(data)
@@ -228,7 +296,6 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
 
     # UPLOAD
     def sync_out(self):
-        # TODO: implement
         status = chirp_common.Status()
 
         addr = 0
@@ -236,9 +303,9 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
         status.msg = f"Uploading..."
         status.max = self.get_patch_address()
         while addr < status.max:
-            self.writemem(self.get_mmap()[addr:addr + self.MEM_BLOCK], addr)
+            self.writemem(self.get_mmap()[addr:addr + self.BLOCK_SIZE], addr)
             status.cur = addr
-            addr += self.MEM_BLOCK
+            addr += self.BLOCK_SIZE
             self.status_fn(status)
 
 
@@ -256,19 +323,19 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
                 status.msg = f"Writing patch for you, c0mr4d3 <3 ({round(i*100/self.patch_size)}%)"
                 self.status_fn(status)
             self.reset()
-        pass
+        return True
 
     def get_ch_count(self):
         if self.is_patch_can_be_sent():
             return (self.eeprom_size - self.settings_size - self.patch_size) // self.ch_size
-        else:
-            return (self.eeprom_size - self.settings_size) // self.ch_size
+
+        return (self.eeprom_size - self.settings_size) // self.ch_size
 
     def get_patch_address(self):
         if self.is_patch_can_be_sent():
             return self.eeprom_size - self.patch_size
-        else:
-            return self.eeprom_size
+
+        return self.eeprom_size
 
     def is_patch_can_be_sent(self):
         return self.eeprom_size >= self.patch_size + self.settings_size
@@ -284,29 +351,77 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
 
     # Get CH item
     def get_memory(self, number):
-        print(self.get_raw_memory(number))
+        # print(self.get_raw_memory(number))
         _mem = self._memobj.CH[number]
 
         mem = chirp_common.Memory()
-        mem.number = number
 
-        mem.freq = int(_mem.rxF) * 10
-        mem.name = str(_mem.name).rstrip()
+        mem.number = number
 
         if _mem.meta.type == 0:
             mem.empty = True
+        else:
+            for c in _mem.name:
+                if c == 0xFF or c == 0x00:
+                    break
+                mem.name += str(c)
+
+            mem.name = mem.name.strip()
+            mem.freq = int(_mem.rxF) * 10
+            mem.offset = int(_mem.txF) * 10
+            mem.duplex = self.get_features().valid_duplexes[int(_mem.offsetDir)]
+            mem.mode = self.get_features().valid_modes[int(_mem.modulation)]
+            mem.tuning_step = float(self.STEP_FREQ_TABLE[int(_mem.step)]) / 100
+
+        mem.extra = settings.RadioSettingGroup(
+            "extra",
+            "extra",
+            settings.RadioSetting("type", "Type", settings.RadioSettingValueList(
+                self.CH_TYPE_NAMES,
+                self.CH_TYPE_NAMES[_mem.meta.type]
+            )),
+            settings.RadioSetting("gain", "Gain", settings.RadioSettingValueList(
+                self.GAIN_NAMES,
+                self.GAIN_NAMES[_mem.gainIndex]
+            ))
+        )
 
         return mem
 
     # Store details about a high-level memory to the memory map
     # This is called when a user edits a memory in the UI
     def set_memory(self, mem):
-        # Get a low-level memory object mapped to the image
-        _mem = self._memobj.memory[mem.number]
+        _mem = self._memobj.CH[mem.number]
 
-        # Convert to low-level frequency representation
-        _mem.freq = mem.freq
-        _mem.name = mem.name.ljust(8)[:8]  # Store the alpha tag
+        _mem.rxF = int(mem.freq/10)
+        _mem.txF = int(mem.offset/10)
+        _mem.offsetDir = self.get_features().valid_duplexes.index(mem.duplex)
+        _mem.modulation = self.get_features().valid_modes.index(mem.mode)
+        _mem.name = str(mem.name[:9].ljust(10, "\0")[:10])  # Store the alpha tag
+        _mem.step = self.STEP_FREQ_TABLE.index(int(float(mem.tuning_step) * 100))
+
+        for setting in mem.extra:
+            sname = setting.get_name()
+            svalue = setting.value.get_value()
+
+            print(sname, svalue)
+            if sname == "type":
+                _mem.meta.type = self.CH_TYPE_NAMES.index(svalue)
+                if _mem.meta.type == TYPE_EMPTY:
+                    _mem.meta.type = TYPE_CH
+            if sname == "gain":
+                _mem.gainIndex= self.GAIN_NAMES.index(svalue)
+
+        return mem
+
+    def validate_memory(self, mem):
+        msgs = super().validate_memory(mem)
+
+        if mem.name == "" or mem.name == "<new>":
+            mem.extra.type = TYPE_CH
+            mem.name = f"{(mem.freq / 1_000_000):.4f}"
+
+        return msgs
 
     # UTIL FUNCTIONS =========================================================
 

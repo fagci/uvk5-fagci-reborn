@@ -1265,7 +1265,8 @@ STEP_NAMES = [
 OFFSET_DIRECTION = [
     "NONE",
     "+",
-    "-"
+    "-",
+    "F"
 ]
 
 BACKLIGHT_ON_SQUELCH_MODE = [

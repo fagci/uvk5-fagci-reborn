@@ -112,7 +112,7 @@ void Main(void) {
     TaskAdd("Intro", Intro, 1, true, 5);
   }
 
-  TaskAdd("UART", uartHandle, 100, true, 0);
+  TaskAdd("UART", uartHandle, 10, true, 0);
 
   while (true) {
     TasksUpdate();
