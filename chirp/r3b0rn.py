@@ -3,6 +3,10 @@ from itertools import cycle
 from struct import pack
 
 from chirp import chirp_common, memmap, errors, bitwise, directory, settings
+from chirp.settings import RadioSetting, RadioSettingGroup, \
+    RadioSettingValueBoolean, RadioSettingValueList, \
+    RadioSettingValueInteger, RadioSettingValueString, \
+    RadioSettings, RadioSettingSubGroup
 
 ERROR_TIP = "\n\nCheck cable, press M to enter into menu to prevent process interrupting"
 
@@ -160,8 +164,60 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
 
     BAUD_RATE = 38400    # Replace this with your baud rate
     BLOCK_SIZE = 80
+    EEPROM_TYPE = [
+        "BL24C64",
+        "BL24C128",
+        "BL24C256",
+        "BL24C512",
+        "BL24C1024",
+        "M24M02"
+    ]
+    POWER_LEVELS = [
+        chirp_common.PowerLevel("ULow", watts=0.05),
+        chirp_common.PowerLevel("Low", watts=1.00),
+        chirp_common.PowerLevel("Medium", watts=2.50),
+        chirp_common.PowerLevel("High", watts=5.00),
+    ]
+    SQUELCH_LEVELS = range(0, 10)
+    SQUELCH_TYPES = ["RNG", "RG", "RN", "R"]
     MODULATION_LIST = ["FM", "AM", "LSB", "USB",
                        "DV", "RAW", "WFM"]
+    TONE_MODES = ["", "Tone", "DTCS"] 
+    ROGER_NAMES = ["None", "Moto", "Tiny", "Call"]
+    BL_TIME_VALUES = [0, 5, 10, 20, 60, 120, 255]
+    BL_TIME_NAMES = ["Off", "5s", "10s", "20s", "1min", "2min", "On"]
+    BL_TIME_MAP = list(zip(BL_TIME_NAMES, BL_TIME_VALUES))
+    BATTERY_TYPE_NAMES = ["1600mAh", "2200mAh", "3500mAh"]
+    BATTERY_STYLE_NAMES = ["Plain", "Percent", "Voltage"]
+    VFOs = ["VFO-A", "VFO-B"]
+    BOUND_240_280_NAMES = ["Bound 240", "Bound 280"]
+
+    SQL_OPEN_NAMES = [f"{i}ms" for i in range(0, 35, 5)]
+    SQL_CLOSE_NAMES = [f"{i}ms" for i in range(0, 15, 5)]
+
+    SCAN_TIMEOUT_NAMES = [
+        "0", "100ms", "200ms", "300ms", "400ms", "500ms", "1s", "3s", "5s", "10s",
+        "30s", "1min", "2min", "5min", "None"
+    ]
+    APP_LIST = [
+        "NONE",
+        "MEMVIEW",
+        "ANALYZER",
+        "CH LIST",
+        "FINPUT",
+        "APPS LIST",
+        "LOOT LIST",
+        "RESET",
+        "TEXTINPUT",
+        "CH CFG",
+        "SETTINGS",
+        "VFO1",
+        "VFO2",
+        "GENERATOR",
+        "ABOUT",
+    ]
+
+    BL_SQL_MODE_NAMES = ["Off", "On", "Open"]
     CH_TYPE_NAMES = [
         "EMPTY",
         "CH",
@@ -208,6 +264,18 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
         '+31dB',
         '+33dB',
     ]
+    BW_NAMES = [
+        "U6K",  
+        "U7K",  
+        "N9k",  
+        "N10k", 
+        "W12k", 
+        "W14k", 
+        "W17k", 
+        "W20k", 
+        "W23k", 
+        "W26k", 
+    ]
 
 
     def get_features(self):
@@ -220,6 +288,8 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
         rf.valid_duplexes = ["", "-", "+", "split"]
         # rf.valid_name_length = 9
         rf.valid_modes = self.MODULATION_LIST
+        rf.valid_tmodes = self.TONE_MODES
+        rf.valid_power_levels = self.POWER_LEVELS
         rf.valid_tuning_steps = [
             .02,
             .05,
@@ -371,18 +441,31 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
             mem.offset = int(_mem.txF) * 10
             mem.duplex = self.get_features().valid_duplexes[int(_mem.offsetDir)]
             mem.mode = self.get_features().valid_modes[int(_mem.modulation)]
+            mem.power = self.get_features().valid_power_levels[int(_mem.power)]
             mem.tuning_step = float(self.STEP_FREQ_TABLE[int(_mem.step)]) / 100
 
-        mem.extra = settings.RadioSettingGroup(
+        mem.extra = RadioSettingGroup(
             "extra",
             "extra",
-            settings.RadioSetting("type", "Type", settings.RadioSettingValueList(
+            RadioSetting("type", "Type", RadioSettingValueList(
                 self.CH_TYPE_NAMES,
                 self.CH_TYPE_NAMES[_mem.meta.type]
             )),
-            settings.RadioSetting("gain", "Gain", settings.RadioSettingValueList(
+            RadioSetting("gain", "Gain", RadioSettingValueList(
                 self.GAIN_NAMES,
                 self.GAIN_NAMES[_mem.gainIndex]
+            )),
+            RadioSetting("bw", "BW", RadioSettingValueList(
+                self.BW_NAMES,
+                self.BW_NAMES[int(_mem.bw)]
+            )),
+            RadioSetting("sq_type", "SQ type", RadioSettingValueList(
+                self.SQUELCH_TYPES,
+                self.SQUELCH_TYPES[int(_mem.squelch.type)]
+            )),
+            RadioSetting("sq_value", "SQ", RadioSettingValueList(
+                self.SQUELCH_LEVELS,
+                self.SQUELCH_LEVELS[int(_mem.squelch.value)]
             ))
         )
 
@@ -399,6 +482,7 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
         _mem.modulation = self.get_features().valid_modes.index(mem.mode)
         _mem.name = str(mem.name[:9].ljust(10, "\0")[:10])  # Store the alpha tag
         _mem.step = self.STEP_FREQ_TABLE.index(int(float(mem.tuning_step) * 100))
+        _mem.power = self.POWER_LEVELS.index(mem.power)
 
         for setting in mem.extra:
             sname = setting.get_name()
@@ -411,8 +495,180 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
                     _mem.meta.type = TYPE_CH
             if sname == "gain":
                 _mem.gainIndex= self.GAIN_NAMES.index(svalue)
+            if sname == "bw":
+                _mem.bw= self.BW_NAMES.index(svalue)
+            if sname == "sq_type":
+                _mem.squelch.type = self.SQUELCH_TYPES.index(svalue)
+            if sname == "sq_value":
+                _mem.squelch.value = self.SQUELCH_LEVELS.index(svalue)
+                if _mem.squelch.value == 0:
+                    _mem.squelch.value = 4
 
         return mem
+
+    def get_settings(self):
+        _mem = self._memobj
+
+        basic = RadioSettingGroup("basic", "Basic Settings")
+        radio_settings = RadioSettingGroup("radio_settings", "Radio")
+        display_battery = RadioSettingGroup("display_battery", "Display & Battery")
+        sql = RadioSettingGroup("sql", "SQL")
+
+        val = RadioSettingValueList(self.EEPROM_TYPE, self.EEPROM_TYPE[_mem.Settings.eepromType])
+        rs = RadioSetting("eepromType", "EPPROM Type", val)
+
+
+        tmpval = _mem.Settings.backlight
+        rs = RadioSetting("backlight", "BLmode (TX/RX)",
+                          RadioSettingValueList(self.BL_TIME_NAMES, self.BL_TIME_NAMES[tmpval])) 
+        display_battery.append(rs)
+
+        tmpval = _mem.Settings.currentScanlist
+        if tmpval >= 8:
+            tmpval = 0
+        rs = RadioSetting("currentScanlist", "Current Scan List", RadioSettingValueInteger(1, 8, tmpval + 1))
+        basic.append(rs)
+
+        tmpval = _mem.Settings.chDisplayMode
+        rs = RadioSetting("chDisplayMode", "Channel Display Mode", RadioSettingValueInteger(0, 3, tmpval))
+        basic.append(rs)
+
+        tmpval = _mem.Settings.micGain
+        rs = RadioSetting("micGain", "Mic Gain", RadioSettingValueInteger(0, 15, tmpval))
+        basic.append(rs)
+
+        tmpval = _mem.Settings.scanmode
+        rs = RadioSetting("scanmode", "Scan Mode", RadioSettingValueInteger(0, 3, tmpval))
+        basic.append(rs)
+
+        tmpval = _mem.Settings.roger
+        rs = RadioSetting("roger", "Roger", RadioSettingValueList(self.ROGER_NAMES, self.ROGER_NAMES[tmpval]))
+        radio_settings.append(rs)
+
+        tmpval = _mem.Settings.upconverter
+        rs = RadioSetting("upconverter", "Upconverter",
+                          RadioSettingValueInteger(0, 134000000, tmpval))
+        radio_settings.append(rs)
+
+        tmpval = _mem.Settings.dtmfdecode
+        rs = RadioSetting("dtmfdecode", "DTMF Decode", RadioSettingValueBoolean(bool(tmpval)))
+        radio_settings.append(rs)
+
+        tmpval = _mem.Settings.repeaterSte
+        rs = RadioSetting("repeaterSte", "RP-STE (Repeater Squelch Tail Eliminator)",
+                          RadioSettingValueBoolean(bool(tmpval)))
+        radio_settings.append(rs)
+
+        tmpval = _mem.Settings.ste
+        rs = RadioSetting("ste", "STE (Squelch Tail Eliminator)", RadioSettingValueBoolean(bool(tmpval)))
+        radio_settings.append(rs)
+
+        tmpval = _mem.Settings.busyChannelTxLock
+        rs = RadioSetting("busyChannelTxLock", "Busy Channel Lock", RadioSettingValueBoolean(bool(tmpval)))
+        radio_settings.append(rs)
+
+        tmpval = _mem.Settings.keylock
+        rs = RadioSetting("keylock", "Keylock", RadioSettingValueBoolean(bool(tmpval)))
+        basic.append(rs)
+
+        tmpval = _mem.Settings.beep
+        rs = RadioSetting("beep", "Beep", RadioSettingValueBoolean(bool(tmpval)))
+        basic.append(rs)
+
+        tmpval = _mem.Settings.dw
+        rs = RadioSetting("dw", "Dual Watch", RadioSettingValueBoolean(bool(tmpval)))
+        radio_settings.append(rs)
+
+        tmpval = _mem.Settings.contrast - 8
+        rs = RadioSetting("contrast", "Contrast", RadioSettingValueInteger(-8, 7, tmpval))
+        display_battery.append(rs)
+
+        tmpval = _mem.Settings.brightness
+        rs = RadioSetting("brightness", "Brightness", RadioSettingValueInteger(0, 15, tmpval))
+        display_battery.append(rs)
+
+        tmpval = _mem.Settings.brightnessLow
+        rs = RadioSetting("brightness_low", "Brightness LOW", RadioSettingValueInteger(0, 15, tmpval))
+        display_battery.append(rs)
+
+        tmpval = _mem.Settings.mainApp
+        rs = RadioSetting("mainApp", "Main App", RadioSettingValueList(self.APP_LIST, self.APP_LIST[tmpval]))
+        basic.append(rs)
+
+        #Battery
+        tmpval = _mem.Settings.batteryStyle
+        rs = RadioSetting("batteryStyle", "Battery Style Name",
+                          RadioSettingValueList(self.BATTERY_STYLE_NAMES, self.BATTERY_STYLE_NAMES[tmpval]))
+        display_battery.append(rs)
+
+        tmpval = _mem.Settings.batteryType
+        rs = RadioSetting("batteryType", "Battery Type",
+                          RadioSettingValueList(self.BATTERY_TYPE_NAMES, self.BATTERY_TYPE_NAMES[tmpval]))
+        display_battery.append(rs)
+
+        tmpval = _mem.Settings.batteryCalibration
+        rs = RadioSetting("batteryCalibration", "Battery Calibration",
+                          RadioSettingValueInteger(0, (1 << 13) - 1, tmpval))
+        display_battery.append(rs)
+
+        tmpval = _mem.Settings.sqOpenedTimeout
+        rs = RadioSetting("sqOpenedTimeout", "SCAN listen time",
+                          RadioSettingValueList(self.SCAN_TIMEOUT_NAMES, self.SCAN_TIMEOUT_NAMES[tmpval]))
+        sql.append(rs)
+
+        tmpval = _mem.Settings.sqClosedTimeout
+        rs = RadioSetting("sqClosedTimeout", "SCAN after close timex",
+                          RadioSettingValueList(self.SCAN_TIMEOUT_NAMES, self.SCAN_TIMEOUT_NAMES[tmpval]))
+        sql.append(rs)
+
+        tmpval = _mem.Settings.backlightOnSquelch
+        rs = RadioSetting("backlightOnSquelch", "Backlight On Squelch",
+                          RadioSettingValueList(self.BL_SQL_MODE_NAMES, self.BL_SQL_MODE_NAMES[tmpval]))
+        display_battery.append(rs)
+
+        tmpval = _mem.Settings.noListen
+        rs = RadioSetting("noListen", "No Listen", RadioSettingValueBoolean(bool(tmpval)))
+        basic.append(rs)
+
+        tmpval = _mem.Settings.si4732PowerOff
+        rs = RadioSetting("si4732PowerOff", "SI4732 Power Off", RadioSettingValueBoolean(bool(tmpval)))
+        basic.append(rs)
+
+        tmpval = _mem.Settings.bound_240_280
+        rs = RadioSetting("bound_240_280", "Bound 240 / 280",
+                          RadioSettingValueList(self.BOUND_240_280_NAMES, self.BOUND_240_280_NAMES[tmpval]))
+        radio_settings.append(rs)
+
+        tmpval = _mem.Settings.scanTimeout
+        rs = RadioSetting("scanTimeout", "SCAN single freq Time", RadioSettingValueInteger(0, 255, tmpval))
+        radio_settings.append(rs)
+
+        tmpval = _mem.Settings.activeVFO
+        rs = RadioSetting("activeVFO", "Active VFO", RadioSettingValueList(self.VFOs, self.VFOs[tmpval]))
+        basic.append(rs)
+
+        tmpval = _mem.Settings.skipGarbageFrequencies
+        rs = RadioSetting("skipGarbageFrequencies", "Skip Garbage Frequencies", RadioSettingValueBoolean(bool(tmpval)))
+        radio_settings.append(rs)
+
+        tmpval = _mem.Settings.sqlOpenTime
+        if tmpval >= len(self.SQL_OPEN_NAMES):
+            tmpval = 0
+        rs = RadioSetting("sqlOpenTime", "SQL open time",
+                          RadioSettingValueList(self.SQL_OPEN_NAMES, self.SQL_OPEN_NAMES[tmpval]))
+        sql.append(rs)
+
+        tmpval = _mem.Settings.sqlCloseTime
+        if tmpval >= len(self.SQL_CLOSE_NAMES):
+            tmpval = 0
+        rs = RadioSetting("sqlCloseTime", "SQL close time",
+                          RadioSettingValueList(self.SQL_CLOSE_NAMES, self.SQL_CLOSE_NAMES[tmpval]))
+        sql.append(rs)
+
+
+        basic.append(rs)
+        return RadioSettings(basic, radio_settings, display_battery, sql)
+
 
     def validate_memory(self, mem):
         msgs = super().validate_memory(mem)
