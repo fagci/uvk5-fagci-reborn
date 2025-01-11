@@ -2,7 +2,7 @@
 #include "../dcs.h"
 #include "../helper/bands.h"
 #include "../helper/lootlist.h"
-#include "../helper/numnav.h"
+#include "../helper/scan.h"
 #include "../misc.h"
 #include "../scheduler.h"
 #include "../settings.h"
@@ -14,14 +14,15 @@
 #include "vfo1.h"
 
 static bool isScanTuneMode = true;
+static char str[32];
 
 static void render2VFOPart(uint8_t i) {
   const uint8_t BASE = 21;
   const uint8_t bl = BASE + 34 * i;
 
-  VFO *vfo = &gVFO[i];
-  const bool isActive = gSettings.activeVFO == i;
+  const VFO *vfo = &gVFO[i];
   const Loot *loot = &gLoot[i];
+  const bool isActive = gSettings.activeVFO == i;
 
   uint32_t f =
       gTxState == TX_ON && isActive ? RADIO_GetTXF() : GetScreenF(vfo->rxF);
@@ -86,8 +87,7 @@ static void render2VFOPart(uint8_t i) {
     }
   }
 
-  char str[32];
-  sprintf(str, "%s %s", str, shortRadioNames[r]);
+  sprintf(str, "%s", shortRadioNames[r]);
   sprintf(str, "%+ddB", -gainTable[vfo->gainIndex].gainDb + 33);
   sprintf(str, "%s %s", str, RADIO_GetBWName(vfo->radio, vfo->bw));
   sprintf(str, "%s %s%u", str, sqTypeNames[vfo->squelch.type],
@@ -118,7 +118,8 @@ void VFO2_init(void) { VFO1_init(); }
 
 bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!bKeyPressed && !bKeyHeld && SVC_Running(SVC_SCAN) &&
-      (key == KEY_0 || (isScanTuneMode && key > KEY_0 && key <= KEY_9))) {
+      (key == KEY_0 ||
+       (isScanTuneMode && !RADIO_IsChMode() && key > KEY_0 && key <= KEY_9))) {
     switch (key) {
     case KEY_0:
       isScanTuneMode = !isScanTuneMode;
@@ -126,10 +127,14 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_1:
       IncDec8(&gSettings.scanTimeout, 1, 255, 1);
       SETTINGS_DelayedSave();
+      SCAN_Stop();
+      SCAN_Start();
       return true;
     case KEY_7:
       IncDec8(&gSettings.scanTimeout, 1, 255, -1);
       SETTINGS_DelayedSave();
+      SCAN_Stop();
+      SCAN_Start();
       return true;
     case KEY_3:
       IncDec8(&gNoiseOpenDiff, 1, 32, 1);

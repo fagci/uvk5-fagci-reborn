@@ -116,6 +116,7 @@ void ANALYZER_init(void) {
 
   gMonitorMode = false;
 
+  gCurrentBand.meta.type = TYPE_BAND_DETACHED;
   gCurrentBand.squelch.value = 0;
 
   setCenterF(radio->rxF);

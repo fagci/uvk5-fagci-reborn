@@ -49,6 +49,7 @@ ModulationType RADIO_GetModulation();
 void RADIO_SetupRegisters();
 
 void RADIO_SaveCurrentVFO();
+void RADIO_SaveCurrentVFODelayed(void);
 void RADIO_LoadCurrentVFO();
 
 TXState RADIO_GetTXState(uint32_t txF);
@@ -90,7 +91,7 @@ uint16_t RADIO_GetRSSI(void);
 uint8_t RADIO_GetSNR(void);
 uint16_t RADIO_GetS();
 uint32_t RADIO_GetTXF(void);
-uint32_t RADIO_GetTXFEx(CH *vfo);
+uint32_t RADIO_GetTXFEx(const VFO *vfo);
 uint32_t RADIO_GetTxPower(uint32_t txF);
 void RADIO_ToggleBK1080(bool on);
 

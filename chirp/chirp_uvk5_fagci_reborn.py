@@ -1331,7 +1331,7 @@ BL_TIME_MAP = list(zip(BL_TIME_NAMES, BL_TIME_VALUES))
 
 BL_SQL_MODE_NAMES = ["Off", "On", "Open"]
 TX_POWER_NAMES = ["ULow", "Low", "Mid", "High"]
-TX_OFFSET_NAMES = ["Unset", "+", "-"]
+TX_OFFSET_NAMES = ["Unset", "+", "-", "F"]
 
 TX_CODE_TYPES = RX_CODE_TYPES = ["None", "CTCSS", "DCS", "-DCS"]
 
@@ -1748,6 +1748,8 @@ def xorarr(data: bytes):
 def calculate_crc16_xmodem(data: bytes):
     poly = 0x1021
     crc = 0x0
+    if _mem.gainIndex == 0:
+        _mem.gainIndex = 21
     for byte in data:
         crc = crc ^ (byte << 8)
         for i in range(8):

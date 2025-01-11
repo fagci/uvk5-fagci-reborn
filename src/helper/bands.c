@@ -202,7 +202,8 @@ uint8_t BANDS_GetScanlistIndex() { return scanlistBandIndex; }
  */
 bool BANDS_SelectByFrequency(uint32_t f, bool copyToVfo) {
   int16_t newBandIndex = bandIndexByFreq(f, false);
-  if (allBandIndex != newBandIndex) {
+  if (allBandIndex != newBandIndex ||
+      gCurrentBand.meta.type == TYPE_BAND_DETACHED) {
     allBandIndex = newBandIndex;
     if (allBandIndex >= 0) {
       BANDS_Select(allBands[allBandIndex].mr, copyToVfo);

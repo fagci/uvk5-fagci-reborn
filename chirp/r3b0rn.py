@@ -391,12 +391,12 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
 
         addr = 0
 
-        status.msg = f"Uploading..."
         status.max = self.get_patch_address()
         while addr < status.max:
             self.writemem(self.get_mmap()[addr:addr + self.BLOCK_SIZE], addr)
             status.cur = addr
             addr += self.BLOCK_SIZE
+            status.msg = f"Uploading...{round(addr*100/status.max)}%"
             self.status_fn(status)
 
 
@@ -522,7 +522,7 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
             _mem.meta.type = TYPE_CH
 
         if not mem.power:
-            mem.power = self.POWER_LEVELS[21]
+            mem.power = self.POWER_LEVELS[0]
         _mem.power = self.POWER_LEVELS.index(mem.power)
         
         self._set_tone(mem, _mem)

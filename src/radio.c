@@ -247,7 +247,7 @@ static void setSI4732Modulation(ModulationType mod) {
   }
 }
 
-static void onVfoUpdate(void) {
+void RADIO_SaveCurrentVFODelayed(void) {
   TaskRemove(RADIO_SaveCurrentVFO);
   TaskAdd("VFO sav", RADIO_SaveCurrentVFO, 1000, false, 0);
 }
@@ -505,14 +505,13 @@ void RADIO_EnableCxCSS(void) {
   // SYSTEM_DelayMs(200);
 }
 
-uint32_t RADIO_GetTXFEx(VFO *vfo) {
+uint32_t RADIO_GetTXFEx(const VFO *vfo) {
   uint32_t txF = vfo->rxF;
 
-  if (vfo->txF && radio->offsetDir == OFFSET_FREQ) {
+  if (vfo->txF && vfo->offsetDir == OFFSET_FREQ) {
     txF = vfo->txF;
-  } else if (radio->txF && radio->offsetDir != OFFSET_NONE) {
-    txF =
-        vfo->rxF + (radio->offsetDir == OFFSET_PLUS ? radio->txF : -radio->txF);
+  } else if (vfo->txF && vfo->offsetDir != OFFSET_NONE) {
+    txF = vfo->rxF + (vfo->offsetDir == OFFSET_PLUS ? vfo->txF : -vfo->txF);
   }
 
   return txF;
@@ -656,7 +655,6 @@ void RADIO_SwitchRadio() {
 }
 
 static void checkVisibleBand() {
-
   if (!SVC_Running(SVC_SCAN) &&
       (
           // to not change current band if overlapping
@@ -733,12 +731,12 @@ void RADIO_LoadCurrentVFO(void) {
 void RADIO_SetSquelch(uint8_t sq) {
   radio->squelch.value = sq;
   BK4819_Squelch(sq, gSettings.sqlOpenTime, gSettings.sqlCloseTime);
-  onVfoUpdate();
+  RADIO_SaveCurrentVFODelayed();
 }
 
 void RADIO_SetSquelchType(SquelchType t) {
   radio->squelch.type = t;
-  onVfoUpdate();
+  RADIO_SaveCurrentVFODelayed();
 }
 
 void RADIO_SetGain(uint8_t gainIndex) {
@@ -1024,7 +1022,7 @@ bool RADIO_NextBandFreqXBandEx(bool next, bool precise) {
   if (SVC_Running(SVC_SCAN) && gIsListening) {
     RADIO_ToggleRX(false);
   }
-  onVfoUpdate();
+  RADIO_SaveCurrentVFODelayed();
   return switchBand;
 }
 
@@ -1037,7 +1035,7 @@ void RADIO_UpdateStep(bool inc) {
   IncDec8(&step, 0, STEP_500_0kHz, inc ? 1 : -1);
   radio->step = step;
   radio->fixedBoundsMode = false;
-  onVfoUpdate();
+  RADIO_SaveCurrentVFODelayed();
 }
 
 void RADIO_ToggleListeningBW(void) {
@@ -1049,7 +1047,7 @@ void RADIO_ToggleListeningBW(void) {
 
   RADIO_SetFilterBandwidth(radio->bw);
 
-  onVfoUpdate();
+  RADIO_SaveCurrentVFODelayed();
 }
 
 void RADIO_ToggleTxPower(void) {
@@ -1059,7 +1057,7 @@ void RADIO_ToggleTxPower(void) {
     ++radio->power;
   }
 
-  onVfoUpdate();
+  RADIO_SaveCurrentVFODelayed();
 }
 
 void RADIO_ToggleModulation(void) {
@@ -1069,7 +1067,7 @@ void RADIO_ToggleModulation(void) {
 
   // NOTE: for right BW after switching from WFM to another
   RADIO_SetupBandParams();
-  onVfoUpdate();
+  RADIO_SaveCurrentVFODelayed();
 }
 
 bool RADIO_HasSi() { return BK1080_ReadRegister(1) != 0x1080; }

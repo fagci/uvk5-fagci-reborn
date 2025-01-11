@@ -224,7 +224,7 @@ bool VFO1_keyEx(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld,
                 bool isProMode) {
   if (!SVC_Running(SVC_SCAN) && !bKeyPressed && !bKeyHeld && RADIO_IsChMode()) {
     if (!gIsNumNavInput && key <= KEY_9) {
-      NUMNAV_Init(radio->channel + 1, 1, CHANNELS_GetCountMax());
+      NUMNAV_Init(radio->channel + 1, 1, gScanlistSize);
       gNumNavCallback = setChannel;
     }
     if (gIsNumNavInput) {

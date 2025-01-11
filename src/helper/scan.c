@@ -66,6 +66,7 @@ uint32_t SCAN_GetTimeout() { return scanTimeout; }
 void SCAN_ToggleDirection(bool up) {
   if (RADIO_IsChMode()) {
     CHANNELS_Next(up);
+    RADIO_SaveCurrentVFODelayed();
     return;
   }
   if (!gIsListening && SVC_Running(SVC_SCAN)) {
@@ -88,6 +89,9 @@ void SCAN_Start() {
     // TODO: scan by snr
     initSsbScan();
   } else {
+    if (RADIO_IsChMode() && gScanlistSize == 0) {
+      return;
+    }
     startScan();
     // NOTE: important to tune to scanlist band,
     // not to band by frequency in radio.h
