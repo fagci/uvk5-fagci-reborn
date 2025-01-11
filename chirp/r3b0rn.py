@@ -387,7 +387,7 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
     # UPLOAD
     def sync_out(self):
         status = chirp_common.Status()
-        
+        self.FIRMWARE_VERSION = self.get_version()
 
         addr = 0
 
@@ -541,7 +541,7 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
                 if _mem.gainIndex == 0:
                     _mem.gainIndex = 21
             if sname == "bw":
-                _mem.bw= self.BW_NAMES.index(svalue)
+                _mem.bw = self.BW_NAMES.index(svalue)
             if sname == "sq_type":
                 _mem.squelch.type = self.SQUELCH_TYPES.index(svalue)
             if sname == "sq_value":

@@ -239,6 +239,7 @@ CH LOOT_ToCh(const Loot *loot) {
       .power = p.power,
       .bw = p.bw,
       .squelch = p.squelch,
+      .gainIndex = p.gainIndex,
   };
 
   snprintf(ch.name, 9, "%u.%05u", ch.rxF / MHZ, ch.rxF % MHZ);

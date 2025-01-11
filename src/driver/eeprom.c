@@ -10,7 +10,7 @@ bool gEepromWrite = false;
 static uint8_t tmpBuffer[128];
 
 void EEPROM_ReadBuffer(uint32_t address, void *pBuffer, uint16_t size) {
-  uint8_t IIC_ADD = (uint8_t)(0xA0 | ((address / 0x10000) << 1));
+  uint8_t IIC_ADD = 0xA0 | address >> 15 & 14;
 
   I2C_Start();
   I2C_Write(IIC_ADD);

@@ -10,8 +10,8 @@
 int16_t gScanlistSize = 0;
 uint16_t gScanlist[SCANLIST_MAX] = {0};
 CHType gScanlistType = TYPE_CH;
-const char *CH_TYPE_NAMES[6] = {"EMPTY",  "CH",     "BAND",    "VFO",
-                                "FOLDER", "MELODY"};
+const char *CH_TYPE_NAMES[6] = {"EMPTY", "CH",     "BAND",
+                                "VFO",   "FOLDER", "MELODY"};
 const char *TX_POWER_NAMES[4] = {"ULow", "Low", "Mid", "High"};
 const char *TX_OFFSET_NAMES[3] = {"None", "+", "-"};
 const char *TX_CODE_TYPES[4] = {"None", "CT", "DCS", "-DCS"};
@@ -43,7 +43,8 @@ void CHANNELS_Load(int16_t num, CH *p) {
 
 void CHANNELS_Save(int16_t num, CH *p) {
   if (num >= 0) {
-    Log(">> W CH%u OFS=%u '%s': f=%u, radio=%u", num, GetChannelOffset(num), p->name, p->rxF, p->radio);
+    /* Log(">> W CH%u OFS=%u '%s': f=%u, radio=%u", num, GetChannelOffset(num),
+        p->name, p->rxF, p->radio); */
     EEPROM_WriteBuffer(GetChannelOffset(num), p, CH_SIZE);
   }
 }
@@ -70,11 +71,13 @@ uint8_t CHANNELS_Scanlists(int16_t num) {
 static int16_t chScanlistIndex = 0;
 
 void CHANNELS_Next(bool next) {
-  IncDecI16(&chScanlistIndex, 0, gScanlistSize, next ? 1 : -1);
-  int16_t chNum = gScanlist[chScanlistIndex];
-  radio->channel = chNum;
-  RADIO_VfoLoadCH(gSettings.activeVFO);
-  RADIO_SetupByCurrentVFO();
+  if (gScanlistSize) {
+    IncDecI16(&chScanlistIndex, 0, gScanlistSize - 1, next ? 1 : -1);
+    int16_t chNum = gScanlist[chScanlistIndex];
+    radio->channel = chNum;
+    RADIO_VfoLoadCH(gSettings.activeVFO);
+    RADIO_SetupByCurrentVFO();
+  }
 }
 
 void CHANNELS_LoadScanlist(CHTypeFilter type, uint16_t scanlistMask) {
