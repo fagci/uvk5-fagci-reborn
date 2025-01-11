@@ -155,7 +155,7 @@ static ModulationType getNextModulation(bool next) {
   uint8_t sz = ARRAY_SIZE(MODS_BK4819);
   ModulationType *items = MODS_BK4819;
 
-  if (radio->rxF >= BK1080_F_MIN && radio->rxF <= BK1080_F_MAX) {
+  if (radio->rxF >= 88 * MHZ && radio->rxF <= BK1080_F_MAX) {
     items = MODS_WFM;
     sz = ARRAY_SIZE(MODS_WFM);
   } else if (radio->rxF <= SI47XX_F_MAX && radio->rxF >= BK4819_F_MIN) {
@@ -531,10 +531,9 @@ TXState RADIO_GetTXState(uint32_t txF) {
     return TX_DISABLED_UPCONVERTER;
   }
 
-  const Band txBand = BANDS_ByFrequency(txF);
-
-  if (!txBand.allowTx || RADIO_GetRadio() != RADIO_BK4819 ||
-      SVC_Running(SVC_FC)) {
+  if ((RADIO_IsChMode() && !radio->allowTx) ||
+      (!RADIO_IsChMode() && !BANDS_ByFrequency(txF).allowTx) ||
+      RADIO_GetRadio() != RADIO_BK4819 || SVC_Running(SVC_FC)) {
     return TX_DISABLED;
   }
 
@@ -685,7 +684,7 @@ void RADIO_SetupByCurrentVFO(void) {
 void RADIO_TuneTo(uint32_t f) {
   if (RADIO_IsChMode()) {
     radio->channel = -1;
-    snprintf(radio->name, 5, "VFO%u", gSettings.activeVFO + 1);
+    snprintf(radio->name, 5, "VFO-%c", 'A' + gSettings.activeVFO);
   }
   radio->txF = 0;
   radio->rxF = f;

@@ -133,7 +133,7 @@ void BK4819_Init(void) {
       (11u << 12) |    // ??? 0..15
           (0u << 10) | // AF Rx Gain-1 (0 = 0dB)
           (58u << 4) | // AF Rx Gain-2 (-26dB ~ 5.5dB, 0.5dB/step)
-          (8u << 0)); // AF DAC Gain (2dB/step, 15 = max, 0 = min)
+          (8u << 0));  // AF DAC Gain (2dB/step, 15 = max, 0 = min)
 
   for (uint8_t i = 0; i < ARRAY_SIZE(DTMF_COEFFS); ++i) {
     BK4819_WriteRegister(0x09, (i << 12) | DTMF_COEFFS[i]);
@@ -144,7 +144,6 @@ void BK4819_Init(void) {
   gBK4819_GpioOutState = 0x9000;
   BK4819_WriteRegister(BK4819_REG_33, 0x9000);
   BK4819_WriteRegister(BK4819_REG_3F, 0);
-
 }
 
 void BK4819_WriteU8(uint8_t Data) {
@@ -526,10 +525,11 @@ void BK4819_SetModulation(ModulationType type) {
   } else {
     if (isSsb) {
       BK4819_SetRegValue(RS_XTAL_MODE, 3);
+      BK4819_SetRegValue(RS_IF_F, 0);
     } else {
       BK4819_SetRegValue(RS_XTAL_MODE, 2);
+      BK4819_SetRegValue(RS_IF_F, 10923);
     }
-    BK4819_SetRegValue(RS_IF_F, 10923);
   }
 }
 

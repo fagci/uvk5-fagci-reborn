@@ -222,7 +222,8 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
 bool VFO1_keyEx(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld,
                 bool isProMode) {
-  if (!SVC_Running(SVC_SCAN) && !bKeyPressed && !bKeyHeld && RADIO_IsChMode()) {
+  if (!SVC_Running(SVC_SCAN) && !gVfo1ProMode && !bKeyPressed && !bKeyHeld &&
+      RADIO_IsChMode()) {
     if (!gIsNumNavInput && key <= KEY_9) {
       NUMNAV_Init(radio->channel + 1, 1, gScanlistSize);
       gNumNavCallback = setChannel;
@@ -437,18 +438,17 @@ void VFO1_render(void) {
 
   const uint8_t BASE = 40;
 
-  VFO *vfo = &gVFO[gSettings.activeVFO];
-  uint32_t f = gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(vfo->rxF);
+  uint32_t f = gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(radio->rxF);
 
   uint16_t fp1 = f / MHZ;
   uint16_t fp2 = f / 100 % 1000;
   uint8_t fp3 = f % 100;
-  const char *mod = modulationTypeOptions[vfo->modulation];
+  const char *mod = modulationTypeOptions[radio->modulation];
   if (gIsListening || gVfo1ProMode) {
     UI_RSSIBar(BASE + 2);
   }
 
-  if (RADIO_IsChMode()) {
+  if (RADIO_IsChMode() && !gVfo1ProMode) {
     PrintMediumEx(LCD_XCENTER, BASE - 16, POS_C, C_FILL, radio->name);
   }
 
@@ -463,7 +463,11 @@ void VFO1_render(void) {
   }
 
   FillRect(0, 21 - 14, 28, 7, C_FILL);
-  PrintSmallEx(14, 21 - 9, POS_C, C_INVERT, radio->name);
+  if (RADIO_IsChMode()) {
+    PrintSmallEx(14, 21 - 9, POS_C, C_INVERT, "MR %03u", radio->channel + 1);
+  } else {
+    PrintSmallEx(14, 21 - 9, POS_C, C_INVERT, radio->name);
+  }
   if (gVfo1ProMode) {
     SQL sq = GetSql(radio->squelch.value);
 
