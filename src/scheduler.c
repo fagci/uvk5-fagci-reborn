@@ -1,6 +1,6 @@
 #include "scheduler.h"
 
-static uint32_t elapsedMilliseconds = 0;
+static volatile uint32_t elapsedMilliseconds = 0;
 
 Task tasks[TASKS_MAX];
 static uint8_t tasksCount = 0;

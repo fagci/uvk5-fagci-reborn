@@ -178,11 +178,10 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
         chirp_common.PowerLevel("Medium", watts=2.50),
         chirp_common.PowerLevel("High", watts=5.00),
     ]
-    SQUELCH_LEVELS = range(0, 10)
+    SQUELCH_LEVELS = [str(v) for v in range(0, 10)]
     SQUELCH_TYPES = ["RNG", "RG", "RN", "R"]
     MODULATION_LIST = ["FM", "AM", "LSB", "USB",
                        "DV", "RAW", "WFM"]
-    TONE_MODES = ["", "Tone", "DTCS"] 
     ROGER_NAMES = ["None", "Moto", "Tiny", "Call"]
     BL_TIME_VALUES = [0, 5, 10, 20, 60, 120, 255]
     BL_TIME_NAMES = ["Off", "5s", "10s", "20s", "1min", "2min", "On"]
@@ -191,6 +190,7 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
     BATTERY_STYLE_NAMES = ["Plain", "Percent", "Voltage"]
     VFOs = ["VFO-A", "VFO-B"]
     BOUND_240_280_NAMES = ["Bound 240", "Bound 280"]
+    CODE_TYPES = ["None", "CTCSS", "DCS", "-DCS"]
 
     SQL_OPEN_NAMES = [f"{i}ms" for i in range(0, 35, 5)]
     SQL_CLOSE_NAMES = [f"{i}ms" for i in range(0, 15, 5)]
@@ -230,6 +230,32 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
     2,   5,   50,  100,
     250, 500, 625, 833, 900, 1000, 1250, 2500, 5000, 10000, 50000,
     ]
+    CTCSS_TONES = [
+        67.0, 69.3, 71.9, 74.4, 77.0, 79.7, 82.5, 85.4,
+        88.5, 91.5, 94.8, 97.4, 100.0, 103.5, 107.2, 110.9,
+        114.8, 118.8, 123.0, 127.3, 131.8, 136.5, 141.3, 146.2,
+        151.4, 156.7, 159.8, 162.2, 165.5, 167.9, 171.3, 173.8,
+        177.3, 179.9, 183.5, 186.2, 189.9, 192.8, 196.6, 199.5,
+        203.5, 206.5, 210.7, 218.1, 225.7, 229.1, 233.6, 241.8,
+        250.3, 254.1,
+    ]
+
+    CTCSS_TONES_NAMES = list(map(str, CTCSS_TONES))
+
+    DTCS_CODES = [
+        23, 25, 26, 31, 32, 36, 43, 47, 51, 53, 54,
+        65, 71, 72, 73, 74, 114, 115, 116, 122, 125, 131,
+        132, 134, 143, 145, 152, 155, 156, 162, 165, 172, 174,
+        205, 212, 223, 225, 226, 243, 244, 245, 246, 251, 252,
+        255, 261, 263, 265, 266, 271, 274, 306, 311, 315, 325,
+        331, 332, 343, 346, 351, 356, 364, 365, 371, 411, 412,
+        413, 423, 431, 432, 445, 446, 452, 454, 455, 462, 464,
+        465, 466, 503, 506, 516, 523, 526, 532, 546, 565, 606,
+        612, 624, 627, 631, 632, 654, 662, 664, 703, 712, 723,
+        731, 732, 734, 743, 754
+    ]
+
+    DTCS_CODES_NAMES = list(map(str, DTCS_CODES))
     GAIN_NAMES = [
         '-57dB',
         '-55dB',
@@ -277,7 +303,6 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
         "W26k", 
     ]
 
-
     def get_features(self):
         rf = chirp_common.RadioFeatures()
         rf.has_bank = False
@@ -285,10 +310,11 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
         rf.has_settings = True
         rf.has_nostep_tuning = True
         rf.valid_characters = chirp_common.CHARSET_ASCII + "\0"
-        rf.valid_duplexes = ["", "-", "+", "split"]
-        # rf.valid_name_length = 9
+        rf.valid_duplexes = ["", "+", "-", "split"]
+        rf.valid_name_length = 9
         rf.valid_modes = self.MODULATION_LIST
-        rf.valid_tmodes = self.TONE_MODES
+        rf.valid_tmodes = ["", "Tone", "TSQL", "DTCS", "Cross"]
+        rf.valid_cross_modes = ["Tone->Tone", "Tone->DTCS", "DTCS->Tone", "->Tone", "->DTCS", "DTCS->", "DTCS->DTCS"]
         rf.valid_power_levels = self.POWER_LEVELS
         rf.valid_tuning_steps = [
             .02,
@@ -317,7 +343,6 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
     # DOWNLOAD
     def sync_in(self):
         status = chirp_common.Status()
-        self.patch_size = len(self.PATCH_DATA)
         
         self.FIRMWARE_VERSION = self.get_version()
         if not self.FIRMWARE_VERSION:
@@ -329,7 +354,7 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
         data = b""
         
         status.msg = f"Reading settings..."
-        status.max = self.settings_size = bitwise.parse(MEM_SETTINGS, []).size() // 8
+        status.max = self.settings_size
         while addr < status.max:
             d = self.readmem(addr, self.BLOCK_SIZE)
             data += d
@@ -337,18 +362,13 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
             status.cur = addr
             self.status_fn(status)
 
-        self.settings = bitwise.parse(MEM_SETTINGS, data)
-        self.eeprom_type = int(self.settings['Settings']['eepromType'])
-        self.eeprom_size = 0x2000 << self.eeprom_type
-        self.ch_size = bitwise.parse(MEM_CH_FMT % 1, []).size() // 8
-        self.ch_count = self.get_ch_count()
+        self._mmap = memmap.MemoryMapBytes(data)
+        self.process_mmap()
 
         print(f"EEPROM SIZE: {self.eeprom_size}")
         print(f"CH SIZE: {self.ch_size}")
         print(f"CH COUNT: {self.ch_count}")
 
-        if self.ch_count > 1024:
-            self.ch_count = 1024
 
         status.max = self.settings_size + self.ch_size * self.ch_count
         while addr < status.max:
@@ -367,6 +387,7 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
     # UPLOAD
     def sync_out(self):
         status = chirp_common.Status()
+        
 
         addr = 0
 
@@ -397,9 +418,14 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
 
     def get_ch_count(self):
         if self.is_patch_can_be_sent():
-            return (self.eeprom_size - self.settings_size - self.patch_size) // self.ch_size
+            ch_count = (self.eeprom_size - self.settings_size - self.patch_size) // self.ch_size
+        else:
+            ch_count = (self.eeprom_size - self.settings_size) // self.ch_size
 
-        return (self.eeprom_size - self.settings_size) // self.ch_size
+        if ch_count > 1024:
+            ch_count = 1024
+
+        return ch_count
 
     def get_patch_address(self):
         if self.is_patch_can_be_sent():
@@ -412,6 +438,10 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
 
     # Convert the raw byte array into a memory object structure
     def process_mmap(self):
+        settings_parsed = bitwise.parse(MEM_SETTINGS, self._mmap)
+        self.eeprom_type = int(settings_parsed["Settings"]['eepromType'])
+        self.eeprom_size = 0x2000 << self.eeprom_type
+        self.ch_count = self.get_ch_count()
         self._memobj = bitwise.parse(MEM_SETTINGS + (MEM_CH_FMT % self.ch_count), self._mmap)
 
     # Return a raw representation of the memory object, which
@@ -428,7 +458,7 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
 
         mem.number = number
 
-        if _mem.meta.type == 0:
+        if _mem.meta.type == TYPE_EMPTY and _mem.rxF == 0:
             mem.empty = True
         else:
             for c in _mem.name:
@@ -436,36 +466,40 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
                     break
                 mem.name += str(c)
 
+
             mem.name = mem.name.strip()
             mem.freq = int(_mem.rxF) * 10
             mem.offset = int(_mem.txF) * 10
             mem.duplex = self.get_features().valid_duplexes[int(_mem.offsetDir)]
             mem.mode = self.get_features().valid_modes[int(_mem.modulation)]
             mem.power = self.get_features().valid_power_levels[int(_mem.power)]
-            mem.tuning_step = float(self.STEP_FREQ_TABLE[int(_mem.step)]) / 100
+            mem.tuning_step = self.get_features().valid_tuning_steps[int(_mem.step)]
+            self._get_tone(mem, _mem)
+            if _mem.gainIndex == 0:
+                _mem.gainIndex = 21
 
         mem.extra = RadioSettingGroup(
             "extra",
             "extra",
             RadioSetting("type", "Type", RadioSettingValueList(
                 self.CH_TYPE_NAMES,
-                self.CH_TYPE_NAMES[_mem.meta.type]
+                current_index = _mem.meta.type
             )),
             RadioSetting("gain", "Gain", RadioSettingValueList(
                 self.GAIN_NAMES,
-                self.GAIN_NAMES[_mem.gainIndex]
+                current_index = _mem.gainIndex
             )),
             RadioSetting("bw", "BW", RadioSettingValueList(
                 self.BW_NAMES,
-                self.BW_NAMES[int(_mem.bw)]
+                current_index = _mem.bw
             )),
             RadioSetting("sq_type", "SQ type", RadioSettingValueList(
                 self.SQUELCH_TYPES,
-                self.SQUELCH_TYPES[int(_mem.squelch.type)]
+                current_index = _mem.squelch.type
             )),
             RadioSetting("sq_value", "SQ", RadioSettingValueList(
                 self.SQUELCH_LEVELS,
-                self.SQUELCH_LEVELS[int(_mem.squelch.value)]
+                current_index = _mem.squelch.value
             ))
         )
 
@@ -482,7 +516,16 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
         _mem.modulation = self.get_features().valid_modes.index(mem.mode)
         _mem.name = str(mem.name[:9].ljust(10, "\0")[:10])  # Store the alpha tag
         _mem.step = self.STEP_FREQ_TABLE.index(int(float(mem.tuning_step) * 100))
+        if mem.empty and _mem.rxF == 0:
+            _mem.meta.type = TYPE_EMPTY
+        elif _mem.rxF > 0:
+            _mem.meta.type = TYPE_CH
+
+        if not mem.power:
+            mem.power = self.POWER_LEVELS[21]
         _mem.power = self.POWER_LEVELS.index(mem.power)
+        
+        self._set_tone(mem, _mem)
 
         for setting in mem.extra:
             sname = setting.get_name()
@@ -494,7 +537,9 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
                 if _mem.meta.type == TYPE_EMPTY:
                     _mem.meta.type = TYPE_CH
             if sname == "gain":
-                _mem.gainIndex= self.GAIN_NAMES.index(svalue)
+                _mem.gainIndex = self.GAIN_NAMES.index(svalue)
+                if _mem.gainIndex == 0:
+                    _mem.gainIndex = 21
             if sname == "bw":
                 _mem.bw= self.BW_NAMES.index(svalue)
             if sname == "sq_type":
@@ -505,6 +550,83 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
                     _mem.squelch.value = 4
 
         return mem
+
+    def _set_tone(self, mem, _mem):
+        ((txmode, txtone, txpol),
+         (rxmode, rxtone, rxpol)) = chirp_common.split_tone_encode(mem)
+
+        if txmode == "Tone":
+            txmoval = self.CODE_TYPES.index("CTCSS")
+            txtoval = self.CTCSS_TONES.index(txtone)
+        elif txmode == "DTCS":
+            txmoval = txpol == "R" and self.CODE_TYPES.index("-DCS") or self.CODE_TYPES.index("DCS")
+            txtoval = self.DTCS_CODES.index(txtone)
+        else:
+            txmoval = self.CODE_TYPES.index("None")
+            txtoval = 0
+
+        if rxmode == "Tone":
+            rxmoval = self.CODE_TYPES.index("CTCSS")
+            rxtoval = self.CTCSS_TONES.index(rxtone)
+        elif rxmode == "DTCS":
+            rxmoval = rxpol == "R" and self.CODE_TYPES.index("-DCS") or self.CODE_TYPES.index("DCS")
+            rxtoval = self.DTCS_CODES.index(rxtone)
+        else:
+            rxmoval = self.CODE_TYPES.index("None")
+            rxtoval = 0
+
+        _mem.code.rx.type = rxmoval
+        _mem.code.tx.type = txmoval
+        _mem.code.rx.value = rxtoval
+        _mem.code.tx.value = txtoval
+
+    def _get_tone(self, mem, _mem):
+        rx_pol = None
+        tx_pol = None
+
+        rxtype = _mem.code.rx.type
+        txtype = _mem.code.tx.type
+
+        TMODES = self.get_features().valid_tmodes
+
+        if rxtype >= len(TMODES):
+            rxtype = 0
+        rx_tmode = TMODES[rxtype]
+
+        if txtype >= len(TMODES):
+            txtype = 0
+        tx_tmode = TMODES[txtype]
+
+        rx_tone = tx_tone = "None"
+
+        if tx_tmode == "Tone":
+            if _mem.code.tx.value < len(self.CTCSS_TONES):
+                tx_tone = self.CTCSS_TONES[_mem.code.tx.value]
+            else:
+                tx_tone = 0
+        elif tx_tmode == "DTCS":
+            if _mem.code.tx.value < len(self.DTCS_CODES):
+                tx_tone = self.DTCS_CODES[_mem.code.tx.value]
+                tx_pol = self.CODE_TYPES[txtype] == "DCS" and "N" or "R"
+            else:
+                tx_tone = 0
+
+        if rx_tmode == "Tone":
+            if _mem.code.rx.value < len(self.CTCSS_TONES):
+                rx_tone = self.CTCSS_TONES[_mem.code.rx.value]
+            else:
+                rx_tone = 0
+        elif rx_tmode == "DTCS":
+            if _mem.code.rx.value < len(self.DTCS_CODES):
+                rx_tone = self.DTCS_CODES[_mem.code.rx.value]
+                rx_pol = self.CODE_TYPES[rxtype] == "DCS" and "N" or "R"
+            else:
+                rx_tone = 0
+
+        tx_tmode = TMODES[txtype]
+        rx_tmode = TMODES[rxtype]
+
+        chirp_common.split_tone_decode(mem, (tx_tmode, tx_tone, tx_pol), (rx_tmode, rx_tone, rx_pol))
 
     def get_settings(self):
         _mem = self._memobj
@@ -1866,4 +1988,7 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
         0x16, 0x4b, 0xe7, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0xa9, 0x02
     ]
+    settings_size = bitwise.parse(MEM_SETTINGS, []).size() // 8
+    ch_size = bitwise.parse(MEM_CH_FMT % 1, []).size() // 8
+    patch_size = len(PATCH_DATA)
 

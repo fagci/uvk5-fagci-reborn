@@ -44,18 +44,20 @@ bool SI47XX_IsSSB() {
 void waitToSend() {
   uint8_t tmp = 0;
   do {
-    SYSTICK_DelayUs(300);
+    SYSTICK_DelayUs(1);
     SI47XX_ReadBuffer((uint8_t *)&tmp, 1);
   } while (!(tmp & STATUS_CTS));
 }
 
 #include "../ui/components.h" // HACK: \(X_X)/
 #include "uart.h"
+#include "../external/CMSIS_5/Device/ARM/ARMCM0/Include/ARMCM0.h"
 
 bool SI47XX_downloadPatch() {
-  // Log("DL patch");
+  Log("DL patch");
   UI_ShowWait();
 
+  __disable_irq();
   uint8_t buf[248];
   // const uint8_t PAGE_SIZE = SETTINGS_GetPageSize();
   const uint32_t EEPROM_SIZE = SETTINGS_GetEEPROMSize();
@@ -65,13 +67,14 @@ bool SI47XX_downloadPatch() {
     EEPROM_ReadBuffer(PATCH_START + offset, buf, eepromN);
 
     for (uint8_t i = 0; i < eepromN; i += 8) {
-      // waitToSend();
+      waitToSend();
       SI47XX_WriteBuffer(buf + i, 8);
-      SYSTICK_DelayUs(300);
+      // SYSTICK_DelayUs(300);
     }
   }
+  __enable_irq();
   // SYSTEM_DelayMs(250);
-  // Log("DL patch OK");
+  Log("DL patch OK");
   return true;
 }
 
