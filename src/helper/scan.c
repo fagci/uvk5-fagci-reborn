@@ -101,6 +101,7 @@ void SCAN_Start() {
       }
       if (!radio->fixedBoundsMode) {
         radio->fixedBoundsMode = true;
+        radio->step = gCurrentBand.step;
         RADIO_SaveCurrentVFO();
       }
     }

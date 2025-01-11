@@ -74,7 +74,7 @@ const char *bwNamesSiSSB[6] = {
 
 };
 const char *radioNames[4] = {"BK4819", "BK1080", "SI4732"};
-const char *shortRadioNames[4] = {"BK", "BC", "SI", "PR"};
+const char *shortRadioNames[3] = {"BK", "BC", "SI"};
 const char *TX_STATE_NAMES[7] = {"TX Off",   "TX On",  "CHARGING", "BAT LOW",
                                  "DISABLED", "UPCONV", "HIGH POW"};
 
@@ -130,6 +130,10 @@ static ModulationType MODS_SI4732[] = {
     MOD_AM,
 };
 
+static ModulationType MODS_WFM[] = {
+    MOD_WFM,
+};
+
 static void loadVFO(uint8_t num) {
   CHANNELS_Load(CHANNELS_GetCountMax() - 2 + num, &gVFO[num]);
 }
@@ -151,7 +155,10 @@ static ModulationType getNextModulation(bool next) {
   uint8_t sz = ARRAY_SIZE(MODS_BK4819);
   ModulationType *items = MODS_BK4819;
 
-  if (radio->rxF <= SI47XX_F_MAX && radio->rxF >= BK4819_F_MIN) {
+  if (radio->rxF >= BK1080_F_MIN && radio->rxF <= BK1080_F_MAX) {
+    items = MODS_WFM;
+    sz = ARRAY_SIZE(MODS_WFM);
+  } else if (radio->rxF <= SI47XX_F_MAX && radio->rxF >= BK4819_F_MIN) {
     if (isPatchPresent) {
       items = MODS_BOTH_PATCH;
       sz = ARRAY_SIZE(MODS_BOTH_PATCH);
@@ -179,7 +186,7 @@ static ModulationType getNextModulation(bool next) {
 }
 
 Radio RADIO_Selector(uint32_t freq, ModulationType mod) {
-  if ((freq >= BK1080_F_MIN && freq <= BK1080_F_MAX) && mod == MOD_WFM) {
+  if (freq >= BK1080_F_MIN && freq <= BK1080_F_MAX) {
     return hasSi ? RADIO_SI4732 : RADIO_BK1080;
   }
 

@@ -80,7 +80,7 @@ static void render2VFOPart(uint8_t i) {
   uint32_t est = loot->lastTimeOpen ? (Now() - loot->lastTimeOpen) / 1000 : 0;
   if (r == RADIO_BK4819) {
     if (loot->ct != 0xFF) {
-      PrintSmallEx(0, bl + 6, POS_L, C_FILL, "CT %u.%u",
+      PrintSmallEx(0, bl + 6, POS_L, C_FILL, "C%u.%u",
                    CTCSS_Options[loot->ct] / 10, CTCSS_Options[loot->ct] % 10);
     } else if (loot->cd != 0xFF) {
       PrintSmallEx(0, bl + 6, POS_L, C_FILL, "D%03oN", DCS_Options[loot->cd]);
@@ -88,7 +88,7 @@ static void render2VFOPart(uint8_t i) {
   }
 
   sprintf(str, "%s", shortRadioNames[r]);
-  sprintf(str, "%+ddB", -gainTable[vfo->gainIndex].gainDb + 33);
+  sprintf(str, "%s %+d", str, -gainTable[vfo->gainIndex].gainDb + 33);
   sprintf(str, "%s %s", str, RADIO_GetBWName(vfo->radio, vfo->bw));
   sprintf(str, "%s %s%u", str, sqTypeNames[vfo->squelch.type],
           vfo->squelch.value);

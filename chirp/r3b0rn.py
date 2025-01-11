@@ -334,10 +334,12 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
             500.00,
         ]
         
-        rf.memory_bounds = (0, self.ch_count-1)  # This radio supports memories 0-9
-        rf.valid_bands = [(15_800_000, 280_000_000),  # Supports 2-meters
-                          (280_000_000, 1340_000_000),  # Supports 70-centimeters
-                          ]
+        rf.memory_bounds = (1, self.ch_count)  # This radio supports memories 0-9
+        rf.valid_bands = [
+            (0, 15_800_000),
+            (15_800_000, 280_000_000),  # Supports 2-meters
+            (280_000_000, 1340_000_000),  # Supports 70-centimeters
+        ]
         return rf
 
     # DOWNLOAD
@@ -452,7 +454,7 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
     # Get CH item
     def get_memory(self, number):
         # print(self.get_raw_memory(number))
-        _mem = self._memobj.CH[number]
+        _mem = self._memobj.CH[number-1]
 
         mem = chirp_common.Memory()
 
@@ -508,7 +510,7 @@ class QuanshengUVK5Radio(chirp_common.CloneModeRadio):
     # Store details about a high-level memory to the memory map
     # This is called when a user edits a memory in the UI
     def set_memory(self, mem):
-        _mem = self._memobj.CH[mem.number]
+        _mem = self._memobj.CH[mem.number-1]
 
         _mem.rxF = int(mem.freq/10)
         _mem.txF = int(mem.offset/10)
