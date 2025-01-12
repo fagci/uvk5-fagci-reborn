@@ -43,7 +43,7 @@ extern const char *deviationNames[];
 extern const char *sqTypeNames[4];
 extern const char *TX_STATE_NAMES[7];
 
-const char *RADIO_GetBWName(Radio r, BK4819_FilterBandwidth_t i);
+const char *RADIO_GetBWName(const VFO *vfo);
 Radio RADIO_GetRadio();
 ModulationType RADIO_GetModulation();
 void RADIO_SetupRegisters();

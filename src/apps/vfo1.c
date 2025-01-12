@@ -222,8 +222,8 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
 bool VFO1_keyEx(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld,
                 bool isProMode) {
-  if (!SVC_Running(SVC_SCAN) && !gVfo1ProMode && !bKeyPressed && !bKeyHeld &&
-      RADIO_IsChMode()) {
+  if (!SVC_Running(SVC_SCAN) && (!gVfo1ProMode || gCurrentApp == APP_VFO2) &&
+      !bKeyPressed && !bKeyHeld && RADIO_IsChMode()) {
     if (!gIsNumNavInput && key <= KEY_9) {
       NUMNAV_Init(radio->channel + 1, 1, gScanlistSize);
       gNumNavCallback = setChannel;
@@ -478,8 +478,7 @@ void VFO1_render(void) {
     PrintSmallEx(LCD_WIDTH - 1, 12, POS_R, C_FILL, "%s%u",
                  sqTypeNames[radio->squelch.type], radio->squelch.value);
 
-    PrintSmallEx(LCD_WIDTH - 1, 18, POS_R, true,
-                 RADIO_GetBWName(radio->radio, radio->bw));
+    PrintSmallEx(LCD_WIDTH - 1, 18, POS_R, true, RADIO_GetBWName(radio));
 
     const uint32_t step = StepFrequencyTable[radio->step];
     PrintSmall(0, BASE - 7, "SNR %u", RADIO_GetSNR());

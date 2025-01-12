@@ -89,7 +89,7 @@ static void render2VFOPart(uint8_t i) {
 
   sprintf(str, "%s", shortRadioNames[r]);
   sprintf(str, "%s %+d", str, -gainTable[vfo->gainIndex].gainDb + 33);
-  sprintf(str, "%s %s", str, RADIO_GetBWName(vfo->radio, vfo->bw));
+  sprintf(str, "%s %s", str, RADIO_GetBWName(vfo));
   sprintf(str, "%s %s%u", str, sqTypeNames[vfo->squelch.type],
           vfo->squelch.value);
   if (vfo->allowTx) {

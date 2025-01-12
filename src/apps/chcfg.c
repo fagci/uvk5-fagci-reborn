@@ -115,7 +115,7 @@ static void getMenuItemValue(BandCfgMenu type, char *Output) {
     strncpy(Output, gChEd.name, 31);
     break;
   case M_BW:
-    strncpy(Output, RADIO_GetBWName(gChEd.radio, gChEd.bw), 31);
+    strncpy(Output, RADIO_GetBWName(&gChEd), 31);
     break;
   case M_SQ_TYPE:
     strncpy(Output, sqTypeNames[gChEd.squelch.type], 31);
@@ -365,12 +365,14 @@ static void updateTxCodeListSize() {
 }
 
 static void getSubmenuItemText(uint16_t index, char *name) {
+  VFO vfo = gChEd;
   switch (menu[menuIndex].type) {
   case M_MODULATION:
     strncpy(name, modulationTypeOptions[index], 31);
     return;
   case M_BW:
-    strncpy(name, RADIO_GetBWName(gChEd.radio, index), 15);
+    vfo.bw = index;
+    strncpy(name, RADIO_GetBWName(&vfo), 15);
     return;
   case M_RX_CODE_TYPE:
     strncpy(name, TX_CODE_TYPES[index], 15);

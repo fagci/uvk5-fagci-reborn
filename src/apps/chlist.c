@@ -101,14 +101,18 @@ static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
 
 static void setMenuIndex(uint16_t i) { channelIndex = i - 1; }
 
-static void saveNamed() {
-  strncpy(gChEd.name, gTextinputText, 9);
+static void save() {
   gChEd.scanlists = 0;
   if (gChEd.meta.type == TYPE_VFO) {
     gChEd.meta.type = TYPE_CH;
   }
   CHANNELS_Save(getChannelNumber(channelIndex), &gChEd);
   RADIO_LoadCurrentVFO();
+}
+
+static void saveNamed() {
+  strncpy(gChEd.name, gTextinputText, 9);
+  save();
 }
 
 static void exportScanList() {
@@ -229,13 +233,20 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_MENU:
       if (gChSaveMode) {
         CHANNELS_LoadScanlist(gChListFilter, gSettings.currentScanlist);
+        if (gChEd.meta.type == TYPE_VFO) {
+          memset(gChEd.name, 0, ARRAY_SIZE(gChEd.name));
+        }
 
-        gTextinputText = tempName;
-        snprintf(gTextinputText, 9, "%lu.%05lu", gChEd.rxF / MHZ,
-                 gChEd.rxF % MHZ);
-        gTextInputSize = 9;
-        gTextInputCallback = saveNamed;
-        APPS_run(APP_TEXTINPUT);
+        if (gChEd.name[0] == '\0') {
+          gTextinputText = tempName;
+          snprintf(gTextinputText, 9, "%lu.%05lu", gChEd.rxF / MHZ,
+                   gChEd.rxF % MHZ);
+          gTextInputSize = 9;
+          gTextInputCallback = saveNamed;
+          APPS_run(APP_TEXTINPUT);
+        } else {
+          save();
+        }
         return true;
       }
       RADIO_TuneToMR(chNum);

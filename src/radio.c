@@ -202,15 +202,15 @@ inline Radio RADIO_GetRadio() { return radio->radio; }
 
 ModulationType RADIO_GetModulation() { return radio->modulation; }
 
-const char *RADIO_GetBWName(Radio r, BK4819_FilterBandwidth_t i) {
-  switch (r) {
+const char *RADIO_GetBWName(const VFO *vfo) {
+  switch (vfo->radio) {
   case RADIO_SI4732:
     if (RADIO_IsSSB()) {
-      return bwNamesSiSSB[i];
+      return bwNamesSiSSB[vfo->bw];
     }
-    return bwNamesSiAMFM[i];
+    return bwNamesSiAMFM[vfo->bw];
   default:
-    return bwNames[i];
+    return bwNames[vfo->bw];
   }
 }
 
@@ -531,9 +531,28 @@ TXState RADIO_GetTXState(uint32_t txF) {
     return TX_DISABLED_UPCONVERTER;
   }
 
-  if ((RADIO_IsChMode() && !radio->allowTx) ||
-      (!RADIO_IsChMode() && !BANDS_ByFrequency(txF).allowTx) ||
-      RADIO_GetRadio() != RADIO_BK4819 || SVC_Running(SVC_FC)) {
+  if (RADIO_GetRadio() != RADIO_BK4819 || SVC_Running(SVC_FC)) {
+    return TX_DISABLED;
+  }
+
+  Band txBand = BANDS_ByFrequency(txF);
+
+  // disable if:
+  // band disallow, no ch allow
+  if (txBand.meta.type != TYPE_BAND_DETACHED && !txBand.allowTx &&
+      (!RADIO_IsChMode() || !(RADIO_IsChMode() && radio->allowTx))) {
+    return TX_DISABLED;
+  }
+
+  // band allow, ch disallow
+  if (txBand.meta.type != TYPE_BAND_DETACHED && txBand.allowTx &&
+      (!RADIO_IsChMode() || (RADIO_IsChMode() && !radio->allowTx))) {
+    return TX_DISABLED;
+  }
+
+  // no band, no ch allow
+  if (txBand.meta.type == TYPE_BAND_DETACHED &&
+      (!RADIO_IsChMode() || !(RADIO_IsChMode() && radio->allowTx))) {
     return TX_DISABLED;
   }
 
