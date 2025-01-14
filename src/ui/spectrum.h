@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-void SP_AddPoint(const Loot *msm);
+void SP_AddPoint(const Measurement *msm);
 void SP_ResetHistory();
 void SP_Init(Band *b);
 void SP_Begin();
@@ -19,12 +19,13 @@ uint8_t SP_GetNoiseMax();
 uint16_t SP_GetRssiMax();
 
 void SP_RenderGraph();
-void SP_AddGraphPoint(const Loot *msm);
+void SP_AddGraphPoint(const Measurement *msm);
 void SP_Shift(int16_t n);
+void SP_ShiftGraph(int16_t n);
 
 bool SP_HasStats();
 void SP_UpdateScanStats();
-bool SP_IsSquelchOpen(const Loot *msm);
+bool SP_IsSquelchOpen(const Measurement *msm);
 extern uint8_t gNoiseOpenDiff;
 
 extern uint8_t SPECTRUM_Y;

@@ -63,6 +63,7 @@ static MenuItem menuBand[] = {
     {"P cal M", M_P_CAL_M, 255},
     {"P cal H", M_P_CAL_H, 255},
     {"Last f", M_LAST_F, 0},
+    {"ppm", M_PPM, 31},
 
     {"TX power", M_F_TXP, ARRAY_SIZE(TX_POWER_NAMES)},
     {"Scrambler", M_SCRAMBLER, 16},
@@ -119,6 +120,9 @@ static void getMenuItemValue(BandCfgMenu type, char *Output) {
     break;
   case M_SQ_TYPE:
     strncpy(Output, sqTypeNames[gChEd.squelch.type], 31);
+    break;
+  case M_PPM:
+    sprintf(Output, "%+d", gChEd.ppm);
     break;
   case M_SQ:
     sprintf(Output, "%u", gChEd.squelch.value);
@@ -219,6 +223,9 @@ static void acceptRadioConfig(const MenuItem *item, uint8_t subMenuIndex) {
   case M_SQ:
     gChEd.squelch.value = subMenuIndex;
     break;
+  case M_PPM:
+    gChEd.ppm = subMenuIndex - 15;
+    break;
   case M_GAIN:
     gChEd.gainIndex = subMenuIndex;
     break;
@@ -300,6 +307,9 @@ static void setInitialSubmenuIndex(void) {
     break;
   case M_SQ:
     subMenuIndex = gChEd.squelch.value;
+    break;
+  case M_PPM:
+    subMenuIndex = gChEd.ppm + 15;
     break;
   case M_GAIN:
     subMenuIndex = gChEd.gainIndex;
@@ -406,6 +416,9 @@ static void getSubmenuItemText(uint16_t index, char *name) {
   case M_P_CAL_M:
   case M_P_CAL_H:
     sprintf(name, "%u", index);
+    return;
+  case M_PPM:
+    sprintf(name, "%+d", index - 15);
     return;
   case M_GAIN:
     sprintf(name, index == AUTO_GAIN_INDEX ? "auto" : "%+ddB",

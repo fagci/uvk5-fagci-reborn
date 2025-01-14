@@ -85,7 +85,7 @@ void SVC_SCAN_Update(void) {
                              : SCAN_TIMEOUTS[gSettings.sqClosedTimeout]);
   }
 
-  if ((SCAN_IsFast() && gLoot[gSettings.activeVFO].rssi && !gIsListening) ||
+  if ((SCAN_IsFast() && gLoot[gSettings.activeVFO].snr && !gIsListening) ||
       CheckTimeout(&timeout)) {
     next();
     return;

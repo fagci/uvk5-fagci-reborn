@@ -28,7 +28,7 @@
 CH *radio;
 VFO gVFO[2];
 
-Loot gLoot[2] = {0};
+Measurement gLoot[2] = {0};
 
 bool gIsListening = false;
 bool gMonitorMode = false;
@@ -287,53 +287,6 @@ static void setupToneDetection() {
     break;
   }
   BK4819_WriteRegister(BK4819_REG_3F, InterruptMask);
-}
-
-static bool isSimpleSql() {
-  return gSettings.sqlOpenTime == 0 && gSettings.sqlCloseTime == 0;
-}
-
-static bool isSqOpenSimple(uint16_t r) {
-  SQL sq = GetSql(radio->squelch.value);
-
-  // TODO: automatic sql when msmTime < 10
-
-  uint8_t n, g;
-
-  bool open;
-
-  switch (radio->squelch.type) {
-  case SQUELCH_RSSI_NOISE_GLITCH:
-    n = BK4819_GetNoise();
-    g = BK4819_GetGlitch();
-    open = r >= sq.ro && n <= sq.no && g <= sq.go;
-    if (r < sq.rc || n > sq.nc || g > sq.gc) {
-      open = false;
-    }
-    break;
-  case SQUELCH_RSSI_NOISE:
-    n = BK4819_GetNoise();
-    open = r >= sq.ro && n <= sq.no;
-    if (r < sq.rc || n > sq.nc) {
-      open = false;
-    }
-    break;
-  case SQUELCH_RSSI_GLITCH:
-    g = BK4819_GetGlitch();
-    open = r >= sq.ro && g <= sq.go;
-    if (r < sq.rc || g > sq.gc) {
-      open = false;
-    }
-    break;
-  case SQUELCH_RSSI:
-    open = r >= sq.ro;
-    if (r < sq.rc) {
-      open = false;
-    }
-    break;
-  }
-
-  return open;
 }
 
 static void toggleBK4819(bool on) {
@@ -646,6 +599,13 @@ void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power, bool paEnabled) {
 }
 
 void RADIO_TuneToPure(uint32_t f, bool precise) {
+  uint32_t s = 100; // 1kHz
+  if (f < SI47XX_F_MAX) {
+    s = 50; // 500Hz
+  } else if (f >= BK1080_F_MIN && f <= BK1080_F_MAX) {
+    s = 1000; // 10kHz
+  }
+  f += gCurrentBand.ppm * s;
   LOOT_Replace(&gLoot[gSettings.activeVFO], f);
   Radio r = RADIO_GetRadio();
   // Log("Tune %s to %u", radioNames[r], f);
@@ -896,14 +856,10 @@ uint16_t RADIO_GetS() {
   }
 }
 
-bool RADIO_IsSquelchOpen(const Loot *msm) {
+bool RADIO_IsSquelchOpen(const Measurement *msm) {
   if (RADIO_GetRadio() == RADIO_BK4819) {
     if (SCAN_IsFast()) {
       return SP_IsSquelchOpen(msm);
-    }
-
-    if (isSimpleSql()) {
-      return isSqOpenSimple(msm->rssi);
     }
 
     return BK4819_IsSquelchOpen();

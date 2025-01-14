@@ -41,6 +41,7 @@ typedef enum {
   M_P_CAL_M,
   M_P_CAL_H,
   M_LAST_F,
+  M_PPM,
 } BandCfgMenu;
 
 typedef struct MenuItem {

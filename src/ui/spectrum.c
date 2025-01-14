@@ -71,14 +71,16 @@ void SP_UpdateScanStats() {
 
 bool SP_HasStats() { return fastScanSq.r != UINT16_MAX; }
 
-bool SP_IsSquelchOpen(const Loot *msm) {
-  // Log("%u SNR=%u", msm->f, msm->rssi);
-  return msm->rssi >= gNoiseOpenDiff;
+uint8_t listenRssi = 0;
+
+bool SP_IsSquelchOpen(const Measurement *msm) {
+  // Log("%u SNR=%u", msm->f, msm->snr);
+  return msm->snr >= gNoiseOpenDiff;
   /* const uint8_t noiseO = (fastScanSq.n - (gIsListening ? gNoiseOpenDiff :
   0)); if (gIsListening) { Log("Is sq op? r=%u<=>%u,n=%u<=>%u", fastScanSq.r,
-  msm->rssi, fastScanSq.n, msm->noise);
+  msm->snr, fastScanSq.n, msm->noise);
   }
-  return msm->rssi >= fastScanSq.r && msm->noise <= noiseO; */
+  return msm->snr >= fastScanSq.r && msm->noise <= noiseO; */
 }
 
 void SP_ResetHistory(void) {
@@ -104,7 +106,7 @@ void SP_Init(Band *b) {
   SP_Begin();
 }
 
-void SP_AddPoint(const Loot *msm) {
+void SP_AddPoint(const Measurement *msm) {
   uint32_t xs = ConvertDomain(msm->f, range->rxF, range->txF, 0, MAX_POINTS);
   uint32_t xe =
       ConvertDomain(msm->f + step, range->rxF, range->txF, 0, MAX_POINTS);
@@ -116,13 +118,17 @@ void SP_AddPoint(const Loot *msm) {
     if (ox != x) {
       ox = x;
       rssiHistory[x] = 0;
-      noiseHistory[x] = UINT8_MAX;
+      // noiseHistory[x] = UINT8_MAX;
     }
-    if (msm->rssi > rssiHistory[x]) {
-      rssiHistory[x] = msm->rssi;
-    }
-    if (msm->noise < noiseHistory[x]) {
-      noiseHistory[x] = msm->noise;
+    if (msm->rssi) {
+      if (msm->rssi > rssiHistory[x]) {
+        rssiHistory[x] = msm->rssi;
+      }
+
+    } else {
+      if (msm->snr > rssiHistory[x]) {
+        rssiHistory[x] = msm->snr;
+      }
     }
   }
   if (x + 1 > filledPoints) {
@@ -211,32 +217,31 @@ void SP_RenderGraph() {
   }
 }
 
-void SP_AddGraphPoint(const Loot *msm) {
+void SP_AddGraphPoint(const Measurement *msm) {
   rssiGraphHistory[MAX_POINTS - 1] = msm->rssi;
   filledPoints = MAX_POINTS;
 }
 
-void SP_Shift(int16_t n) {
-  if (n == 0) {
+static void shiftEx(uint16_t *history, uint16_t n, int16_t shift) {
+  if (shift == 0) {
     return;
   }
-  if (n > 0) {
-    while (n-- > 0) {
-      for (int16_t i = MAX_POINTS - 2; i >= 0; --i) {
-        rssiGraphHistory[i + 1] = rssiGraphHistory[i];
-        // noiseHistory[i + 1] = noiseHistory[i];
+  if (shift > 0) {
+    while (shift-- > 0) {
+      for (int16_t i = n - 2; i >= 0; --i) {
+        history[i + 1] = history[i];
       }
-      rssiGraphHistory[0] = 0;
-      // noiseHistory[0] = UINT8_MAX;
+      history[0] = 0;
     }
   } else {
-    while (n++ < 0) {
-      for (int16_t i = 0; i < MAX_POINTS - 1; ++i) {
-        rssiGraphHistory[i] = rssiGraphHistory[i + 1];
-        // noiseHistory[i] = noiseHistory[i + 1];
+    while (shift++ < 0) {
+      for (int16_t i = 0; i < n - 1; ++i) {
+        history[i] = history[i + 1];
       }
-      rssiGraphHistory[MAX_POINTS - 1] = 0;
-      // noiseHistory[MAX_POINTS - 1] = UINT8_MAX;
+      history[MAX_POINTS - 1] = 0;
     }
   }
 }
+
+void SP_Shift(int16_t n) { shiftEx(rssiHistory, MAX_POINTS, n); }
+void SP_ShiftGraph(int16_t n) { shiftEx(rssiGraphHistory, MAX_POINTS, n); }

@@ -12,14 +12,28 @@ typedef struct {
   uint32_t f;
   uint32_t lastTimeOpen;
   uint16_t duration;
-  uint16_t rssi;
-  uint8_t noise;
+  uint8_t snr;
   uint8_t cd;
   uint8_t ct;
   bool open : 1;
   bool blacklist : 1;
   bool whitelist : 1;
 } Loot;
+
+typedef struct {
+  uint32_t f;
+  uint32_t lastTimeOpen;
+  uint16_t duration;
+  uint16_t rssi;
+  uint8_t noise;
+  uint8_t glitch;
+  uint8_t snr;
+  uint8_t cd;
+  uint8_t ct;
+  bool open : 1;
+  bool blacklist : 1;
+  bool whitelist : 1;
+} Measurement;
 
 int16_t LOOT_IndexOf(Loot *loot);
 void LOOT_BlacklistLast();
@@ -32,10 +46,9 @@ void LOOT_Clear();
 void LOOT_Standby();
 uint16_t LOOT_Size();
 Loot *LOOT_Item(uint16_t i);
-void LOOT_UpdateEx(Loot *loot, Loot *msm);
-void LOOT_Update(Loot *msm);
-void LOOT_Replace(Loot *loot, uint32_t f);
-void LOOT_ReplaceItem(uint16_t i, uint32_t f);
+void LOOT_UpdateEx(Loot *loot, Measurement *msm);
+void LOOT_Update(Measurement *msm);
+void LOOT_Replace(Measurement *loot, uint32_t f);
 
 void LOOT_Sort(bool (*compare)(const Loot *a, const Loot *b), bool reverse);
 

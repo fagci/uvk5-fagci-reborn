@@ -5,6 +5,7 @@
 #include "../radio.h"
 #include "../svc.h"
 #include "../svc_scan.h"
+#include "../ui/spectrum.h"
 #include "channels.h"
 
 // 50 was default (ok), 60 is better, choose mid =)
@@ -45,6 +46,7 @@ static void initSsbScan() {
 
 static void startScan() {
   scanTimeout = gSettings.scanTimeout; // fast freq scan
+  gNoiseOpenDiff = scanTimeout * 10 + 2;
   if (gScanlistSize == 0 && !RADIO_IsSSB()) {
     SCAN_Stop();
     return;

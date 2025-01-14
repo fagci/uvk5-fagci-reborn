@@ -20,7 +20,7 @@ typedef enum {
 extern CH *radio;
 extern CH gVFO[2];
 
-extern Loot gLoot[2];
+extern Measurement gLoot[2];
 
 extern bool gIsListening;
 extern bool gMonitorMode;
@@ -82,7 +82,7 @@ void RADIO_SetFilterBandwidth(BK4819_FilterBandwidth_t bw);
 void RADIO_ToggleTxPower(void);
 void RADIO_UpdateStep(bool inc);
 void RADIO_UpdateSquelchLevel(bool next);
-bool RADIO_IsSquelchOpen(const Loot *msm);
+bool RADIO_IsSquelchOpen(const Measurement *msm);
 
 bool RADIO_IsSSB();
 uint32_t GetScreenF(uint32_t f);
@@ -94,8 +94,6 @@ uint32_t RADIO_GetTXF(void);
 uint32_t RADIO_GetTXFEx(const VFO *vfo);
 uint32_t RADIO_GetTxPower(uint32_t txF);
 void RADIO_ToggleBK1080(bool on);
-
-Loot *RADIO_UpdateMeasurements();
 
 bool RADIO_HasSi();
 void RADIO_SendDTMF(const char *pattern, ...);

@@ -32,7 +32,7 @@ static const RegisterSpec registerSpecs[] = {
     /* {"RF", BK4819_REG_43, 12, 0b111, 1},
     {"RFwe", BK4819_REG_43, 9, 0b111, 1}, */
 
-    // {"IF", 0x3D, 0, 0xFFFF, 100},
+    {"IF", 0x3D, 0, 0xFFFF, 100},
 
     {"DEV", 0x40, 0, 0xFFF, 10},
     // {"300T", 0x44, 0, 0xFFFF, 1000},

@@ -30,7 +30,7 @@ static void gotF(uint32_t f) {
   RADIO_TuneTo(f);
   RADIO_ToggleRX(true);
 
-  Loot msm = {.f = f, .open = true};
+  Measurement msm = {.f = f, .open = true};
   LOOT_Update(&msm);
   gRedrawScreen = true;
 }

@@ -102,7 +102,7 @@ typedef struct {
   union {
     struct {
       uint32_t rxF : 27;
-      uint8_t reserved1 : 5;
+      int8_t ppm : 5;
 
       uint32_t txF : 27;
 

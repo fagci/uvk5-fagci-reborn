@@ -13,6 +13,7 @@
 #include "driver/system.h"
 #include "driver/uart.h"
 #include "helper/battery.h"
+#include "helper/lootlist.h"
 #include "helper/scan.h"
 #include "misc.h"
 #include "radio.h"
@@ -82,8 +83,8 @@ static uint32_t lastTailTone = 0;
 static bool toneFound = false;
 static uint8_t lastSNR = 0;
 
-Loot *RADIO_UpdateMeasurements(void) {
-  Loot *msm = &gLoot[gSettings.activeVFO];
+static Measurement *updateMeasurements(void) {
+  Measurement *msm = &gLoot[gSettings.activeVFO];
   if (RADIO_GetRadio() == RADIO_SI4732 && SVC_Running(SVC_SCAN)) {
     bool valid = false;
     uint32_t f = SI47XX_getFrequency(&valid);
@@ -93,29 +94,33 @@ Loot *RADIO_UpdateMeasurements(void) {
       SVC_Toggle(SVC_SCAN, false, 0);
     }
   }
-  if (RADIO_GetRadio() != RADIO_BK4819 && Now() - lastMsmUpdate < 1000) {
+
+  const bool isBeken = RADIO_GetRadio() == RADIO_BK4819;
+  const bool isFastScanListen = isBeken && gIsListening && SCAN_IsFast();
+
+  if (isFastScanListen && Now() - lastMsmUpdate < 1000) {
     return msm;
   }
-  // throttle to prevent hiss
-  if (SCAN_IsFast() && RADIO_GetRadio() == RADIO_BK4819 && gIsListening &&
-      Now() - lastMsmUpdate < 1000) {
+
+  if (!isBeken && Now() - lastMsmUpdate < 1000) {
     return msm;
   }
+
   if (SCAN_IsFast()) {
     BK4819_SetFrequency(radio->rxF);
     BK4819_WriteRegister(BK4819_REG_30, 0x0200);
     BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
     SYSTEM_DelayMs(SCAN_GetTimeout()); // (X_X)
-    msm->rssi = BK4819_GetSNR();
-  } else {
+    msm->snr = BK4819_GetSNR();
+  }
+  if (gIsListening) {
     msm->rssi = RADIO_GetRSSI();
+    // msm->noise = BK4819_GetNoise();
+    // msm->glitch = BK4819_GetGlitch();
   }
   lastMsmUpdate = Now();
-  /* if (SCAN_IsFast()) {
-    msm->noise = BK4819_GetNoise();
-  } */
   msm->open = RADIO_IsSquelchOpen(msm);
-  // Log("U MSM, o=%u, r=%u", msm->open, msm->rssi);
+  // Log("U MSM, o=%u, r=%u", msm->open, msm->snr);
 
   if (radio->code.rx.type == CODE_TYPE_OFF) {
     toneFound = true;
@@ -255,11 +260,11 @@ void SVC_LISTEN_Update(void) {
   }
 
   // if (RADIO_GetRadio() == RADIO_BK4819 || gShowAllRSSI) {
-  Loot *m = RADIO_UpdateMeasurements();
+  Measurement *m = updateMeasurements();
   if (gIsListening) {
     static uint32_t lastGraphMsm;
     if (Now() - lastGraphMsm > 250) {
-      SP_Shift(-1);
+      SP_ShiftGraph(-1);
       SP_AddGraphPoint(m);
       lastGraphMsm = Now();
     }

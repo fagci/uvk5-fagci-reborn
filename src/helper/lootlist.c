@@ -62,8 +62,7 @@ Loot *LOOT_AddEx(uint32_t f, bool reuse) {
       .f = f,
       .lastTimeOpen = Now(),
       .duration = 0,
-      .rssi = 0,
-      .noise = UINT8_MAX,
+      .snr = UINT8_MAX,
       .cd = 0xFF,
       .ct = 0xFF,
       .open = true, // as we add it when open
@@ -136,21 +135,18 @@ void LOOT_Sort(bool (*compare)(const Loot *a, const Loot *b), bool reverse) {
 
 Loot *LOOT_Item(uint16_t i) { return &loot[i]; }
 
-void LOOT_Replace(Loot *item, uint32_t f) {
+void LOOT_Replace(Measurement *item, uint32_t f) {
   item->f = f;
   item->open = false;
   item->lastTimeOpen = 0;
   item->duration = 0;
-  item->rssi = 0;
-  item->noise = UINT8_MAX;
+  item->snr = UINT8_MAX;
   item->ct = 0xFF;
   item->cd = 0xFF;
   lastTimeCheck = Now();
 }
 
-void LOOT_ReplaceItem(uint16_t i, uint32_t f) { LOOT_Replace(LOOT_Item(i), f); }
-
-void LOOT_UpdateEx(Loot *item, Loot *msm) {
+void LOOT_UpdateEx(Loot *item, Measurement *msm) {
   if (item == NULL) {
     return;
   }
@@ -160,7 +156,7 @@ void LOOT_UpdateEx(Loot *item, Loot *msm) {
     msm->open = false;
   }
 
-  item->rssi = msm->rssi;
+  item->snr = msm->snr;
 
   if (item->open) {
     item->duration += Now() - lastTimeCheck;
@@ -200,7 +196,7 @@ void LOOT_UpdateEx(Loot *item, Loot *msm) {
   }
 }
 
-void LOOT_Update(Loot *msm) {
+void LOOT_Update(Measurement *msm) {
   Loot *item = LOOT_Get(msm->f);
 
   if (item == NULL && msm->open) {

@@ -21,7 +21,7 @@ static void render2VFOPart(uint8_t i) {
   const uint8_t bl = BASE + 34 * i;
 
   const VFO *vfo = &gVFO[i];
-  const Loot *loot = &gLoot[i];
+  const Measurement *msm = &gLoot[i];
   const bool isActive = gSettings.activeVFO == i;
 
   uint32_t f =
@@ -77,13 +77,12 @@ static void render2VFOPart(uint8_t i) {
 
   Radio r = vfo->radio;
 
-  uint32_t est = loot->lastTimeOpen ? (Now() - loot->lastTimeOpen) / 1000 : 0;
   if (r == RADIO_BK4819) {
-    if (loot->ct != 0xFF) {
+    if (msm->ct != 0xFF) {
       PrintSmallEx(0, bl + 6, POS_L, C_FILL, "C%u.%u",
-                   CTCSS_Options[loot->ct] / 10, CTCSS_Options[loot->ct] % 10);
-    } else if (loot->cd != 0xFF) {
-      PrintSmallEx(0, bl + 6, POS_L, C_FILL, "D%03oN", DCS_Options[loot->cd]);
+                   CTCSS_Options[msm->ct] / 10, CTCSS_Options[msm->ct] % 10);
+    } else if (msm->cd != 0xFF) {
+      PrintSmallEx(0, bl + 6, POS_L, C_FILL, "D%03oN", DCS_Options[msm->cd]);
     }
   }
 
@@ -105,13 +104,8 @@ static void render2VFOPart(uint8_t i) {
 
   PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, str);
 
-  if (loot->lastTimeOpen) {
-    PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,
-                 est % 60, loot->duration / 1000);
-  } else {
-    PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%d.%02d", step / 100,
-                 step % 100);
-  }
+  PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%d.%02d", step / 100,
+               step % 100);
 }
 
 void VFO2_init(void) { VFO1_init(); }
@@ -126,12 +120,14 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_1:
       IncDec8(&gSettings.scanTimeout, 1, 255, 1);
+      gNoiseOpenDiff = gSettings.scanTimeout * 10 + 2;
       SETTINGS_DelayedSave();
       SCAN_Stop();
       SCAN_Start();
       return true;
     case KEY_7:
       IncDec8(&gSettings.scanTimeout, 1, 255, -1);
+      gNoiseOpenDiff = gSettings.scanTimeout * 10 + 2;
       SETTINGS_DelayedSave();
       SCAN_Stop();
       SCAN_Start();
@@ -189,7 +185,7 @@ void VFO2_render(void) {
     if (isScanTuneMode) {
       PrintSmallEx(0, SPECTRUM_Y + 6, POS_L, C_FILL, "%ums",
                    gSettings.scanTimeout);
-      PrintSmallEx(LCD_WIDTH, SPECTRUM_Y + 6, POS_R, C_FILL, "SQ %u",
+      PrintSmallEx(LCD_WIDTH, SPECTRUM_Y + 6, POS_R, C_FILL, "SNR %u",
                    gNoiseOpenDiff);
     }
   } else {

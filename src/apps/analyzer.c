@@ -18,7 +18,7 @@
 
 static const uint8_t spectrumWidth = LCD_WIDTH;
 
-static Loot msm;
+static Measurement msm;
 static uint32_t centerF = 0;
 static uint8_t scanInterval = 2;
 static uint8_t stepsCount = 128;
@@ -106,6 +106,23 @@ static void setCenterF(uint32_t f) {
   startNewScan(true);
 }
 
+static void shift(int8_t n) {
+  _peakF = 0;
+  peakRssi = 0;
+  SP_Shift(-n);
+  step = StepFrequencyTable[gCurrentBand.step];
+  const uint32_t halfBW = step * (stepsCount / 2);
+  centerF += step * n;
+  gCurrentBand.rxF = centerF - halfBW;
+  gCurrentBand.txF = centerF + halfBW;
+
+  if (n < 2) {
+    msm.f = gCurrentBand.rxF;
+  } else {
+    msm.f = gCurrentBand.rxF + step * n;
+  }
+}
+
 void ANALYZER_init(void) {
   SPECTRUM_Y = 16;
   SPECTRUM_H = 40;
@@ -180,10 +197,10 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     switch (Key) {
     case KEY_UP:
-      setCenterF(centerF + step * 64);
+      shift(64);
       return true;
     case KEY_DOWN:
-      setCenterF(centerF - step * 64);
+      shift(-64);
       return true;
     case KEY_SIDE1:
       gMonitorMode ^= 1;
@@ -212,10 +229,10 @@ bool ANALYZER_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       APPS_exit();
       return true;
     case KEY_UP:
-      setCenterF(centerF + step);
+      shift(1);
       return true;
     case KEY_DOWN:
-      setCenterF(centerF - step);
+      shift(-1);
       return true;
     case KEY_SIDE1:
       LOOT_BlacklistLast();
