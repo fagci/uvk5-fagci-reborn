@@ -45,6 +45,6 @@ void SYSTEM_ConfigureSysCon() {
                         SYSCON_DEV_CLK_GATE_SPI0_BITS_ENABLE |
                         SYSCON_DEV_CLK_GATE_SARADC_BITS_ENABLE |
                         SYSCON_DEV_CLK_GATE_CRC_BITS_ENABLE |
-                        SYSCON_DEV_CLK_GATE_AES_BITS_ENABLE |
+                        // SYSCON_DEV_CLK_GATE_AES_BITS_ENABLE |
                         SYSCON_DEV_CLK_GATE_PWM_PLUS0_BITS_ENABLE;
 }

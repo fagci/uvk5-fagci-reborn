@@ -66,7 +66,7 @@ static void render2VFOPart(uint8_t i) {
         PrintMediumBoldEx(LCD_XCENTER, bl - 8, POS_C, C_FILL, vfo->name);
         PrintMediumEx(LCD_XCENTER, bl, POS_C, C_FILL, "%4u.%03u", fp1, fp2);
       }
-      PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "MR %03u", vfo->channel + 1);
+      PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "MR %03u", vfo->channel);
     } else {
       PrintBigDigitsEx(LCD_WIDTH - 19, bl, POS_R, C_FILL, "%4u.%03u", fp1, fp2);
       PrintMediumBoldEx(LCD_WIDTH, bl, POS_R, C_FILL, "%02u", fp3);
@@ -137,10 +137,10 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       SCAN_Start();
       return true;
     case KEY_3:
-      IncDec8(&gNoiseOpenDiff, 1, 32, 1);
+      IncDec8(&gNoiseOpenDiff, 1, 127, 1);
       return true;
     case KEY_9:
-      IncDec8(&gNoiseOpenDiff, 1, 32, -1);
+      IncDec8(&gNoiseOpenDiff, 1, 127, -1);
       return true;
     default:
       return false;

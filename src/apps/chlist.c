@@ -73,7 +73,7 @@ static void getChItem(uint16_t i, uint16_t index, bool isCurrent) {
     PrintSymbolsEx(2, y + 8, POS_L, C_INVERT, "%c", typeIcons[ch.meta.type]);
     PrintMediumEx(13, y + 8, POS_L, C_INVERT, "%s", ch.name);
   } else {
-    PrintMediumEx(13, y + 8, POS_L, C_INVERT, "CH-%u", index + 1);
+    PrintMediumEx(13, y + 8, POS_L, C_INVERT, "CH-%u", index);
   }
   switch (viewMode) {
   case MODE_INFO:
@@ -115,18 +115,6 @@ static void saveNamed() {
   save();
 }
 
-static void exportScanList() {
-  /* UART_printf("--- 8< ---\r\n");
-  UART_printf("CH#,Name,fRX,fTX,mod,bw\r\n"); */
-  for (uint8_t i = 0; i < gScanlistSize; ++i) {
-    CH _ch;
-    uint16_t chNum = gScanlist[i];
-    CHANNELS_Load(chNum, &_ch);
-    PrintCh(chNum, &_ch);
-  }
-  // UART_printf("--- >8 ---\r\n");
-}
-
 void CHLIST_init() {
   CHANNELS_LoadScanlist(gChListFilter, gSettings.currentScanlist);
   if (gChListFilter == TYPE_FILTER_BAND ||
@@ -142,7 +130,7 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   bool longHeld = bKeyHeld && bKeyPressed && !gRepeatHeld;
   bool simpleKeypress = !bKeyPressed && !bKeyHeld;
   if (!gIsNumNavInput && longHeld && key == KEY_STAR) {
-    NUMNAV_Init(channelIndex + 1, 1, gScanlistSize);
+    NUMNAV_Init(channelIndex, 0, gScanlistSize - 1);
     gNumNavCallback = setMenuIndex;
     return true;
   }
@@ -188,9 +176,6 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       CHANNELS_LoadScanlist(TYPE_FILTER_CH, gSettings.currentScanlist);
       CHLIST_init();
       break;
-    case KEY_9:
-      exportScanList();
-      return true;
     default:
       break;
     }

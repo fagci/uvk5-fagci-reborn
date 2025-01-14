@@ -1002,8 +1002,9 @@ bool RADIO_NextBandFreqXBandEx(bool next, bool precise) {
       step--;
     }
 
-    bool canSwitchToNextBand = gCurrentBand.meta.type != TYPE_BAND_DETACHED &&
-                               (!SCAN_IsFast() || SP_HasStats());
+    bool canSwitchToNextBand =
+        gCurrentBand.meta.type !=
+        TYPE_BAND_DETACHED; //&& (!SCAN_IsFast() || SP_HasStats())
 
     if (step < 0) {
       // get previous band

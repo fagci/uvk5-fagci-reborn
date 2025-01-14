@@ -97,21 +97,23 @@ Loot *RADIO_UpdateMeasurements(void) {
     return msm;
   }
   // throttle to prevent hiss
-  /* if (RADIO_GetRadio() == RADIO_BK4819 && gIsListening &&
-      Now() - lastMsmUpdate < 250) {
+  if (SCAN_IsFast() && RADIO_GetRadio() == RADIO_BK4819 && gIsListening &&
+      Now() - lastMsmUpdate < 1000) {
     return msm;
-  } */
-  if (!gIsListening && SCAN_IsFast()) {
+  }
+  if (SCAN_IsFast()) {
     BK4819_SetFrequency(radio->rxF);
     BK4819_WriteRegister(BK4819_REG_30, 0x0200);
     BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
     SYSTEM_DelayMs(SCAN_GetTimeout()); // (X_X)
+    msm->rssi = BK4819_GetSNR();
+  } else {
+    msm->rssi = RADIO_GetRSSI();
   }
-  msm->rssi = RADIO_GetRSSI();
   lastMsmUpdate = Now();
-  if (SCAN_IsFast()) {
+  /* if (SCAN_IsFast()) {
     msm->noise = BK4819_GetNoise();
-  }
+  } */
   msm->open = RADIO_IsSquelchOpen(msm);
   // Log("U MSM, o=%u, r=%u", msm->open, msm->rssi);
 

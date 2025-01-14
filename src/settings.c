@@ -69,7 +69,7 @@ const uint32_t EEPROM_SIZES[6] = {
 };
 
 const uint16_t PAGE_SIZES[6] = {
-    32, 64, 64, 128, 128, 128,
+    32, 64, 64, 128, 128, 256,
 };
 
 void SETTINGS_Save(void) {

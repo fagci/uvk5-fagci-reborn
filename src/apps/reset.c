@@ -143,17 +143,6 @@ static bool resetFull() {
   }
 
   if (stats.bands < total.bands) {
-    /* Band b = BANDS_GetDefaultBand(stats.bands);
-    if (!hasSi && b.txF < BK4819_F_MIN) {
-      // skip unsupported bands
-      stats.bands++;
-      stats.bytes += CH_SIZE;
-      return false;
-    }
-
-    CHANNELS_Save(total.channels + stats.bands, &b);
-    stats.bands++;
-    stats.bytes += CH_SIZE; */
     return false;
   }
 

@@ -464,7 +464,7 @@ void VFO1_render(void) {
 
   FillRect(0, 21 - 14, 28, 7, C_FILL);
   if (RADIO_IsChMode()) {
-    PrintSmallEx(14, 21 - 9, POS_C, C_INVERT, "MR %03u", radio->channel + 1);
+    PrintSmallEx(14, 21 - 9, POS_C, C_INVERT, "MR %03u", radio->channel);
   } else {
     PrintSmallEx(14, 21 - 9, POS_C, C_INVERT, radio->name);
   }

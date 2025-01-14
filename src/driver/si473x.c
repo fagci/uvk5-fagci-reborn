@@ -44,38 +44,33 @@ bool SI47XX_IsSSB() {
 void waitToSend() {
   uint8_t tmp = 0;
   do {
-    SYSTICK_DelayUs(1);
+    SYSTICK_Delay250ns(1);
     SI47XX_ReadBuffer((uint8_t *)&tmp, 1);
   } while (!(tmp & STATUS_CTS));
 }
 
 #include "../ui/components.h" // HACK: \(X_X)/
 #include "uart.h"
-#include "../external/CMSIS_5/Device/ARM/ARMCM0/Include/ARMCM0.h"
 
-bool SI47XX_downloadPatch() {
+void SI47XX_downloadPatch() {
   Log("DL patch");
   UI_ShowWait();
 
-  __disable_irq();
-  uint8_t buf[248];
-  // const uint8_t PAGE_SIZE = SETTINGS_GetPageSize();
-  const uint32_t EEPROM_SIZE = SETTINGS_GetEEPROMSize();
-  const uint32_t PATCH_START = EEPROM_SIZE - PATCH_SIZE;
-  for (uint16_t offset = 0; offset < PATCH_SIZE; offset += 248) {
-    uint32_t eepromN = PATCH_SIZE - offset > 248 ? 248 : PATCH_SIZE - offset;
+  uint8_t buf[64]; // 64 is optimal, more has no sense
+  const uint16_t BUF_SIZE = ARRAY_SIZE(buf);
+  const uint32_t PATCH_START = SETTINGS_GetEEPROMSize() - PATCH_SIZE;
+
+  for (uint16_t offset = 0; offset < PATCH_SIZE; offset += BUF_SIZE) {
+    const uint32_t rest = PATCH_SIZE - offset;
+    const uint32_t eepromN = rest > BUF_SIZE ? BUF_SIZE : rest;
     EEPROM_ReadBuffer(PATCH_START + offset, buf, eepromN);
 
-    for (uint8_t i = 0; i < eepromN; i += 8) {
+    for (uint16_t i = 0; i < eepromN; i += 8) {
       waitToSend();
       SI47XX_WriteBuffer(buf + i, 8);
-      // SYSTICK_DelayUs(300);
     }
   }
-  __enable_irq();
-  // SYSTEM_DelayMs(250);
   Log("DL patch OK");
-  return true;
 }
 
 void sendProperty(uint16_t prop, uint16_t parameter) {

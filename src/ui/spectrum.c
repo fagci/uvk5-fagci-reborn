@@ -64,22 +64,21 @@ static uint8_t maxNoise(const uint8_t *array, uint8_t n) {
 }
 
 void SP_UpdateScanStats() {
-  const uint16_t noiseFloor = SP_GetNoiseFloor();
-  const uint8_t noiseMax = SP_GetNoiseMax();
-  fastScanSq.r = noiseFloor;
-  fastScanSq.n = noiseMax - gNoiseOpenDiff;
+  fastScanSq.r = SP_GetNoiseFloor();
+  fastScanSq.n = SP_GetNoiseMax() - gNoiseOpenDiff;
   // Log("Update stats r=%u,n=%u", fastScanSq.r, fastScanSq.n);
 }
 
 bool SP_HasStats() { return fastScanSq.r != UINT16_MAX; }
 
 bool SP_IsSquelchOpen(const Loot *msm) {
-  const uint8_t noiseO = (fastScanSq.n - (gIsListening ? gNoiseOpenDiff : 0));
-  if (gIsListening) {
-    Log("Is sq op? r=%u<=>%u,n=%u<=>%u", fastScanSq.r, msm->rssi, fastScanSq.n,
-        msm->noise);
+  // Log("%u SNR=%u", msm->f, msm->rssi);
+  return msm->rssi >= gNoiseOpenDiff;
+  /* const uint8_t noiseO = (fastScanSq.n - (gIsListening ? gNoiseOpenDiff :
+  0)); if (gIsListening) { Log("Is sq op? r=%u<=>%u,n=%u<=>%u", fastScanSq.r,
+  msm->rssi, fastScanSq.n, msm->noise);
   }
-  return msm->rssi >= fastScanSq.r && msm->noise <= noiseO;
+  return msm->rssi >= fastScanSq.r && msm->noise <= noiseO; */
 }
 
 void SP_ResetHistory(void) {
@@ -140,7 +139,7 @@ static VMinMax getV() {
   const uint16_t noiseFloor = SP_GetNoiseFloor();
   const uint16_t vMin = rssiMin - 2;
   const uint16_t vMax =
-      rssiMax + Clamp((rssiMax - noiseFloor), 35, rssiMax - noiseFloor);
+      rssiMax + Clamp((rssiMax - noiseFloor), 15, rssiMax - noiseFloor);
   return (VMinMax){vMin, vMax};
 }
 

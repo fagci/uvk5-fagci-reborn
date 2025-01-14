@@ -29,7 +29,7 @@ void UI_TxBar(uint8_t y) {
 }
 
 void UI_RSSIBar(uint8_t y) {
-  uint16_t rssi = gLoot[gSettings.activeVFO].rssi;
+  uint16_t rssi = RADIO_GetRSSI();
   if (rssi == 0) {
     return;
   }
