@@ -930,25 +930,46 @@ uint8_t BK4819_GetCTCType(void) {
 }
 
 void BK4819_PlayRoger(void) {
-  const uint8_t M[] = {154, 8, 0, 8, 131, 8, 0, 0};
+  const uint16_t M[] = {1540, 80, 0, 80, 1310, 80, 0, 0};
   BK4819_PlaySequence(M);
 }
 
 void BK4819_PlayRogerTiny(void) {
-  const uint8_t M[] = {125, 3, 0, 5, 150, 3, 75, 3, 0, 0};
+  const uint16_t M[] = {1250, 30, 0, 50, 1500, 30, 750, 30, 0, 0};
   BK4819_PlaySequence(M);
 }
 
-void BK4819_PlayRogerUgly(void) {
-  const uint8_t M[] = {43, 35, 0, 35, 43, 35, 0, 35, 43, 35, 0, 0};
-  BK4819_PlaySequence(M);
+/* Stalk1
+Тон    Длительность
+1975    0.080
+2100    0.100
+3140    0.080
+2800    0.100
+
+Stalk2
+Тон    Длительность
+1975    0,060
+1975    0,060
+3140    0,060
+2960    0,060
+3140    0,060
+1975    0,060 */
+
+void BK4819_PlayRogerStalk1(void) {
+  BK4819_PlaySequence(
+      (uint16_t[]){1975, 80, 2100, 100, 3140, 80, 2800, 100, 0, 0});
 }
 
-void BK4819_PlaySequence(const uint8_t *M) {
+void BK4819_PlayRogerStalk2(void) {
+  BK4819_PlaySequence(
+      (uint16_t[]){1975, 80, 3140, 60, 2960, 60, 3140, 60, 1975, 60, 0, 0});
+}
+
+void BK4819_PlaySequence(const uint16_t *M) {
   bool initialTone = true;
   for (uint8_t i = 0; i < 255; i += 2) {
-    uint16_t note = M[i] * 10;
-    uint16_t t = M[i + 1] * 10;
+    uint16_t note = M[i];
+    uint16_t t = M[i + 1];
     if (!note && !t) {
       break;
     }

@@ -100,8 +100,7 @@ typedef struct {
 
   uint8_t micGain : 4;
   uint8_t iAmPro : 1;
-  bool reserved1 : 1;
-  uint8_t roger : 2;
+  uint8_t roger : 3;
 
   uint8_t scanmode : 2;
   CHDisplayMode chDisplayMode : 2;
@@ -166,7 +165,7 @@ extern uint8_t BL_TIME_VALUES[7];
 extern const char *BL_TIME_NAMES[7];
 extern const char *BL_SQL_MODE_NAMES[3];
 extern const char *CH_DISPLAY_MODE_NAMES[3];
-extern const char *rogerNames[4];
+extern const char *rogerNames[5];
 extern const char *dwNames[3];
 
 void SETTINGS_Save();

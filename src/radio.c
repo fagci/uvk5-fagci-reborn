@@ -351,7 +351,10 @@ static void sendEOT() {
     BK4819_PlayRogerTiny();
     break;
   case 3:
-    BK4819_PlayRogerUgly();
+    BK4819_PlayRogerStalk1();
+    break;
+  case 4:
+    BK4819_PlayRogerStalk2();
     break;
   default:
     break;
@@ -494,18 +497,21 @@ TXState RADIO_GetTXState(uint32_t txF) {
   // band disallow, no ch allow
   if (txBand.meta.type != TYPE_BAND_DETACHED && !txBand.allowTx &&
       (!RADIO_IsChMode() || !(RADIO_IsChMode() && radio->allowTx))) {
+    Log("disallow 1");
     return TX_DISABLED;
   }
 
   // band allow, ch disallow
   if (txBand.meta.type != TYPE_BAND_DETACHED && txBand.allowTx &&
-      (!RADIO_IsChMode() || (RADIO_IsChMode() && !radio->allowTx))) {
+      (RADIO_IsChMode() && !radio->allowTx)) {
+    Log("disallow 2");
     return TX_DISABLED;
   }
 
   // no band, no ch allow
   if (txBand.meta.type == TYPE_BAND_DETACHED &&
       (!RADIO_IsChMode() || !(RADIO_IsChMode() && radio->allowTx))) {
+    Log("disallow 3");
     return TX_DISABLED;
   }
 

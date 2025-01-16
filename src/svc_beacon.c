@@ -2,7 +2,7 @@
 #include "driver/bk4819.h"
 #include "radio.h"
 
-static const uint8_t M[] = {100, 100, 0, 0};
+static const uint16_t M[] = {1000, 1000, 0, 0};
 
 void SVC_BEACON_Init() {}
 void SVC_BEACON_Update() {

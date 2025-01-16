@@ -36,7 +36,7 @@ static void updatePower(int8_t v) {
 void GENERATOR_init() { calcPower(); }
 void GENERATOR_update() {}
 bool GENERATOR_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  const uint8_t M[] = {tone1Freq / 10, 0, 0, 0};
+  const uint16_t M[] = {tone1Freq, 0, 0, 0};
   if (key == KEY_PTT) {
     RADIO_ToggleTXEX(bKeyHeld, RADIO_GetTXF(), power, bkPower);
     if (bKeyHeld && gTxState == TX_ON) {

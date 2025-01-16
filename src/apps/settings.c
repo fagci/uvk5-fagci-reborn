@@ -83,7 +83,7 @@ static const MenuItem menu[] = {
     {"CH Display", M_CH_DISP_MODE, ARRAY_SIZE(CH_DISPLAY_MODE_NAMES)},
     {"Beep", M_BEEP, 2},
     {"STE", M_STE, 2},
-    {"Roger", M_ROGER, 4},
+    {"Roger", M_ROGER, ARRAY_SIZE(rogerNames)},
     {"Tone local", M_TONE_LOCAL, 2},
     {"Lock PTT", M_PTT_LOCK, 2},
 };

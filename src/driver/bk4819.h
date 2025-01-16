@@ -175,11 +175,12 @@ uint8_t BK4819_GetDTMF_5TONE_Code(void);
 uint8_t BK4819_GetCDCSSCodeType(void);
 uint8_t BK4819_GetCTCType(void);
 
-void BK4819_PlaySequence(const uint8_t *M);
+void BK4819_PlaySequence(const uint16_t *M);
 void BK4819_PlayRoger(void);
 void BK4819_PlayRogerTiny(void);
 void BK4819_PlayRogerMDC(void);
-void BK4819_PlayRogerUgly(void);
+void BK4819_PlayRogerStalk1(void);
+void BK4819_PlayRogerStalk2(void);
 
 void BK4819_Enable_AfDac_DiscMode_TxDsp(void);
 
