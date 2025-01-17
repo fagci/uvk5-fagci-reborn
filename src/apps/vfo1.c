@@ -83,7 +83,9 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   }
 }
 
-static void setChannel(uint16_t v) { RADIO_TuneToMR(v - 1); }
+static void setChannel(uint16_t v) {
+  RADIO_TuneToCH(v);
+}
 
 static void tuneTo(uint32_t f) {
   RADIO_TuneToSave(GetTuneF(f));
@@ -225,7 +227,7 @@ bool VFO1_keyEx(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld,
   if (!SVC_Running(SVC_SCAN) && (!gVfo1ProMode || gCurrentApp == APP_VFO2) &&
       !bKeyPressed && !bKeyHeld && RADIO_IsChMode()) {
     if (!gIsNumNavInput && key <= KEY_9) {
-      NUMNAV_Init(radio->channel + 1, 1, gScanlistSize);
+      NUMNAV_Init(radio->channel, 0, CHANNELS_GetCountMax() - 1);
       gNumNavCallback = setChannel;
     }
     if (gIsNumNavInput) {

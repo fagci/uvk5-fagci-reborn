@@ -16,7 +16,7 @@ Band gCurrentBand;
 Band defaultBand = {
     .meta.readonly = true,
     .meta.type = TYPE_BAND_DETACHED,
-    .name = "-",
+    .name = "Def",
     .step = STEP_25_0kHz,
     .bw = BK4819_FILTER_BW_12k,
     .squelch =
@@ -27,6 +27,7 @@ Band defaultBand = {
     .gainIndex = 21,
     .rxF = 0,
     .txF = 130000000,
+    .allowTx = false,
 };
 
 static DBand allBands[BANDS_COUNT_MAX];

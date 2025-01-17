@@ -37,7 +37,8 @@ uint16_t CHANNELS_GetCountMax(void) {
 void CHANNELS_Load(int16_t num, CH *p) {
   if (num >= 0) {
     EEPROM_ReadBuffer(GetChannelOffset(num), p, CH_SIZE);
-    // Log(">> R CH%u '%s': f=%u, radio=%u", num, p->name, p->rxF, p->radio);
+    Log(">> R CH%u '%s': f=%u, radio=%u, type=%s", num, p->name, p->rxF,
+        p->radio, CH_TYPE_NAMES[p->meta.type]);
   }
 }
 
@@ -72,7 +73,7 @@ static int16_t chScanlistIndex = 0;
 
 void CHANNELS_Next(bool next) {
   if (gScanlistSize) {
-    IncDecI16(&chScanlistIndex, 0, gScanlistSize - 1, next ? 1 : -1);
+    IncDecI16(&chScanlistIndex, 0, gScanlistSize, next ? 1 : -1);
     int16_t chNum = gScanlist[chScanlistIndex];
     radio->channel = chNum;
     RADIO_VfoLoadCH(gSettings.activeVFO);
@@ -80,22 +81,25 @@ void CHANNELS_Next(bool next) {
   }
 }
 
-void CHANNELS_LoadScanlist(CHTypeFilter type, uint16_t scanlistMask) {
+void CHANNELS_LoadScanlist(CHTypeFilter typeFilter, uint16_t scanlistMask) {
+  Log("Load SL w type_filter=%u", typeFilter);
   if (gSettings.currentScanlist != scanlistMask) {
     gSettings.currentScanlist = scanlistMask;
     SETTINGS_Save();
   }
   gScanlistSize = 0;
   for (int16_t i = 0; i < CHANNELS_GetCountMax(); ++i) {
-    if (0 == (type & (1 << CHANNELS_GetMeta(i).type))) {
+    if (0 == (typeFilter & (1 << CHANNELS_GetMeta(i).type))) {
       continue;
     }
     if (scanlistMask == SCANLIST_ALL ||
         (CHANNELS_Scanlists(i) & scanlistMask)) {
       gScanlist[gScanlistSize] = i;
       gScanlistSize++;
+      Log("Load CH %u in SL", i);
     }
   }
+  Log("SL sz: %u", gScanlistSize);
 }
 
 void CHANNELS_LoadBlacklistToLoot() {

@@ -108,6 +108,8 @@ static void save() {
   }
   CHANNELS_Save(getChannelNumber(channelIndex), &gChEd);
   RADIO_LoadCurrentVFO();
+  APPS_exit();
+  APPS_exit();
 }
 
 static void saveNamed() {
@@ -218,11 +220,11 @@ bool CHLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_MENU:
       if (gChSaveMode) {
         CHANNELS_LoadScanlist(gChListFilter, gSettings.currentScanlist);
-        if (gChEd.meta.type == TYPE_VFO) {
+        if (strncmp(gChEd.name, "VFO-", 4) == 0) {
           memset(gChEd.name, 0, ARRAY_SIZE(gChEd.name));
         }
 
-        if (gChEd.name[0] == '\0') {
+        if (gChEd.name[0] == '\0' || strncmp(gChEd.name, "VFO-", 4) == 0) {
           gTextinputText = tempName;
           snprintf(gTextinputText, 9, "%lu.%05lu", gChEd.rxF / MHZ,
                    gChEd.rxF % MHZ);

@@ -42,7 +42,7 @@ static MenuItem menuChVfo[] = {
     {"Scrambler", M_SCRAMBLER, 16},
     {"Enable TX", M_TX, 2},
     {"Readonly", M_READONLY, 2},
-    {"Save", M_SAVE, 0},
+    {"Save CH", M_SAVE, 0},
 };
 
 static MenuItem menuBand[] = {
@@ -69,7 +69,7 @@ static MenuItem menuBand[] = {
     {"Scrambler", M_SCRAMBLER, 16},
     {"Enable TX", M_TX, 2},
     {"Readonly", M_READONLY, 2},
-    {"Save", M_SAVE, 0},
+    {"Save BAND", M_SAVE, 0},
 };
 static uint8_t menuSize = 0;
 
@@ -488,7 +488,11 @@ static bool accept(void) {
       return true;
     }
     gChSaveMode = true;
-    gChListFilter = TYPE_FILTER_CH_SAVE;
+    if (gChEd.meta.type == TYPE_VFO) {
+      gChEd.meta.type = TYPE_CH; // to prevent override on deinit
+    }
+    gChListFilter = gChEd.meta.type == TYPE_BAND ? TYPE_FILTER_BAND_SAVE
+                                                 : TYPE_FILTER_CH_SAVE;
     APPS_run(APP_CH_LIST);
     return true;
   case M_STEP:

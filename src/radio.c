@@ -493,25 +493,7 @@ TXState RADIO_GetTXState(uint32_t txF) {
 
   Band txBand = BANDS_ByFrequency(txF);
 
-  // disable if:
-  // band disallow, no ch allow
-  if (txBand.meta.type != TYPE_BAND_DETACHED && !txBand.allowTx &&
-      (!RADIO_IsChMode() || !(RADIO_IsChMode() && radio->allowTx))) {
-    Log("disallow 1");
-    return TX_DISABLED;
-  }
-
-  // band allow, ch disallow
-  if (txBand.meta.type != TYPE_BAND_DETACHED && txBand.allowTx &&
-      (RADIO_IsChMode() && !radio->allowTx)) {
-    Log("disallow 2");
-    return TX_DISABLED;
-  }
-
-  // no band, no ch allow
-  if (txBand.meta.type == TYPE_BAND_DETACHED &&
-      (!RADIO_IsChMode() || !(RADIO_IsChMode() && radio->allowTx))) {
-    Log("disallow 3");
+  if (!txBand.allowTx && !(RADIO_IsChMode() && radio->allowTx)) {
     return TX_DISABLED;
   }
 
@@ -882,29 +864,33 @@ void RADIO_VfoLoadCH(uint8_t i) {
 }
 
 void RADIO_TuneToBand(int16_t num) {
-  BANDS_Select(num, true);
-
-  // radio->allowTx = gCurrentBand.allowTx;
-  if (BANDS_InRange(radio->rxF, gCurrentBand)) {
-    return;
-  }
-  if (BANDS_InRange(gCurrentBand.misc.lastUsedFreq, gCurrentBand)) {
-    RADIO_TuneToSave(gCurrentBand.misc.lastUsedFreq);
-  } else {
-    RADIO_TuneToSave(gCurrentBand.rxF);
+  if (CHANNELS_GetMeta(num).type == TYPE_BAND) {
+    BANDS_Select(num, true);
+    // radio->allowTx = gCurrentBand.allowTx;
+    if (BANDS_InRange(radio->rxF, gCurrentBand)) {
+      return;
+    }
+    if (BANDS_InRange(gCurrentBand.misc.lastUsedFreq, gCurrentBand)) {
+      RADIO_TuneToSave(gCurrentBand.misc.lastUsedFreq);
+    } else {
+      RADIO_TuneToSave(gCurrentBand.rxF);
+    }
   }
 }
 
 void RADIO_TuneToCH(int16_t num) {
-  radio->channel = num;
-  RADIO_VfoLoadCH(gSettings.activeVFO);
-  RADIO_SaveCurrentVFO();
-  RADIO_SetupByCurrentVFO();
+  if (CHANNELS_GetMeta(num).type == TYPE_CH) {
+    radio->channel = num;
+    RADIO_VfoLoadCH(gSettings.activeVFO);
+    RADIO_SaveCurrentVFO();
+    RADIO_SetupByCurrentVFO();
+  }
 }
 
 bool RADIO_TuneToMR(int16_t num) {
-  // Log("Tune to MR %u", num);
+  Log("Tune to MR %u", num);
   if (CHANNELS_Existing(num)) {
+    Log("MR existing, type=%u", CHANNELS_GetMeta(num).type);
     switch (CHANNELS_GetMeta(num).type) {
     case TYPE_CH:
       RADIO_TuneToCH(num);
@@ -935,12 +921,19 @@ void RADIO_ToggleVfoMR(void) {
     saveVFO(gSettings.activeVFO);
     RADIO_SetupByCurrentVFO();
   } else {
+    CHANNELS_LoadScanlist(TYPE_FILTER_CH, gSettings.currentScanlist);
+    if (gScanlistSize == 0) {
+      Log("SL SIZE=0, skip");
+      return;
+    }
     radio->channel *= -1;
     radio->channel -= 1; // 1 -> 0
+    Log("radio->ch=%u", radio->channel);
     if (CHANNELS_Existing(radio->channel)) {
       RADIO_TuneToMR(radio->channel);
     } else {
       CHANNELS_Next(true);
+      Log("CH NEXT, radio->ch=%u", radio->channel);
     }
   }
   RADIO_SaveCurrentVFO();

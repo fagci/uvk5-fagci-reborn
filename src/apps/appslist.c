@@ -1,12 +1,12 @@
 #include "appslist.h"
-#include "../driver/st7565.h"
+#include "../driver/uart.h"
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"
 #include "../misc.h"
-#include "../ui/graphics.h"
 #include "../ui/menu.h"
 #include "../ui/statusline.h"
 #include "apps.h"
+#include "chlist.h"
 #include <string.h>
 
 static const uint8_t MENU_SIZE = ARRAY_SIZE(appsAvailableToRun);
@@ -58,6 +58,10 @@ bool APPSLIST_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   case KEY_MENU:
     APPS_exit();
     if (app == APP_LOOT_LIST || app == APP_CH_LIST) {
+      if (app == APP_CH_LIST) {
+        gChListFilter = TYPE_FILTER_CH;
+        gChSaveMode = false;
+      }
       APPS_run(app);
     } else {
       APPS_runManual(app);
