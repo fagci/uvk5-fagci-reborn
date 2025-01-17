@@ -53,7 +53,7 @@ void waitToSend() {
 #include "uart.h"
 
 void SI47XX_downloadPatch() {
-  Log("DL patch");
+  // Log("DL patch");
   UI_ShowWait();
 
   uint8_t buf[64]; // 64 is optimal, more has no sense
@@ -70,7 +70,7 @@ void SI47XX_downloadPatch() {
       SI47XX_WriteBuffer(buf + i, 8);
     }
   }
-  Log("DL patch OK");
+  // Log("DL patch OK");
 }
 
 void sendProperty(uint16_t prop, uint16_t parameter) {

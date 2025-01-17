@@ -112,6 +112,7 @@ static Measurement *updateMeasurements(void) {
     BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
     SYSTEM_DelayMs(SCAN_GetTimeout()); // (X_X)
     msm->snr = BK4819_GetSNR();
+    msm->rssi = 0; // to make spectrum work after loot
   }
   if (gIsListening) {
     msm->rssi = RADIO_GetRSSI();

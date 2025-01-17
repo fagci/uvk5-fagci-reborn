@@ -888,9 +888,9 @@ void RADIO_TuneToCH(int16_t num) {
 }
 
 bool RADIO_TuneToMR(int16_t num) {
-  Log("Tune to MR %u", num);
+  // Log("Tune to MR %u", num);
   if (CHANNELS_Existing(num)) {
-    Log("MR existing, type=%u", CHANNELS_GetMeta(num).type);
+    // Log("MR existing, type=%u", CHANNELS_GetMeta(num).type);
     switch (CHANNELS_GetMeta(num).type) {
     case TYPE_CH:
       RADIO_TuneToCH(num);
@@ -923,17 +923,17 @@ void RADIO_ToggleVfoMR(void) {
   } else {
     CHANNELS_LoadScanlist(TYPE_FILTER_CH, gSettings.currentScanlist);
     if (gScanlistSize == 0) {
-      Log("SL SIZE=0, skip");
+      // Log("SL SIZE=0, skip");
       return;
     }
     radio->channel *= -1;
     radio->channel -= 1; // 1 -> 0
-    Log("radio->ch=%u", radio->channel);
+    // Log("radio->ch=%u", radio->channel);
     if (CHANNELS_Existing(radio->channel)) {
       RADIO_TuneToMR(radio->channel);
     } else {
       CHANNELS_Next(true);
-      Log("CH NEXT, radio->ch=%u", radio->channel);
+      // Log("CH NEXT, radio->ch=%u", radio->channel);
     }
   }
   RADIO_SaveCurrentVFO();

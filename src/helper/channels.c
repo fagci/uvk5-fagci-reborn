@@ -37,8 +37,8 @@ uint16_t CHANNELS_GetCountMax(void) {
 void CHANNELS_Load(int16_t num, CH *p) {
   if (num >= 0) {
     EEPROM_ReadBuffer(GetChannelOffset(num), p, CH_SIZE);
-    Log(">> R CH%u '%s': f=%u, radio=%u, type=%s", num, p->name, p->rxF,
-        p->radio, CH_TYPE_NAMES[p->meta.type]);
+    /* Log(">> R CH%u '%s': f=%u, radio=%u, type=%s", num, p->name, p->rxF,
+        p->radio, CH_TYPE_NAMES[p->meta.type]); */
   }
 }
 
@@ -82,7 +82,7 @@ void CHANNELS_Next(bool next) {
 }
 
 void CHANNELS_LoadScanlist(CHTypeFilter typeFilter, uint16_t scanlistMask) {
-  Log("Load SL w type_filter=%u", typeFilter);
+  // Log("Load SL w type_filter=%u", typeFilter);
   if (gSettings.currentScanlist != scanlistMask) {
     gSettings.currentScanlist = scanlistMask;
     SETTINGS_Save();
@@ -96,10 +96,10 @@ void CHANNELS_LoadScanlist(CHTypeFilter typeFilter, uint16_t scanlistMask) {
         (CHANNELS_Scanlists(i) & scanlistMask)) {
       gScanlist[gScanlistSize] = i;
       gScanlistSize++;
-      Log("Load CH %u in SL", i);
+      // Log("Load CH %u in SL", i);
     }
   }
-  Log("SL sz: %u", gScanlistSize);
+  // Log("SL sz: %u", gScanlistSize);
 }
 
 void CHANNELS_LoadBlacklistToLoot() {
