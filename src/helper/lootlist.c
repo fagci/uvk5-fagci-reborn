@@ -140,7 +140,10 @@ void LOOT_Replace(Measurement *item, uint32_t f) {
   item->open = false;
   item->lastTimeOpen = 0;
   item->duration = 0;
-  item->snr = UINT8_MAX;
+  item->snr = 0;
+  item->rssi = 0;
+  item->noise = UINT8_MAX;
+  item->glitch = UINT8_MAX;
   item->ct = 0xFF;
   item->cd = 0xFF;
   lastTimeCheck = Now();

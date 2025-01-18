@@ -428,6 +428,7 @@ void RADIO_ToggleRX(bool on) {
   if (gIsListening == on) {
     return;
   }
+  // Log("TOGGLE RX=%u", on);
   gRedrawScreen = true;
 
   gIsListening = on;
@@ -1001,6 +1002,7 @@ bool RADIO_NextBandFreqXBandEx(bool next, bool precise) {
     LOOT_Replace(&gLoot[gSettings.activeVFO], radio->rxF);
   }
   if (SVC_Running(SVC_SCAN) && gIsListening) {
+    // Log("TOGGLE RX off next f");
     RADIO_ToggleRX(false);
   }
   RADIO_SaveCurrentVFODelayed();

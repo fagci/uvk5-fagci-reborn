@@ -74,8 +74,9 @@ bool SP_HasStats() { return fastScanSq.r != UINT16_MAX; }
 uint8_t listenRssi = 0;
 
 bool SP_IsSquelchOpen(const Measurement *msm) {
-  // Log("%u SNR=%u", msm->f, msm->snr);
-  return msm->snr >= gNoiseOpenDiff;
+  uint8_t openLevel = gIsListening ? 66 /* (*_*) */ : gNoiseOpenDiff;
+  // Log("SP gIsListening? %u SNR=%u opn=%u", msm->f, msm->snr, openLevel);
+  return msm->snr >= openLevel;
   /* const uint8_t noiseO = (fastScanSq.n - (gIsListening ? gNoiseOpenDiff :
   0)); if (gIsListening) { Log("Is sq op? r=%u<=>%u,n=%u<=>%u", fastScanSq.r,
   msm->snr, fastScanSq.n, msm->noise);

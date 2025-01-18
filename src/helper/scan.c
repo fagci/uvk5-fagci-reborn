@@ -46,7 +46,10 @@ static void initSsbScan() {
 
 static void startScan() {
   scanTimeout = gSettings.scanTimeout; // fast freq scan
-  gNoiseOpenDiff = scanTimeout * 10 + 2;
+  gNoiseOpenDiff =
+      scanTimeout < 10
+          ? (uint8_t[]){20, 22, 36, 45, 48, 50, 52, 54, 58, 62}[scanTimeout]
+          : (50 + scanTimeout / 10);
   if (gScanlistSize == 0 && !RADIO_IsSSB()) {
     SCAN_Stop();
     return;

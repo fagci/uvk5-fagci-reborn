@@ -111,6 +111,7 @@ static void render2VFOPart(uint8_t i) {
 void VFO2_init(void) { VFO1_init(); }
 
 bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
+  uint8_t g = gCurrentBand.gainIndex;
   if (!bKeyPressed && !bKeyHeld && SVC_Running(SVC_SCAN) &&
       (key == KEY_0 ||
        (isScanTuneMode && !RADIO_IsChMode() && key > KEY_0 && key <= KEY_9))) {
@@ -137,6 +138,24 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_9:
       IncDec8(&gNoiseOpenDiff, 1, 127, -1);
+      return true;
+    case KEY_2:
+      g = gCurrentBand.gainIndex;
+      IncDec8(&g, 1, 127, 1);
+      gCurrentBand.gainIndex = g;
+      RADIO_SetGain(g);
+      if (gCurrentBand.meta.type != TYPE_BAND_DETACHED) {
+        RADIO_SaveCurrentVFO();
+      }
+      return true;
+    case KEY_8:
+      g = gCurrentBand.gainIndex;
+      IncDec8(&g, 1, 127, -1);
+      radio->gainIndex = gCurrentBand.gainIndex = g;
+      RADIO_SetGain(g);
+      if (gCurrentBand.meta.type != TYPE_BAND_DETACHED) {
+        RADIO_SaveCurrentVFO();
+      }
       return true;
     default:
       return false;
@@ -183,10 +202,17 @@ void VFO2_render(void) {
       SP_Render(&gCurrentBand);
     }
     if (isScanTuneMode) {
-      PrintSmallEx(0, SPECTRUM_Y + 6, POS_L, C_FILL, "%ums",
-                   gSettings.scanTimeout);
-      PrintSmallEx(LCD_WIDTH, SPECTRUM_Y + 6, POS_R, C_FILL, "SNR %u",
-                   gNoiseOpenDiff);
+      if (gMonitorMode) {
+        PrintSmallEx(LCD_WIDTH, SPECTRUM_Y + 6, POS_R, C_FILL, "BK SNR %u",
+                     BK4819_GetSNR());
+      } else {
+        PrintSmallEx(0, SPECTRUM_Y + 6, POS_L, C_FILL, "%ums",
+                     gSettings.scanTimeout);
+        PrintSmallEx(LCD_XCENTER, SPECTRUM_Y + 6, POS_C, C_FILL, "%+ddB",
+                     -gainTable[radio->gainIndex].gainDb + 33);
+        PrintSmallEx(LCD_WIDTH, SPECTRUM_Y + 6, POS_R, C_FILL, "SNR SQ %u",
+                     gNoiseOpenDiff);
+      }
     }
   } else {
     render2VFOPart(0);
