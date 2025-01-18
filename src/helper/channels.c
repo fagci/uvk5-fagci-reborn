@@ -90,14 +90,20 @@ void CHANNELS_LoadScanlist(CHTypeFilter typeFilter, uint16_t scanlistMask) {
   gScanlistSize = 0;
   for (int16_t i = 0; i < CHANNELS_GetCountMax(); ++i) {
     CHMeta meta = CHANNELS_GetMeta(i);
-    if (0 == (typeFilter & (1 << meta.type)) || meta.type != TYPE_EMPTY) {
+    bool isSaveFilter = typeFilter == TYPE_FILTER_BAND_SAVE ||
+                        typeFilter == TYPE_FILTER_CH_SAVE;
+    bool isEmptyChannelToSave = meta.type == TYPE_EMPTY && isSaveFilter;
+
+    bool isOurType =
+        (typeFilter & (1 << meta.type)) != 0 || isEmptyChannelToSave;
+    if (!isOurType) {
       continue;
     }
-    if (scanlistMask == SCANLIST_ALL ||
-        (CHANNELS_Scanlists(i) & scanlistMask) ||
-        ((typeFilter == TYPE_FILTER_BAND_SAVE ||
-          typeFilter == TYPE_FILTER_CH_SAVE) &&
-         meta.type == TYPE_EMPTY)) {
+
+    bool isOurScanlist = (isOurType && scanlistMask == SCANLIST_ALL) ||
+                         (CHANNELS_Scanlists(i) & scanlistMask) ||
+                         isEmptyChannelToSave;
+    if (isOurScanlist) {
       gScanlist[gScanlistSize] = i;
       gScanlistSize++;
       // Log("Load CH %u in SL", i);

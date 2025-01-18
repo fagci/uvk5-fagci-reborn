@@ -46,10 +46,7 @@ static void initSsbScan() {
 
 static void startScan() {
   scanTimeout = gSettings.scanTimeout; // fast freq scan
-  gNoiseOpenDiff =
-      scanTimeout < 10
-          ? (uint8_t[]){20, 22, 36, 45, 48, 50, 52, 54, 58, 62}[scanTimeout]
-          : (50 + scanTimeout / 10);
+  SCAN_UpdateOpenLevel();
   if (gScanlistSize == 0 && !RADIO_IsSSB()) {
     SCAN_Stop();
     return;
@@ -67,6 +64,19 @@ static void startScan() {
 bool SCAN_IsFast() { return scanTimeout < 10; }
 
 uint32_t SCAN_GetTimeout() { return scanTimeout; }
+
+void SCAN_UpdateOpenLevel() {
+  gNoiseOpenDiff =
+      scanTimeout < 10
+          ? (uint8_t[]){20, 22, 36, 45, 48, 50, 52, 54, 58, 62}[scanTimeout]
+          : (50 + scanTimeout / 10);
+}
+
+void SCAN_UpdateTimeoutFromSetting() {
+  scanTimeout = gSettings.scanTimeout;
+  SVC_Toggle(SVC_SCAN, false, scanTimeout);
+  SVC_Toggle(SVC_SCAN, true, scanTimeout);
+}
 
 void SCAN_ToggleDirection(bool up) {
   if (RADIO_IsChMode()) {

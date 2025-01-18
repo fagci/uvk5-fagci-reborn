@@ -121,17 +121,15 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_1:
       IncDec8(&gSettings.scanTimeout, 1, 255, 1);
-      gNoiseOpenDiff = gSettings.scanTimeout * 10 + 2;
       SETTINGS_DelayedSave();
-      SCAN_Stop();
-      SCAN_Start();
+      SCAN_UpdateTimeoutFromSetting();
+      SCAN_UpdateOpenLevel();
       return true;
     case KEY_7:
       IncDec8(&gSettings.scanTimeout, 1, 255, -1);
-      gNoiseOpenDiff = gSettings.scanTimeout * 10 + 2;
       SETTINGS_DelayedSave();
-      SCAN_Stop();
-      SCAN_Start();
+      SCAN_UpdateTimeoutFromSetting();
+      SCAN_UpdateOpenLevel();
       return true;
     case KEY_3:
       IncDec8(&gNoiseOpenDiff, 1, 127, 1);
@@ -146,6 +144,7 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       RADIO_SetGain(g);
       if (gCurrentBand.meta.type != TYPE_BAND_DETACHED) {
         RADIO_SaveCurrentVFO();
+        BANDS_SaveCurrent();
       }
       return true;
     case KEY_8:
@@ -155,6 +154,7 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       RADIO_SetGain(g);
       if (gCurrentBand.meta.type != TYPE_BAND_DETACHED) {
         RADIO_SaveCurrentVFO();
+        BANDS_SaveCurrent();
       }
       return true;
     default:

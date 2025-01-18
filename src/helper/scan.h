@@ -10,5 +10,7 @@ void SCAN_Stop();
 void SCAN_ToggleDirection(bool up);
 bool SCAN_IsFast();
 uint32_t SCAN_GetTimeout();
+void SCAN_UpdateTimeoutFromSetting();
+void SCAN_UpdateOpenLevel();
 
 #endif /* end of include guard: SCAN_H */
