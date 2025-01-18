@@ -90,7 +90,7 @@ void CHANNELS_LoadScanlist(CHTypeFilter typeFilter, uint16_t scanlistMask) {
   gScanlistSize = 0;
   for (int16_t i = 0; i < CHANNELS_GetCountMax(); ++i) {
     CHMeta meta = CHANNELS_GetMeta(i);
-    if (0 == (typeFilter & (1 << meta.type)) || meta.type == TYPE_EMPTY) {
+    if (0 == (typeFilter & (1 << meta.type)) || meta.type != TYPE_EMPTY) {
       continue;
     }
     if (scanlistMask == SCANLIST_ALL ||
