@@ -12,16 +12,6 @@ typedef struct {
   uint16_t vMax;
 } VMinMax;
 
-typedef struct {
-  uint16_t r;
-  uint8_t n;
-} FastScanSq;
-
-static FastScanSq fastScanSq = {
-    .r = UINT16_MAX,
-    .n = 0,
-};
-
 uint8_t SPECTRUM_Y = 16;
 uint8_t SPECTRUM_H = 40;
 
@@ -31,7 +21,6 @@ static uint8_t S_BOTTOM;
 
 static uint16_t rssiHistory[MAX_POINTS] = {0};
 static uint16_t rssiGraphHistory[MAX_POINTS] = {0};
-static uint8_t noiseHistory[MAX_POINTS] = {0};
 
 static uint8_t x = 0;
 static uint8_t ox = UINT8_MAX;
@@ -63,35 +52,19 @@ static uint8_t maxNoise(const uint8_t *array, uint8_t n) {
   return max;
 }
 
-void SP_UpdateScanStats() {
-  fastScanSq.r = SP_GetNoiseFloor();
-  fastScanSq.n = SP_GetNoiseMax() - gNoiseOpenDiff;
-  // Log("Update stats r=%u,n=%u", fastScanSq.r, fastScanSq.n);
-}
-
-bool SP_HasStats() { return fastScanSq.r != UINT16_MAX; }
-
 uint8_t listenRssi = 0;
 
 bool SP_IsSquelchOpen(const Measurement *msm) {
-  uint8_t openLevel = gIsListening ? 66 /* (*_*) */ : gNoiseOpenDiff;
-  // Log("SP gIsListening? %u SNR=%u opn=%u", msm->f, msm->snr, openLevel);
+  // var is needed, cos of compiler(?)
+  uint8_t openLevel = gIsListening ? 43 /* (*_*) */ : gNoiseOpenDiff;
   return msm->snr >= openLevel;
-  /* const uint8_t noiseO = (fastScanSq.n - (gIsListening ? gNoiseOpenDiff :
-  0)); if (gIsListening) { Log("Is sq op? r=%u<=>%u,n=%u<=>%u", fastScanSq.r,
-  msm->snr, fastScanSq.n, msm->noise);
-  }
-  return msm->snr >= fastScanSq.r && msm->noise <= noiseO; */
 }
 
 void SP_ResetHistory(void) {
   filledPoints = 0;
   for (uint8_t i = 0; i < MAX_POINTS; ++i) {
     rssiHistory[i] = 0;
-    noiseHistory[i] = UINT8_MAX;
   }
-  fastScanSq.r = UINT16_MAX;
-  fastScanSq.n = 0;
 }
 
 void SP_Begin(void) {
@@ -107,10 +80,13 @@ void SP_Init(Band *b) {
   SP_Begin();
 }
 
+uint8_t SP_F2X(uint32_t f) {
+  return ConvertDomain(f, range->rxF, range->txF, 0, MAX_POINTS);
+}
+
 void SP_AddPoint(const Measurement *msm) {
-  uint32_t xs = ConvertDomain(msm->f, range->rxF, range->txF, 0, MAX_POINTS);
-  uint32_t xe =
-      ConvertDomain(msm->f + step, range->rxF, range->txF, 0, MAX_POINTS);
+  uint32_t xs = SP_F2X(msm->f);
+  uint32_t xe = SP_F2X(msm->f + step);
 
   if (xe > MAX_POINTS) {
     xe = MAX_POINTS;
@@ -119,13 +95,11 @@ void SP_AddPoint(const Measurement *msm) {
     if (ox != x) {
       ox = x;
       rssiHistory[x] = 0;
-      // noiseHistory[x] = UINT8_MAX;
     }
     if (msm->rssi) {
       if (msm->rssi > rssiHistory[x]) {
         rssiHistory[x] = msm->rssi;
       }
-
     } else {
       if (msm->snr > rssiHistory[x]) {
         rssiHistory[x] = msm->snr;
@@ -167,9 +141,10 @@ void SP_Render(const Band *p) {
 }
 
 void SP_RenderArrow(const Band *p, uint32_t f) {
-  uint8_t cx = ConvertDomain(f, p->rxF, p->txF, 0, MAX_POINTS - 1);
-  DrawVLine(cx, SPECTRUM_Y, 4, C_FILL);
-  FillRect(cx - 2, SPECTRUM_Y, 5, 2, C_FILL);
+  uint8_t cx = SP_F2X(f);
+  DrawVLine(cx, SPECTRUM_Y + SPECTRUM_H + 1, 1, C_FILL);
+  FillRect(cx - 1, SPECTRUM_Y + SPECTRUM_H + 2, 3, 1, C_FILL);
+  FillRect(cx - 2, SPECTRUM_Y + SPECTRUM_H + 3, 5, 1, C_FILL);
 }
 
 void SP_RenderRssi(uint16_t rssi, char *text, bool top) {
@@ -189,7 +164,6 @@ void SP_RenderLine(uint16_t rssi) {
 }
 
 uint16_t SP_GetNoiseFloor() { return Std(rssiHistory, filledPoints); }
-uint8_t SP_GetNoiseMax() { return maxNoise(noiseHistory, filledPoints); }
 uint16_t SP_GetRssiMax() { return Max(rssiHistory, filledPoints); }
 
 void SP_RenderGraph() {

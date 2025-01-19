@@ -15,7 +15,6 @@ void SP_RenderRssi(uint16_t rssi, char *text, bool top);
 void SP_RenderLine(uint16_t rssi);
 void SP_RenderArrow(const Band *p, uint32_t f);
 uint16_t SP_GetNoiseFloor();
-uint8_t SP_GetNoiseMax();
 uint16_t SP_GetRssiMax();
 
 void SP_RenderGraph();
@@ -23,9 +22,9 @@ void SP_AddGraphPoint(const Measurement *msm);
 void SP_Shift(int16_t n);
 void SP_ShiftGraph(int16_t n);
 
-bool SP_HasStats();
-void SP_UpdateScanStats();
 bool SP_IsSquelchOpen(const Measurement *msm);
+uint8_t SP_F2X(uint32_t f);
+
 extern uint8_t gNoiseOpenDiff;
 
 extern uint8_t SPECTRUM_Y;

@@ -96,11 +96,6 @@ static Measurement *updateMeasurements(void) {
   }
 
   const bool isBeken = RADIO_GetRadio() == RADIO_BK4819;
-  const bool isFastScanListen = isBeken && gIsListening && SCAN_IsFast();
-
-  /* if (isFastScanListen && Now() - lastMsmUpdate < 1000) {
-    return msm;
-  } */
 
   if (!isBeken && Now() - lastMsmUpdate < 1000) {
     return msm;
@@ -120,7 +115,6 @@ static Measurement *updateMeasurements(void) {
     msm->noise = BK4819_GetNoise();
     msm->glitch = BK4819_GetGlitch();
     msm->snr = BK4819_GetSNR();
-    // Log("RNG=%u,%u,%u SNR=%u", msm->rssi, msm->noise, msm->glitch, msm->snr);
   }
   lastMsmUpdate = Now();
   msm->open = RADIO_IsSquelchOpen(msm);
@@ -169,9 +163,6 @@ static Measurement *updateMeasurements(void) {
         case '1':
           SVC_Toggle(SVC_BEACON, !SVC_Running(SVC_BEACON), 15000);
           RADIO_SendDTMF("00");
-          break;
-        case '2':
-          RADIO_SendDTMF("12345");
           break;
         case '3':
           RADIO_SendDTMF("%u", lastSNR);

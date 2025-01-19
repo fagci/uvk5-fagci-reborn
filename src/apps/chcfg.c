@@ -31,8 +31,8 @@ static MenuItem menuChVfo[] = {
     {"Gain", M_GAIN, ARRAY_SIZE(gainTable)},
     {"SQ type", M_SQ_TYPE, ARRAY_SIZE(sqTypeNames)},
     {"SQ level", M_SQ, 10},
-    {"RX freq", M_F_RX, 0},
-    {"TX freq / offset", M_F_TX, 0},
+    {"RX f", M_F_RX, 0},
+    {"TX f / offset", M_F_TX, 0},
     {"TX offset dir", M_TX_OFFSET_DIR, ARRAY_SIZE(TX_OFFSET_NAMES)},
     {"RX code type", M_RX_CODE_TYPE, ARRAY_SIZE(TX_CODE_TYPES)},
     {"RX code", M_RX_CODE, 0},
@@ -54,8 +54,8 @@ static MenuItem menuBand[] = {
     {"Gain", M_GAIN, ARRAY_SIZE(gainTable)},
     {"SQ type", M_SQ_TYPE, ARRAY_SIZE(sqTypeNames)},
     {"SQ level", M_SQ, 10},
-    {"RX freq", M_F_RX, 0},
-    {"TX freq / offset", M_F_TX, 0},
+    {"RX f", M_F_RX, 0},
+    {"TX f / offset", M_F_TX, 0},
     {"TX offset dir", M_TX_OFFSET_DIR, ARRAY_SIZE(TX_OFFSET_NAMES)},
 
     {"Bank", M_BANK, 128},
@@ -447,6 +447,10 @@ void CHCFG_init(void) {
   }
 
   updateTxCodeListSize();
+
+  if (menuIndex > menuSize) {
+    menuIndex = menuSize - 1;
+  }
 }
 
 void CHCFG_deinit(void) {

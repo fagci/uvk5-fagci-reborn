@@ -613,19 +613,19 @@ void RADIO_TuneToPure(uint32_t f, bool precise) {
   }
 }
 
-void RADIO_SwitchRadio() {
-  // Radio r = RADIO_GetRadio();
-  radio->modulation = getNextModulation(false);
-  radio->radio = RADIO_Selector(radio->rxF, radio->modulation);
+void RADIO_SwitchRadioPure() {
   if (oldRadio == radio->radio) {
     return;
   }
-  /* Log("Switch radio from %s to %s",
-      oldRadio == UINT8_MAX ? "-" : radioNames[oldRadio],
-      radioNames[radio->radio]); */
   rxTurnOff(oldRadio);
   rxTurnOn(radio->radio);
   oldRadio = radio->radio;
+}
+
+void RADIO_SwitchRadio() {
+  radio->modulation = getNextModulation(false);
+  radio->radio = RADIO_Selector(radio->rxF, radio->modulation);
+  RADIO_SwitchRadioPure();
 }
 
 static void checkVisibleBand() {
@@ -958,9 +958,7 @@ bool RADIO_NextBandFreqXBandEx(bool next, bool precise) {
       step--;
     }
 
-    bool canSwitchToNextBand =
-        gCurrentBand.meta.type !=
-        TYPE_BAND_DETACHED; //&& (!SCAN_IsFast() || SP_HasStats())
+    bool canSwitchToNextBand = gCurrentBand.meta.type != TYPE_BAND_DETACHED;
 
     if (step < 0) {
       // get previous band
@@ -969,14 +967,12 @@ bool RADIO_NextBandFreqXBandEx(bool next, bool precise) {
       }
       steps = CHANNELS_GetSteps(&gCurrentBand);
       step = steps - 1;
-      SP_UpdateScanStats();
     } else if (step >= steps) {
       // get next band
       if (gSettings.currentScanlist && canSwitchToNextBand) {
         switchBand = BANDS_SelectBandRelativeByScanlist(true);
       }
       step = 0;
-      SP_UpdateScanStats();
     }
     radio->rxF = CHANNELS_GetF(&gCurrentBand, step);
   } else {

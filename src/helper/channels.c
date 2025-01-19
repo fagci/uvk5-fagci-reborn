@@ -63,11 +63,10 @@ bool CHANNELS_Existing(int16_t num) {
   return CHANNELS_GetMeta(num).type != TYPE_EMPTY;
 }
 
-uint8_t CHANNELS_Scanlists(int16_t num) {
-  uint8_t scanlists;
-  uint32_t addr = GetChannelOffset(num) + offsetof(CH, scanlists);
-  EEPROM_ReadBuffer(addr, &scanlists, 1);
-  return scanlists;
+uint16_t CHANNELS_Scanlists(int16_t num) {
+  uint16_t sl;
+  EEPROM_ReadBuffer(GetChannelOffset(num) + offsetof(CH, scanlists), &sl, 2);
+  return sl;
 }
 static int16_t chScanlistIndex = 0;
 
@@ -113,12 +112,10 @@ void CHANNELS_LoadScanlist(CHTypeFilter typeFilter, uint16_t scanlistMask) {
 }
 
 void CHANNELS_LoadBlacklistToLoot() {
-  uint8_t scanlistMask = 1 << 7;
+  const uint16_t SCANLIST_MASK = 1 << 15;
   for (int16_t i = 0; i < CHANNELS_GetCountMax(); ++i) {
-    if (!CHANNELS_Existing(i)) {
-      continue;
-    }
-    if ((CHANNELS_Scanlists(i) & scanlistMask) == scanlistMask) {
+    if (CHANNELS_GetMeta(i).type == TYPE_CH &&
+        (CHANNELS_Scanlists(i) & SCANLIST_MASK)) {
       CH ch;
       CHANNELS_Load(i, &ch);
       Loot *loot = LOOT_AddEx(ch.rxF, true);

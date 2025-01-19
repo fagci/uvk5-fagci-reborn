@@ -82,30 +82,6 @@ void UI_DrawTicks(uint8_t y, const Band *band) {
   }
 }
 
-void UI_DrawSpectrumElements(const uint8_t sy, uint8_t msmDelay, int16_t sq,
-                             Band *currentBand) {
-  PrintSmallEx(0, sy - 3, POS_L, C_FILL, "%ums", msmDelay);
-  if (sq >= 255) {
-    PrintSmallEx(LCD_WIDTH - 2, sy - 3, POS_R, C_FILL, "SQ off");
-  } else {
-    PrintSmallEx(LCD_WIDTH - 2, sy - 3, POS_R, C_FILL, "SQ %d", sq);
-  }
-  PrintSmallEx(LCD_WIDTH - 2, sy - 3 + 6, POS_R, C_FILL, "%s",
-               modulationTypeOptions[radio->modulation]);
-
-  if (gLastActiveLoot) {
-    PrintMediumBoldEx(LCD_XCENTER, 14, POS_C, C_FILL, "%u.%05u",
-                      gLastActiveLoot->f / MHZ, gLastActiveLoot->f % MHZ);
-  }
-
-  uint32_t fs = currentBand->rxF;
-  uint32_t fe = currentBand->txF;
-
-  PrintSmallEx(0, LCD_HEIGHT - 1, POS_L, C_FILL, "%u.%05u", fs / MHZ, fs % MHZ);
-  PrintSmallEx(LCD_WIDTH, LCD_HEIGHT - 1, POS_R, C_FILL, "%u.%05u", fe / MHZ,
-               fe % MHZ);
-}
-
 void UI_ShowWait() {
   FillRect(0, 32 - 5, 128, 9, C_FILL);
   PrintMediumBoldEx(64, 32 + 2, POS_C, C_CLEAR, "WAIT");

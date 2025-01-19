@@ -54,6 +54,8 @@ static void startScan() {
 
   if (RADIO_IsChMode()) {
     initChannelScan();
+  } else {
+    CHANNELS_LoadBlacklistToLoot();
   }
 
   SVC_Toggle(SVC_SCAN, true, scanTimeout);
@@ -68,8 +70,8 @@ uint32_t SCAN_GetTimeout() { return scanTimeout; }
 void SCAN_UpdateOpenLevel() {
   gNoiseOpenDiff =
       scanTimeout < 10
-          ? (uint8_t[]){20, 22, 36, 45, 48, 50, 52, 54, 58, 62}[scanTimeout]
-          : (50 + scanTimeout / 10);
+          ? (uint8_t[]){18, 19, 29, 35, 36, 37, 39, 40, 41, 42}[scanTimeout]
+          : 42;
 }
 
 void SCAN_UpdateTimeoutFromSetting() {

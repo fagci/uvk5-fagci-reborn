@@ -27,16 +27,16 @@ static char *VIEW_MODE_NAMES[] = {
     "TX",     //
     "SL",     //
     "SL SEL", //
-    "DELETE", //
+    "DEL", //
               // "TYPE",     //
               // "CH SEL",   //
 };
 
 static char *CH_TYPE_FILTER_NAMES[] = {
     [TYPE_FILTER_CH] = "CH",
-    [TYPE_FILTER_CH_SAVE] = "CH save",
+    [TYPE_FILTER_CH_SAVE] = "CH sav",
     [TYPE_FILTER_BAND] = "BAND",
-    [TYPE_FILTER_BAND_SAVE] = "BAND save",
+    [TYPE_FILTER_BAND_SAVE] = "BAND sav",
 };
 
 // TODO:
@@ -122,6 +122,11 @@ void CHLIST_init() {
   if (gChListFilter == TYPE_FILTER_BAND ||
       gChListFilter == TYPE_FILTER_BAND_SAVE) {
     channelIndex = BANDS_GetScanlistIndex();
+  }
+  if (gScanlistSize == 0) {
+    channelIndex = 0;
+  } else if (channelIndex > gScanlistSize) {
+    channelIndex = gScanlistSize - 1;
   }
 }
 

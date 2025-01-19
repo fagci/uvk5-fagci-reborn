@@ -271,12 +271,17 @@ bool VFO1_keyEx(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld,
 
   if (SVC_Running(SVC_SCAN) && (longHeld || simpleKeypress) &&
       (key > KEY_0 && key < KEY_9)) {
+    uint16_t oldScanlist = gSettings.currentScanlist;
     gSettings.currentScanlist = CHANNELS_ScanlistByKey(
         gSettings.currentScanlist, key, longHeld && !simpleKeypress);
-    Log("toggleSL");
-    SETTINGS_Save();
     VFO1_init();
-    SCAN_Start();
+    if (gScanlistSize == 0) {
+      gSettings.currentScanlist = oldScanlist;
+      VFO1_init();
+    } else {
+      SETTINGS_Save();
+      SCAN_Start();
+    }
 
     return true;
   }
@@ -469,11 +474,8 @@ void VFO1_render(void) {
     PrintSmallEx(14, 21 - 9, POS_C, C_INVERT, radio->name);
   }
   if (gVfo1ProMode) {
-    SQL sq = GetSql(radio->squelch.value);
-
-    PrintSmall(34, 12, "r %+3u %+3u/%+3u", RADIO_GetRSSI(), sq.ro, sq.rc);
-    PrintSmall(34, 18, "n %+3u %+3u/%+3u", BK4819_GetNoise(), sq.no, sq.nc);
-    PrintSmall(34, 24, "g %+3u %+3u/%+3u", BK4819_GetGlitch(), sq.go, sq.gc);
+    PrintSmall(34, 12, "RNG %+3u %+3u %+3u", RADIO_GetRSSI(), BK4819_GetNoise(),
+               BK4819_GetGlitch());
 
     PrintSmallEx(LCD_WIDTH - 1, 12, POS_R, C_FILL, "%s%u",
                  sqTypeNames[radio->squelch.type], radio->squelch.value);
