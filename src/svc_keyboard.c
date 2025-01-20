@@ -10,6 +10,9 @@
 #include "screencapture.h"
 #include "settings.h"
 
+static StaticTask_t taskBuffer;
+static StackType_t taskStack[configMINIMAL_STACK_SIZE + 100];
+
 // NOTE: Important!
 // If app runs app on keypress, keyup passed to next app
 // Common practice:
@@ -19,7 +22,7 @@
 static void onKey(KEY_Code_t key, bool pressed, bool hold) {
   if (key != KEY_INVALID) {
     BACKLIGHT_On();
-    TaskTouch(BACKLIGHT_Update);
+    // TaskTouch(BACKLIGHT_Update);
   }
 
   if (hold && pressed && !gRepeatHeld && key == KEY_F) {
@@ -70,8 +73,17 @@ static void onKey(KEY_Code_t key, bool pressed, bool hold) {
   }
 }
 
-void SVC_KEYBOARD_Init(void) {}
+void SVC_KEYBOARD_Init(void) {
+  xTaskCreateStatic(SVC_KEYBOARD_Update, "KBD", ARRAY_SIZE(taskStack), NULL, 2,
+                    taskStack, &taskBuffer);
+}
 
-void SVC_KEYBOARD_Update(void) { KEYBOARD_CheckKeys(onKey); }
+void SVC_KEYBOARD_Update(void) {
+  for (;;) {
+    Log("KBD .");
+    KEYBOARD_CheckKeys(onKey);
+    vTaskDelay(pdMS_TO_TICKS(10));
+  }
+}
 
 void SVC_KEYBOARD_Deinit(void) {}

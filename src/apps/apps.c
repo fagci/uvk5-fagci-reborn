@@ -10,7 +10,6 @@
 #include "finput.h"
 #include "generator.h"
 #include "lootlist.h"
-#include "memview.h"
 #include "reset.h"
 #include "settings.h"
 #include "textinput.h"
@@ -56,14 +55,12 @@ const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
     APP_CH_LIST,   //
     APP_ANALYZER,  //
     APP_LOOT_LIST, //
-    APP_MEMVIEW,   //
     APP_GENERATOR, //
     APP_ABOUT,     //
 };
 
 const App apps[APPS_COUNT] = {
     {"None", NULL, NULL, NULL, NULL, NULL},
-    {"EEPROM view", MEMVIEW_Init, NULL, MEMVIEW_Render, MEMVIEW_key, NULL},
     {"Analyzer", ANALYZER_init, ANALYZER_update, ANALYZER_render, ANALYZER_key,
      ANALYZER_deinit},
     {"Channels", CHLIST_init, NULL, CHLIST_render, CHLIST_key, CHLIST_deinit},

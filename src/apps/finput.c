@@ -1,10 +1,11 @@
 #include "finput.h"
 #include "../driver/bk4819.h"
 #include "../driver/st7565.h"
-#include "../scheduler.h"
+#include "../external/FreeRTOS/include/FreeRTOS.h"
+#include "../external/FreeRTOS/include/projdefs.h"
+#include "../external/FreeRTOS/include/timers.h"
 #include "../ui/graphics.h"
 #include "apps.h"
-// #include <string.h>
 
 uint32_t gFInputTempFreq;
 void (*gFInputCallback)(uint32_t f);
@@ -86,16 +87,22 @@ static void fillFromTempFreq(void) {
     }
   }
 }
+static StaticTimer_t cursorBlinkTimerBuffer;
+static TimerHandle_t cursorBlinkTimer;
 
 void FINPUT_init(void) {
   // UI_ClearStatus();
   freqInputIndex = 0;
   freqInputDotIndex = 0;
   fillFromTempFreq();
-  TaskAdd("Dot blink", dotBlinkFn, 250, true, 100);
+
+  cursorBlinkTimer =
+      xTimerCreateStatic("BLNK", pdMS_TO_TICKS(250), pdFALSE, NULL, dotBlinkFn,
+                         &cursorBlinkTimerBuffer);
+  xTimerStart(cursorBlinkTimer, 0);
 }
 
-void FINPUT_deinit(void) { TaskRemove(dotBlinkFn); }
+void FINPUT_deinit(void) { xTimerStop(cursorBlinkTimer, 0); }
 
 bool FINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyHeld && bKeyPressed && !gRepeatHeld && key == KEY_EXIT) {

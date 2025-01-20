@@ -1,8 +1,3 @@
-/**
- * @author fagci
- * @author codernov https://github.com/codernov -- DW (sync)
- * */
-
 #include "svc_listening.h"
 #include "board.h"
 #include "dcs.h"
@@ -25,58 +20,22 @@
 #include <stdint.h>
 #include <string.h>
 
+static StaticTask_t taskBuffer;
+static StackType_t taskStack[configMINIMAL_STACK_SIZE + 100];
+
 static char dtmfChars[] = "0123456789ABCD*#";
 static char dtmfBuffer[16] = "";
 static uint8_t dtmfBufferLength = 0;
 static uint32_t lastDTMF = 0;
 
 static const uint8_t VFOS_COUNT = 2;
-static const uint8_t DW_CHECK_DELAY = 20;
-static const uint16_t DW_RSSI_RESET_CYCLE = 1000;
 static uint32_t lastRssiResetTime = 0;
 static uint32_t switchBackTimer = 0;
 
 static uint32_t lightOnTimeout = UINT32_MAX;
-static uint32_t blinkTimeout = UINT32_MAX;
 static bool lastListenState = false;
 
-static const uint32_t BLINK_DURATION = 50;
-static const uint32_t BLINK_INTERVAL = 5000;
-
-static bool checkActivityOnFreq(uint32_t freq) {
-  // TODO: rewrite to use base RADIO logic
-  uint32_t oldFreq = BK4819_GetFrequency();
-  bool activity;
-
-  BK4819_TuneTo(freq, false);
-  SYSTEM_DelayMs(DW_CHECK_DELAY);
-  activity = BK4819_IsSquelchOpen();
-  BK4819_TuneTo(oldFreq, false);
-
-  return activity;
-}
-
-static void sync(void) {
-  static int8_t i = VFOS_COUNT - 1;
-
-  if (checkActivityOnFreq(gVFO[i].rxF)) {
-    gDW.activityOnVFO = i;
-    gDW.lastActiveVFO = i;
-    if (gSettings.dw == DW_SWITCH) {
-      gSettings.activeVFO = i;
-      RADIO_SaveCurrentVFO();
-    }
-    gDW.isSync = true;
-    gDW.doSync = false;
-    gDW.doSwitch = true;
-    gDW.doSwitchBack = false;
-  }
-
-  i--;
-  if (i < 0) {
-    i = VFOS_COUNT - 1;
-  }
-}
+static TaskHandle_t handle;
 
 static uint32_t lastMsmUpdate = 0;
 static uint32_t lastTailTone = 0;
@@ -199,101 +158,49 @@ static Measurement *updateMeasurements(void) {
                RADIO_GetRadio() == RADIO_BK4819) {
       rx = false;
     }
-    // Log("SVC_LISTEN toggle rx=%u(was %u), snr=%u", rx, gIsListening, msm->snr);
+    // Log("SVC_LISTEN toggle rx=%u(was %u), snr=%u", rx, gIsListening,
+    // msm->snr);
     RADIO_ToggleRX(rx);
   }
   return msm;
 }
 
 void SVC_LISTEN_Init(void) {
-  gDW.lastActiveVFO = -1;
-  gDW.activityOnVFO = 0;
-  gDW.isSync = false;
-  gDW.doSync = gSettings.dw != DW_OFF;
-  gDW.doSwitch = false;
-  gDW.doSwitchBack = false;
+  handle = xTaskCreateStatic(SVC_LISTEN_Update, "LSTN", ARRAY_SIZE(taskStack),
+                             NULL, 2, taskStack, &taskBuffer);
 }
 
 void SVC_LISTEN_Update(void) {
-  if (gSettings.dw != DW_OFF) {
-    if (gDW.doSwitch) {
-      gDW.doSwitch = false;
-      gDW.doSync = false;
-      gDW.doSwitchBack = true;
+  for (;;) {
+    Log("LSTN .");
 
-      radio = &gVFO[gDW.activityOnVFO];
-      RADIO_SetupByCurrentVFO();
-    }
-
-    if (gDW.doSwitchBack) {
-      if (!gIsListening && Now() - switchBackTimer >= 500) {
-        switchBackTimer = Now();
-
-        gDW.doSwitch = false;
-        gDW.doSync = true;
-        gDW.doSwitchBack = false;
-        gDW.isSync = false;
-
-        radio = &gVFO[gSettings.activeVFO];
-        RADIO_SetupByCurrentVFO();
+    // if (RADIO_GetRadio() == RADIO_BK4819 || gShowAllRSSI) {
+    Measurement *m = updateMeasurements();
+    if (gIsListening) {
+      static uint32_t lastGraphMsm;
+      if (Now() - lastGraphMsm > 250) {
+        SP_ShiftGraph(-1);
+        SP_AddGraphPoint(m);
+        lastGraphMsm = Now();
       }
+    } else {
+      SP_AddPoint(m);
     }
-    // return;
-  }
-  if (gTxState == TX_UNKNOWN && gDW.doSync) {
-    if (gSettings.dw == DW_OFF) {
-      gDW.doSync = false;
-      return;
+    // }
+
+    if (lastListenState != gIsListening) {
+      // Log("Listen=%u, f=%u", gIsListening, radio->rxF);
+      lastListenState = gIsListening;
+      BOARD_ToggleGreen(gSettings.brightness > 1 && gIsListening);
     }
 
-    sync();
-
-    if (Now() - lastRssiResetTime > DW_RSSI_RESET_CYCLE) {
-      BK4819_ResetRSSI();
-      lastRssiResetTime = Now();
-    }
-    return;
-  }
-
-  // if (RADIO_GetRadio() == RADIO_BK4819 || gShowAllRSSI) {
-  Measurement *m = updateMeasurements();
-  if (gIsListening) {
-    static uint32_t lastGraphMsm;
-    if (Now() - lastGraphMsm > 250) {
-      SP_ShiftGraph(-1);
-      SP_AddGraphPoint(m);
-      lastGraphMsm = Now();
-    }
-  } else {
-    SP_AddPoint(m);
-  }
-  // }
-
-  bool blinkMode = RADIO_GetRadio() != RADIO_BK4819 || gMonitorMode;
-
-  if (lastListenState != gIsListening) {
-    // Log("Listen=%u, f=%u", gIsListening, radio->rxF);
-    lastListenState = gIsListening;
-    BOARD_ToggleGreen(gSettings.brightness > 1 && gIsListening);
-    if (gIsListening && blinkMode) {
-      blinkTimeout = Now() + BLINK_DURATION + BLINK_INTERVAL;
-    }
-  }
-
-  if (!blinkMode) {
-    return;
-  }
-
-  if (gIsListening && Now() > blinkTimeout) {
-    BOARD_ToggleGreen(true);
-    lightOnTimeout = Now() + BLINK_DURATION;
-    blinkTimeout = Now() + BLINK_DURATION + BLINK_INTERVAL;
-  }
-
-  if (Now() > lightOnTimeout) {
-    BOARD_ToggleGreen(false);
-    lightOnTimeout = UINT32_MAX;
+    vTaskDelay(pdMS_TO_TICKS(10));
   }
 }
 
-void SVC_LISTEN_Deinit(void) { RADIO_ToggleRX(false); }
+void SVC_LISTEN_Deinit(void) {
+  if (handle != NULL) {
+    vTaskDelete(handle);
+  }
+  RADIO_ToggleRX(false);
+}

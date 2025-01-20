@@ -10,10 +10,11 @@ typedef enum {
   SVC_SCAN,
   SVC_FC,
   SVC_BEACON,
-  SVC_BAT_SAVE,
+  // SVC_BAT_SAVE,
   SVC_APPS,
-  SVC_SYS,
+  // SVC_SYS,
   SVC_RENDER,
+  // SVC_UART,
 } Svc;
 
 bool SVC_Running(Svc svc);

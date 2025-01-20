@@ -36,14 +36,14 @@ static const RegisterSpec registerSpecs[] = {
 
     {"DEV", 0x40, 0, 0xFFF, 10},
     // {"300T", 0x44, 0, 0xFFFF, 1000},
-    RS_RF_FILT_BW,
+    // RS_RF_FILT_BW,
     // {"AFTxfl", 0x43, 6, 0b111, 1}, // 7 is widest
     // {"3kAFrsp", 0x74, 0, 0xFFFF, 100},
-    {"CMP", 0x31, 3, 1, 1},
-    {"MIC", 0x7D, 0, 0xF, 1},
+    // {"CMP", 0x31, 3, 1, 1},
+    // {"MIC", 0x7D, 0, 0xF, 1},
 
-    {"AGCL", 0x49, 0, 0b1111111, 1},
-    {"AGCH", 0x49, 7, 0b1111111, 1},
+    // {"AGCL", 0x49, 0, 0b1111111, 1},
+    // {"AGCH", 0x49, 7, 0b1111111, 1},
     {"AFC", 0x73, 0, 0xFF, 1},
 };
 
@@ -416,11 +416,7 @@ static void DrawRegs(void) {
   RegisterSpec rs = registerSpecs[menuIndex];
 
   if (rs.num == BK4819_REG_13) {
-    if (radio->gainIndex == AUTO_GAIN_INDEX) {
-      sprintf(String, "auto");
-    } else {
-      sprintf(String, "%+ddB", -gainTable[radio->gainIndex].gainDb + 33);
-    }
+    RADIO_GetGainString(String, radio->gainIndex);
   } else if (rs.num == 0x73) {
     uint8_t afc = BK4819_GetAFC();
     if (afc) {
@@ -467,15 +463,15 @@ void VFO1_render(void) {
     PrintMediumEx(LCD_WIDTH - 1, BASE - 12, POS_R, C_FILL, mod);
   }
 
-  FillRect(0, 21 - 14, 28, 7, C_FILL);
+  /* FillRect(0, 21 - 14, 28, 7, C_FILL);
   if (RADIO_IsChMode()) {
     PrintSmallEx(14, 21 - 9, POS_C, C_INVERT, "MR %03u", radio->channel);
   } else {
     PrintSmallEx(14, 21 - 9, POS_C, C_INVERT, radio->name);
-  }
+  } */
   if (gVfo1ProMode) {
-    PrintSmall(34, 12, "RNG %+3u %+3u %+3u", RADIO_GetRSSI(), BK4819_GetNoise(),
-               BK4819_GetGlitch());
+    /* PrintSmall(34, 12, "RNG %+3u %+3u %+3u", RADIO_GetRSSI(),
+       BK4819_GetNoise(), BK4819_GetGlitch()); */
 
     PrintSmallEx(LCD_WIDTH - 1, 12, POS_R, C_FILL, "%s%u",
                  sqTypeNames[radio->squelch.type], radio->squelch.value);

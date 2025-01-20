@@ -180,7 +180,6 @@ void BK4819_PlayRoger(void);
 void BK4819_PlayRogerTiny(void);
 void BK4819_PlayRogerMDC(void);
 void BK4819_PlayRogerStalk1(void);
-void BK4819_PlayRogerStalk2(void);
 
 void BK4819_Enable_AfDac_DiscMode_TxDsp(void);
 

@@ -6,7 +6,7 @@
 #include "systick.h"
 
 void I2C_Start(void) {
-  __disable_irq();
+  // __disable_irq();
   GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_I2C_SDA);
   SYSTICK_DelayTicks(16);
   GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_I2C_SCL);
@@ -26,7 +26,7 @@ void I2C_Stop(void) {
   SYSTICK_DelayTicks(16);
   GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_I2C_SDA);
   SYSTICK_DelayTicks(16);
-  __enable_irq();
+  // __enable_irq();
 }
 
 uint8_t I2C_Read(bool bFinal) {

@@ -9,6 +9,10 @@
 #include "../scheduler.h"
 #include "../svc.h"
 #include "components.h"
+#include "external/FreeRTOS/include/FreeRTOS.h"
+#include "external/FreeRTOS/include/projdefs.h"
+#include "external/FreeRTOS/include/task.h"
+#include "external/FreeRTOS/include/timers.h"
 #include "graphics.h"
 #include <string.h>
 
@@ -20,6 +24,8 @@ static uint32_t lastTickerUpdate = 0;
 
 static char statuslineText[32] = {0};
 static char statuslineTicker[32] = {0};
+static StaticTimer_t eepromRWTimerBuffer;
+static TimerHandle_t eepromRWTimer;
 
 static void eepromRWReset(void) {
   lastEepromWrite = gEepromWrite = false;
@@ -68,7 +74,10 @@ void STATUSLINE_update(void) {
   if (lastEepromWrite != gEepromWrite) {
     lastEepromWrite = gEepromWrite;
     gRedrawScreen = true;
-    TaskAdd("EEPROM RW-", eepromRWReset, 500, false, 0);
+    xTimerStop(eepromRWTimer, 0);
+    eepromRWTimer =
+        xTimerCreateStatic("EE RW-", pdMS_TO_TICKS(500), pdFALSE, NULL,
+                           eepromRWReset, &eepromRWTimerBuffer);
   }
 
   if (Now() - lastTickerUpdate > 5000) {

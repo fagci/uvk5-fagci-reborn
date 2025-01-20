@@ -100,4 +100,6 @@ bool RADIO_HasSi();
 void RADIO_SendDTMF(const char *pattern, ...);
 bool RADIO_IsChMode();
 
+void RADIO_GetGainString(char *String, uint8_t i);
+
 #endif /* end of include guard: RADIO_H */

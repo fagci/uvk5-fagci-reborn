@@ -1,6 +1,8 @@
 #include "textinput.h"
 #include "../driver/st7565.h"
-#include "../scheduler.h"
+#include "../external/FreeRTOS/include/FreeRTOS.h"
+#include "../external/FreeRTOS/include/projdefs.h"
+#include "../external/FreeRTOS/include/timers.h"
 #include "../ui/graphics.h"
 #include "apps.h"
 #include <string.h>
@@ -33,7 +35,8 @@ static const char *lettersCapital[9] = {
     "WXYZ"  // 9
 };
 
-static const char *numbers[10] = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0"};
+static const char *numbers[10] = {"1", "2", "3", "4", "5",
+                                  "6", "7", "8", "9", "0"};
 static const char *symbols[9] = {
     "",
     ".,!?:;",   // 2
@@ -75,14 +78,19 @@ static void backspace(void) {
     inputField[--inputIndex] = '\0';
   }
 }
+static StaticTimer_t cursorBlinkTimerBuffer;
+static TimerHandle_t cursorBlinkTimer;
 
 void TEXTINPUT_init(void) {
   strncpy(inputField, gTextinputText, 15);
   inputIndex = strlen(inputField);
-  TaskAdd("Cursor blnk", blink, 250, true, 100);
+  cursorBlinkTimer =
+      xTimerCreateStatic("R SAV VFO", pdMS_TO_TICKS(250), pdFALSE, NULL, blink,
+                         &cursorBlinkTimerBuffer);
+  xTimerStart(cursorBlinkTimer, 0);
 }
 
-void TEXTINPUT_deinit(void) { TaskRemove(blink); }
+void TEXTINPUT_deinit(void) { xTimerStop(cursorBlinkTimer, 0); }
 
 bool TEXTINPUT_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   // up-down keys

@@ -430,13 +430,6 @@ void BOARD_ToggleRed(bool on) {
 }
 
 void BOARD_Init(void) {
-  BOARD_PORTCON_Init();
-  BOARD_GPIO_Init();
-  BOARD_ADC_Init();
-
-  CRC_Init();
-  UART_Init();
-  LogUart("fagci R3b0rn\n");
 
   ST7565_Init();
   // BK1080_Init(0, false);

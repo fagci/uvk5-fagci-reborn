@@ -98,7 +98,8 @@ typedef struct {
   uint8_t vox : 4;
   uint8_t txTime : 4;
 
-  uint8_t micGain : 4;
+  uint8_t fcTime : 2;
+  uint8_t micGain : 2;
   uint8_t iAmPro : 1;
   uint8_t roger : 3;
 
@@ -167,6 +168,7 @@ extern const char *BL_SQL_MODE_NAMES[3];
 extern const char *CH_DISPLAY_MODE_NAMES[3];
 extern const char *rogerNames[5];
 extern const char *dwNames[3];
+extern const char *FC_TIME_NAMES[4];
 
 void SETTINGS_Save();
 void SETTINGS_Load();

@@ -15,6 +15,13 @@ SRC += $(wildcard $(SRC_DIR)/*.c)
 OBJS = $(OBJ_DIR)/start.o
 OBJS += $(OBJ_DIR)/init.o
 OBJS += $(OBJ_DIR)/external/printf/printf.o
+
+OBJS += $(OBJ_DIR)/external/FreeRTOS/list.o
+OBJS += $(OBJ_DIR)/external/FreeRTOS/queue.o
+OBJS += $(OBJ_DIR)/external/FreeRTOS/tasks.o
+OBJS += $(OBJ_DIR)/external/FreeRTOS/timers.o
+OBJS += $(OBJ_DIR)/external/FreeRTOS/portable/GCC/ARM_CM0/port.o
+
 OBJS += $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 BSP_DEFINITIONS := $(wildcard hardware/*/*.def)
@@ -35,7 +42,25 @@ CFLAGS = -Os -Wall -Wno-error -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-de
 CFLAGS += -DPRINTF_INCLUDE_CONFIG_H
 CFLAGS += -DGIT_HASH=\"$(GIT_HASH)\"
 CFLAGS += -DTIME_STAMP=\"$(TS)\"
+
+
+CCFLAGS += -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -MMD -g
+CCFLAGS += -flto
+CCFLAGS += -ftree-vectorize -funroll-loops
+CCFLAGS += -Wextra -Wno-unused-function -Wno-unused-variable -Wno-unknown-pragmas 
+#-Wunused-parameter -Wconversion
+CCFLAGS += -fno-math-errno -pipe -ffunction-sections -fdata-sections -ffast-math
+CCFLAGS += -fsingle-precision-constant -finline-functions-called-once
+CCFLAGS += -Os -g3 -fno-exceptions -fno-non-call-exceptions -fno-delete-null-pointer-checks
+CCFLAGS += -DARMCM0
+
+
 LDFLAGS = -mcpu=cortex-m0 -nostartfiles -Wl,-T,firmware.ld
+# Use newlib-nano instead of newlib
+LDFLAGS += --specs=nano.specs -lc -lnosys -mthumb -mabi=aapcs -lm -fno-rtti -fno-exceptions
+LDFLAGS += -Wl,--build-id=none
+LDFLAGS += -z noseparate-code -z noexecstack -mcpu=cortex-m0 -nostartfiles -Wl,-L,linker -Wl,--gc-sections
+LDFLAGS += -Wl,--print-memory-usage
 
 INC =
 INC += -I ./src
@@ -43,6 +68,8 @@ INC += -I ./src/external/CMSIS_5/CMSIS/Core/Include/
 INC += -I ./src/external/CMSIS_5/Device/ARM/ARMCM0/Include
 INC += -I ./src/external/mcufont/decoder/
 INC += -I ./src/external/mcufont/fonts/
+INC += -I ./src/external/FreeRTOS/include/.
+INC += -I ./src/external/FreeRTOS/portable/GCC/ARM_CM0/.
 
 DEPS = $(OBJS:.o=.d)
 

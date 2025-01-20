@@ -11,6 +11,10 @@
 #include "driver/st7565.h"
 #include "driver/system.h"
 #include "driver/uart.h"
+#include "external/FreeRTOS/include/FreeRTOS.h"
+#include "external/FreeRTOS/include/projdefs.h"
+#include "external/FreeRTOS/include/task.h"
+#include "external/FreeRTOS/include/timers.h"
 #include "external/printf/printf.h"
 #include "helper/bands.h"
 #include "helper/battery.h"
@@ -254,9 +258,16 @@ static void setSI4732Modulation(ModulationType mod) {
   }
 }
 
+static StaticTimer_t saveCurrentVfoTimerBuffer;
+static TimerHandle_t saveCurrentVfoTimer;
 void RADIO_SaveCurrentVFODelayed(void) {
-  TaskRemove(RADIO_SaveCurrentVFO);
-  TaskAdd("VFO sav", RADIO_SaveCurrentVFO, 1000, false, 0);
+  if (saveCurrentVfoTimer) {
+    xTimerStop(saveCurrentVfoTimer, 0);
+  }
+  saveCurrentVfoTimer =
+      xTimerCreateStatic("RS", pdMS_TO_TICKS(1000), pdFALSE, NULL,
+                         RADIO_SaveCurrentVFO, &saveCurrentVfoTimerBuffer);
+  xTimerStart(saveCurrentVfoTimer, 0);
 }
 
 static void setupToneDetection() {
@@ -352,9 +363,6 @@ static void sendEOT() {
     break;
   case 3:
     BK4819_PlayRogerStalk1();
-    break;
-  case 4:
-    BK4819_PlayRogerStalk2();
     break;
   default:
     break;
@@ -537,6 +545,8 @@ void RADIO_ToggleTX(bool on) {
 }
 
 bool RADIO_IsChMode() { return radio->channel >= 0; }
+StaticTimer_t updateAmSsbPowerTimerBuffer;
+TimerHandle_t updateAmSsbPowerTimer;
 
 void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power, bool paEnabled) {
   bool lastOn = gTxState == TX_ON;
@@ -566,10 +576,12 @@ void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power, bool paEnabled) {
     RADIO_EnableCxCSS();
 
     if (radio->modulation == MOD_AM || RADIO_IsSSB()) {
-      TaskAdd("AM TX", RADIO_UpdateAMSSBPower, 0, true, 0);
+      updateAmSsbPowerTimer = xTimerCreateStatic(
+          "AM TX PWR", pdMS_TO_TICKS(0), pdFALSE, NULL, RADIO_UpdateAMSSBPower,
+          &updateAmSsbPowerTimerBuffer);
     }
   } else if (lastOn) {
-    TaskRemove(RADIO_UpdateAMSSBPower);
+    xTimerStop(updateAmSsbPowerTimer, 0);
     BK4819_ExitDTMF_TX(true); // also prepares to tx ste
 
     sendEOT();
@@ -1063,5 +1075,13 @@ void RADIO_SendDTMF(const char *pattern, ...) {
     BK4819_EnterDTMF_TX(true);
     BK4819_PlayDTMFString(str, true, 100, 100, 100, 100);
     RADIO_ToggleTX(false);
+  }
+}
+
+void RADIO_GetGainString(char *String, uint8_t i) {
+  if (i == AUTO_GAIN_INDEX) {
+    sprintf(String, "AGC");
+  } else {
+    sprintf(String, "%+ddB", -gainTable[i].gainDb + 33);
   }
 }

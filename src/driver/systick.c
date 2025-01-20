@@ -1,23 +1,32 @@
 #include "systick.h"
 #include "../external/CMSIS_5/Device/ARM/ARMCM0/Include/ARMCM0.h"
+#include "external/FreeRTOS/include/FreeRTOS.h"
+#include "external/FreeRTOS/include/task.h"
 #include "misc.h"
 #include "system.h"
 
-static const uint32_t TICK_MULTIPLIER = CPU_CLOCK_HZ / 1000000;
+static const uint32_t TICK_MULTIPLIER = 48;
 
-void SYSTICK_Init(void) { SysTick_Config(CPU_CLOCK_HZ / 1000); }
+void SYSTICK_Init(void) { SysTick_Config(48000); }
 
 void SYSTICK_DelayTicks(const uint32_t ticks) {
-  uint32_t n0 = SysTick->VAL;
-  uint32_t np = n0;
-  int32_t nc;
-
+  // vTaskDelay(ticks);
+  uint32_t elapsed_ticks = 0;
+  uint32_t Start = SysTick->LOAD;
+  uint32_t Previous = SysTick->VAL;
   do {
-    nc = SysTick->VAL;
-    if (nc >= np)
-      n0 += SysTick->LOAD + 1;
-    np = nc;
-  } while (n0 - nc < ticks);
+    uint32_t Current;
+
+    do {
+      Current = SysTick->VAL;
+    } while (Current == Previous);
+
+    uint32_t Delta = ((Current < Previous) ? -Current : Start - Current);
+
+    elapsed_ticks += Delta + Previous;
+
+    Previous = Current;
+  } while (elapsed_ticks < ticks);
 }
 
 void SYSTICK_DelayUs(const uint32_t Delay) {

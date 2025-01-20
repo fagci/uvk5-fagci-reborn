@@ -122,12 +122,14 @@ void ANALYZER_update(void) {
     gRedrawScreen = true;
   }
   if (!gIsListening) {
+    Log("msm S");
     BK4819_SetFrequency(msm.f);
     BK4819_WriteRegister(BK4819_REG_30, 0x0200);
     BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
-    SYSTEM_DelayMs(scanInterval); // (X_X)
+    vTaskDelay(pdMS_TO_TICKS(scanInterval));
   }
   msm.rssi = BK4819_GetRSSI();
+  Log("msm E");
   if (gMonitorMode) {
     msm.open = true;
   } else {

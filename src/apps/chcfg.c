@@ -143,7 +143,7 @@ static void getMenuItemValue(BandCfgMenu type, char *Output) {
     sprintf(Output, "%u", gChEd.misc.powCalib.e);
     break;
   case M_GAIN:
-    sprintf(Output, "%ddB", -gainTable[gChEd.gainIndex].gainDb + 33);
+    RADIO_GetGainString(Output, gChEd.gainIndex);
     break;
   case M_MODULATION:
     strncpy(Output, modulationTypeOptions[gChEd.modulation], 31);
@@ -421,8 +421,7 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     sprintf(name, "%+d", index - 15);
     return;
   case M_GAIN:
-    sprintf(name, index == AUTO_GAIN_INDEX ? "auto" : "%+ddB",
-            -gainTable[index].gainDb + 33);
+    RADIO_GetGainString(name, index);
     return;
   case M_TX:
   case M_READONLY:

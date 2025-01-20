@@ -25,9 +25,7 @@ typedef enum {
 
 typedef struct {
   uint32_t bytes;
-  uint16_t channels;
-  uint8_t bands;
-  uint8_t vfos;
+  uint16_t mr;
   uint8_t settings;
 } Stats;
 
@@ -35,18 +33,13 @@ typedef struct {
   uint32_t eepromSize;
   uint32_t bytes;
   uint16_t pageSize;
-  uint16_t channels;
   uint16_t mr;
-  uint8_t bands;
-  uint8_t vfos;
   uint8_t settings;
 } Total;
 
 static char *RESET_TYPE_NAMES[] = {
     "0xFF",
     "FULL",
-    "CHANNELS",
-    "BANDS",
 };
 
 static Stats stats;
@@ -61,18 +54,13 @@ static void selectEeprom(EEPROMType t) {
   total.mr = CHANNELS_GetCountMax();
 
   total.settings = 1;
-  total.vfos = ARRAY_SIZE(gVFO);
-  total.bands = 0; // default bands
-  total.channels = total.mr - total.vfos - total.bands;
 }
 
 static void startReset(ResetType t) {
   resetType = t;
 
   stats.settings = total.settings;
-  stats.vfos = total.vfos;
-  stats.bands = total.bands;
-  stats.channels = total.channels;
+  stats.mr = total.mr;
 
   stats.bytes = 0;
 
@@ -80,78 +68,65 @@ static void startReset(ResetType t) {
   case RESET_0xFF:
     total.bytes = total.eepromSize;
     return;
-  case RESET_BANDS:
-    stats.bands = 0;
-    break;
-  case RESET_CHANNELS:
-    stats.channels = 0;
-    break;
   case RESET_FULL:
     stats.settings = 0;
-    stats.vfos = 0;
-    stats.bands = 0;
-    stats.channels = 0;
+    stats.mr = 0;
     break;
   default:
     break;
   }
   total.bytes = (total.settings - stats.settings) * SETTINGS_SIZE +
-                (total.vfos - stats.vfos) * CH_SIZE +
-                (total.bands - stats.bands) * CH_SIZE +
-                (total.channels - stats.channels) * CH_SIZE;
+                (total.mr - stats.mr) * CH_SIZE;
+}
+
+static void resetVfo(uint8_t i) {
+  memset(&gVFO[0], 0, sizeof(CH));
+  memset(&gVFO[1], 0, sizeof(CH));
+  VFO *vfo = &gVFO[i];
+
+  if (i == 0) {
+    sprintf(vfo->name, "%s", "VFO-A");
+    vfo->rxF = 14550000;
+  } else {
+    sprintf(vfo->name, "%s", "VFO-B");
+    vfo->rxF = 43307500;
+  }
+
+  vfo->channel = -1;
+  vfo->modulation = MOD_FM;
+  vfo->bw = BK4819_FILTER_BW_12k;
+  vfo->radio = RADIO_BK4819;
+  vfo->txF = 0;
+  vfo->offsetDir = OFFSET_NONE;
+  vfo->allowTx = false;
+  vfo->gainIndex = AUTO_GAIN_INDEX;
+  vfo->code.rx.type = 0;
+  vfo->code.tx.type = 0;
+  vfo->meta.readonly = false;
+  vfo->meta.type = TYPE_VFO;
+  vfo->squelch.value = 4;
+  vfo->step = STEP_25_0kHz;
+  CHANNELS_Save(total.mr - 2 + i, vfo);
+  stats.bytes += CH_SIZE;
 }
 
 static bool resetFull() {
+  if (stats.mr < total.mr) {
+    CHANNELS_Delete(stats.mr);
+    stats.mr++;
+    stats.bytes += CH_SIZE;
+    return false;
+  }
+
   if (stats.settings < total.settings) {
     SETTINGS_Save();
     stats.settings++;
     stats.bytes += SETTINGS_SIZE;
+    resetVfo(0);
+    resetVfo(1);
     return false;
   }
 
-  if (stats.vfos < total.vfos) {
-    memset(&gVFO[0], 0, sizeof(CH));
-    memset(&gVFO[1], 0, sizeof(CH));
-    VFO *vfo = &gVFO[stats.vfos];
-
-    if (stats.vfos == 0) {
-      sprintf(vfo->name, "%s", "VFO-A");
-      vfo->rxF = 14550000;
-    } else {
-      sprintf(vfo->name, "%s", "VFO-B");
-      vfo->rxF = 43307500;
-    }
-
-    vfo->channel = -1;
-    vfo->modulation = MOD_FM;
-    vfo->bw = BK4819_FILTER_BW_12k;
-    vfo->radio = RADIO_BK4819;
-    vfo->txF = 0;
-    vfo->offsetDir = OFFSET_NONE;
-    vfo->allowTx = false;
-    vfo->gainIndex = AUTO_GAIN_INDEX;
-    vfo->code.rx.type = 0;
-    vfo->code.tx.type = 0;
-    vfo->meta.readonly = false;
-    vfo->meta.type = TYPE_VFO;
-    vfo->squelch.value = 4;
-    vfo->step = STEP_25_0kHz;
-    CHANNELS_Save(total.mr - total.vfos + stats.vfos, vfo);
-    stats.vfos++;
-    stats.bytes += CH_SIZE;
-    return false;
-  }
-
-  if (stats.bands < total.bands) {
-    return false;
-  }
-
-  if (stats.channels < total.channels) {
-    CHANNELS_Delete(stats.channels);
-    stats.channels++;
-    stats.bytes += CH_SIZE;
-    return false;
-  }
   return true;
 }
 
@@ -183,8 +158,6 @@ void RESET_Update(void) {
   case RESET_0xFF:
     status = unreborn();
     break;
-  case RESET_BANDS:
-  case RESET_CHANNELS:
   case RESET_FULL:
     status = resetFull();
     break;

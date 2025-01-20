@@ -22,8 +22,8 @@ uint32_t SCAN_TIMEOUTS[15] = {
 };
 
 char *SCAN_TIMEOUT_NAMES[15] = {
-    "0",  "100ms", "200ms", "300ms", "400ms", "500ms", "1s",   "3s",
-    "5s", "10s",   "30s",   "1min",  "2min",  "5min",  "None",
+    "0",  ".1s", ".2s", ".3s",  ".4s",  ".5s",  "1s",   "3s",
+    "5s", "10s", "30s", "1min", "2min", "5min", "None",
 };
 
 static uint32_t timeout = 0;

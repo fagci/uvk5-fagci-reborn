@@ -1,5 +1,9 @@
 #include "settings.h"
 #include "driver/eeprom.h"
+#include "external/FreeRTOS/include/FreeRTOS.h"
+#include "external/FreeRTOS/include/projdefs.h"
+#include "external/FreeRTOS/include/task.h"
+#include "external/FreeRTOS/include/timers.h"
 #include "scheduler.h"
 #include <string.h>
 
@@ -14,6 +18,7 @@ const char *BL_SQL_MODE_NAMES[3] = {"Off", "On", "Open"};
 const char *CH_DISPLAY_MODE_NAMES[3] = {"Name+F", "F", "Name"};
 const char *rogerNames[5] = {"None", "Moto", "Tiny", "Stalk1", "Stalk2"};
 const char *dwNames[3] = {"Off", "TX Stay", "TX Switch"};
+const char *FC_TIME_NAMES[4] = {"0.2s", "0.4s", "0.8s", "1.6s"};
 const char *EEPROM_TYPE_NAMES[6] = {
     "BL24C64 #", // 010
     "BL24C128",  // 011
@@ -80,9 +85,16 @@ void SETTINGS_Load(void) {
   EEPROM_ReadBuffer(SETTINGS_OFFSET, &gSettings, SETTINGS_SIZE);
 }
 
+static StaticTimer_t settingsSaveTimerBuffer;
+static TimerHandle_t settingsSaveTimer;
 void SETTINGS_DelayedSave(void) {
-  TaskRemove(SETTINGS_Save);
-  TaskAdd("SetSav", SETTINGS_Save, 1000, false, 0);
+  if (settingsSaveTimer) {
+    xTimerStop(settingsSaveTimer, 0);
+  }
+  settingsSaveTimer =
+      xTimerCreateStatic("SS", pdMS_TO_TICKS(1000), pdFALSE, NULL,
+                         SETTINGS_Save, &settingsSaveTimerBuffer);
+  xTimerStart(settingsSaveTimer, 0);
 }
 
 uint32_t SETTINGS_GetFilterBound(void) {
