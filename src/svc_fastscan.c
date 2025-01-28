@@ -42,6 +42,7 @@ static void switchBand() {
 }
 
 void SVC_FC_Init(void) {
+  T = gSettings.fcTime;
   SVC_Toggle(SVC_LISTEN, false, 10);
   BK4819_StopScan();
   BK4819_EnableFrequencyScanEx(T);
@@ -55,7 +56,7 @@ void SVC_FC_Update(void) {
     return;
   }
 
-  if (Now() - lastSwitch >= 700) {
+  if (Now() - lastSwitch >= 200 + (400 << T)) {
     switchBand();
     lastSwitch = Now();
     return;

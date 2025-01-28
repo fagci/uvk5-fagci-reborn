@@ -46,6 +46,7 @@ typedef enum {
   M_PTT_LOCK,
   M_DTMF_DECODE,
   M_CH_DISP_MODE,
+  M_FC_TIME,
 } Menu;
 
 static uint8_t menuIndex = 0;
@@ -64,6 +65,7 @@ static const MenuItem menu[] = {
     {"SQL open t", M_SQL_OPEN_T, 7},
     {"SQL close t", M_SQL_CLOSE_T, 3},
     {"SCAN measure t", M_SCAN_DELAY, 255},
+    {"FC t", M_FC_TIME, 4},
     {"SCAN listen t/o", M_SQL_TO_OPEN, ARRAY_SIZE(SCAN_TIMEOUT_NAMES)},
     {"SCAN stay t", M_SQL_TO_CLOSE, ARRAY_SIZE(SCAN_TIMEOUT_NAMES)},
     {"SCAN skip X_X", M_SKIP_GARBAGE_FREQS, 2},
@@ -110,6 +112,9 @@ static void getSubmenuItemText(uint16_t index, char *name) {
     return;
   case M_BL_SQL:
     strncpy(name, BL_SQL_MODE_NAMES[index], 31);
+    return;
+  case M_FC_TIME:
+    strncpy(name, FC_TIME_NAMES[index], 31);
     return;
   case M_FLT_BOUND:
     strncpy(name, fltBound[index], 31);
@@ -201,6 +206,10 @@ static void accept(void) {
     break;
   case M_BRIGHTNESS:
     gSettings.brightness = subMenuIndex;
+    SETTINGS_Save();
+    break;
+  case M_FC_TIME:
+    gSettings.fcTime = subMenuIndex;
     SETTINGS_Save();
     break;
   case M_BRIGHTNESS_L:
@@ -302,6 +311,8 @@ static const char *getValue(Menu type) {
     return Output;
   case M_BAT_TYPE:
     return BATTERY_TYPE_NAMES[gSettings.batteryType];
+  case M_FC_TIME:
+    return FC_TIME_NAMES[gSettings.fcTime];
   case M_BAT_STYLE:
     return BATTERY_STYLE_NAMES[gSettings.batteryStyle];
   case M_MAIN_APP:
@@ -413,6 +424,9 @@ static void setInitialSubmenuIndex(void) {
     break;
   case M_BAT_CAL:
     subMenuIndex = gSettings.batteryCalibration - BAT_CAL_MIN;
+    break;
+  case M_FC_TIME:
+    subMenuIndex = gSettings.fcTime;
     break;
   case M_BAT_TYPE:
     subMenuIndex = gSettings.batteryType;
