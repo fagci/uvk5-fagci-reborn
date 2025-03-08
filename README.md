@@ -1,5 +1,7 @@
 # Reborn firmware
 
+⚠️ This project is not maintained, this maintained: [s0v4](https://github.com/fagci/s0v4)
+
 Based on [https://github.com/DualTachyon/uv-k5-firmware](https://github.com/DualTachyon/uv-k5-firmware).
 
 [Telegram group](https://t.me/uvk5_spectrum_talk)
